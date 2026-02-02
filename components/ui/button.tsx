@@ -1,19 +1,19 @@
 import { ButtonHTMLAttributes, forwardRef } from 'react'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost'
+  variant?: 'stone' | 'seal' | 'ethereal'
   size?: 'sm' | 'md' | 'lg'
   isLoading?: boolean
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className = '', variant = 'primary', size = 'md', isLoading, disabled, children, ...props }, ref) => {
-    const baseStyles = 'font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
+  ({ className = '', variant = 'stone', size = 'md', isLoading, disabled, children, ...props }, ref) => {
+    const baseStyles = 'font-[family-name:var(--font-title)] tracking-[0.15em] rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border-2 cursor-pointer hover:scale-105 active:scale-95'
 
     const variantStyles = {
-      primary: 'bg-[#10b981] text-white hover:bg-[#059669]',
-      secondary: 'bg-[#f97316] text-white hover:bg-[#ea580c]',
-      ghost: 'border-2 border-white/20 text-white hover:border-white/40 hover:bg-white/5'
+      stone: 'bg-[var(--obsidian-light)] text-[var(--ivory)] border-[var(--ivory)] border-opacity-40 hover:bg-[var(--obsidian)] hover:border-opacity-80 hover:shadow-[0_0_20px_rgba(229,225,216,0.2)] stone-texture',
+      seal: 'bg-[var(--burnt-amber)] text-[var(--obsidian)] hover:bg-[var(--burnt-amber-light)] hover:shadow-[0_0_30px_rgba(179,123,52,0.4)] stone-texture border-[var(--burnt-amber)] hover:border-[var(--burnt-amber-light)]',
+      ethereal: 'vellum-effect text-[var(--ivory)] hover:bg-[var(--ivory)]/10 border-[var(--ivory)] border-opacity-20 hover:border-opacity-50 hover:shadow-[0_0_20px_rgba(229,225,216,0.15)]'
     }
 
     const sizeStyles = {
