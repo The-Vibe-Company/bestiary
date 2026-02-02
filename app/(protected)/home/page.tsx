@@ -10,10 +10,17 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-black">
-      <h1 className="text-6xl font-bold text-white font-[family-name:var(--font-title)] mb-8">
-        {session.username}
-      </h1>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[var(--obsidian)] to-black">
+      <div className="relative">
+        {/* Parchemin background */}
+        <div className="absolute inset-0 -m-12 vellum-effect rounded-lg"></div>
+
+        {/* Username */}
+        <h1 className="relative z-10 text-7xl font-[family-name:var(--font-title)] tracking-[0.2em] text-[var(--ivory)] mb-8 px-12 py-8">
+          {session.username}
+        </h1>
+      </div>
+
       <SignOutButton />
     </div>
   )

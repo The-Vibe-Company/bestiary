@@ -24,10 +24,10 @@ export function SignOutButton() {
   return (
     <Button
       onClick={handleSignOut}
-      variant="secondary"
+      variant="ethereal"
       isLoading={isLoading}
     >
-      Se déconnecter
+      SE DÉCONNECTER
     </Button>
   )
 }

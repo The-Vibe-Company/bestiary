@@ -1,26 +1,26 @@
-'use client'
+"use client";
 
-import { useFormState, useFormStatus } from 'react-dom'
-import { signUp } from '@/app/actions/auth'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
+import { signUp } from "@/app/actions/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
+import { useFormState, useFormStatus } from "react-dom";
 
 function SubmitButton() {
-  const { pending } = useFormStatus()
+  const { pending } = useFormStatus();
 
   return (
-    <Button type="submit" variant="primary" className="w-full" isLoading={pending}>
-      S'inscrire
+    <Button type="submit" variant="seal" className="w-full" isLoading={pending}>
+      S'INSCRIRE
     </Button>
-  )
+  );
 }
 
 export function SignUpForm() {
-  const [state, formAction] = useFormState(signUp, null)
+  const [state, formAction] = useFormState(signUp, null);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-6">
       <Input
         type="text"
         name="username"
@@ -49,19 +49,22 @@ export function SignUpForm() {
       />
 
       {state?.error && (
-        <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg">
+        <div className="p-4 text-sm bg-[var(--burnt-amber)]/20 border border-[var(--burnt-amber)] border-opacity-40 rounded text-[var(--burnt-amber-light)]">
           {state.error}
         </div>
       )}
 
       <SubmitButton />
 
-      <p className="text-center text-sm text-gray-600">
-        Déjà un compte ?{' '}
-        <Link href="/sign-in" className="text-[#10b981] hover:text-[#059669] font-medium">
+      <p className="text-center text-sm text-[var(--ivory-dark)] font-[family-name:var(--font-body)]">
+        Déjà un compte ?{" "}
+        <Link
+          href="/sign-in"
+          className="text-[var(--burnt-amber)] hover:text-[var(--burnt-amber-light)] transition-colors"
+        >
           Se connecter
         </Link>
       </p>
     </form>
-  )
+  );
 }
