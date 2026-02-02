@@ -1,0 +1,33 @@
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { useState } from 'react'
+
+export function SignOutButton() {
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+
+  async function handleSignOut() {
+    setIsLoading(true)
+    try {
+      await fetch('/api/auth/sign-out', { method: 'POST' })
+      router.push('/')
+      router.refresh()
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <Button
+      onClick={handleSignOut}
+      variant="secondary"
+      isLoading={isLoading}
+    >
+      Se déconnecter
+    </Button>
+  )
+}
