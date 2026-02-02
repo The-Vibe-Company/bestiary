@@ -3,11 +3,21 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary-green: #10b981;
+  --primary-orange: #f97316;
+  --green-hover: #059669;
+  --orange-hover: #ea580c;
+  --green-light: #d1fae5;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary-green: var(--primary-green);
+  --color-primary-orange: var(--primary-orange);
+  --color-green-hover: var(--green-hover);
+  --color-orange-hover: var(--orange-hover);
+  --color-green-light: var(--green-light);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

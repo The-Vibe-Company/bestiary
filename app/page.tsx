@@ -28,12 +28,12 @@ export default function LandingPage() {
             {/* Auth Buttons */}
             <div className="flex gap-4">
               <Link href="/sign-in">
-                <button className="px-6 py-3 text-lg font-bold font-[family-name:var(--font-heading)] border-2 border-white/50 rounded-lg text-white hover:border-white transition-all shadow-lg hover:shadow-xl backdrop-blur-sm cursor-pointer">
+                <button className="px-6 py-3 text-lg font-bold font-[family-name:var(--font-heading)] border-2 border-[#f97316] rounded-lg text-[#f97316] hover:bg-[#f97316] hover:text-white transition-all shadow-lg hover:shadow-xl backdrop-blur-sm cursor-pointer">
                   CONNEXION
                 </button>
               </Link>
               <Link href="/sign-up">
-                <button className="px-6 py-3 text-lg font-bold font-[family-name:var(--font-heading)] border-2 border-[var(--wax-gold)] rounded-lg text-[var(--wax-gold)] hover:bg-[var(--wax-gold)] hover:text-[var(--cedar-dark)] transition-all shadow-lg hover:shadow-xl backdrop-blur-sm cursor-pointer">
+                <button className="px-6 py-3 text-lg font-bold font-[family-name:var(--font-heading)] bg-[#10b981] rounded-lg text-white hover:bg-[#059669] transition-all shadow-lg hover:shadow-xl backdrop-blur-sm cursor-pointer">
                   INSCRIPTION
                 </button>
               </Link>
