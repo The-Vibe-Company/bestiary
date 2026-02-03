@@ -69,14 +69,3 @@ export const BIOME_TEXTURES: Record<BiomeType, string> = {
   montagne: 'repeating-linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)',
   eau: 'repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(255,255,255,0.1) 8px, rgba(255,255,255,0.1) 16px)'
 }
-
-export const BIOME_IMAGES: Record<BiomeType, string> = {
-  prairie: '/assets/prairie.png',
-  foret: '/assets/forêt.png',
-  desert: '/assets/desert.png',
-  savane: '/assets/savane.png',
-  jungle: '/assets/jungle.png',
-  banquise: '/assets/banquise.png',
-  montagne: '/assets/montagne.png',
-  eau: '/assets/eau.png'
-}
