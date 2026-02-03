@@ -1,6 +1,6 @@
 'use client'
 
-import { WorldMap } from '@/lib/game/map/types'
+import { WorldMap, MapCell } from '@/lib/game/map/types'
 import { BIOME_CONFIGS, BIOME_TEXTURES } from '@/lib/game/map/biomes'
 
 interface IsometricMapViewerProps {
@@ -9,6 +9,7 @@ interface IsometricMapViewerProps {
   viewSize: number
   centerX: number
   centerY: number
+  onHoverCell?: (cell: MapCell | null) => void
 }
 
 export function IsometricMapViewer({
@@ -16,8 +17,10 @@ export function IsometricMapViewer({
   cellSize,
   viewSize,
   centerX,
-  centerY
+  centerY,
+  onHoverCell
 }: IsometricMapViewerProps) {
+
   // Calculer zone visible
   const halfView = Math.floor(viewSize / 2)
   const startX = Math.max(0, centerX - halfView)
@@ -25,44 +28,103 @@ export function IsometricMapViewer({
   const endX = Math.min(100, startX + viewSize)
   const endY = Math.min(100, startY + viewSize)
 
-  // Extraire cellules visibles
-  const visibleCells = []
-  for (let y = startY; y < endY; y++) {
-    for (let x = startX; x < endX; x++) {
-      visibleCells.push(map[y][x])
-    }
-  }
-
   const actualViewWidth = endX - startX
   const actualViewHeight = endY - startY
 
-  return (
-    <div
-      className="map-grid-isometric"
-      style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${actualViewWidth}, ${cellSize}px)`,
-        gridTemplateRows: `repeat(${actualViewHeight}, ${cellSize}px)`,
-        gap: '0px',
-      }}
-    >
-      {visibleCells.map((cell) => {
-        const biomeConfig = BIOME_CONFIGS[cell.biome]
-        const texture = BIOME_TEXTURES[cell.biome]
+  // Générer les numéros d'axes
+  const xLabels = Array.from({ length: actualViewWidth }, (_, i) => startX + i)
+  const yLabels = Array.from({ length: actualViewHeight }, (_, i) => startY + i)
 
-        return (
+  const gridWidth = actualViewWidth * cellSize
+  const gridHeight = actualViewHeight * cellSize
+
+  return (
+    <div className="relative" style={{ width: gridWidth, height: gridHeight }}>
+      {/* Légende X - en haut, position absolue */}
+      <div
+        className="absolute flex pointer-events-none"
+        style={{
+          top: -16,
+          left: 0,
+          width: gridWidth,
+        }}
+      >
+        {xLabels.map((x) => (
           <div
-            key={`${cell.x}-${cell.y}`}
+            key={`x-${x}`}
+            className="flex items-center justify-center"
             style={{
               width: `${cellSize}px`,
-              height: `${cellSize}px`,
-              backgroundColor: biomeConfig.baseColor,
-              backgroundImage: texture,
-              border: `1px solid ${biomeConfig.borderColor}`,
+              fontSize: '9px',
+              color: '#f5f5dc',
+              opacity: 0.6,
             }}
-          />
-        )
-      })}
+          >
+            {x}
+          </div>
+        ))}
+      </div>
+
+      {/* Légende Y - à gauche, position absolue */}
+      <div
+        className="absolute flex flex-col pointer-events-none"
+        style={{
+          top: 0,
+          left: -20,
+          height: gridHeight,
+        }}
+      >
+        {yLabels.map((y) => (
+          <div
+            key={`y-${y}`}
+            className="flex items-center justify-end pr-1"
+            style={{
+              height: `${cellSize}px`,
+              fontSize: '9px',
+              color: '#f5f5dc',
+              opacity: 0.6,
+            }}
+          >
+            {y}
+          </div>
+        ))}
+      </div>
+
+      {/* Grille de la map */}
+      <div
+        className="map-grid-isometric"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${actualViewWidth}, ${cellSize}px)`,
+          gridTemplateRows: `repeat(${actualViewHeight}, ${cellSize}px)`,
+          gap: '0px',
+        }}
+        onMouseLeave={() => onHoverCell?.(null)}
+      >
+        {Array.from({ length: actualViewHeight }, (_, rowIndex) =>
+          Array.from({ length: actualViewWidth }, (_, colIndex) => {
+            const cell = map[startY + rowIndex]?.[startX + colIndex]
+            if (!cell) return null
+
+            const biomeConfig = BIOME_CONFIGS[cell.biome]
+            const texture = BIOME_TEXTURES[cell.biome]
+
+            return (
+              <div
+                key={`${cell.x}-${cell.y}`}
+                style={{
+                  width: `${cellSize}px`,
+                  height: `${cellSize}px`,
+                  backgroundColor: biomeConfig.baseColor,
+                  backgroundImage: texture,
+                  border: `1px solid ${biomeConfig.borderColor}`,
+                }}
+                onMouseEnter={() => onHoverCell?.(cell)}
+              />
+            )
+          })
+        )}
+      </div>
     </div>
   )
 }
