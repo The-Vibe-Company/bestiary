@@ -1,5 +1,6 @@
 'use client'
 
+import { authClient } from '@/lib/auth/client'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
@@ -11,8 +12,8 @@ export function SignOutButton() {
   async function handleSignOut() {
     setIsLoading(true)
     try {
-      await fetch('/api/auth/sign-out', { method: 'POST' })
-      router.push('/')
+      await authClient.signOut()
+      router.push('/sign-in')
       router.refresh()
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error)
