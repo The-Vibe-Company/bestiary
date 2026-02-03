@@ -17,7 +17,7 @@ export default function SignUpPage() {
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-5xl font-[family-name:var(--font-title)] tracking-[0.2em] text-[var(--ivory)] mb-2 stone-texture inline-block px-4 py-2 rounded">
+            <h1 className="text-5xl font-[family-name:var(--font-title)] tracking-[0.2em] text-[var(--ivory)] mb-2" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
               BESTIARY
             </h1>
           </div>
