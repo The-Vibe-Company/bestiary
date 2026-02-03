@@ -1,5 +1,19 @@
 {
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/clean-dead-code.sh",
+            "async": true,
+            "timeout": 60
+          }
+        ]
+      }
+    ]
   }
 }
