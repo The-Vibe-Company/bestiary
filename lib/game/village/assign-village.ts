@@ -17,13 +17,23 @@ function isInBorderZone(cell: MapCell): boolean {
   const distFromTop = y
   const distFromBottom = maxCoord - y
 
-  // Vérifie si proche d'au moins un bord (entre 3 et 10 cases)
-  const nearLeft = distFromLeft >= MIN_BORDER_DISTANCE && distFromLeft <= MAX_BORDER_DISTANCE
-  const nearRight = distFromRight >= MIN_BORDER_DISTANCE && distFromRight <= MAX_BORDER_DISTANCE
-  const nearTop = distFromTop >= MIN_BORDER_DISTANCE && distFromTop <= MAX_BORDER_DISTANCE
-  const nearBottom = distFromBottom >= MIN_BORDER_DISTANCE && distFromBottom <= MAX_BORDER_DISTANCE
+  // D'abord vérifier que la cellule est à au moins 3 cases de TOUS les bords
+  const safeFromAllEdges =
+    distFromLeft >= MIN_BORDER_DISTANCE &&
+    distFromRight >= MIN_BORDER_DISTANCE &&
+    distFromTop >= MIN_BORDER_DISTANCE &&
+    distFromBottom >= MIN_BORDER_DISTANCE
 
-  return nearLeft || nearRight || nearTop || nearBottom
+  if (!safeFromAllEdges) return false
+
+  // Ensuite vérifier qu'elle est à max 10 cases d'au moins un bord
+  const nearAnyEdge =
+    distFromLeft <= MAX_BORDER_DISTANCE ||
+    distFromRight <= MAX_BORDER_DISTANCE ||
+    distFromTop <= MAX_BORDER_DISTANCE ||
+    distFromBottom <= MAX_BORDER_DISTANCE
+
+  return nearAnyEdge
 }
 
 export async function assignVillageToUser(userId: string) {

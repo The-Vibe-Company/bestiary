@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { WorldMap, MapCell } from '@/lib/game/map/types'
-import { IsometricMapViewer } from './isometric-map-viewer'
 import { Button } from '@/components/ui/button'
+import { MapCell, WorldMap } from '@/lib/game/map/types'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { IsometricMapViewer } from './isometric-map-viewer'
 
 const BIOME_LABELS: Record<string, string> = {
   prairie: 'Prairie',
@@ -67,12 +67,15 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
     <div
       className="min-h-[calc(100vh-72px)] w-full flex items-center justify-center overflow-hidden relative"
       style={{
-        backgroundImage: 'url(/assets/background.png)',
+        backgroundImage: 'url(/assets/background-map.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
       }}
     >
+      {/* Dark overlay for better contrast */}
+      <div className="absolute inset-0 bg-black/50"></div>
+
       {/* Tooltip EN DEHORS de la zone 3D */}
       {hoveredCell && (
         <div
@@ -90,7 +93,7 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
         </div>
       )}
 
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center relative z-10">
         {/* Zone 3D pour la map et flèches haut/gauche/droite */}
         <div
           className="flex flex-col items-center gap-6"
@@ -121,7 +124,15 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
             </Button>
 
             {/* Map */}
-            <div style={{ transform: 'translateZ(200px)' }}>
+            <div
+              className="p-8 rounded-lg"
+              style={{
+                transform: 'translateZ(200px)',
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                border: '3px solid rgba(139, 119, 83, 0.8)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
+              }}
+            >
               <IsometricMapViewer
                 map={map}
                 cellSize={cellSize}
@@ -147,7 +158,7 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
         </div>
 
         {/* Flèche bas EN DEHORS de la zone 3D */}
-        <div className="flex justify-center -mt-10">
+        <div className="flex justify-center -mt-10 relative z-10">
           <Button
             variant="stone"
             className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"

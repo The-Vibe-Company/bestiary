@@ -52,7 +52,7 @@ export function IsometricMapViewer({
       <div
         className="absolute flex pointer-events-none"
         style={{
-          top: -16,
+          top: -18,
           left: 0,
           width: gridWidth,
         }}
@@ -60,12 +60,12 @@ export function IsometricMapViewer({
         {xLabels.map((x) => (
           <div
             key={`x-${x}`}
-            className="flex items-center justify-center"
+            className="flex items-center justify-center font-bold"
             style={{
               width: `${cellSize}px`,
-              fontSize: '9px',
+              fontSize: '12px',
               color: '#f5f5dc',
-              opacity: 0.6,
+              textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
             }}
           >
             {x}
@@ -78,19 +78,19 @@ export function IsometricMapViewer({
         className="absolute flex flex-col pointer-events-none"
         style={{
           top: 0,
-          left: -20,
+          left: -22,
           height: gridHeight,
         }}
       >
         {yLabels.map((y) => (
           <div
             key={`y-${y}`}
-            className="flex items-center justify-end pr-1"
+            className="flex items-center justify-end pr-1 font-bold"
             style={{
               height: `${cellSize}px`,
-              fontSize: '9px',
+              fontSize: '12px',
               color: '#f5f5dc',
-              opacity: 0.6,
+              textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
             }}
           >
             {y}
@@ -132,16 +132,20 @@ export function IsometricMapViewer({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: `${cellSize * 0.5}px`,
                 }}
                 onMouseEnter={() => onHoverCell?.(cell)}
               >
                 {village && (
-                  <span style={{
-                    filter: isOwnVillage ? 'drop-shadow(0 0 4px gold)' : 'none',
-                  }}>
-                    🏠
-                  </span>
+                  <img
+                    src="/assets/village.png"
+                    alt="Village"
+                    style={{
+                      width: `${cellSize * 0.8}px`,
+                      height: `${cellSize * 0.8}px`,
+                      objectFit: 'contain',
+                      filter: isOwnVillage ? 'drop-shadow(0 0 4px gold)' : 'none',
+                    }}
+                  />
                 )}
               </div>
             )
