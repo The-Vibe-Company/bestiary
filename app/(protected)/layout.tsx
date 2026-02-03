@@ -1,5 +1,6 @@
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
+import { Header } from '@/components/layout/header'
 
 export default async function ProtectedLayout({
   children,
@@ -12,5 +13,12 @@ export default async function ProtectedLayout({
     redirect('/sign-in')
   }
 
-  return <>{children}</>
+  return (
+    <>
+      <Header />
+      <div className="pt-[72px]">
+        {children}
+      </div>
+    </>
+  )
 }
