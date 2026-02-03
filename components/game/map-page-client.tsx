@@ -80,66 +80,70 @@ export function MapPageClient({ map }: MapPageClientProps) {
         </div>
       )}
 
-      <div
-        className="flex flex-col items-center gap-6"
-        style={{
-          transform: 'perspective(1200px) rotateX(35deg) translateY(-60px)',
-          transformStyle: 'preserve-3d',
-        }}
-      >
-        {/* Flèche haut */}
-        <Button
-          variant="stone"
-          className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
-          style={{ transformStyle: 'flat' }}
-          onClick={handleMoveUp}
+      <div className="flex flex-col items-center">
+        {/* Zone 3D pour la map et flèches haut/gauche/droite */}
+        <div
+          className="flex flex-col items-center gap-6"
+          style={{
+            transform: 'perspective(1200px) rotateX(35deg) translateY(-60px)',
+            transformStyle: 'preserve-3d',
+          }}
         >
-          ↑
-        </Button>
-
-        <div className="flex items-center gap-8">
-          {/* Flèche gauche */}
+          {/* Flèche haut */}
           <Button
             variant="stone"
             className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
             style={{ transformStyle: 'flat' }}
-            onClick={handleMoveLeft}
+            onClick={handleMoveUp}
           >
-            ←
+            ↑
           </Button>
 
-          {/* Map */}
-          <div style={{ transform: 'translateZ(200px)' }}>
-            <IsometricMapViewer
-              map={map}
-              cellSize={cellSize}
-              viewSize={viewSize}
-              centerX={centerX}
-              centerY={centerY}
-              onHoverCell={setHoveredCell}
-            />
+          <div className="flex items-center gap-8">
+            {/* Flèche gauche */}
+            <Button
+              variant="stone"
+              className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
+              style={{ transformStyle: 'flat' }}
+              onClick={handleMoveLeft}
+            >
+              ←
+            </Button>
+
+            {/* Map */}
+            <div style={{ transform: 'translateZ(200px)' }}>
+              <IsometricMapViewer
+                map={map}
+                cellSize={cellSize}
+                viewSize={viewSize}
+                centerX={centerX}
+                centerY={centerY}
+                onHoverCell={setHoveredCell}
+              />
+            </div>
+
+            {/* Flèche droite */}
+            <Button
+              variant="stone"
+              className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
+              style={{ transformStyle: 'flat' }}
+              onClick={handleMoveRight}
+            >
+              →
+            </Button>
           </div>
-
-          {/* Flèche droite */}
-          <Button
-            variant="stone"
-            className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
-            style={{ transformStyle: 'flat' }}
-            onClick={handleMoveRight}
-          >
-            →
-          </Button>
         </div>
 
-        {/* Flèche bas */}
-        <Button
-          variant="stone"
-          className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
-          style={{ transform: 'translateZ(-100px) translateY(-50px)' }}
-          onClick={handleMoveDown}
-        >
-          ↓
-        </Button>
+        {/* Flèche bas EN DEHORS de la zone 3D */}
+        <div className="flex justify-center mt-4">
+          <Button
+            variant="stone"
+            className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
+            onClick={handleMoveDown}
+          >
+            ↓
+          </Button>
+        </div>
       </div>
     </div>
   )

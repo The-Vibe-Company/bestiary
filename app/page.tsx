@@ -11,7 +11,7 @@ export default function LandingPage() {
       />
 
       {/* Dark overlay for better text readability */}
-      <div className="absolute inset-0 bg-black/30"></div>
+      <div className="absolute inset-0 bg-black/40"></div>
 
       {/* Content */}
       <div className="relative z-10 min-h-screen flex flex-col">
@@ -44,15 +44,15 @@ export default function LandingPage() {
         {/* Main Content - Centered Play Button */}
         <main className="flex-1 flex items-center justify-center">
           <Link href="/sign-up" className="group relative cursor-pointer">
-            {/* Cercle extérieur (médaillon) */}
-            <div className="relative w-64 h-64 rounded-full stone-texture border-4 border-[var(--ivory)] border-opacity-40 flex items-center justify-center transition-all duration-500 hover:border-opacity-100 hover:shadow-[0_0_60px_rgba(179,123,52,0.5)] hover:scale-110 active:scale-105">
+            {/* Halo lumineux au survol */}
+            <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ boxShadow: '0 0 40px 15px rgba(229,225,216,0.4), 0 0 80px 30px rgba(229,225,216,0.2)' }}></div>
 
-              {/* Aura au survol */}
-              <div className="absolute inset-0 rounded-full bg-gradient-radial from-[var(--burnt-amber)]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
+            {/* Cercle extérieur (médaillon) */}
+            <div className="relative w-64 h-64 rounded-full border-4 border-[var(--ivory)] border-opacity-60 flex items-center justify-center transition-all duration-500 group-hover:border-opacity-100 group-hover:scale-105 active:scale-100">
 
               {/* Texte central */}
               <div className="relative z-10 text-center">
-                <span className="block text-5xl font-[family-name:var(--font-title)] tracking-[0.25em] text-[var(--ivory)] group-hover:text-[var(--burnt-amber-light)] transition-colors duration-300">
+                <span className="block text-5xl font-[family-name:var(--font-title)] tracking-[0.25em] text-[var(--ivory)]" style={{ textShadow: '0 0 10px rgba(229,225,216,0.5)' }}>
                   JOUER
                 </span>
               </div>

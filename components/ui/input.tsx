@@ -16,7 +16,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-[var(--ivory-dark)] mb-2 font-[family-name:var(--font-body)] tracking-wide uppercase">
+          <label className="block text-sm font-medium text-[var(--ivory)] mb-2 font-[family-name:var(--font-body)] tracking-wide uppercase">
             {label}
             {props.required && <span className="text-[var(--burnt-amber)] ml-1">*</span>}
           </label>
@@ -25,7 +25,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             type={inputType}
-            className={`w-full px-0 py-2 bg-transparent border-b-2 border-[var(--ivory)] border-opacity-30 focus:border-opacity-70 focus:border-[var(--burnt-amber)] transition-all font-[family-name:var(--font-body)] text-[var(--ivory)] placeholder:text-[var(--ivory-dark)] placeholder:opacity-50 focus:outline-none ${
+            className={`w-full px-0 py-2 bg-transparent border-b-2 border-[var(--ivory)] border-opacity-60 focus:border-opacity-100 focus:border-[var(--burnt-amber)] transition-all font-[family-name:var(--font-body)] text-[var(--ivory)] placeholder:text-[var(--ivory)] placeholder:opacity-60 focus:outline-none ${
               error ? 'border-[var(--burnt-amber)] border-opacity-60' : ''
             } ${className}`}
             {...props}
