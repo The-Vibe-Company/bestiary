@@ -17,16 +17,26 @@ const BIOME_LABELS: Record<string, string> = {
   eau: 'Eau'
 }
 
-interface MapPageClientProps {
-  map: WorldMap
+export interface Village {
+  x: number
+  y: number
+  ownerId: string
 }
 
-export function MapPageClient({ map }: MapPageClientProps) {
+interface MapPageClientProps {
+  map: WorldMap
+  villages: Village[]
+  initialX: number
+  initialY: number
+  currentUserId: string
+}
+
+export function MapPageClient({ map, villages, initialX, initialY, currentUserId }: MapPageClientProps) {
   const router = useRouter()
   const [cellSize, setCellSize] = useState(70)
   const [viewSize, setViewSize] = useState(7)
-  const [centerX, setCenterX] = useState(50)
-  const [centerY, setCenterY] = useState(50)
+  const [centerX, setCenterX] = useState(initialX)
+  const [centerY, setCenterY] = useState(initialY)
   const [hoveredCell, setHoveredCell] = useState<MapCell | null>(null)
 
   const handleZoomIn = () => {
@@ -42,8 +52,8 @@ export function MapPageClient({ map }: MapPageClientProps) {
   const handleReset = () => {
     setCellSize(80)
     setViewSize(7)
-    setCenterX(50)
-    setCenterY(50)
+    setCenterX(initialX)
+    setCenterY(initialY)
   }
 
   const handleHome = () => router.push('/home')
@@ -119,6 +129,8 @@ export function MapPageClient({ map }: MapPageClientProps) {
                 centerX={centerX}
                 centerY={centerY}
                 onHoverCell={setHoveredCell}
+                villages={villages}
+                currentUserId={currentUserId}
               />
             </div>
 

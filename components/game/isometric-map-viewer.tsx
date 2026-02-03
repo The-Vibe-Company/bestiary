@@ -2,6 +2,7 @@
 
 import { WorldMap, MapCell } from '@/lib/game/map/types'
 import { BIOME_CONFIGS, BIOME_TEXTURES } from '@/lib/game/map/biomes'
+import { Village } from './map-page-client'
 
 interface IsometricMapViewerProps {
   map: WorldMap
@@ -10,6 +11,8 @@ interface IsometricMapViewerProps {
   centerX: number
   centerY: number
   onHoverCell?: (cell: MapCell | null) => void
+  villages: Village[]
+  currentUserId: string
 }
 
 export function IsometricMapViewer({
@@ -18,8 +21,13 @@ export function IsometricMapViewer({
   viewSize,
   centerX,
   centerY,
-  onHoverCell
+  onHoverCell,
+  villages,
+  currentUserId
 }: IsometricMapViewerProps) {
+
+  // Créer un map des villages pour lookup rapide
+  const villageMap = new Map(villages.map(v => [`${v.x},${v.y}`, v]))
 
   // Calculer zone visible
   const halfView = Math.floor(viewSize / 2)
@@ -109,6 +117,9 @@ export function IsometricMapViewer({
             const biomeConfig = BIOME_CONFIGS[cell.biome]
             const texture = BIOME_TEXTURES[cell.biome]
 
+            const village = villageMap.get(`${cell.x},${cell.y}`)
+            const isOwnVillage = village?.ownerId === currentUserId
+
             return (
               <div
                 key={`${cell.x}-${cell.y}`}
@@ -118,9 +129,21 @@ export function IsometricMapViewer({
                   backgroundColor: biomeConfig.baseColor,
                   backgroundImage: texture,
                   border: `1px solid ${biomeConfig.borderColor}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: `${cellSize * 0.5}px`,
                 }}
                 onMouseEnter={() => onHoverCell?.(cell)}
-              />
+              >
+                {village && (
+                  <span style={{
+                    filter: isOwnVillage ? 'drop-shadow(0 0 4px gold)' : 'none',
+                  }}>
+                    🏠
+                  </span>
+                )}
+              </div>
             )
           })
         )}
