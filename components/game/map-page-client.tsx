@@ -135,7 +135,7 @@ export function MapPageClient({ map }: MapPageClientProps) {
         </div>
 
         {/* Flèche bas EN DEHORS de la zone 3D */}
-        <div className="flex justify-center mt-4">
+        <div className="flex justify-center -mt-10">
           <Button
             variant="stone"
             className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
