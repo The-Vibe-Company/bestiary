@@ -1,6 +1,8 @@
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import { SignOutButton } from '@/components/auth/sign-out-button'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 export default async function HomePage() {
   const session = await getSession()
@@ -10,7 +12,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[var(--obsidian)] to-black">
+    <div className="min-h-[calc(100vh-72px)] flex flex-col items-center justify-center bg-gradient-to-b from-[var(--obsidian)] to-black">
       <div className="relative">
         {/* Parchemin background */}
         <div className="absolute inset-0 -m-12 vellum-effect rounded-lg"></div>
@@ -21,7 +23,15 @@ export default async function HomePage() {
         </h1>
       </div>
 
-      <SignOutButton />
+      <div className="flex flex-col gap-4 mt-8">
+        <Link href="/map">
+          <Button variant="ethereal" size="lg">
+            Explorer la carte du monde
+          </Button>
+        </Link>
+
+        <SignOutButton />
+      </div>
     </div>
   )
 }
