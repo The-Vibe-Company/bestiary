@@ -69,7 +69,7 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
     <div
       className="min-h-[calc(100vh-72px)] w-full flex items-center justify-center overflow-hidden relative"
       style={{
-        backgroundImage: 'url(/assets/background-map.png)',
+        backgroundImage: 'url(/assets/backgrounds/background-map.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
