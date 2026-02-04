@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { IsometricMapViewer } from './isometric-map-viewer'
 
+const MAP_CONTAINER_SIZE = 490
+
 const BIOME_LABELS: Record<string, string> = {
   prairie: 'Prairie',
   foret: 'Forêt',
@@ -33,35 +35,35 @@ interface MapPageClientProps {
 
 export function MapPageClient({ map, villages, initialX, initialY, currentUserId }: MapPageClientProps) {
   const router = useRouter()
-  const [cellSize, setCellSize] = useState(70)
   const [viewSize, setViewSize] = useState(7)
-  const [centerX, setCenterX] = useState(initialX)
-  const [centerY, setCenterY] = useState(initialY)
+  const halfView = Math.floor(viewSize / 2)
+  const [startX, setStartX] = useState(Math.max(0, initialX - halfView))
+  const [startY, setStartY] = useState(Math.max(0, initialY - halfView))
   const [hoveredCell, setHoveredCell] = useState<MapCell | null>(null)
 
+  const maxStart = 100 - viewSize
+
   const handleZoomIn = () => {
-    setCellSize(prev => Math.min(prev + 10, 120))
-    setViewSize(prev => Math.max(prev - 1, 3))
+    setViewSize(prev => Math.max(prev - 4, 7))
   }
 
   const handleZoomOut = () => {
-    setCellSize(prev => Math.max(prev - 10, 40))
-    setViewSize(prev => Math.min(prev + 1, 20))
+    setViewSize(prev => Math.min(prev + 4, 19))
   }
 
   const handleReset = () => {
-    setCellSize(80)
     setViewSize(7)
-    setCenterX(initialX)
-    setCenterY(initialY)
+    const newHalfView = Math.floor(7 / 2)
+    setStartX(Math.max(0, initialX - newHalfView))
+    setStartY(Math.max(0, initialY - newHalfView))
   }
 
   const handleHome = () => router.push('/home')
 
-  const handleMoveUp = () => setCenterY(prev => Math.max(0, prev - 1))
-  const handleMoveDown = () => setCenterY(prev => Math.min(99, prev + 1))
-  const handleMoveLeft = () => setCenterX(prev => Math.max(0, prev - 1))
-  const handleMoveRight = () => setCenterX(prev => Math.min(99, prev + 1))
+  const handleMoveUp = () => setStartY(prev => Math.max(0, prev - 1))
+  const handleMoveDown = () => setStartY(prev => Math.min(maxStart, prev + 1))
+  const handleMoveLeft = () => setStartX(prev => Math.max(0, prev - 1))
+  const handleMoveRight = () => setStartX(prev => Math.min(maxStart, prev + 1))
 
   return (
     <div
@@ -135,13 +137,13 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
             >
               <IsometricMapViewer
                 map={map}
-                cellSize={cellSize}
                 viewSize={viewSize}
-                centerX={centerX}
-                centerY={centerY}
+                startX={startX}
+                startY={startY}
                 onHoverCell={setHoveredCell}
                 villages={villages}
                 currentUserId={currentUserId}
+                containerSize={MAP_CONTAINER_SIZE}
               />
             </div>
 
@@ -154,11 +156,12 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
             >
               →
             </Button>
+
           </div>
         </div>
 
         {/* Flèche bas EN DEHORS de la zone 3D */}
-        <div className="flex justify-center -mt-10 relative z-10">
+        <div className="-mt-10 relative z-10">
           <Button
             variant="stone"
             className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
@@ -167,6 +170,24 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
             ↓
           </Button>
         </div>
+      </div>
+
+      {/* Boutons Zoom - à droite de la page */}
+      <div className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
+        <Button
+          variant="stone"
+          className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
+          onClick={handleZoomIn}
+        >
+          +
+        </Button>
+        <Button
+          variant="stone"
+          className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
+          onClick={handleZoomOut}
+        >
+          −
+        </Button>
       </div>
     </div>
   )
