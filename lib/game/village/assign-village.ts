@@ -11,29 +11,15 @@ function isInBorderZone(cell: MapCell): boolean {
   const { x, y } = cell
   const maxCoord = MAP_SIZE - 1 // 99
 
-  // Distance depuis chaque bord
-  const distFromLeft = x
-  const distFromRight = maxCoord - x
-  const distFromTop = y
-  const distFromBottom = maxCoord - y
+  // Distance depuis le bord le plus proche en X et en Y
+  const distX = Math.min(x, maxCoord - x)
+  const distY = Math.min(y, maxCoord - y)
 
-  // D'abord vérifier que la cellule est à au moins 3 cases de TOUS les bords
-  const safeFromAllEdges =
-    distFromLeft >= MIN_BORDER_DISTANCE &&
-    distFromRight >= MIN_BORDER_DISTANCE &&
-    distFromTop >= MIN_BORDER_DISTANCE &&
-    distFromBottom >= MIN_BORDER_DISTANCE
+  // Les deux distances doivent être entre 3 et 10
+  const xInZone = distX >= MIN_BORDER_DISTANCE && distX <= MAX_BORDER_DISTANCE
+  const yInZone = distY >= MIN_BORDER_DISTANCE && distY <= MAX_BORDER_DISTANCE
 
-  if (!safeFromAllEdges) return false
-
-  // Ensuite vérifier qu'elle est à max 10 cases d'au moins un bord
-  const nearAnyEdge =
-    distFromLeft <= MAX_BORDER_DISTANCE ||
-    distFromRight <= MAX_BORDER_DISTANCE ||
-    distFromTop <= MAX_BORDER_DISTANCE ||
-    distFromBottom <= MAX_BORDER_DISTANCE
-
-  return nearAnyEdge
+  return xInZone && yInZone
 }
 
 export async function assignVillageToUser(userId: string) {
@@ -55,12 +41,16 @@ export async function assignVillageToUser(userId: string) {
   })
   const takenSet = new Set(takenVillages.map(v => `${v.x},${v.y}`))
 
-  // Trouver une prairie libre
-  const freePrairie = prairieCells.find(cell => !takenSet.has(`${cell.x},${cell.y}`))
+  // Trouver toutes les prairies libres
+  const freePrairies = prairieCells.filter(cell => !takenSet.has(`${cell.x},${cell.y}`))
 
-  if (!freePrairie) {
+  if (freePrairies.length === 0) {
     throw new Error('Aucune prairie disponible dans la zone de bordure')
   }
+
+  // Choisir une prairie aléatoirement
+  const randomIndex = Math.floor(Math.random() * freePrairies.length)
+  const freePrairie = freePrairies[randomIndex]
 
   // Créer le village
   return prisma.village.create({
