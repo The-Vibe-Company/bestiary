@@ -58,7 +58,7 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
     setStartY(Math.max(0, initialY - newHalfView))
   }
 
-  const handleHome = () => router.push('/home')
+  const handleHome = () => router.push('/village')
 
   const handleMoveUp = () => setStartY(prev => Math.max(0, prev - 1))
   const handleMoveDown = () => setStartY(prev => Math.min(maxStart, prev + 1))

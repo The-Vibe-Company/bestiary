@@ -34,7 +34,7 @@ export function SignUpForm() {
     } else {
       // Créer le village pour le nouvel utilisateur
       await fetch('/api/village/create', { method: 'POST', credentials: 'include' });
-      router.push("/home");
+      router.push("/village");
       router.refresh();
     }
   }

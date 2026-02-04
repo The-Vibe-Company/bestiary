@@ -30,7 +30,7 @@ export function SignInForm() {
       setError("Email ou mot de passe incorrect");
       setPending(false);
     } else {
-      router.push("/home");
+      router.push("/village");
       router.refresh();
     }
   }
