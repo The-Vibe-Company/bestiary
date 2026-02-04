@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { SignOutButton } from '@/components/auth/sign-out-button'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { assignVillageToUser } from '@/lib/game/village/assign-village'
 
 export default async function HomePage() {
   const { session, user } = await neonAuth()
@@ -10,6 +11,9 @@ export default async function HomePage() {
   if (!session || !user) {
     redirect('/sign-in')
   }
+
+  // S'assurer que l'utilisateur a un village (créé au signup ou ici en fallback)
+  await assignVillageToUser(session.userId)
 
   const displayName = user.name || user.email
 

@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { WorldMap, MapCell } from '@/lib/game/map/types'
-import { IsometricMapViewer } from './isometric-map-viewer'
 import { Button } from '@/components/ui/button'
+import { MapCell, WorldMap } from '@/lib/game/map/types'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { IsometricMapViewer } from './isometric-map-viewer'
+
+const MAP_CONTAINER_SIZE = 490
 
 const BIOME_LABELS: Record<string, string> = {
   prairie: 'Prairie',
@@ -17,52 +19,65 @@ const BIOME_LABELS: Record<string, string> = {
   eau: 'Eau'
 }
 
-interface MapPageClientProps {
-  map: WorldMap
+export interface Village {
+  x: number
+  y: number
+  ownerId: string
 }
 
-export function MapPageClient({ map }: MapPageClientProps) {
+interface MapPageClientProps {
+  map: WorldMap
+  villages: Village[]
+  initialX: number
+  initialY: number
+  currentUserId: string
+}
+
+export function MapPageClient({ map, villages, initialX, initialY, currentUserId }: MapPageClientProps) {
   const router = useRouter()
-  const [cellSize, setCellSize] = useState(70)
   const [viewSize, setViewSize] = useState(7)
-  const [centerX, setCenterX] = useState(50)
-  const [centerY, setCenterY] = useState(50)
+  const halfView = Math.floor(viewSize / 2)
+  const [startX, setStartX] = useState(Math.max(0, initialX - halfView))
+  const [startY, setStartY] = useState(Math.max(0, initialY - halfView))
   const [hoveredCell, setHoveredCell] = useState<MapCell | null>(null)
 
+  const maxStart = 100 - viewSize
+
   const handleZoomIn = () => {
-    setCellSize(prev => Math.min(prev + 10, 120))
-    setViewSize(prev => Math.max(prev - 1, 3))
+    setViewSize(prev => Math.max(prev - 4, 7))
   }
 
   const handleZoomOut = () => {
-    setCellSize(prev => Math.max(prev - 10, 40))
-    setViewSize(prev => Math.min(prev + 1, 20))
+    setViewSize(prev => Math.min(prev + 4, 19))
   }
 
   const handleReset = () => {
-    setCellSize(80)
     setViewSize(7)
-    setCenterX(50)
-    setCenterY(50)
+    const newHalfView = Math.floor(7 / 2)
+    setStartX(Math.max(0, initialX - newHalfView))
+    setStartY(Math.max(0, initialY - newHalfView))
   }
 
   const handleHome = () => router.push('/home')
 
-  const handleMoveUp = () => setCenterY(prev => Math.max(0, prev - 1))
-  const handleMoveDown = () => setCenterY(prev => Math.min(99, prev + 1))
-  const handleMoveLeft = () => setCenterX(prev => Math.max(0, prev - 1))
-  const handleMoveRight = () => setCenterX(prev => Math.min(99, prev + 1))
+  const handleMoveUp = () => setStartY(prev => Math.max(0, prev - 1))
+  const handleMoveDown = () => setStartY(prev => Math.min(maxStart, prev + 1))
+  const handleMoveLeft = () => setStartX(prev => Math.max(0, prev - 1))
+  const handleMoveRight = () => setStartX(prev => Math.min(maxStart, prev + 1))
 
   return (
     <div
       className="min-h-[calc(100vh-72px)] w-full flex items-center justify-center overflow-hidden relative"
       style={{
-        backgroundImage: 'url(/assets/background.png)',
+        backgroundImage: 'url(/assets/background-map.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
       }}
     >
+      {/* Dark overlay for better contrast */}
+      <div className="absolute inset-0 bg-black/50"></div>
+
       {/* Tooltip EN DEHORS de la zone 3D */}
       {hoveredCell && (
         <div
@@ -80,7 +95,7 @@ export function MapPageClient({ map }: MapPageClientProps) {
         </div>
       )}
 
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center relative z-10">
         {/* Zone 3D pour la map et flèches haut/gauche/droite */}
         <div
           className="flex flex-col items-center gap-6"
@@ -111,14 +126,24 @@ export function MapPageClient({ map }: MapPageClientProps) {
             </Button>
 
             {/* Map */}
-            <div style={{ transform: 'translateZ(200px)' }}>
+            <div
+              className="p-8 rounded-lg"
+              style={{
+                transform: 'translateZ(200px)',
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                border: '3px solid rgba(139, 119, 83, 0.8)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
+              }}
+            >
               <IsometricMapViewer
                 map={map}
-                cellSize={cellSize}
                 viewSize={viewSize}
-                centerX={centerX}
-                centerY={centerY}
+                startX={startX}
+                startY={startY}
                 onHoverCell={setHoveredCell}
+                villages={villages}
+                currentUserId={currentUserId}
+                containerSize={MAP_CONTAINER_SIZE}
               />
             </div>
 
@@ -131,11 +156,12 @@ export function MapPageClient({ map }: MapPageClientProps) {
             >
               →
             </Button>
+
           </div>
         </div>
 
         {/* Flèche bas EN DEHORS de la zone 3D */}
-        <div className="flex justify-center -mt-10">
+        <div className="-mt-10 relative z-10">
           <Button
             variant="stone"
             className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
@@ -144,6 +170,24 @@ export function MapPageClient({ map }: MapPageClientProps) {
             ↓
           </Button>
         </div>
+      </div>
+
+      {/* Boutons Zoom - à droite de la page */}
+      <div className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
+        <Button
+          variant="stone"
+          className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
+          onClick={handleZoomIn}
+        >
+          +
+        </Button>
+        <Button
+          variant="stone"
+          className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
+          onClick={handleZoomOut}
+        >
+          −
+        </Button>
       </div>
     </div>
   )

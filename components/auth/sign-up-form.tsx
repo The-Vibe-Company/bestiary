@@ -32,6 +32,8 @@ export function SignUpForm() {
       setError(result.error.message || "Une erreur est survenue");
       setPending(false);
     } else {
+      // Créer le village pour le nouvel utilisateur
+      await fetch('/api/village/create', { method: 'POST', credentials: 'include' });
       router.push("/home");
       router.refresh();
     }

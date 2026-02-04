@@ -10,3 +10,13 @@ datasource db {
 // Note: User authentication is now managed by Neon Auth (in neon_auth schema)
 // This model is no longer needed for authentication
 // Keep this file for future custom data models
+
+model Village {
+  id        String   @id @default(cuid())
+  x         Int
+  y         Int
+  ownerId   String   @unique  // 1 village par user
+  createdAt DateTime @default(now())
+
+  @@unique([x, y])  // Une seule village par coordonnée
+}

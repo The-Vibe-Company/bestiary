@@ -42,7 +42,7 @@ class MapGenerator {
     let cumulative = 0
 
     const allBiomes: BiomeType[] = ['prairie', 'foret', 'desert', 'savane', 'jungle', 'banquise', 'montagne', 'eau']
-    const weights = [50, 9, 9, 9, 9, 9, 2.5, 2.5] // Total = 100
+    const weights = [92, 1.14, 1.14, 1.14, 1.14, 1.14, 1.14, 1.14] // Total = 100 (92% prairie, ~1.14% chaque autre)
 
     for (let i = 0; i < allBiomes.length; i++) {
       cumulative += weights[i]
