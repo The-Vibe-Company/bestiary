@@ -3,6 +3,8 @@ import { MapPageClient } from '@/components/game/map-page-client'
 import { neonAuth } from '@neondatabase/auth/next/server'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import { ResourceBar } from '@/components/layout/resource-bar'
+import { getUserResources } from '@/lib/game/resources/get-user-resources'
 
 export default async function MapPage() {
   const { session } = await neonAuth()
@@ -23,13 +25,20 @@ export default async function MapPage() {
     select: { x: true, y: true, ownerId: true }
   })
 
+  const resources = await getUserResources(session.userId)
+
   return (
-    <MapPageClient
-      map={worldMap}
-      villages={allVillages}
-      initialX={userVillage?.x ?? 50}
-      initialY={userVillage?.y ?? 50}
-      currentUserId={session.userId}
-    />
+    <div className="relative">
+      <div className="absolute top-0 left-0 right-0 z-50">
+        <ResourceBar resources={resources} />
+      </div>
+      <MapPageClient
+        map={worldMap}
+        villages={allVillages}
+        initialX={userVillage?.x ?? 50}
+        initialY={userVillage?.y ?? 50}
+        currentUserId={session.userId}
+      />
+    </div>
   )
 }
