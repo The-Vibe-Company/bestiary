@@ -124,7 +124,7 @@ export function IsometricMapViewer({
             const isOwnVillage = village?.ownerId === currentUserId
 
             // PNG associé au biome (sauf prairie)
-            const biomeImage = cell.biome !== 'prairie' ? `/assets/${cell.biome}.png` : null
+            const biomeImage = cell.biome !== 'prairie' ? `/assets/map/${cell.biome}.png` : null
 
             // Taille ajustée par biome (certaines images ont moins de transparent)
             const biomeSizeMultiplier: Record<string, number> = {
@@ -185,7 +185,7 @@ export function IsometricMapViewer({
                 )}
                 {village && (
                   <img
-                    src="/assets/village_lvl_1.png"
+                    src="/assets/map/village_lvl_1.png"
                     alt="Village"
                     style={{
                       width: `${actualCellSize * 0.95}px`,

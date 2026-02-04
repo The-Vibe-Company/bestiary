@@ -7,7 +7,7 @@ export default function SignInPage() {
       {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url(/assets/background-main.png)" }}
+        style={{ backgroundImage: "url(/assets/backgrounds/background-main.png)" }}
       />
 
       {/* Dark overlay */}
