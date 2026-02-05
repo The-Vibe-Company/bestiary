@@ -26,7 +26,13 @@ export default async function MapPage() {
 
   // Récupérer tous les villages pour les afficher sur la map
   const allVillages = await prisma.village.findMany({
-    select: { x: true, y: true, ownerId: true }
+    select: {
+      x: true,
+      y: true,
+      ownerId: true,
+      name: true,
+      owner: { select: { username: true } },
+    }
   })
 
   const [villageResources, village, userResources, userData] = await Promise.all([

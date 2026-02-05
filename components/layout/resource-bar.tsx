@@ -2,6 +2,7 @@
 
 import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiVillage } from 'react-icons/gi'
 import { VillageResources } from '@/lib/game/resources/types'
+import { Tooltip } from '@/components/ui/tooltip'
 
 interface ResourceBarProps {
   villageName: string | null
@@ -9,10 +10,10 @@ interface ResourceBarProps {
 }
 
 const villageResourceConfig = [
-  { key: 'bois' as const, icon: GiWoodPile, color: '#8B4513' },
-  { key: 'pierre' as const, icon: GiStonePile, color: '#708090' },
-  { key: 'cereales' as const, icon: GiWheat, color: '#DAA520' },
-  { key: 'viande' as const, icon: GiMeat, color: '#CD5C5C' },
+  { key: 'bois' as const, icon: GiWoodPile, color: '#8B4513', label: 'Bois' },
+  { key: 'pierre' as const, icon: GiStonePile, color: '#708090', label: 'Pierre' },
+  { key: 'cereales' as const, icon: GiWheat, color: '#DAA520', label: 'Céréales' },
+  { key: 'viande' as const, icon: GiMeat, color: '#CD5C5C', label: 'Viande' },
 ]
 
 export function ResourceBar({ villageName, villageResources }: ResourceBarProps) {
@@ -33,13 +34,15 @@ export function ResourceBar({ villageName, villageResources }: ResourceBarProps)
         )}
 
         {/* Village Resources */}
-        {villageResourceConfig.map(({ key, icon: Icon, color }) => (
-          <div key={key} className="flex items-center gap-1.5">
-            <Icon size={20} style={{ color }} />
-            <span className="text-sm font-bold" style={{ color }}>
-              {villageResources[key]}
-            </span>
-          </div>
+        {villageResourceConfig.map(({ key, icon: Icon, color, label }) => (
+          <Tooltip key={key} label={label}>
+            <div className="flex items-center gap-1.5">
+              <Icon size={20} style={{ color }} />
+              <span className="text-sm font-bold" style={{ color }}>
+                {villageResources[key]}
+              </span>
+            </div>
+          </Tooltip>
         ))}
       </div>
     </div>

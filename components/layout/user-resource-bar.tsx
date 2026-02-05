@@ -1,6 +1,7 @@
 'use client'
 
 import { GiTwoCoins, GiSpellBook, GiPerson } from 'react-icons/gi'
+import { Tooltip } from '@/components/ui/tooltip'
 
 interface UserResourceBarProps {
   username: string
@@ -25,20 +26,24 @@ export function UserResourceBar({ username, userResources }: UserResourceBarProp
         <div className="w-px h-5 bg-[var(--ivory)]/30" />
 
         {/* Gold */}
-        <div className="flex items-center gap-1.5">
-          <GiTwoCoins size={20} style={{ color: '#FFD700' }} />
-          <span className="text-sm font-bold" style={{ color: '#FFD700' }}>
-            {userResources.or}
-          </span>
-        </div>
+        <Tooltip label="Or">
+          <div className="flex items-center gap-1.5">
+            <GiTwoCoins size={20} style={{ color: '#FFD700' }} />
+            <span className="text-sm font-bold" style={{ color: '#FFD700' }}>
+              {userResources.or}
+            </span>
+          </div>
+        </Tooltip>
 
         {/* Knowledge */}
-        <div className="flex items-center gap-1.5">
-          <GiSpellBook size={20} style={{ color: '#9370DB' }} />
-          <span className="text-sm font-bold" style={{ color: '#9370DB' }}>
-            {userResources.savoir}
-          </span>
-        </div>
+        <Tooltip label="Savoir">
+          <div className="flex items-center gap-1.5">
+            <GiSpellBook size={20} style={{ color: '#9370DB' }} />
+            <span className="text-sm font-bold" style={{ color: '#9370DB' }}>
+              {userResources.savoir}
+            </span>
+          </div>
+        </Tooltip>
       </div>
     </div>
   )
