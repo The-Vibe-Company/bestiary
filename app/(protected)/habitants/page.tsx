@@ -1,15 +1,12 @@
-import { neonAuth } from '@neondatabase/auth/next/server'
-import { redirect } from 'next/navigation'
-import { ResourceBar } from '@/components/layout/resource-bar'
-import { getUserResources } from '@/lib/game/resources/get-user-resources'
-import { getVillageInhabitants } from '@/lib/game/inhabitants/get-village-inhabitants'
-import {
-  INHABITANT_TYPES,
-  INHABITANT_METADATA,
-  InhabitantType,
-} from '@/lib/game/inhabitants/types'
 import { HabitantsPanel } from '@/components/habitants/habitants-panel'
+import { ResourceBar } from '@/components/layout/resource-bar'
+import { getInhabitantTypes } from '@/lib/game/inhabitants/get-inhabitant-types'
+import { getVillageInhabitants } from '@/lib/game/inhabitants/get-village-inhabitants'
+import type { InhabitantType } from '@/lib/game/inhabitants/types'
+import { getUserResources } from '@/lib/game/resources/get-user-resources'
+import { neonAuth } from '@neondatabase/auth/next/server'
 import Image from 'next/image'
+import { redirect } from 'next/navigation'
 
 export default async function HabitantsPage() {
   const { session } = await neonAuth()
@@ -18,21 +15,22 @@ export default async function HabitantsPage() {
     redirect('/sign-in')
   }
 
-  const [resources, villageInhabitants] = await Promise.all([
+  const [resources, villageInhabitants, inhabitantTypes] = await Promise.all([
     getUserResources(session.userId),
     getVillageInhabitants(session.userId),
+    getInhabitantTypes(),
   ])
 
-  // Build ordered list for display using the defined order
-  const inhabitantsList = INHABITANT_TYPES.map((type: InhabitantType) => ({
-    ...INHABITANT_METADATA[type],
-    id: type,
-    count: villageInhabitants?.[type] ?? 0,
+  // Build ordered list for display using DB metadata
+  const inhabitantsList = inhabitantTypes.map((type) => ({
+    ...type,
+    id: type.key,
+    count: villageInhabitants?.[type.key as InhabitantType] ?? 0,
   }))
 
   return (
     <div
-      className="h-full min-h-0 flex flex-col bg-cover bg-center bg-no-repeat relative"
+      className="h-full flex flex-col bg-cover bg-center bg-no-repeat relative"
       style={{ backgroundImage: "url('/assets/backgrounds/background-habitants.png')" }}
     >
       {/* Dark overlay for better contrast */}
@@ -43,8 +41,8 @@ export default async function HabitantsPage() {
         <ResourceBar resources={resources} />
       </div>
 
-      {/* Main content area - panel stays fixed, content scrolls inside */}
-      <div className="flex-1 overflow-hidden flex justify-center items-center relative z-10">
+      {/* Main content area - panel fills available space */}
+      <div className="flex-1 min-h-0 flex justify-center py-6 relative z-10">
         {/* Scrollable panel */}
         <HabitantsPanel>
           {inhabitantsList.map((habitant) => (

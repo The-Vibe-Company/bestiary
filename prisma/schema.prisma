@@ -57,7 +57,7 @@ model VillageInhabitants {
   villageId  String   @unique
   village    Village  @relation(fields: [villageId], references: [id], onDelete: Cascade)
   lumberjack Int      @default(0) // Bûcheron
-  stonemason Int      @default(0) // Tailleur de Pierre
+  miner      Int      @default(0) // Mineur
   explorer   Int      @default(0) // Explorateur
   hunter     Int      @default(0) // Chasseur
   gatherer   Int      @default(0) // Cueilleur
@@ -67,4 +67,15 @@ model VillageInhabitants {
   updatedAt  DateTime @updatedAt
 
   @@map("VillageInhabitants")
+}
+
+model InhabitantType {
+  id          String @id @default(cuid())
+  key         String @unique // lumberjack, miner, etc.
+  title       String // Bûcheron, Mineur, etc.
+  description String
+  image       String
+  order       Int    // Display order
+
+  @@map("InhabitantTypes")
 }
