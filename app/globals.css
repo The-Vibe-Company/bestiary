@@ -72,40 +72,39 @@ body {
 
 /* Custom scrollbar - burnt amber theme (always visible) */
 .scrollbar-amber {
+  /* Force scroll to always show scrollbar */
+  overflow-y: scroll;
   /* Firefox */
   scrollbar-width: thin;
-  scrollbar-color: var(--burnt-amber) rgba(0, 0, 0, 0.3);
-  /* Reserve space for scrollbar to prevent layout shift */
-  scrollbar-gutter: stable;
+  scrollbar-color: var(--burnt-amber) rgba(0, 0, 0, 0.5);
 }
 
 /* WebKit browsers (Chrome, Safari, Edge) - force always visible */
 .scrollbar-amber::-webkit-scrollbar {
-  -webkit-appearance: none;
-  width: 12px;
-  background: transparent;
+  -webkit-appearance: none !important;
+  width: 16px !important;
+  height: 16px !important;
+  background: blue !important;
+  display: block !important;
 }
 
 .scrollbar-amber::-webkit-scrollbar-track {
-  background: rgba(179, 123, 52, 0.2);
-  border: 1px solid rgba(179, 123, 52, 0.3);
-  border-radius: 6px;
-  margin: 4px 0;
+  background: red !important;
+  border-radius: 5px;
 }
 
 .scrollbar-amber::-webkit-scrollbar-thumb {
-  background: var(--burnt-amber);
-  border-radius: 6px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-  min-height: 50px;
+  background: lime !important;
+  border-radius: 5px;
+  min-height: 40px;
 }
 
 .scrollbar-amber::-webkit-scrollbar-thumb:hover {
-  background: var(--burnt-amber-light);
-  border-radius: 6px;
-  border: 2px solid transparent;
-  background-clip: content-box;
+  background: yellow !important;
+}
+
+.scrollbar-amber::-webkit-scrollbar-corner {
+  background: purple !important;
 }
 
 /* Hidden scrollbar - keeps scroll functionality */
