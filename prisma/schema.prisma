@@ -7,23 +7,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Note: User authentication is now managed by Neon Auth (in neon_auth schema)
-// This model is no longer needed for authentication
-// Keep this file for future custom data models
+// Note: User authentication is managed by Neon Auth (in neon_auth schema)
+// This User model syncs with Neon Auth to add custom fields and constraints
+
+model User {
+  id        String   @id // Same ID as Neon Auth
+  email     String   @unique
+  username  String   @unique // Pseudo - must be unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  village   Village?
+  resources UserResources?
+
+  @@map("Users")
+}
 
 model Village {
   id        String   @id @default(cuid())
   x         Int
   y         Int
-  ownerId   String   @unique  // 1 village par user
+  ownerId   String   @unique // 1 village par user
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
-  @@unique([x, y])  // Une seule village par coordonnée
+  @@unique([x, y]) // Une seule village par coordonnée
+  @@map("Villages")
 }
 
 model UserResources {
   id        String   @id @default(cuid())
   userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   bois      Int      @default(100)
   pierre    Int      @default(50)
   cereales  Int      @default(30)
@@ -32,4 +47,6 @@ model UserResources {
   savoir    Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("UserResources")
 }
