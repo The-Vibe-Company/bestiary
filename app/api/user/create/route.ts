@@ -1,42 +1,25 @@
-import { prisma } from '@/lib/prisma';
-import { neonAuth } from '@neondatabase/auth/next/server';
+import { NextResponse } from 'next/server'
+import { neonAuth } from '@neondatabase/auth/next/server'
+import { createUser } from '@/lib/game/user/create-user'
 
 export async function POST(request: Request) {
-  const { session } = await neonAuth();
+  const { session } = await neonAuth()
 
   if (!session) {
-    return new Response(JSON.stringify({ error: 'Non authentifié' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
 
-  const { username, email } = await request.json();
+  const { username, email } = await request.json()
 
   if (!username || !email) {
-    return new Response(JSON.stringify({ error: 'Username et email requis' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return NextResponse.json({ error: 'Username et email requis' }, { status: 400 })
   }
 
   try {
-    const createdUser = await prisma.user.create({
-      data: {
-        id: session.userId,
-        email,
-        username,
-      },
-    });
-
-    return new Response(JSON.stringify({ user: createdUser }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const user = await createUser(session.userId, username, email)
+    return NextResponse.json({ user })
   } catch (error) {
-    console.error('Error creating user:', error);
-    return new Response(JSON.stringify({ error: 'Erreur création utilisateur' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('Erreur création utilisateur:', error)
+    return NextResponse.json({ error: 'Erreur création utilisateur' }, { status: 500 })
   }
 }

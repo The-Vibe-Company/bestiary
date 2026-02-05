@@ -1,32 +1,21 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma'
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const username = searchParams.get('username');
+  const { searchParams } = new URL(request.url)
+  const username = searchParams.get('username')
 
   if (!username) {
-    return new Response(JSON.stringify({ error: 'Username required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return Response.json({ error: 'Username required' }, { status: 400 })
   }
 
   try {
     const existingUser = await prisma.user.findFirst({
-      where: { name: username },
-    });
+      where: { username },
+    })
 
-    return new Response(JSON.stringify({ exists: !!existingUser }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return Response.json({ exists: !!existingUser })
   } catch (error) {
-    console.error('Error checking username:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to check username' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    console.error('Error checking username:', error)
+    return Response.json({ error: 'Failed to check username' }, { status: 500 })
   }
 }

@@ -1,91 +1,87 @@
-'use client'
+"use client";
 
-import { Button } from '@/components/ui/button'
-import { MapCell, WorldMap } from '@/lib/game/map/types'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { IsometricMapViewer } from './isometric-map-viewer'
+import { Button } from "@/components/ui/button";
+import { MapCell, WorldMap } from "@/lib/game/map/types";
+import { useState } from "react";
+import { IsometricMapViewer } from "./isometric-map-viewer";
 
-const MAP_CONTAINER_SIZE = 490
+const MAP_CONTAINER_SIZE = 490;
 
 const FEATURE_LABELS: Record<string, string> = {
-  foret: 'Forêt',
-  montagne: 'Montagne',
-}
+  foret: "Forêt",
+  montagne: "Montagne",
+};
 
 export interface Village {
-  x: number
-  y: number
-  ownerId: string
+  x: number;
+  y: number;
+  ownerId: string;
 }
 
 interface MapPageClientProps {
-  map: WorldMap
-  villages: Village[]
-  initialX: number
-  initialY: number
-  currentUserId: string
+  map: WorldMap;
+  villages: Village[];
+  initialX: number;
+  initialY: number;
+  currentUserId: string;
 }
 
-export function MapPageClient({ map, villages, initialX, initialY, currentUserId }: MapPageClientProps) {
-  const router = useRouter()
-  const [viewSize, setViewSize] = useState(7)
-  const halfView = Math.floor(viewSize / 2)
-  const [startX, setStartX] = useState(Math.max(0, initialX - halfView))
-  const [startY, setStartY] = useState(Math.max(0, initialY - halfView))
-  const [hoveredCell, setHoveredCell] = useState<MapCell | null>(null)
+export function MapPageClient({
+  map,
+  villages,
+  initialX,
+  initialY,
+  currentUserId,
+}: MapPageClientProps) {
+  const [viewSize, setViewSize] = useState(7);
+  const halfView = Math.floor(viewSize / 2);
+  const [startX, setStartX] = useState(Math.max(0, initialX - halfView));
+  const [startY, setStartY] = useState(Math.max(0, initialY - halfView));
+  const [hoveredCell, setHoveredCell] = useState<MapCell | null>(null);
 
-  const MAP_SIZE = 100
+  const MAP_SIZE = 100;
 
   // Clamper startX/startY pour ne jamais montrer de cases hors limites
-  const clamp = (val: number, size: number) => Math.max(0, Math.min(MAP_SIZE - size, val))
+  const clamp = (val: number, size: number) =>
+    Math.max(0, Math.min(MAP_SIZE - size, val));
 
   const handleZoomIn = () => {
-    setViewSize(prev => {
-      const next = Math.max(prev - 4, 7)
-      setStartX(sx => clamp(sx, next))
-      setStartY(sy => clamp(sy, next))
-      return next
-    })
-  }
+    setViewSize((prev) => {
+      const next = Math.max(prev - 4, 7);
+      setStartX((sx) => clamp(sx, next));
+      setStartY((sy) => clamp(sy, next));
+      return next;
+    });
+  };
 
   const handleZoomOut = () => {
-    setViewSize(prev => {
-      const next = Math.min(prev + 4, 19)
-      setStartX(sx => clamp(sx, next))
-      setStartY(sy => clamp(sy, next))
-      return next
-    })
-  }
+    setViewSize((prev) => {
+      const next = Math.min(prev + 4, 19);
+      setStartX((sx) => clamp(sx, next));
+      setStartY((sy) => clamp(sy, next));
+      return next;
+    });
+  };
 
   const handleClickCell = (cell: MapCell) => {
-    const half = Math.floor(viewSize / 2)
-    setStartX(clamp(cell.x - half, viewSize))
-    setStartY(clamp(cell.y - half, viewSize))
-  }
+    const half = Math.floor(viewSize / 2);
+    setStartX(clamp(cell.x - half, viewSize));
+    setStartY(clamp(cell.y - half, viewSize));
+  };
 
-  const handleReset = () => {
-    setViewSize(7)
-    const newHalfView = Math.floor(7 / 2)
-    setStartX(Math.max(0, initialX - newHalfView))
-    setStartY(Math.max(0, initialY - newHalfView))
-  }
-
-  const handleHome = () => router.push('/village')
-
-  const handleMoveUp = () => setStartY(prev => clamp(prev - 1, viewSize))
-  const handleMoveDown = () => setStartY(prev => clamp(prev + 1, viewSize))
-  const handleMoveLeft = () => setStartX(prev => clamp(prev - 1, viewSize))
-  const handleMoveRight = () => setStartX(prev => clamp(prev + 1, viewSize))
+  const handleMoveUp = () => setStartY((prev) => clamp(prev - 1, viewSize));
+  const handleMoveDown = () => setStartY((prev) => clamp(prev + 1, viewSize));
+  const handleMoveLeft = () => setStartX((prev) => clamp(prev - 1, viewSize));
+  const handleMoveRight = () => setStartX((prev) => clamp(prev + 1, viewSize));
 
   return (
     <div
       className="min-h-[calc(100vh-72px)] w-full flex items-center justify-center overflow-hidden relative"
       style={{
-        backgroundImage: 'url(/assets/backgrounds/background-map.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundImage: "url(/assets/backgrounds/background-map.png)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
       {/* Dark overlay for better contrast */}
@@ -97,14 +93,17 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
           className="absolute z-50 px-3 py-2 rounded text-sm pointer-events-none"
           style={{
             bottom: 24,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(26, 26, 26, 0.95)',
-            color: '#f5f5dc',
-            border: '1px solid rgba(245, 245, 220, 0.3)',
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "rgba(26, 26, 26, 0.95)",
+            color: "#f5f5dc",
+            border: "1px solid rgba(245, 245, 220, 0.3)",
           }}
         >
-          {hoveredCell.feature ? FEATURE_LABELS[hoveredCell.feature] : 'Prairie'} ({hoveredCell.x}, {hoveredCell.y})
+          {hoveredCell.feature
+            ? FEATURE_LABELS[hoveredCell.feature]
+            : "Prairie"}{" "}
+          ({hoveredCell.x}, {hoveredCell.y})
         </div>
       )}
 
@@ -113,15 +112,15 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
         <div
           className="flex flex-col items-center gap-6"
           style={{
-            transform: 'perspective(1200px) rotateX(35deg) translateY(-60px)',
-            transformStyle: 'preserve-3d',
+            transform: "perspective(1200px) rotateX(35deg) translateY(-60px)",
+            transformStyle: "preserve-3d",
           }}
         >
           {/* Flèche haut */}
           <Button
             variant="stone"
             className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
-            style={{ transformStyle: 'flat' }}
+            style={{ transformStyle: "flat" }}
             onClick={handleMoveUp}
           >
             ↑
@@ -132,7 +131,7 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
             <Button
               variant="stone"
               className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
-              style={{ transformStyle: 'flat' }}
+              style={{ transformStyle: "flat" }}
               onClick={handleMoveLeft}
             >
               ←
@@ -142,10 +141,10 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
             <div
               className="p-8 rounded-lg"
               style={{
-                transform: 'translateZ(200px)',
-                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                border: '3px solid rgba(139, 119, 83, 0.8)',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
+                transform: "translateZ(200px)",
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                border: "3px solid rgba(139, 119, 83, 0.8)",
+                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.5)",
               }}
             >
               <IsometricMapViewer
@@ -165,12 +164,11 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
             <Button
               variant="stone"
               className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
-              style={{ transformStyle: 'flat' }}
+              style={{ transformStyle: "flat" }}
               onClick={handleMoveRight}
             >
               →
             </Button>
-
           </div>
         </div>
 
@@ -204,5 +202,5 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
         </Button>
       </div>
     </div>
-  )
+  );
 }
