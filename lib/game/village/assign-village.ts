@@ -1,25 +1,39 @@
 import { prisma } from '@/lib/prisma'
 import { generateWorldMap } from '@/lib/game/map/generator'
-import { MapCell } from '@/lib/game/map/types'
+import { MapCell, MapFeature, WorldMap } from '@/lib/game/map/types'
 
 const MAP_SIZE = 100
 const MIN_BORDER_DISTANCE = 3
 const MAX_BORDER_DISTANCE = 10
+const MAX_FEATURE_DISTANCE = 3
 
 // Vérifie si une cellule est dans la zone de bordure (entre 3 et 10 cases des bords)
 function isInBorderZone(cell: MapCell): boolean {
   const { x, y } = cell
-  const maxCoord = MAP_SIZE - 1 // 99
+  const maxCoord = MAP_SIZE - 1
 
-  // Distance depuis le bord le plus proche en X et en Y
   const distX = Math.min(x, maxCoord - x)
   const distY = Math.min(y, maxCoord - y)
 
-  // Les deux distances doivent être entre 3 et 10
   const xInZone = distX >= MIN_BORDER_DISTANCE && distX <= MAX_BORDER_DISTANCE
   const yInZone = distY >= MIN_BORDER_DISTANCE && distY <= MAX_BORDER_DISTANCE
 
   return xInZone && yInZone
+}
+
+// Vérifie si une feature donnée existe dans un rayon de `maxDist` cases (distance de Chebyshev)
+function hasFeatureNearby(map: WorldMap, x: number, y: number, feature: MapFeature, maxDist: number): boolean {
+  const minX = Math.max(0, x - maxDist)
+  const maxX = Math.min(MAP_SIZE - 1, x + maxDist)
+  const minY = Math.max(0, y - maxDist)
+  const maxY = Math.min(MAP_SIZE - 1, y + maxDist)
+
+  for (let cy = minY; cy <= maxY; cy++) {
+    for (let cx = minX; cx <= maxX; cx++) {
+      if (map[cy][cx].feature === feature) return true
+    }
+  }
+  return false
 }
 
 export async function assignVillageToUser(userId: string) {
@@ -29,10 +43,13 @@ export async function assignVillageToUser(userId: string) {
   })
   if (existing) return existing
 
-  // Générer la map et trouver les prairies dans la zone de bordure
+  // Générer la map et trouver les cases vides proches d'une forêt ET d'une montagne
   const map = generateWorldMap()
   const prairieCells = map.flat().filter(cell =>
-    cell.biome === 'prairie' && isInBorderZone(cell)
+    cell.feature === null &&
+    isInBorderZone(cell) &&
+    hasFeatureNearby(map, cell.x, cell.y, 'foret', MAX_FEATURE_DISTANCE) &&
+    hasFeatureNearby(map, cell.x, cell.y, 'montagne', MAX_FEATURE_DISTANCE)
   )
 
   // Récupérer les coordonnées déjà prises

@@ -8,15 +8,9 @@ import { IsometricMapViewer } from './isometric-map-viewer'
 
 const MAP_CONTAINER_SIZE = 490
 
-const BIOME_LABELS: Record<string, string> = {
-  prairie: 'Prairie',
+const FEATURE_LABELS: Record<string, string> = {
   foret: 'Forêt',
-  desert: 'Désert',
-  savane: 'Savane',
-  jungle: 'Jungle',
-  banquise: 'Banquise',
   montagne: 'Montagne',
-  eau: 'Eau'
 }
 
 export interface Village {
@@ -41,14 +35,33 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
   const [startY, setStartY] = useState(Math.max(0, initialY - halfView))
   const [hoveredCell, setHoveredCell] = useState<MapCell | null>(null)
 
-  const maxStart = 100 - viewSize
+  const MAP_SIZE = 100
+
+  // Clamper startX/startY pour ne jamais montrer de cases hors limites
+  const clamp = (val: number, size: number) => Math.max(0, Math.min(MAP_SIZE - size, val))
 
   const handleZoomIn = () => {
-    setViewSize(prev => Math.max(prev - 4, 7))
+    setViewSize(prev => {
+      const next = Math.max(prev - 4, 7)
+      setStartX(sx => clamp(sx, next))
+      setStartY(sy => clamp(sy, next))
+      return next
+    })
   }
 
   const handleZoomOut = () => {
-    setViewSize(prev => Math.min(prev + 4, 19))
+    setViewSize(prev => {
+      const next = Math.min(prev + 4, 19)
+      setStartX(sx => clamp(sx, next))
+      setStartY(sy => clamp(sy, next))
+      return next
+    })
+  }
+
+  const handleClickCell = (cell: MapCell) => {
+    const half = Math.floor(viewSize / 2)
+    setStartX(clamp(cell.x - half, viewSize))
+    setStartY(clamp(cell.y - half, viewSize))
   }
 
   const handleReset = () => {
@@ -60,10 +73,10 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
 
   const handleHome = () => router.push('/village')
 
-  const handleMoveUp = () => setStartY(prev => Math.max(0, prev - 1))
-  const handleMoveDown = () => setStartY(prev => Math.min(maxStart, prev + 1))
-  const handleMoveLeft = () => setStartX(prev => Math.max(0, prev - 1))
-  const handleMoveRight = () => setStartX(prev => Math.min(maxStart, prev + 1))
+  const handleMoveUp = () => setStartY(prev => clamp(prev - 1, viewSize))
+  const handleMoveDown = () => setStartY(prev => clamp(prev + 1, viewSize))
+  const handleMoveLeft = () => setStartX(prev => clamp(prev - 1, viewSize))
+  const handleMoveRight = () => setStartX(prev => clamp(prev + 1, viewSize))
 
   return (
     <div
@@ -91,7 +104,7 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
             border: '1px solid rgba(245, 245, 220, 0.3)',
           }}
         >
-          {BIOME_LABELS[hoveredCell.biome]} ({hoveredCell.x}, {hoveredCell.y})
+          {hoveredCell.feature ? FEATURE_LABELS[hoveredCell.feature] : 'Prairie'} ({hoveredCell.x}, {hoveredCell.y})
         </div>
       )}
 
@@ -141,6 +154,7 @@ export function MapPageClient({ map, villages, initialX, initialY, currentUserId
                 startX={startX}
                 startY={startY}
                 onHoverCell={setHoveredCell}
+                onClickCell={handleClickCell}
                 villages={villages}
                 currentUserId={currentUserId}
                 containerSize={MAP_CONTAINER_SIZE}

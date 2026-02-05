@@ -1,15 +1,16 @@
-import { WorldMap, BiomeType } from './types'
+import { WorldMap, MapFeature } from './types'
 
 const WORLD_SEED = 123456789
 const MAP_SIZE = 100
+const FEATURE_CHANCE = 0.065 // ~6.5% des cases reçoivent une feature
+
+const FEATURES: MapFeature[] = ['foret', 'montagne']
 
 class MapGenerator {
   private random: () => number
   private map: WorldMap
-  private seed: number
 
   constructor(seed: number = WORLD_SEED) {
-    this.seed = seed
     this.random = this.createSeededRandom(seed)
     this.map = this.initializeMap()
   }
@@ -30,62 +31,27 @@ class MapGenerator {
     for (let y = 0; y < MAP_SIZE; y++) {
       const row = []
       for (let x = 0; x < MAP_SIZE; x++) {
-        row.push({ x, y, biome: 'prairie' as BiomeType })
+        row.push({ x, y, feature: null })
       }
       map.push(row)
     }
     return map
   }
 
-  private selectBiomeWeighted(): BiomeType {
-    const rand = this.random() * 100
-    let cumulative = 0
-
-    const allBiomes: BiomeType[] = ['prairie', 'foret', 'desert', 'savane', 'jungle', 'banquise', 'montagne', 'eau']
-    const weights = [92, 1.14, 1.14, 1.14, 1.14, 1.14, 1.14, 1.14] // Total = 100 (92% prairie, ~1.14% chaque autre)
-
-    for (let i = 0; i < allBiomes.length; i++) {
-      cumulative += weights[i]
-      if (rand <= cumulative) return allBiomes[i]
-    }
-
-    return 'prairie'
-  }
-
-  private generateRandomCells(): void {
+  private placeFeatures(): void {
     for (let y = 0; y < MAP_SIZE; y++) {
       for (let x = 0; x < MAP_SIZE; x++) {
-        const biome = this.selectBiomeWeighted()
-        this.map[y][x] = { x, y, biome }
+        if (this.random() < FEATURE_CHANCE) {
+          const featureIndex = Math.floor(this.random() * FEATURES.length)
+          this.map[y][x].feature = FEATURES[featureIndex]
+        }
       }
     }
   }
 
   public generate(): WorldMap {
-    this.generateRandomCells()
+    this.placeFeatures()
     return this.map
-  }
-
-  public getStatistics() {
-    const counts: Record<BiomeType, number> = {
-      prairie: 0, foret: 0, desert: 0, savane: 0,
-      jungle: 0, banquise: 0, montagne: 0, eau: 0
-    }
-
-    for (const row of this.map) {
-      for (const cell of row) {
-        counts[cell.biome]++
-      }
-    }
-
-    const total = MAP_SIZE * MAP_SIZE
-    const percentages = Object.entries(counts).map(([biome, count]) => ({
-      biome,
-      count,
-      percentage: (count / total * 100).toFixed(2) + '%'
-    }))
-
-    return percentages
   }
 }
 
