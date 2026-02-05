@@ -16,6 +16,8 @@ export interface Village {
   x: number;
   y: number;
   ownerId: string;
+  name: string | null;
+  owner: { username: string };
 }
 
 interface MapPageClientProps {
@@ -87,26 +89,6 @@ export function MapPageClient({
       {/* Dark overlay for better contrast */}
       <div className="absolute inset-0 bg-black/50"></div>
 
-      {/* Tooltip EN DEHORS de la zone 3D */}
-      {hoveredCell && (
-        <div
-          className="absolute z-50 px-3 py-2 rounded text-sm pointer-events-none"
-          style={{
-            bottom: 24,
-            left: "50%",
-            transform: "translateX(-50%)",
-            backgroundColor: "rgba(26, 26, 26, 0.95)",
-            color: "#f5f5dc",
-            border: "1px solid rgba(245, 245, 220, 0.3)",
-          }}
-        >
-          {hoveredCell.feature
-            ? FEATURE_LABELS[hoveredCell.feature]
-            : "Prairie"}{" "}
-          ({hoveredCell.x}, {hoveredCell.y})
-        </div>
-      )}
-
       <div className="flex flex-col items-center relative z-10">
         {/* Zone 3D pour la map et flèches haut/gauche/droite */}
         <div
@@ -172,8 +154,33 @@ export function MapPageClient({
           </div>
         </div>
 
+        {/* Tooltip — entre la carte et la flèche bas */}
+        <div className="-mt-16 h-6 flex items-center justify-end relative z-10" style={{ width: MAP_CONTAINER_SIZE + 64 + 6 }}>
+          {hoveredCell &&
+            (() => {
+              const hoveredVillage = villages.find(
+                (v) => v.x === hoveredCell.x && v.y === hoveredCell.y,
+              );
+              return (
+                <div
+                  className="px-3 py-1 rounded text-sm pointer-events-none"
+                  style={{
+                    backgroundColor: "rgba(26, 26, 26, 0.95)",
+                    color: "#f5f5dc",
+                    border: "1px solid rgba(245, 245, 220, 0.3)",
+                  }}
+                >
+                  {hoveredVillage
+                    ? `${hoveredVillage.owner.username}${hoveredVillage.name ? ` — ${hoveredVillage.name}` : ""}`
+                    : `${hoveredCell.feature ? FEATURE_LABELS[hoveredCell.feature] : "Prairie"}`}{" "}
+                  ({hoveredCell.x}, {hoveredCell.y})
+                </div>
+              );
+            })()}
+        </div>
+
         {/* Flèche bas EN DEHORS de la zone 3D */}
-        <div className="-mt-10 relative z-10">
+        <div className="relative z-10">
           <Button
             variant="stone"
             className="w-16 h-16 text-3xl border-2 border-[var(--ivory)] rounded"
