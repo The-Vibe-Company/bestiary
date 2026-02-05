@@ -1,25 +1,9 @@
-export type BiomeType =
-  | 'prairie'
-  | 'foret'
-  | 'desert'
-  | 'savane'
-  | 'jungle'
-  | 'banquise'
-  | 'montagne'
-  | 'eau'
+export type MapFeature = 'foret' | 'montagne'
 
 export interface MapCell {
   x: number
   y: number
-  biome: BiomeType
+  feature: MapFeature | null // null = prairie simple
 }
 
 export type WorldMap = MapCell[][]
-
-export interface BiomeConfig {
-  name: BiomeType
-  baseColor: string
-  textureColor: string
-  borderColor: string
-  probability: number
-}

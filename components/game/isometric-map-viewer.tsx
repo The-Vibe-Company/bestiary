@@ -9,6 +9,7 @@ interface IsometricMapViewerProps {
   startX: number
   startY: number
   onHoverCell?: (cell: MapCell | null) => void
+  onClickCell?: (cell: MapCell) => void
   villages: Village[]
   currentUserId: string
   containerSize: number
@@ -20,10 +21,26 @@ export function IsometricMapViewer({
   startX,
   startY,
   onHoverCell,
+  onClickCell,
   villages,
   currentUserId,
   containerSize
 }: IsometricMapViewerProps) {
+
+  // Dégradé de vert doux basé sur les coordonnées
+  function cellGreen(x: number, y: number): string {
+    const v =
+      0.5 +
+      0.2 * Math.sin(x * 0.5 + y * 0.35) +
+      0.15 * Math.sin(x * 0.3 - y * 0.4 + 2) +
+      0.1 * Math.sin((x + y) * 0.2 + 1.5)
+
+    const clamped = Math.max(0, Math.min(1, v))
+    const r = Math.round(60 + clamped * 45)    // 60–105
+    const g = Math.round(100 + clamped * 55)   // 100–155
+    const b = Math.round(30 + clamped * 30)    // 30–60
+    return `rgb(${r}, ${g}, ${b})`
+  }
 
   // Créer un map des villages pour lookup rapide
   const villageMap = new Map(villages.map(v => [`${v.x},${v.y}`, v]))
@@ -123,21 +140,6 @@ export function IsometricMapViewer({
             const village = villageMap.get(`${cell.x},${cell.y}`)
             const isOwnVillage = village?.ownerId === currentUserId
 
-            // PNG associé au biome (sauf prairie)
-            const biomeImage = cell.biome !== 'prairie' ? `/assets/map/${cell.biome}.png` : null
-
-            // Taille ajustée par biome (certaines images ont moins de transparent)
-            const biomeSizeMultiplier: Record<string, number> = {
-              savane: 0.75,
-              desert: 0.85,
-              foret: 0.95,
-              jungle: 0.95,
-              banquise: 0.95,
-              montagne: 0.95,
-              eau: 0.95,
-            }
-            const biomeSize = biomeSizeMultiplier[cell.biome] || 0.95
-
             return (
               <div
                 key={`${cell.x}-${cell.y}`}
@@ -148,48 +150,52 @@ export function IsometricMapViewer({
                   alignItems: 'center',
                   justifyContent: 'center',
                   position: 'relative',
-                  boxShadow: 'inset 0 0 0 0.5px rgba(255, 255, 255, 0.15)',
+                  cursor: 'pointer',
                 }}
                 onMouseEnter={() => onHoverCell?.(cell)}
+                onClick={() => onClickCell?.(cell)}
               >
-                {/* Fond herbe texturé */}
+                {/* Fond herbe — nuance de vert variée par cellule */}
                 <div
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundColor: '#6ab04c',
+                    backgroundColor: cellGreen(cell.x, cell.y),
                     backgroundImage: `
-                      radial-gradient(circle at 20% 30%, rgba(90, 160, 70, 0.4) 1px, transparent 1px),
-                      radial-gradient(circle at 80% 70%, rgba(100, 170, 80, 0.4) 1px, transparent 1px),
-                      radial-gradient(circle at 50% 20%, rgba(85, 155, 65, 0.35) 1px, transparent 1px),
-                      radial-gradient(circle at 40% 80%, rgba(95, 165, 75, 0.35) 1px, transparent 1px),
-                      radial-gradient(circle at 10% 50%, rgba(80, 150, 60, 0.3) 1px, transparent 1px),
-                      linear-gradient(180deg, rgba(120, 190, 90, 0.2) 0%, transparent 50%, rgba(70, 130, 50, 0.2) 100%)
+                      repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 5px),
+                      repeating-linear-gradient(-45deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 1px, transparent 1px, transparent 6px)
                     `,
-                    backgroundSize: '7px 7px, 9px 9px, 6px 6px, 8px 8px, 11px 11px, 100% 100%',
-                    opacity: 0.5,
+                    opacity: 0.6,
+                    boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.03)',
                   }}
                 />
-                {biomeImage && !village && (
-                  <img
-                    src={biomeImage}
-                    alt={cell.biome}
-                    style={{
-                      width: `${actualCellSize * biomeSize}px`,
-                      height: `${actualCellSize * biomeSize}px`,
-                      objectFit: 'contain',
-                      position: 'relative',
-                      zIndex: 1,
-                    }}
-                  />
-                )}
+                {cell.feature && !village && (() => {
+                  const featureSize: Record<string, number> = {
+                    foret: 1.7,
+                    montagne: 1.35,
+                  }
+                  const size = featureSize[cell.feature] ?? 1.35
+                  return (
+                    <img
+                      src={`/assets/map/${cell.feature}.png`}
+                      alt={cell.feature}
+                      style={{
+                        width: `${actualCellSize * size}px`,
+                        height: `${actualCellSize * size}px`,
+                        objectFit: 'contain',
+                        position: 'relative',
+                        zIndex: 1,
+                      }}
+                    />
+                  )
+                })()}
                 {village && (
                   <img
                     src="/assets/map/village_lvl_1.png"
                     alt="Village"
                     style={{
-                      width: `${actualCellSize * 0.95}px`,
-                      height: `${actualCellSize * 0.95}px`,
+                      width: `${actualCellSize * 1.7}px`,
+                      height: `${actualCellSize * 1.7}px`,
                       objectFit: 'contain',
                       filter: isOwnVillage ? 'drop-shadow(0 0 4px gold)' : 'none',
                       position: 'relative',
