@@ -24,12 +24,13 @@ model User {
 }
 
 model Village {
-  id        String   @id @default(cuid())
-  x         Int
-  y         Int
-  ownerId   String   @unique // 1 village par user
-  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id          String              @id @default(cuid())
+  x           Int
+  y           Int
+  ownerId     String              @unique // 1 village par user
+  owner       User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime            @default(now())
+  inhabitants VillageInhabitants?
 
   @@unique([x, y]) // Une seule village par coordonnée
   @@map("Villages")
@@ -49,4 +50,21 @@ model UserResources {
   updatedAt DateTime @updatedAt
 
   @@map("UserResources")
+}
+
+model VillageInhabitants {
+  id         String   @id @default(cuid())
+  villageId  String   @unique
+  village    Village  @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  lumberjack Int      @default(0) // Bûcheron
+  stonemason Int      @default(0) // Tailleur de Pierre
+  explorer   Int      @default(0) // Explorateur
+  hunter     Int      @default(0) // Chasseur
+  gatherer   Int      @default(0) // Cueilleur
+  breeder    Int      @default(0) // Éleveur
+  farmer     Int      @default(0) // Agriculteur
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("VillageInhabitants")
 }
