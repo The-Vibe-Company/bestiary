@@ -69,8 +69,8 @@ Before introducing an abstraction, always ask:
   - detect visual or UX inconsistencies
 
   Here are the credentials to login : 
-    email: test@bestiary.dev
-    password: test123
+    email: test@test.com
+    password: testing123
 
 Testing must be done in a real browser, not only by reasoning about the code.
 

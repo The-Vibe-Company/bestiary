@@ -11,11 +11,22 @@ export async function GET(request: Request) {
     });
   }
 
-  const existingUser = await prisma.user.findUnique({
-    where: { username },
-  });
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: { username },
+    });
 
-  return new Response(JSON.stringify({ exists: !!existingUser }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
+    return new Response(JSON.stringify({ exists: !!existingUser }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Error checking username:', error);
+    return new Response(
+      JSON.stringify({ error: 'Failed to check username' }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
 }
