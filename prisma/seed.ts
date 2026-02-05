@@ -23,7 +23,7 @@ const inhabitantTypes = [
     key: 'explorer',
     title: 'Explorateur',
     description:
-      'Parcourt la carte à la recherche d\'objets rares et de trésors cachés.',
+      'Parcourt la carte à la recherche d\'objets rares et de connaissances anciennes. Ramène du savoir au village.',
     image: '/assets/habitants/explorateur.png',
     order: 3,
   },

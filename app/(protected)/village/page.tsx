@@ -1,8 +1,12 @@
 import { assignVillageToUser } from '@/lib/game/village/assign-village'
 import { neonAuth } from '@neondatabase/auth/next/server'
 import { redirect } from 'next/navigation'
+import { UserResourceBar } from '@/components/layout/user-resource-bar'
 import { ResourceBar } from '@/components/layout/resource-bar'
+import { getVillageResources } from '@/lib/game/resources/get-village-resources'
 import { getUserResources } from '@/lib/game/resources/get-user-resources'
+import { getVillage } from '@/lib/game/village/get-village'
+import { getUser } from '@/lib/game/user/get-user'
 
 export default async function VillagePage() {
   const { session, user } = await neonAuth()
@@ -14,19 +18,29 @@ export default async function VillagePage() {
   // S'assurer que l'utilisateur a un village (créé au signup ou ici en fallback)
   await assignVillageToUser(session.userId)
 
-  const resources = await getUserResources(session.userId)
+  const [villageResources, village, userResources, userData] = await Promise.all([
+    getVillageResources(session.userId),
+    getVillage(session.userId),
+    getUserResources(session.userId),
+    getUser(session.userId),
+  ])
+
+  if (!villageResources || !userData) {
+    redirect('/sign-in')
+  }
 
   return (
     <div
       className="h-full flex flex-col bg-cover bg-center bg-no-repeat relative"
       style={{ backgroundImage: "url('/assets/backgrounds/background-village.png')" }}
     >
-      {/* Dark overlay for better contrast - same as map page */}
+      {/* Dark overlay for better contrast */}
       <div className="absolute inset-0 bg-black/50" />
 
-      {/* ResourceBar sticky at top */}
-      <div className="flex-shrink-0 relative z-10">
-        <ResourceBar resources={resources} />
+      {/* Resource bars container */}
+      <div className="flex-shrink-0 relative z-10 flex justify-center gap-2 mt-4">
+        <UserResourceBar username={userData.username} userResources={userResources} />
+        <ResourceBar villageName={village?.name ?? null} villageResources={villageResources} />
       </div>
 
       {/* Main content area */}
