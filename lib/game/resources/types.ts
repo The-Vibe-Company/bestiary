@@ -17,8 +17,3 @@ export interface UserResources {
   createdAt: Date
   updatedAt: Date
 }
-
-export interface AllResources {
-  villageResources: VillageResources
-  userResources: UserResources
-}

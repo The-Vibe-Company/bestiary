@@ -5,7 +5,7 @@ import { MapCell, MapFeature, WorldMap } from '@/lib/game/map/types'
 const MAP_SIZE = 100
 const MIN_BORDER_DISTANCE = 3
 const MAX_BORDER_DISTANCE = 10
-const MAX_FEATURE_DISTANCE = 3
+const MAX_FEATURE_DISTANCE = 4
 
 // Vérifie si une cellule est dans la zone de bordure (entre 3 et 10 cases des bords)
 function isInBorderZone(cell: MapCell): boolean {
