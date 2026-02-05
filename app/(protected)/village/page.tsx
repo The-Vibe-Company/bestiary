@@ -17,12 +17,21 @@ export default async function VillagePage() {
   const resources = await getUserResources(session.userId)
 
   return (
-    <div className="relative min-h-screen bg-white">
-      <div className="absolute top-0 left-0 right-0 z-50">
+    <div
+      className="h-full flex flex-col bg-cover bg-center bg-no-repeat relative"
+      style={{ backgroundImage: "url('/assets/backgrounds/background-village.png')" }}
+    >
+      {/* Dark overlay for better contrast - same as map page */}
+      <div className="absolute inset-0 bg-black/50" />
+
+      {/* ResourceBar sticky at top */}
+      <div className="flex-shrink-0 relative z-10">
         <ResourceBar resources={resources} />
       </div>
-      <div className="flex items-center justify-center min-h-screen">
-        <span className="text-4xl font-bold text-gray-400">TO BUILD</span>
+
+      {/* Main content area */}
+      <div className="flex-1 flex items-center justify-center relative z-10">
+        <span className="text-4xl font-bold text-[var(--ivory)]/40">TO BUILD</span>
       </div>
     </div>
   )

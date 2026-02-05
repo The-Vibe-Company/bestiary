@@ -62,7 +62,7 @@ Before introducing an abstraction, always ask:
 ## 🧪 Testing & verification
 
 ### Manual testing
-- Use **agent-browser** to:
+- Use **agent-browser** ONLY IF RELEVANT to:
   - test pages in localhost
   - verify UI interactions
   - ensure buttons are actually clickable
