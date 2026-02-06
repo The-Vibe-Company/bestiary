@@ -78,7 +78,7 @@ export function MapPageClient({
 
   return (
     <div
-      className="min-h-[calc(100vh-72px)] w-full flex items-center justify-center overflow-hidden relative"
+      className="min-h-screen w-full flex items-center justify-center overflow-hidden relative"
       style={{
         backgroundImage: "url(/assets/backgrounds/background-map.png)",
         backgroundSize: "cover",
