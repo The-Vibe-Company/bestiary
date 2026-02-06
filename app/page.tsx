@@ -3,16 +3,31 @@ import Link from 'next/link'
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
+      {/* Background Image (full page, behind header) */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/assets/backgrounds/background-main.png)' }}
+      />
+
+      {/* Dark overlay for better text readability */}
+      <div className="absolute inset-0 bg-black/40"></div>
+
       {/* Header */}
-      <header className="p-6 bg-black">
+      <header className="relative z-10 p-8 header-border-amber">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           {/* Logo/Title */}
-          <h1 className="text-5xl md:text-6xl font-[family-name:var(--font-title)] tracking-[0.2em] text-[var(--ivory)]" style={{
-            textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
-          }}>
-            BESTIARY
-          </h1>
+          <div className="flex items-center gap-4">
+            <span className="text-[var(--burnt-amber)] text-lg">◆</span>
+            <h1
+              className="font-[family-name:var(--font-title)] font-bold tracking-[0.2em]"
+              style={{ textShadow: '0 0 30px rgba(179,123,52,0.4)' }}
+            >
+              <span className="text-6xl text-[var(--burnt-amber)]">B</span>
+              <span className="text-4xl text-[var(--ivory)]">ESTIARY</span>
+            </h1>
+            <span className="text-[var(--burnt-amber)] text-lg">◆</span>
+          </div>
 
           {/* Auth Buttons */}
           <div className="flex gap-4">
@@ -31,15 +46,7 @@ export default function LandingPage() {
       </header>
 
       {/* Main Content - Centered Play Button */}
-      <main className="flex-1 flex items-center justify-center relative overflow-hidden">
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/assets/backgrounds/background-main.png)' }}
-        />
-
-        {/* Dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-black/40"></div>
+      <main className="relative z-10 flex-1 flex items-center justify-center">
         <Link href="/sign-up" className="group relative z-10 cursor-pointer">
           {/* Halo lumineux au survol */}
           <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ boxShadow: '0 0 40px 15px rgba(229,225,216,0.4), 0 0 80px 30px rgba(229,225,216,0.2)' }}></div>

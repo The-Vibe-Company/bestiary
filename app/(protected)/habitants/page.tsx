@@ -1,35 +1,42 @@
-import { HabitantsPanel } from '@/components/habitants/habitants-panel'
-import { UserResourceBar } from '@/components/layout/user-resource-bar'
-import { ResourceBar } from '@/components/layout/resource-bar'
-import { getInhabitantTypes } from '@/lib/game/inhabitants/get-inhabitant-types'
-import { getVillageInhabitants } from '@/lib/game/inhabitants/get-village-inhabitants'
-import type { InhabitantType } from '@/lib/game/inhabitants/types'
-import { getVillageResources } from '@/lib/game/resources/get-village-resources'
-import { getUserResources } from '@/lib/game/resources/get-user-resources'
-import { getVillage } from '@/lib/game/village/get-village'
-import { getUser } from '@/lib/game/user/get-user'
-import { neonAuth } from '@neondatabase/auth/next/server'
-import Image from 'next/image'
-import { redirect } from 'next/navigation'
+import { HabitantsPanel } from "@/components/habitants/habitants-panel";
+import { ResourceBar } from "@/components/layout/resource-bar";
+import { UserResourceBar } from "@/components/layout/user-resource-bar";
+import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
+import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
+import type { InhabitantType } from "@/lib/game/inhabitants/types";
+import { getUserResources } from "@/lib/game/resources/get-user-resources";
+import { getVillageResources } from "@/lib/game/resources/get-village-resources";
+import { getUser } from "@/lib/game/user/get-user";
+import { getVillage } from "@/lib/game/village/get-village";
+import { neonAuth } from "@neondatabase/auth/next/server";
+import Image from "next/image";
+import { redirect } from "next/navigation";
 
 export default async function HabitantsPage() {
-  const { session } = await neonAuth()
+  const { session } = await neonAuth();
 
   if (!session) {
-    redirect('/sign-in')
+    redirect("/sign-in");
   }
 
-  const [villageResources, village, userResources, userData, villageInhabitants, inhabitantTypes] = await Promise.all([
+  const [
+    villageResources,
+    village,
+    userResources,
+    userData,
+    villageInhabitants,
+    inhabitantTypes,
+  ] = await Promise.all([
     getVillageResources(session.userId),
     getVillage(session.userId),
     getUserResources(session.userId),
     getUser(session.userId),
     getVillageInhabitants(session.userId),
     getInhabitantTypes(),
-  ])
+  ]);
 
   if (!villageResources || !userData) {
-    redirect('/sign-in')
+    redirect("/sign-in");
   }
 
   // Build ordered list for display using DB metadata
@@ -37,20 +44,28 @@ export default async function HabitantsPage() {
     ...type,
     id: type.key,
     count: villageInhabitants?.[type.key as InhabitantType] ?? 0,
-  }))
+  }));
 
   return (
     <div
       className="h-full flex flex-col bg-cover bg-center bg-no-repeat relative"
-      style={{ backgroundImage: "url('/assets/backgrounds/background-habitants.png')" }}
+      style={{
+        backgroundImage: "url('/assets/backgrounds/background-habitants.png')",
+      }}
     >
       {/* Dark overlay for better contrast */}
       <div className="absolute inset-0 bg-black/50" />
 
       {/* Resource bars container */}
-      <div className="flex-shrink-0 relative z-10 flex justify-center gap-2 mt-4">
-        <UserResourceBar username={userData.username} userResources={userResources} />
-        <ResourceBar villageName={village?.name ?? null} villageResources={villageResources} />
+      <div className="flex-shrink-0 relative z-10 flex justify-center gap-2 mt-[32px]">
+        <UserResourceBar
+          username={userData.username}
+          userResources={userResources}
+        />
+        <ResourceBar
+          villageName={village?.name ?? null}
+          villageResources={villageResources}
+        />
       </div>
 
       {/* Main content area - panel fills available space */}
@@ -93,5 +108,5 @@ export default async function HabitantsPage() {
         </HabitantsPanel>
       </div>
     </div>
-  )
+  );
 }

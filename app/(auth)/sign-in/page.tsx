@@ -16,10 +16,16 @@ export default function SignInPage() {
       {/* Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-5xl font-[family-name:var(--font-title)] tracking-[0.2em] text-[var(--ivory)] mb-2" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-              BESTIARY
+          <div className="text-center mb-8 flex items-center justify-center gap-3">
+            <span className="text-[var(--burnt-amber)] text-sm">◆</span>
+            <h1
+              className="font-[family-name:var(--font-title)] font-bold tracking-[0.2em]"
+              style={{ textShadow: '0 0 25px rgba(179,123,52,0.35)' }}
+            >
+              <span className="text-5xl text-[var(--burnt-amber)]">B</span>
+              <span className="text-3xl text-[var(--ivory)]">ESTIARY</span>
             </h1>
+            <span className="text-[var(--burnt-amber)] text-sm">◆</span>
           </div>
 
           <Card>

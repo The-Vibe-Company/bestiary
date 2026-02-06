@@ -20,8 +20,7 @@ export default async function ProtectedLayout({
   return (
     <div className="h-screen overflow-hidden flex flex-col">
       <Header />
-      {/* pt-[72px] accounts for the fixed header */}
-      <div className="flex-1 overflow-hidden pt-[72px]">
+      <div className="flex-1 overflow-hidden">
         {children}
       </div>
 

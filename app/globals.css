@@ -70,6 +70,17 @@ body {
   );
 }
 
+/* Texture pierre translucide (headers sur fond image) */
+.stone-texture-translucent {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 17, 18, 0.55) 0%,
+    rgba(26, 29, 31, 0.55) 100%
+  );
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
 /* Custom scrollbar - burnt amber theme (always visible) */
 .scrollbar-amber {
   /* Force scroll to always show scrollbar */
@@ -105,6 +116,20 @@ body {
 
 .scrollbar-amber::-webkit-scrollbar-corner {
   background: purple !important;
+}
+
+/* Bordure gravée ambrée pour headers */
+.header-border-amber {
+  position: relative;
+}
+.header-border-amber::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--burnt-amber) 30%, var(--burnt-amber) 70%, transparent 100%);
 }
 
 /* Hidden scrollbar - keeps scroll functionality */
