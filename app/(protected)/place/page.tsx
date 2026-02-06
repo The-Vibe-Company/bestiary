@@ -3,16 +3,19 @@ import { UserResourceBar } from "@/components/layout/user-resource-bar";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
 import { getUser } from "@/lib/game/user/get-user";
+import { assignVillageToUser } from "@/lib/game/village/assign-village";
 import { getVillage } from "@/lib/game/village/get-village";
 import { neonAuth } from "@neondatabase/auth/next/server";
 import { redirect } from "next/navigation";
 
-export default async function BestiaryPage() {
-  const { session } = await neonAuth();
+export default async function PlacePage() {
+  const { session, user } = await neonAuth();
 
-  if (!session) {
+  if (!session || !user) {
     redirect("/sign-in");
   }
+
+  await assignVillageToUser(session.userId);
 
   const [villageResources, village, userResources, userData] =
     await Promise.all([
@@ -30,7 +33,7 @@ export default async function BestiaryPage() {
     <div
       className="h-full flex flex-col bg-cover bg-center bg-no-repeat relative"
       style={{
-        backgroundImage: "url('/assets/backgrounds/background-bestiary.png')",
+        backgroundImage: "url('/assets/backgrounds/background-place.png')",
       }}
     >
       {/* Dark overlay for better contrast */}

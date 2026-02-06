@@ -74,11 +74,12 @@ body {
 .stone-texture-translucent {
   background: linear-gradient(
     135deg,
-    rgba(15, 17, 18, 0.55) 0%,
-    rgba(26, 29, 31, 0.55) 100%
+    rgba(15, 17, 18, 0.85) 0%,
+    rgba(26, 29, 31, 0.85) 100%
   );
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-stone);
 }
 
 /* Custom scrollbar - burnt amber theme (always visible) */

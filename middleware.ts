@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
     if (pathname === '/sign-in' || pathname === '/sign-up') {
       const { session } = await neonAuth();
       if (session) {
-        return NextResponse.redirect(new URL('/village', request.url));
+        return NextResponse.redirect(new URL('/place', request.url));
       }
     }
     return NextResponse.next();

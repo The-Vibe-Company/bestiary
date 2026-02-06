@@ -27,8 +27,17 @@ export default async function ResearchPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-white">
-      <div className="absolute top-0 left-0 right-0 z-50 flex justify-center gap-2 mt-[32px]">
+    <div
+      className="h-full flex flex-col bg-cover bg-center bg-no-repeat relative"
+      style={{
+        backgroundImage: "url('/assets/backgrounds/background-lab.png')",
+      }}
+    >
+      {/* Dark overlay for better contrast */}
+      <div className="absolute inset-0 bg-black/50" />
+
+      {/* Resource bars container */}
+      <div className="flex-shrink-0 relative z-10 flex justify-center gap-2 mt-[32px]">
         <UserResourceBar
           username={userData.username}
           userResources={userResources}
@@ -38,8 +47,9 @@ export default async function ResearchPage() {
           villageResources={villageResources}
         />
       </div>
-      <div className="flex items-center justify-center min-h-screen">
-        <span className="text-4xl font-bold text-gray-400">TO BUILD</span>
+
+      {/* Main content area */}
+      <div className="flex-1 flex items-center justify-center relative z-10">
       </div>
     </div>
   );

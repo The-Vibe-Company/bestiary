@@ -75,10 +75,10 @@ export default async function HabitantsPage() {
           {inhabitantsList.map((habitant) => (
             <div
               key={habitant.id}
-              className="flex items-center gap-6 p-6 hover:bg-white/5 transition-colors cursor-pointer"
+              className="group flex items-center gap-4 p-4 cursor-pointer transition-colors"
             >
-              {/* Large image on the left */}
-              <div className="relative w-[180px] h-[180px] flex-shrink-0 rounded-xl overflow-hidden border-2 border-[var(--burnt-amber)]">
+              {/* Image on the left */}
+              <div className="relative w-[140px] h-[140px] flex-shrink-0 rounded-xl overflow-hidden border-2 border-[var(--burnt-amber)] transition-all duration-300 group-hover:border-4">
                 <Image
                   src={habitant.image}
                   alt={habitant.title}
@@ -89,17 +89,17 @@ export default async function HabitantsPage() {
 
               {/* Content in the middle */}
               <div className="flex-1 min-w-0">
-                <h2 className="text-2xl font-bold font-[family-name:var(--font-title)] tracking-wider text-[var(--ivory)] mb-3">
+                <h2 className="text-xl font-bold font-[family-name:var(--font-title)] tracking-wider text-[var(--ivory)] mb-2 transition-colors duration-300 group-hover:text-[var(--burnt-amber)]">
                   {habitant.title}
                 </h2>
-                <p className="text-base text-[var(--ivory)]/70 leading-relaxed">
+                <p className="text-sm text-[var(--ivory)]/70 leading-relaxed">
                   {habitant.description}
                 </p>
               </div>
 
               {/* Count box on the right */}
-              <div className="flex-shrink-0 w-20 h-20 flex items-center justify-center bg-black/50 border-2 border-[var(--burnt-amber)] rounded-xl">
-                <span className="text-4xl font-bold text-[var(--burnt-amber)]">
+              <div className="flex-shrink-0 w-16 h-16 flex items-center justify-center bg-black/50 border-2 border-[var(--burnt-amber)] rounded-xl">
+                <span className="text-3xl font-bold text-[var(--burnt-amber)]">
                   {habitant.count}
                 </span>
               </div>
