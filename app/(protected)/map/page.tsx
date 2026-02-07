@@ -1,7 +1,10 @@
 import { MapPageClient } from "@/components/game/map-page-client";
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
+import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
+import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
 import { generateWorldMap } from "@/lib/game/map/generator";
+import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
 import { getUser } from "@/lib/game/user/get-user";
@@ -35,17 +38,35 @@ export default async function MapPage() {
     },
   });
 
-  const [villageResources, village, userResources, userData] =
+  const [villageResources, village, userResources, userData, villageInhabitants, inhabitantStats] =
     await Promise.all([
       getVillageResources(session.userId),
       getVillage(session.userId),
       getUserResources(session.userId),
       getUser(session.userId),
+      getVillageInhabitants(session.userId),
+      getInhabitantStats(),
     ]);
 
-  if (!villageResources || !userData) {
+  if (!villageResources || !userData || !village) {
     redirect("/sign-in");
   }
+
+  // Complete any finished missions (lazy pattern)
+  await completePendingMissions(village.id);
+
+  // Compute available lumberjacks
+  const totalLumberjacks = villageInhabitants?.lumberjack ?? 0;
+  const activeLumberjackMissions = await prisma.mission.count({
+    where: {
+      villageId: village.id,
+      inhabitantType: 'lumberjack',
+      completedAt: null,
+    },
+  });
+  const availableLumberjacks = totalLumberjacks - activeLumberjackMissions;
+
+  const lumberjackStats = inhabitantStats['lumberjack'] ?? { speed: 2, gatherRate: 10, maxCapacity: 30 };
 
   return (
     <div className="relative">
@@ -65,6 +86,10 @@ export default async function MapPage() {
         initialX={userVillage?.x ?? 50}
         initialY={userVillage?.y ?? 50}
         currentUserId={session.userId}
+        villageX={village.x}
+        villageY={village.y}
+        availableLumberjacks={availableLumberjacks}
+        lumberjackStats={lumberjackStats}
       />
     </div>
   );

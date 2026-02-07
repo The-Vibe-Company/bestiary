@@ -33,6 +33,7 @@ model Village {
   createdAt   DateTime            @default(now())
   inhabitants VillageInhabitants?
   resources   VillageResources?
+  missions    Mission[]
 
   @@unique([x, y]) // Une seule village par coordonnée
   @@map("Villages")
@@ -88,6 +89,26 @@ model InhabitantType {
   description String
   image       String
   order       Int    // Display order
+  speed       Float  @default(0)  // tiles per hour (0 = no missions)
+  gatherRate  Float  @default(0)  // resources per hour of work
+  maxCapacity Int    @default(0)  // max carry capacity
 
   @@map("InhabitantTypes")
+}
+
+model Mission {
+  id             String    @id @default(cuid())
+  villageId      String
+  village        Village   @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  inhabitantType String    // "lumberjack"
+  targetX        Int
+  targetY        Int
+  departedAt     DateTime  @default(now())
+  travelSeconds  Int       // one-way travel duration (pre-computed)
+  workSeconds    Int       // work duration (chosen by player)
+  recalledAt     DateTime? // set if recalled during outbound travel
+  completedAt    DateTime? // set when resources have been collected
+  createdAt      DateTime  @default(now())
+
+  @@map("Missions")
 }

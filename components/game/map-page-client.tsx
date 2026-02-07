@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { SendMissionModal } from "@/components/map/send-mission-modal";
 import { MapCell, WorldMap } from "@/lib/game/map/types";
 import { useState } from "react";
 import { IsometricMapViewer } from "./isometric-map-viewer";
@@ -20,12 +21,22 @@ export interface Village {
   owner: { username: string };
 }
 
+interface LumberjackStats {
+  speed: number;
+  gatherRate: number;
+  maxCapacity: number;
+}
+
 interface MapPageClientProps {
   map: WorldMap;
   villages: Village[];
   initialX: number;
   initialY: number;
   currentUserId: string;
+  villageX: number;
+  villageY: number;
+  availableLumberjacks: number;
+  lumberjackStats: LumberjackStats;
 }
 
 export function MapPageClient({
@@ -34,12 +45,17 @@ export function MapPageClient({
   initialX,
   initialY,
   currentUserId,
+  villageX,
+  villageY,
+  availableLumberjacks,
+  lumberjackStats,
 }: MapPageClientProps) {
   const [viewSize, setViewSize] = useState(7);
   const halfView = Math.floor(viewSize / 2);
   const [startX, setStartX] = useState(Math.max(0, initialX - halfView));
   const [startY, setStartY] = useState(Math.max(0, initialY - halfView));
   const [hoveredCell, setHoveredCell] = useState<MapCell | null>(null);
+  const [selectedForestCell, setSelectedForestCell] = useState<MapCell | null>(null);
 
   const MAP_SIZE = 100;
 
@@ -69,6 +85,9 @@ export function MapPageClient({
     const half = Math.floor(viewSize / 2);
     setStartX(clamp(cell.x - half, viewSize));
     setStartY(clamp(cell.y - half, viewSize));
+    if (cell.feature === 'foret') {
+      setSelectedForestCell(cell);
+    }
   };
 
   const handleMoveUp = () => setStartY((prev) => clamp(prev - 1, viewSize));
@@ -208,6 +227,21 @@ export function MapPageClient({
           −
         </Button>
       </div>
+
+      {/* Mission modal for forest click */}
+      {selectedForestCell && (
+        <SendMissionModal
+          targetX={selectedForestCell.x}
+          targetY={selectedForestCell.y}
+          villageX={villageX}
+          villageY={villageY}
+          speed={lumberjackStats.speed}
+          gatherRate={lumberjackStats.gatherRate}
+          maxCapacity={lumberjackStats.maxCapacity}
+          availableLumberjacks={availableLumberjacks}
+          onClose={() => setSelectedForestCell(null)}
+        />
+      )}
     </div>
   );
 }
