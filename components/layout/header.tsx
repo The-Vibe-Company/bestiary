@@ -2,15 +2,16 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { GiVillage, GiFarmer, GiSpellBook, GiPawPrint, GiTreasureMap } from 'react-icons/gi'
+import { GiWell, GiVillage, GiFarmer, GiScrollUnfurled, GiPawPrint, GiTreasureMap } from 'react-icons/gi'
 import { SignOutButton } from '@/components/auth/sign-out-button'
 import { Tooltip } from '@/components/ui/tooltip'
 import type { IconType } from 'react-icons'
 
 const NAV_ITEMS: { href: string; icon: IconType; label: string }[] = [
+  { href: '/place', icon: GiWell, label: 'Place du Village' },
   { href: '/village', icon: GiVillage, label: 'Village' },
   { href: '/habitants', icon: GiFarmer, label: 'Habitants' },
-  { href: '/research', icon: GiSpellBook, label: 'Laboratoire' },
+  { href: '/research', icon: GiScrollUnfurled, label: 'Laboratoire' },
   { href: '/bestiary', icon: GiPawPrint, label: 'Bestiaire' },
   { href: '/map', icon: GiTreasureMap, label: 'Carte' },
 ]
@@ -22,7 +23,7 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 stone-texture-translucent header-border-amber">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Left: Illuminated Logo */}
-        <Link href="/village" className="flex items-center gap-2.5">
+        <Link href="/place" className="flex items-center gap-2.5">
           <span className="text-[var(--burnt-amber)] text-xs">◆</span>
           <h1
             className="font-[family-name:var(--font-title)] font-bold tracking-[0.2em]"
