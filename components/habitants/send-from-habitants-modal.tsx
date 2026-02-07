@@ -2,8 +2,13 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import { GiAxeInStump } from 'react-icons/gi'
 import { Button } from '@/components/ui/button'
 import { SendMissionModal } from '@/components/map/send-mission-modal'
+import type { MissionTile, TileMissionSummary } from '@/components/game/map-page-client'
+import { PHASE_COLORS } from '@/components/game/map-page-client'
+import { computeMissionStatus } from '@/lib/game/missions/compute-mission-status'
+import type { MissionPhase } from '@/lib/game/missions/types'
 import type { WorldMap } from '@/lib/game/map/types'
 
 interface SendFromHabitantsModalProps {
@@ -14,6 +19,7 @@ interface SendFromHabitantsModalProps {
   gatherRate: number
   maxCapacity: number
   availableLumberjacks: number
+  missionTiles: MissionTile[]
   onClose: () => void
 }
 
@@ -27,8 +33,41 @@ export function SendFromHabitantsModal({
   gatherRate,
   maxCapacity,
   availableLumberjacks,
+  missionTiles,
   onClose,
 }: SendFromHabitantsModalProps) {
+  // Build mission tile lookup map
+  const tileMissionMap = new Map<string, TileMissionSummary>()
+  const now = new Date()
+  for (const t of missionTiles) {
+    const key = `${t.x},${t.y}`
+    const status = computeMissionStatus(
+      {
+        departedAt: new Date(t.departedAt),
+        travelSeconds: t.travelSeconds,
+        workSeconds: t.workSeconds,
+        recalledAt: t.recalledAt ? new Date(t.recalledAt) : null,
+        gatherRate: 0,
+        maxCapacity: 0,
+      },
+      now,
+    )
+    if (status.phase === 'completed') continue
+    const existing = tileMissionMap.get(key)
+    if (existing) {
+      existing.total++
+      existing.byPhase[status.phase] = (existing.byPhase[status.phase] ?? 0) + 1
+      const priority: MissionPhase[] = ['working', 'traveling-to', 'traveling-back']
+      existing.dominantPhase = priority.find((p) => existing.byPhase[p]) ?? status.phase
+    } else {
+      tileMissionMap.set(key, {
+        total: 1,
+        dominantPhase: status.phase,
+        byPhase: { [status.phase]: 1 },
+      })
+    }
+  }
+
   const [selectedForest, setSelectedForest] = useState<{ x: number; y: number } | null>(null)
   const [centerX, setCenterX] = useState(
     Math.max(MINIMAP_RADIUS, Math.min(villageX, map[0].length - 1 - MINIMAP_RADIUS))
@@ -170,6 +209,45 @@ export function SendFromHabitantsModal({
                           className="object-contain"
                         />
                       )}
+                      {isForest && !isVillage && (() => {
+                        const summary = tileMissionMap.get(`${mapX},${mapY}`)
+                        if (!summary) return null
+                        const color = PHASE_COLORS[summary.dominantPhase]
+                        return (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              bottom: 1,
+                              right: 1,
+                              zIndex: 2,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
+                            <GiAxeInStump
+                              style={{
+                                width: 14,
+                                height: 14,
+                                color,
+                                filter: `drop-shadow(0 0 3px ${color})`,
+                              }}
+                            />
+                            {summary.total > 1 && (
+                              <span
+                                style={{
+                                  fontSize: 9,
+                                  color,
+                                  fontWeight: 'bold',
+                                  lineHeight: 1,
+                                }}
+                              >
+                                {summary.total}
+                              </span>
+                            )}
+                          </div>
+                        )
+                      })()}
                       {cell?.feature === 'montagne' && !isVillage && (
                         <Image
                           src="/assets/map/montagne.png"

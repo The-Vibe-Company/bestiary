@@ -1,9 +1,8 @@
 /**
- * Chebyshev distance (consistent with assign-village.ts).
- * Returns one-way travel time in seconds.
+ * Manhattan distance — diagonal costs 2, cardinal costs 1.
  */
-export function chebyshevDistance(x1: number, y1: number, x2: number, y2: number): number {
-  return Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1))
+export function manhattanDistance(x1: number, y1: number, x2: number, y2: number): number {
+  return Math.abs(x2 - x1) + Math.abs(y2 - y1)
 }
 
 export function computeTravelSeconds(distance: number, speed: number): number {

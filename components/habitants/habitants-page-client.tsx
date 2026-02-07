@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { HabitantsPanel } from './habitants-panel'
 import { SendFromHabitantsModal } from './send-from-habitants-modal'
 import type { WorldMap } from '@/lib/game/map/types'
+import type { MissionTile } from '@/components/game/map-page-client'
 
 interface HabitantData {
   id: string
@@ -27,6 +28,7 @@ interface HabitantsPageClientProps {
     gatherRate: number
     maxCapacity: number
   }
+  missionTiles: MissionTile[]
 }
 
 const MISSION_CAPABLE_TYPES = ['lumberjack']
@@ -38,6 +40,7 @@ export function HabitantsPageClient({
   villageY,
   availableLumberjacks,
   lumberjackStats,
+  missionTiles,
 }: HabitantsPageClientProps) {
   const [selectedType, setSelectedType] = useState<string | null>(null)
 
@@ -129,6 +132,7 @@ export function HabitantsPageClient({
           gatherRate={lumberjackStats.gatherRate}
           maxCapacity={lumberjackStats.maxCapacity}
           availableLumberjacks={availableLumberjacks}
+          missionTiles={missionTiles}
           onClose={() => setSelectedType(null)}
         />
       )}

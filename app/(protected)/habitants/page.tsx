@@ -73,6 +73,31 @@ export default async function HabitantsPage() {
 
   const worldMap = generateWorldMap();
 
+  // Query active missions with timing data for mini-map icons
+  const activeMissions = await prisma.mission.findMany({
+    where: {
+      villageId: village.id,
+      completedAt: null,
+    },
+    select: {
+      targetX: true,
+      targetY: true,
+      departedAt: true,
+      travelSeconds: true,
+      workSeconds: true,
+      recalledAt: true,
+    },
+  });
+
+  const missionTiles = activeMissions.map((m) => ({
+    x: m.targetX,
+    y: m.targetY,
+    departedAt: m.departedAt.toISOString(),
+    travelSeconds: m.travelSeconds,
+    workSeconds: m.workSeconds,
+    recalledAt: m.recalledAt?.toISOString() ?? null,
+  }));
+
   return (
     <div
       className="h-full flex flex-col bg-cover bg-center bg-no-repeat relative"
@@ -104,6 +129,7 @@ export default async function HabitantsPage() {
           villageY={village.y}
           availableLumberjacks={availableLumberjacks}
           lumberjackStats={lumberjackStats}
+          missionTiles={missionTiles}
         />
       </div>
     </div>

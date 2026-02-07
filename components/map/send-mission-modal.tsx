@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { createMission } from '@/lib/game/missions/create-mission'
-import { chebyshevDistance, computeTravelSeconds } from '@/lib/game/missions/distance'
+import { manhattanDistance, computeTravelSeconds } from '@/lib/game/missions/distance'
 import {
   MIN_WORK_SECONDS,
   MAX_WORK_SECONDS,
@@ -61,7 +61,7 @@ export function SendMissionModal({
 
   const clampedWorkSeconds = Math.min(workSeconds, effectiveMax)
 
-  const distance = chebyshevDistance(villageX, villageY, targetX, targetY)
+  const distance = manhattanDistance(villageX, villageY, targetX, targetY)
   const travelSeconds = computeTravelSeconds(distance, speed)
   const totalSeconds = travelSeconds * 2 + clampedWorkSeconds
 
