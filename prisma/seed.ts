@@ -10,6 +10,9 @@ const inhabitantTypes = [
       'Abat les arbres des forêts et jungles environnantes pour fournir le bois nécessaire au village.',
     image: '/assets/habitants/bucheron.png',
     order: 1,
+    speed: 2,
+    gatherRate: 10,
+    maxCapacity: 30,
   },
   {
     key: 'miner',
@@ -72,8 +75,20 @@ async function main() {
         description: type.description,
         image: type.image,
         order: type.order,
+        speed: type.speed ?? 0,
+        gatherRate: type.gatherRate ?? 0,
+        maxCapacity: type.maxCapacity ?? 0,
       },
-      create: type,
+      create: {
+        key: type.key,
+        title: type.title,
+        description: type.description,
+        image: type.image,
+        order: type.order,
+        speed: type.speed ?? 0,
+        gatherRate: type.gatherRate ?? 0,
+        maxCapacity: type.maxCapacity ?? 0,
+      },
     })
     console.log(`  - ${type.title}`)
   }

@@ -1,15 +1,18 @@
-import { HabitantsPanel } from "@/components/habitants/habitants-panel";
+import { HabitantsPageClient } from "@/components/habitants/habitants-page-client";
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
+import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
 import type { InhabitantType } from "@/lib/game/inhabitants/types";
+import { generateWorldMap } from "@/lib/game/map/generator";
+import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
 import { getUser } from "@/lib/game/user/get-user";
 import { getVillage } from "@/lib/game/village/get-village";
+import { prisma } from "@/lib/prisma";
 import { neonAuth } from "@neondatabase/auth/next/server";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 
 export default async function HabitantsPage() {
@@ -26,6 +29,7 @@ export default async function HabitantsPage() {
     userData,
     villageInhabitants,
     inhabitantTypes,
+    inhabitantStats,
   ] = await Promise.all([
     getVillageResources(session.userId),
     getVillage(session.userId),
@@ -33,11 +37,28 @@ export default async function HabitantsPage() {
     getUser(session.userId),
     getVillageInhabitants(session.userId),
     getInhabitantTypes(),
+    getInhabitantStats(),
   ]);
 
-  if (!villageResources || !userData) {
+  if (!villageResources || !userData || !village) {
     redirect("/sign-in");
   }
+
+  // Complete any finished missions (lazy pattern)
+  await completePendingMissions(village.id);
+
+  // Compute available lumberjacks
+  const totalLumberjacks = villageInhabitants?.lumberjack ?? 0;
+  const activeLumberjackMissions = await prisma.mission.count({
+    where: {
+      villageId: village.id,
+      inhabitantType: 'lumberjack',
+      completedAt: null,
+    },
+  });
+  const availableLumberjacks = totalLumberjacks - activeLumberjackMissions;
+
+  const lumberjackStats = inhabitantStats['lumberjack'] ?? { speed: 2, gatherRate: 10, maxCapacity: 30 };
 
   // Build ordered list for display using DB metadata
   const inhabitantsList = inhabitantTypes.map((type) => ({
@@ -45,6 +66,8 @@ export default async function HabitantsPage() {
     id: type.key,
     count: villageInhabitants?.[type.key as InhabitantType] ?? 0,
   }));
+
+  const worldMap = generateWorldMap();
 
   return (
     <div
@@ -70,42 +93,14 @@ export default async function HabitantsPage() {
 
       {/* Main content area - panel fills available space */}
       <div className="flex-1 min-h-0 flex justify-center py-6 relative z-10">
-        {/* Scrollable panel */}
-        <HabitantsPanel>
-          {inhabitantsList.map((habitant) => (
-            <div
-              key={habitant.id}
-              className="group flex items-center gap-4 p-4 cursor-pointer transition-colors"
-            >
-              {/* Image on the left */}
-              <div className="relative w-[140px] h-[140px] flex-shrink-0 rounded-xl overflow-hidden border-2 border-[var(--burnt-amber)] transition-all duration-300 group-hover:border-4">
-                <Image
-                  src={habitant.image}
-                  alt={habitant.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-
-              {/* Content in the middle */}
-              <div className="flex-1 min-w-0">
-                <h2 className="text-xl font-bold font-[family-name:var(--font-title)] tracking-wider text-[var(--ivory)] mb-2 transition-colors duration-300 group-hover:text-[var(--burnt-amber)]">
-                  {habitant.title}
-                </h2>
-                <p className="text-sm text-[var(--ivory)]/70 leading-relaxed">
-                  {habitant.description}
-                </p>
-              </div>
-
-              {/* Count box on the right */}
-              <div className="flex-shrink-0 w-16 h-16 flex items-center justify-center bg-black/50 border-2 border-[var(--burnt-amber)] rounded-xl">
-                <span className="text-3xl font-bold text-[var(--burnt-amber)]">
-                  {habitant.count}
-                </span>
-              </div>
-            </div>
-          ))}
-        </HabitantsPanel>
+        <HabitantsPageClient
+          inhabitantsList={inhabitantsList}
+          map={worldMap}
+          villageX={village.x}
+          villageY={village.y}
+          availableLumberjacks={availableLumberjacks}
+          lumberjackStats={lumberjackStats}
+        />
       </div>
     </div>
   );

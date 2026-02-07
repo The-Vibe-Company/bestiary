@@ -4,8 +4,11 @@ import { UserResourceBar } from "@/components/layout/user-resource-bar";
 import { ActiveJobsPanel } from "@/components/place/active-jobs-panel";
 import { PlacePanel } from "@/components/place/place-panel";
 import { TravelersPanel } from "@/components/place/travelers-panel";
+import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
+import { completePendingMissions } from "@/lib/game/missions/complete-missions";
+import { getActiveMissions } from "@/lib/game/missions/get-active-missions";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
 import { getUser } from "@/lib/game/user/get-user";
@@ -24,7 +27,7 @@ export default async function PlacePage() {
 
   await assignVillageToUser(session.userId);
 
-  const [villageResources, village, userResources, userData, villageInhabitants, inhabitantTypes] =
+  const [villageResources, village, userResources, userData, villageInhabitants, inhabitantTypes, inhabitantStats] =
     await Promise.all([
       getVillageResources(session.userId),
       getVillage(session.userId),
@@ -32,11 +35,20 @@ export default async function PlacePage() {
       getUser(session.userId),
       getVillageInhabitants(session.userId),
       getInhabitantTypes(),
+      getInhabitantStats(),
     ]);
 
-  if (!villageResources || !userData) {
+  if (!villageResources || !userData || !village) {
     redirect("/sign-in");
   }
+
+  // Complete any finished missions (lazy pattern)
+  await completePendingMissions(village.id);
+
+  // Fetch active missions
+  const missions = await getActiveMissions(village.id);
+
+  const lumberjackStats = inhabitantStats['lumberjack'] ?? { speed: 2, gatherRate: 10, maxCapacity: 30 };
 
   // A traveler awaits when the village has no inhabitants yet
   const totalInhabitants = villageInhabitants
@@ -102,7 +114,11 @@ export default async function PlacePage() {
           </PlacePanel>
 
           {/* Jobs en cours */}
-          <ActiveJobsPanel />
+          <ActiveJobsPanel
+            missions={missions}
+            gatherRate={lumberjackStats.gatherRate}
+            maxCapacity={lumberjackStats.maxCapacity}
+          />
         </div>
       </div>
     </div>
