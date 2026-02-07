@@ -6,7 +6,7 @@ import { neonAuth } from '@neondatabase/auth/next/server'
 import { getInhabitantStats } from '@/lib/game/inhabitants/get-inhabitant-stats'
 import { generateWorldMap } from '@/lib/game/map/generator'
 import { chebyshevDistance, computeTravelSeconds } from './distance'
-import { MIN_WORK_SECONDS, MAX_WORK_SECONDS, WORK_STEP_SECONDS } from './constants'
+import { MIN_WORK_SECONDS, MAX_WORK_SECONDS } from './constants'
 
 export type CreateMissionResult =
   | { success: true }
@@ -23,11 +23,7 @@ export async function createMission(
   }
 
   // Validate workSeconds
-  if (
-    workSeconds < MIN_WORK_SECONDS ||
-    workSeconds > MAX_WORK_SECONDS ||
-    workSeconds % WORK_STEP_SECONDS !== 0
-  ) {
+  if (workSeconds < MIN_WORK_SECONDS || workSeconds > MAX_WORK_SECONDS) {
     return { success: false, error: 'Durée de travail invalide' }
   }
 
