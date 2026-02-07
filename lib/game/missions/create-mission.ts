@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { neonAuth } from '@neondatabase/auth/next/server'
 import { getInhabitantStats } from '@/lib/game/inhabitants/get-inhabitant-stats'
 import { generateWorldMap } from '@/lib/game/map/generator'
-import { chebyshevDistance, computeTravelSeconds } from './distance'
+import { manhattanDistance, computeTravelSeconds } from './distance'
 import { MIN_WORK_SECONDS, MAX_WORK_SECONDS } from './constants'
 
 export type CreateMissionResult =
@@ -65,7 +65,7 @@ export async function createMission(
   }
 
   // Compute travel time
-  const distance = chebyshevDistance(village.x, village.y, targetX, targetY)
+  const distance = manhattanDistance(village.x, village.y, targetX, targetY)
   if (distance === 0) {
     return { success: false, error: 'La cible est sur votre village' }
   }

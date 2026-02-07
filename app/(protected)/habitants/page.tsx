@@ -47,16 +47,19 @@ export default async function HabitantsPage() {
   // Complete any finished missions (lazy pattern)
   await completePendingMissions(village.id);
 
-  // Compute available lumberjacks
-  const totalLumberjacks = villageInhabitants?.lumberjack ?? 0;
-  const activeLumberjackMissions = await prisma.mission.count({
-    where: {
-      villageId: village.id,
-      inhabitantType: 'lumberjack',
-      completedAt: null,
-    },
+  // Count active missions grouped by inhabitant type
+  const activeMissionCounts = await prisma.mission.groupBy({
+    by: ['inhabitantType'],
+    where: { villageId: village.id, completedAt: null },
+    _count: true,
   });
-  const availableLumberjacks = totalLumberjacks - activeLumberjackMissions;
+  const missionCountMap = Object.fromEntries(
+    activeMissionCounts.map((m) => [m.inhabitantType, m._count])
+  );
+
+  // Compute available lumberjacks (used by the send modal)
+  const totalLumberjacks = villageInhabitants?.lumberjack ?? 0;
+  const availableLumberjacks = totalLumberjacks - (missionCountMap['lumberjack'] ?? 0);
 
   const lumberjackStats = inhabitantStats['lumberjack'] ?? { speed: 2, gatherRate: 10, maxCapacity: 30 };
 
@@ -65,9 +68,35 @@ export default async function HabitantsPage() {
     ...type,
     id: type.key,
     count: villageInhabitants?.[type.key as InhabitantType] ?? 0,
+    inMission: missionCountMap[type.key] ?? 0,
   }));
 
   const worldMap = generateWorldMap();
+
+  // Query active missions with timing data for mini-map icons
+  const activeMissions = await prisma.mission.findMany({
+    where: {
+      villageId: village.id,
+      completedAt: null,
+    },
+    select: {
+      targetX: true,
+      targetY: true,
+      departedAt: true,
+      travelSeconds: true,
+      workSeconds: true,
+      recalledAt: true,
+    },
+  });
+
+  const missionTiles = activeMissions.map((m) => ({
+    x: m.targetX,
+    y: m.targetY,
+    departedAt: m.departedAt.toISOString(),
+    travelSeconds: m.travelSeconds,
+    workSeconds: m.workSeconds,
+    recalledAt: m.recalledAt?.toISOString() ?? null,
+  }));
 
   return (
     <div
@@ -100,6 +129,7 @@ export default async function HabitantsPage() {
           villageY={village.y}
           availableLumberjacks={availableLumberjacks}
           lumberjackStats={lumberjackStats}
+          missionTiles={missionTiles}
         />
       </div>
     </div>

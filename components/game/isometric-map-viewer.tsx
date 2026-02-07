@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { GiAxeInStump } from "react-icons/gi";
 
 import { MapCell, WorldMap } from "@/lib/game/map/types";
-import { Village } from "./map-page-client";
+import { Village, TileMissionSummary, PHASE_COLORS } from "./map-page-client";
 
 interface IsometricMapViewerProps {
   map: WorldMap;
@@ -15,6 +16,7 @@ interface IsometricMapViewerProps {
   villages: Village[];
   currentUserId: string;
   containerSize: number;
+  tileMissionMap: Map<string, TileMissionSummary>;
 }
 
 export function IsometricMapViewer({
@@ -27,6 +29,7 @@ export function IsometricMapViewer({
   villages,
   currentUserId,
   containerSize,
+  tileMissionMap,
 }: IsometricMapViewerProps) {
   // Dégradé de vert doux basé sur les coordonnées
   function cellGreen(x: number, y: number): string {
@@ -193,6 +196,54 @@ export function IsometricMapViewer({
                           maxWidth: "none",
                         }}
                       />
+                    );
+                  })()}
+                {/* Lumberjack mission overlay */}
+                {cell.feature === "foret" &&
+                  !village &&
+                  (() => {
+                    const summary = tileMissionMap.get(`${cell.x},${cell.y}`);
+                    if (!summary) return null;
+                    const iconSize = Math.max(14, actualCellSize * 0.3);
+                    const color = PHASE_COLORS[summary.dominantPhase];
+                    return (
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: 2,
+                          right: 2,
+                          zIndex: 2,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          backgroundColor: "rgba(0, 0, 0, 0.7)",
+                          borderRadius: "4px",
+                          padding: "1px 3px",
+                          // Counter the parent's rotateX(35deg) so the icon appears flat
+                          transform: "scaleY(1.22)",
+                        }}
+                      >
+                        <GiAxeInStump
+                          style={{
+                            width: iconSize,
+                            height: iconSize,
+                            color,
+                            filter: `drop-shadow(0 0 3px ${color})`,
+                          }}
+                        />
+                        {summary.total > 1 && (
+                          <span
+                            style={{
+                              fontSize: Math.max(9, iconSize * 0.65),
+                              color,
+                              fontWeight: "bold",
+                              lineHeight: 1,
+                            }}
+                          >
+                            {summary.total}
+                          </span>
+                        )}
+                      </div>
                     );
                   })()}
                 {village && (

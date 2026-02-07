@@ -68,6 +68,31 @@ export default async function MapPage() {
 
   const lumberjackStats = inhabitantStats['lumberjack'] ?? { speed: 2, gatherRate: 10, maxCapacity: 30 };
 
+  // Query active missions with timing data for phase computation on the client
+  const activeMissions = await prisma.mission.findMany({
+    where: {
+      villageId: village.id,
+      completedAt: null,
+    },
+    select: {
+      targetX: true,
+      targetY: true,
+      departedAt: true,
+      travelSeconds: true,
+      workSeconds: true,
+      recalledAt: true,
+    },
+  });
+
+  const missionTiles = activeMissions.map((m) => ({
+    x: m.targetX,
+    y: m.targetY,
+    departedAt: m.departedAt.toISOString(),
+    travelSeconds: m.travelSeconds,
+    workSeconds: m.workSeconds,
+    recalledAt: m.recalledAt?.toISOString() ?? null,
+  }));
+
   return (
     <div className="relative">
       <div className="absolute top-0 left-0 right-0 z-50 flex justify-center gap-2 mt-[32px]">
@@ -90,6 +115,7 @@ export default async function MapPage() {
         villageY={village.y}
         availableLumberjacks={availableLumberjacks}
         lumberjackStats={lumberjackStats}
+        missionTiles={missionTiles}
       />
     </div>
   );

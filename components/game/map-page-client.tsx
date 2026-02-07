@@ -3,6 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { SendMissionModal } from "@/components/map/send-mission-modal";
 import { MapCell, WorldMap } from "@/lib/game/map/types";
+import { computeMissionStatus } from "@/lib/game/missions/compute-mission-status";
+import type { MissionPhase } from "@/lib/game/missions/types";
 import { useState } from "react";
 import { IsometricMapViewer } from "./isometric-map-viewer";
 
@@ -27,6 +29,36 @@ interface LumberjackStats {
   maxCapacity: number;
 }
 
+export interface MissionTile {
+  x: number;
+  y: number;
+  departedAt: string;
+  travelSeconds: number;
+  workSeconds: number;
+  recalledAt: string | null;
+}
+
+const PHASE_LABELS: Record<MissionPhase, string> = {
+  'traveling-to': 'en route',
+  working: 'au travail',
+  'traveling-back': 'sur le retour',
+  completed: 'terminé',
+};
+
+export const PHASE_COLORS: Record<MissionPhase, string> = {
+  'traveling-to': 'var(--burnt-amber)',
+  working: 'rgb(101, 163, 78)',
+  'traveling-back': 'var(--ivory)',
+  completed: 'var(--ivory)',
+};
+
+export interface TileMissionSummary {
+  total: number;
+  /** The "dominant" phase (priority: working > traveling-to > traveling-back) */
+  dominantPhase: MissionPhase;
+  byPhase: Partial<Record<MissionPhase, number>>;
+}
+
 interface MapPageClientProps {
   map: WorldMap;
   villages: Village[];
@@ -37,6 +69,7 @@ interface MapPageClientProps {
   villageY: number;
   availableLumberjacks: number;
   lumberjackStats: LumberjackStats;
+  missionTiles: MissionTile[];
 }
 
 export function MapPageClient({
@@ -49,7 +82,41 @@ export function MapPageClient({
   villageY,
   availableLumberjacks,
   lumberjackStats,
+  missionTiles,
 }: MapPageClientProps) {
+  // Build a lookup map for mission tiles: "x,y" → TileMissionSummary
+  const missionTileMap = new Map<string, TileMissionSummary>();
+  const now = new Date();
+  for (const t of missionTiles) {
+    const key = `${t.x},${t.y}`;
+    const status = computeMissionStatus(
+      {
+        departedAt: new Date(t.departedAt),
+        travelSeconds: t.travelSeconds,
+        workSeconds: t.workSeconds,
+        recalledAt: t.recalledAt ? new Date(t.recalledAt) : null,
+        gatherRate: 0,
+        maxCapacity: 0,
+      },
+      now,
+    );
+    if (status.phase === 'completed') continue;
+    const existing = missionTileMap.get(key);
+    if (existing) {
+      existing.total++;
+      existing.byPhase[status.phase] = (existing.byPhase[status.phase] ?? 0) + 1;
+      // Priority: working > traveling-to > traveling-back
+      const priority: MissionPhase[] = ['working', 'traveling-to', 'traveling-back'];
+      existing.dominantPhase = priority.find((p) => existing.byPhase[p]) ?? status.phase;
+    } else {
+      missionTileMap.set(key, {
+        total: 1,
+        dominantPhase: status.phase,
+        byPhase: { [status.phase]: 1 },
+      });
+    }
+  }
+
   const [viewSize, setViewSize] = useState(7);
   const halfView = Math.floor(viewSize / 2);
   const [startX, setStartX] = useState(Math.max(0, initialX - halfView));
@@ -158,6 +225,7 @@ export function MapPageClient({
                 villages={villages}
                 currentUserId={currentUserId}
                 containerSize={MAP_CONTAINER_SIZE}
+                tileMissionMap={missionTileMap}
               />
             </div>
 
@@ -191,7 +259,15 @@ export function MapPageClient({
                 >
                   {hoveredVillage
                     ? `${hoveredVillage.owner.username}${hoveredVillage.name ? ` — ${hoveredVillage.name}` : ""}`
-                    : `${hoveredCell.feature ? FEATURE_LABELS[hoveredCell.feature] : "Prairie"}`}{" "}
+                    : (() => {
+                        const label = hoveredCell.feature ? FEATURE_LABELS[hoveredCell.feature] : "Prairie";
+                        const summary = missionTileMap.get(`${hoveredCell.x},${hoveredCell.y}`);
+                        if (!summary) return label;
+                        const parts = (Object.entries(summary.byPhase) as [MissionPhase, number][])
+                          .filter(([, count]) => count > 0)
+                          .map(([phase, count]) => `${count} bûcheron${count > 1 ? "s" : ""} ${PHASE_LABELS[phase]}`);
+                        return `${label} — ${parts.join(", ")}`;
+                      })()}{" "}
                   ({hoveredCell.x}, {hoveredCell.y})
                 </div>
               );

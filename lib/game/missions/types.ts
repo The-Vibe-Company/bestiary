@@ -12,6 +12,7 @@ export interface MissionStatus {
 export interface ActiveMission {
   id: string
   inhabitantType: string
+  inhabitantTitle: string
   targetX: number
   targetY: number
   departedAt: Date
