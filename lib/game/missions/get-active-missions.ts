@@ -1,10 +1,16 @@
 import { prisma } from '@/lib/prisma'
 import { getInhabitantStats } from '@/lib/game/inhabitants/get-inhabitant-stats'
+import { getInhabitantTypes } from '@/lib/game/inhabitants/get-inhabitant-types'
 import { computeMissionStatus } from './compute-mission-status'
 import type { ActiveMission } from './types'
 
 export async function getActiveMissions(villageId: string): Promise<ActiveMission[]> {
-  const stats = await getInhabitantStats()
+  const [stats, types] = await Promise.all([
+    getInhabitantStats(),
+    getInhabitantTypes(),
+  ])
+
+  const titleByKey = Object.fromEntries(types.map((t) => [t.key, t.title]))
 
   const missions = await prisma.mission.findMany({
     where: {
@@ -32,6 +38,7 @@ export async function getActiveMissions(villageId: string): Promise<ActiveMissio
     return {
       id: m.id,
       inhabitantType: m.inhabitantType,
+      inhabitantTitle: titleByKey[m.inhabitantType] ?? m.inhabitantType,
       targetX: m.targetX,
       targetY: m.targetY,
       departedAt: m.departedAt,

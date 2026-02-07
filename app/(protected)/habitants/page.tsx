@@ -47,16 +47,19 @@ export default async function HabitantsPage() {
   // Complete any finished missions (lazy pattern)
   await completePendingMissions(village.id);
 
-  // Compute available lumberjacks
-  const totalLumberjacks = villageInhabitants?.lumberjack ?? 0;
-  const activeLumberjackMissions = await prisma.mission.count({
-    where: {
-      villageId: village.id,
-      inhabitantType: 'lumberjack',
-      completedAt: null,
-    },
+  // Count active missions grouped by inhabitant type
+  const activeMissionCounts = await prisma.mission.groupBy({
+    by: ['inhabitantType'],
+    where: { villageId: village.id, completedAt: null },
+    _count: true,
   });
-  const availableLumberjacks = totalLumberjacks - activeLumberjackMissions;
+  const missionCountMap = Object.fromEntries(
+    activeMissionCounts.map((m) => [m.inhabitantType, m._count])
+  );
+
+  // Compute available lumberjacks (used by the send modal)
+  const totalLumberjacks = villageInhabitants?.lumberjack ?? 0;
+  const availableLumberjacks = totalLumberjacks - (missionCountMap['lumberjack'] ?? 0);
 
   const lumberjackStats = inhabitantStats['lumberjack'] ?? { speed: 2, gatherRate: 10, maxCapacity: 30 };
 
@@ -65,6 +68,7 @@ export default async function HabitantsPage() {
     ...type,
     id: type.key,
     count: villageInhabitants?.[type.key as InhabitantType] ?? 0,
+    inMission: missionCountMap[type.key] ?? 0,
   }));
 
   const worldMap = generateWorldMap();

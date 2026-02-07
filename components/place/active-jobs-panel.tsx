@@ -13,7 +13,7 @@ interface ActiveJobsPanelProps {
 
 export function ActiveJobsPanel({ missions, gatherRate, maxCapacity }: ActiveJobsPanelProps) {
   return (
-    <PlacePanel icon={<GiHammerNails size={22} />} title="Jobs en cours">
+    <PlacePanel icon={<GiHammerNails size={22} />} title="Missions en cours">
       {missions.length === 0 ? (
         <div className="h-full flex items-center justify-center">
           <p className="text-sm text-[var(--ivory)]/30 font-[family-name:var(--font-title)] tracking-[0.15em]">

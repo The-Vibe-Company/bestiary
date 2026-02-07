@@ -5,7 +5,12 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { computeMissionStatus } from '@/lib/game/missions/compute-mission-status'
 import { recallMission } from '@/lib/game/missions/recall-mission'
+import { GiAxeInStump } from 'react-icons/gi'
 import type { ActiveMission, MissionPhase } from '@/lib/game/missions/types'
+
+const MISSION_ICON: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+  lumberjack: GiAxeInStump,
+}
 
 interface MissionCardProps {
   mission: ActiveMission
@@ -102,101 +107,116 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
     setConfirmRecall(false)
   }
 
+  const IconComponent = MISSION_ICON[mission.inhabitantType]
+
   return (
     <div
-      className="rounded-xl border border-[var(--ivory)]/10 p-4 transition-colors"
+      className="flex items-center gap-3 rounded-xl border border-[var(--ivory)]/10 p-3 transition-colors"
       style={{ backgroundColor: phaseConfig.bgColor }}
     >
-      {/* Line 1: phase label + coordinates */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-2.5 h-2.5 rounded-full"
-            style={{ backgroundColor: phaseConfig.color }}
-          />
-          <span
-            className="text-sm font-[family-name:var(--font-title)] tracking-wider"
-            style={{ color: phaseConfig.color }}
-          >
-            {phaseConfig.label}
+      {/* Big icon on the left */}
+      <div
+        className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg"
+        style={{ backgroundColor: `${phaseConfig.color}20`, color: phaseConfig.color }}
+      >
+        {IconComponent ? <IconComponent size={24} /> : (
+          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: phaseConfig.color }} />
+        )}
+      </div>
+
+      {/* Right side: info */}
+      <div className="flex-1 min-w-0">
+        {/* Line 1: phase + time + coordinates */}
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: phaseConfig.color }} />
+            <span
+              className="text-sm font-[family-name:var(--font-title)] tracking-wider"
+              style={{ color: phaseConfig.color }}
+            >
+              {phaseConfig.label}
+            </span>
+            <span className="text-xs text-[var(--ivory)]/50">
+              {status.secondsRemaining > 0
+                ? formatTimeRemaining(status.secondsRemaining)
+                : 'Terminé'}
+            </span>
+          </div>
+          <span className="text-xs text-[var(--ivory)]/40">
+            ({mission.targetX}, {mission.targetY})
           </span>
         </div>
-        <span className="text-xs text-[var(--ivory)]/50">
-          ({mission.targetX}, {mission.targetY})
-        </span>
-      </div>
 
-      {/* Line 2: segmented progress bar */}
-      <div className="flex h-2 rounded-full overflow-hidden mb-3 bg-[var(--ivory)]/5">
-        {/* Travel-to segment */}
-        <div className="relative" style={{ width: `${travelPct}%` }}>
-          <div
-            className="absolute inset-0 rounded-l-full"
-            style={{
-              backgroundColor: PHASE_CONFIG['traveling-to'].color,
-              width:
-                status.phase === 'traveling-to'
-                  ? `${status.phaseProgress * 100}%`
-                  : status.phase === 'working' || status.phase === 'traveling-back' || status.phase === 'completed'
-                    ? '100%'
-                    : '0%',
-              opacity: 0.8,
-            }}
-          />
+        {/* Line 2: segmented progress bar */}
+        <div className="flex h-1.5 rounded-full overflow-hidden mb-1.5 bg-[var(--ivory)]/5">
+          {/* Travel-to segment */}
+          <div className="relative" style={{ width: `${travelPct}%` }}>
+            <div
+              className="absolute inset-0 rounded-l-full"
+              style={{
+                backgroundColor: PHASE_CONFIG['traveling-to'].color,
+                width:
+                  status.phase === 'traveling-to'
+                    ? `${status.phaseProgress * 100}%`
+                    : status.phase === 'working' || status.phase === 'traveling-back' || status.phase === 'completed'
+                      ? '100%'
+                      : '0%',
+                opacity: 0.8,
+              }}
+            />
+          </div>
+          {/* Work segment */}
+          <div className="relative" style={{ width: `${workPct}%` }}>
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundColor: PHASE_CONFIG['working'].color,
+                width:
+                  status.phase === 'working'
+                    ? `${status.phaseProgress * 100}%`
+                    : status.phase === 'traveling-back' || status.phase === 'completed'
+                      ? '100%'
+                      : '0%',
+                opacity: 0.8,
+              }}
+            />
+          </div>
+          {/* Travel-back segment */}
+          <div className="relative" style={{ width: `${travelPct}%` }}>
+            <div
+              className="absolute inset-0 rounded-r-full"
+              style={{
+                backgroundColor: PHASE_CONFIG['traveling-back'].color,
+                width:
+                  status.phase === 'traveling-back'
+                    ? `${status.phaseProgress * 100}%`
+                    : status.phase === 'completed'
+                      ? '100%'
+                      : '0%',
+                opacity: 0.6,
+              }}
+            />
+          </div>
         </div>
-        {/* Work segment */}
-        <div className="relative" style={{ width: `${workPct}%` }}>
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundColor: PHASE_CONFIG['working'].color,
-              width:
-                status.phase === 'working'
-                  ? `${status.phaseProgress * 100}%`
-                  : status.phase === 'traveling-back' || status.phase === 'completed'
-                    ? '100%'
-                    : '0%',
-              opacity: 0.8,
-            }}
-          />
-        </div>
-        {/* Travel-back segment */}
-        <div className="relative" style={{ width: `${travelPct}%` }}>
-          <div
-            className="absolute inset-0 rounded-r-full"
-            style={{
-              backgroundColor: PHASE_CONFIG['traveling-back'].color,
-              width:
-                status.phase === 'traveling-back'
-                  ? `${status.phaseProgress * 100}%`
-                  : status.phase === 'completed'
-                    ? '100%'
-                    : '0%',
-              opacity: 0.6,
-            }}
-          />
-        </div>
-      </div>
 
-      {/* Line 3: time remaining + recall button */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-[var(--ivory)]/50">
-          {status.secondsRemaining > 0
-            ? `${formatTimeRemaining(status.secondsRemaining)} restant`
-            : 'Terminé'}
-        </span>
+        {/* Line 3: worker info + recall button */}
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-[var(--ivory)]/40">
+            1 {mission.inhabitantTitle}
+          </span>
 
-        {status.canRecall && (
-          <Button
-            variant="stone"
-            size="sm"
-            onClick={handleRecall}
-            isLoading={recalling}
-            className="text-xs py-1 px-2"
-          >
-            {confirmRecall ? 'CONFIRMER ?' : 'RAPPELER'}
-          </Button>
-        )}
+          {status.canRecall && (
+            <Button
+              variant="stone"
+              size="sm"
+              onClick={handleRecall}
+              isLoading={recalling}
+              className="text-xs py-1 px-2"
+            >
+              {confirmRecall ? 'CONFIRMER ?' : 'RAPPELER'}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )
