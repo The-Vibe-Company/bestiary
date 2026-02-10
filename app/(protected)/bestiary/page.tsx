@@ -1,5 +1,7 @@
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
+import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
+import { INHABITANT_TYPES } from "@/lib/game/inhabitants/types";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
 import { getUser } from "@/lib/game/user/get-user";
@@ -14,17 +16,22 @@ export default async function BestiaryPage() {
     redirect("/sign-in");
   }
 
-  const [villageResources, village, userResources, userData] =
+  const [villageResources, village, userResources, userData, villageInhabitants] =
     await Promise.all([
       getVillageResources(session.userId),
       getVillage(session.userId),
       getUserResources(session.userId),
       getUser(session.userId),
+      getVillageInhabitants(session.userId),
     ]);
 
-  if (!villageResources || !userData) {
+  if (!villageResources || !userData || !village) {
     redirect("/sign-in");
   }
+
+  const totalInhabitants = villageInhabitants
+    ? INHABITANT_TYPES.reduce((sum, type) => sum + villageInhabitants[type], 0)
+    : 0;
 
   return (
     <div
@@ -45,6 +52,8 @@ export default async function BestiaryPage() {
         <ResourceBar
           villageName={village?.name ?? null}
           villageResources={villageResources}
+          population={totalInhabitants}
+          maxPopulation={village.capacity}
         />
       </div>
 

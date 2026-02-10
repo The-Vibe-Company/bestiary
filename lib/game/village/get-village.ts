@@ -5,6 +5,7 @@ export interface Village {
   name: string | null
   x: number
   y: number
+  capacity: number
 }
 
 export async function getVillage(userId: string): Promise<Village | null> {
@@ -15,6 +16,7 @@ export async function getVillage(userId: string): Promise<Village | null> {
       name: true,
       x: true,
       y: true,
+      capacity: true,
     }
   })
 

@@ -4,7 +4,7 @@ import { UserResourceBar } from "@/components/layout/user-resource-bar";
 import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
-import type { InhabitantType } from "@/lib/game/inhabitants/types";
+import { INHABITANT_TYPES, type InhabitantType } from "@/lib/game/inhabitants/types";
 import { generateWorldMap } from "@/lib/game/map/generator";
 import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
@@ -56,6 +56,10 @@ export default async function HabitantsPage() {
   const missionCountMap = Object.fromEntries(
     activeMissionCounts.map((m) => [m.inhabitantType, m._count])
   );
+
+  const totalInhabitants = villageInhabitants
+    ? INHABITANT_TYPES.reduce((sum, type) => sum + villageInhabitants[type], 0)
+    : 0;
 
   // Compute available lumberjacks (used by the send modal)
   const totalLumberjacks = villageInhabitants?.lumberjack ?? 0;
@@ -117,6 +121,8 @@ export default async function HabitantsPage() {
         <ResourceBar
           villageName={village?.name ?? null}
           villageResources={villageResources}
+          population={totalInhabitants}
+          maxPopulation={village.capacity}
         />
       </div>
 

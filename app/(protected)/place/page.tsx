@@ -81,6 +81,8 @@ export default async function PlacePage() {
         <ResourceBar
           villageName={village?.name ?? null}
           villageResources={villageResources}
+          population={totalInhabitants}
+          maxPopulation={village.capacity}
         />
       </div>
 
