@@ -64,6 +64,23 @@ const inhabitantTypes = [
   },
 ]
 
+const buildingTypes = [
+  {
+    key: 'cabane_en_bois',
+    title: 'Cabane en bois',
+    description:
+      'Une petite cabane en bois permettant d\'accueillir un habitant supplémentaire dans le village.',
+    image: '/assets/batiments/cabane_en_bois.png',
+    order: 1,
+    costBois: 50,
+    costPierre: 0,
+    costCereales: 0,
+    costViande: 0,
+    buildSeconds: 30,
+    capacityBonus: 1,
+  },
+]
+
 async function main() {
   console.log('Seeding inhabitant types...')
 
@@ -88,6 +105,40 @@ async function main() {
         speed: type.speed ?? 0,
         gatherRate: type.gatherRate ?? 0,
         maxCapacity: type.maxCapacity ?? 0,
+      },
+    })
+    console.log(`  - ${type.title}`)
+  }
+
+  console.log('Seeding building types...')
+
+  for (const type of buildingTypes) {
+    await prisma.buildingType.upsert({
+      where: { key: type.key },
+      update: {
+        title: type.title,
+        description: type.description,
+        image: type.image,
+        order: type.order,
+        costBois: type.costBois,
+        costPierre: type.costPierre,
+        costCereales: type.costCereales,
+        costViande: type.costViande,
+        buildSeconds: type.buildSeconds,
+        capacityBonus: type.capacityBonus,
+      },
+      create: {
+        key: type.key,
+        title: type.title,
+        description: type.description,
+        image: type.image,
+        order: type.order,
+        costBois: type.costBois,
+        costPierre: type.costPierre,
+        costCereales: type.costCereales,
+        costViande: type.costViande,
+        buildSeconds: type.buildSeconds,
+        capacityBonus: type.capacityBonus,
       },
     })
     console.log(`  - ${type.title}`)

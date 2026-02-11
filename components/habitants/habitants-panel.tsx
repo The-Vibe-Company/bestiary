@@ -26,8 +26,8 @@ export function HabitantsPanel({ children }: HabitantsPanelProps) {
           background: var(--burnt-amber-light);
         }
       `}</style>
-      <div className="w-[60%] max-w-3xl max-h-[85vh] bg-black/75 backdrop-blur border border-[var(--burnt-amber)]/50 rounded-l-2xl rounded-r-lg flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-scroll habitants-scroll divide-y divide-[var(--ivory)]/10 pr-1">
+      <div className="w-[60%] max-w-3xl max-h-[85vh] bg-black/75 backdrop-blur border border-[var(--burnt-amber)]/50 rounded-l-2xl rounded-r-lg overflow-hidden">
+        <div className="max-h-[85vh] overflow-y-scroll habitants-scroll divide-y divide-[var(--ivory)]/10 pr-1">
           {children}
         </div>
       </div>

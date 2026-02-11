@@ -61,13 +61,13 @@ export function HabitantsPageClient({
           return (
             <div
               key={habitant.id}
-              className={`group flex items-center gap-4 p-4 transition-colors ${
+              className={`flex items-center gap-4 p-4 ${
                 canSendMission ? 'cursor-pointer' : 'cursor-default'
               }`}
               onClick={() => handleClickHabitant(habitant)}
             >
               {/* Image on the left */}
-              <div className="relative w-[140px] h-[140px] flex-shrink-0 rounded-xl overflow-hidden border-2 border-[var(--burnt-amber)] transition-all duration-300 group-hover:border-4">
+              <div className="relative w-[140px] h-[140px] flex-shrink-0 rounded-xl overflow-hidden border-2 border-[var(--burnt-amber)]">
                 <Image
                   src={habitant.image}
                   alt={habitant.title}
@@ -79,7 +79,7 @@ export function HabitantsPageClient({
               {/* Content in the middle */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-xl font-bold font-[family-name:var(--font-title)] tracking-wider text-[var(--ivory)] transition-colors duration-300 group-hover:text-[var(--burnt-amber)]">
+                  <h2 className="text-xl font-bold font-[family-name:var(--font-title)] tracking-wider text-[var(--ivory)]">
                     {habitant.title}
                   </h2>
                   <div className="flex items-center gap-2 text-base font-bold text-[var(--ivory)]/80">
