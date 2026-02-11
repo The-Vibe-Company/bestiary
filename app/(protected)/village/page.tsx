@@ -108,7 +108,7 @@ export default async function VillagePage() {
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 min-h-0 flex justify-center py-6 relative z-10">
+      <div className="flex-1 min-h-0 flex items-start justify-center py-6 relative z-10">
         <VillagePageClient
           buildingTypes={buildingTypeData}
           villageResources={{
