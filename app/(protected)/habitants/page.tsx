@@ -127,7 +127,7 @@ export default async function HabitantsPage() {
       </div>
 
       {/* Main content area - panel fills available space */}
-      <div className="flex-1 min-h-0 flex justify-center py-6 relative z-10">
+      <div className="flex-1 min-h-0 flex items-start justify-center py-6 relative z-10">
         <HabitantsPageClient
           inhabitantsList={inhabitantsList}
           map={worldMap}

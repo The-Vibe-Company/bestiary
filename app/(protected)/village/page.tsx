@@ -1,5 +1,9 @@
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
+import { VillagePageClient } from "@/components/village/village-page-client";
+import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
+import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
+import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
 import { INHABITANT_TYPES } from "@/lib/game/inhabitants/types";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
@@ -33,9 +37,51 @@ export default async function VillagePage() {
     redirect("/sign-in");
   }
 
+  // Lazy completion: complete any buildings whose timer has elapsed
+  await completePendingBuildings(village.id);
+
+  // Fetch building data AFTER lazy completion for fresh state
+  const [buildingTypes, villageBuildings, freshVillage, freshResources] =
+    await Promise.all([
+      getBuildingTypes(),
+      getVillageBuildings(session.userId),
+      getVillage(session.userId),
+      getVillageResources(session.userId),
+    ]);
+
   const totalInhabitants = villageInhabitants
     ? INHABITANT_TYPES.reduce((sum, type) => sum + villageInhabitants[type], 0)
     : 0;
+
+  // Aggregate building data per type
+  const buildingTypeData = buildingTypes.map((bt) => {
+    const buildings = villageBuildings.filter((vb) => vb.buildingType === bt.key);
+    const completedCount = buildings.filter((vb) => vb.completedAt !== null).length;
+    const activeConstructions = buildings
+      .filter((vb) => vb.completedAt === null)
+      .map((vb) => ({
+        startedAt: vb.startedAt.toISOString(),
+        buildSeconds: vb.buildSeconds,
+      }));
+
+    return {
+      key: bt.key,
+      title: bt.title,
+      description: bt.description,
+      image: bt.image,
+      costBois: bt.costBois,
+      costPierre: bt.costPierre,
+      costCereales: bt.costCereales,
+      costViande: bt.costViande,
+      buildSeconds: bt.buildSeconds,
+      capacityBonus: bt.capacityBonus,
+      completedCount,
+      activeConstructions,
+    };
+  });
+
+  const currentResources = freshResources ?? villageResources;
+  const currentVillage = freshVillage ?? village;
 
   return (
     <div
@@ -54,18 +100,24 @@ export default async function VillagePage() {
           userResources={userResources}
         />
         <ResourceBar
-          villageName={village?.name ?? null}
-          villageResources={villageResources}
+          villageName={currentVillage?.name ?? null}
+          villageResources={currentResources}
           population={totalInhabitants}
-          maxPopulation={village.capacity}
+          maxPopulation={currentVillage.capacity}
         />
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 flex items-center justify-center relative z-10">
-        <span className="text-4xl font-bold text-[var(--ivory)]/40">
-          TO BUILD
-        </span>
+      <div className="flex-1 min-h-0 flex items-start justify-center py-6 relative z-10">
+        <VillagePageClient
+          buildingTypes={buildingTypeData}
+          villageResources={{
+            bois: currentResources.bois,
+            pierre: currentResources.pierre,
+            cereales: currentResources.cereales,
+            viande: currentResources.viande,
+          }}
+        />
       </div>
     </div>
   );
