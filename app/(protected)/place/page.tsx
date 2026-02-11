@@ -52,7 +52,7 @@ export default async function PlacePage() {
 
   // A traveler awaits when the village has no inhabitants yet
   const totalInhabitants = villageInhabitants
-    ? INHABITANT_TYPES.reduce((sum, type) => sum + villageInhabitants[type], 0)
+    ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
   const hasTraveler = totalInhabitants === 0;
 

@@ -50,7 +50,7 @@ export default async function VillagePage() {
     ]);
 
   const totalInhabitants = villageInhabitants
-    ? INHABITANT_TYPES.reduce((sum, type) => sum + villageInhabitants[type], 0)
+    ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
 
   // Aggregate building data per type

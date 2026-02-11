@@ -58,7 +58,7 @@ export default async function HabitantsPage() {
   );
 
   const totalInhabitants = villageInhabitants
-    ? INHABITANT_TYPES.reduce((sum, type) => sum + villageInhabitants[type], 0)
+    ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
 
   // Compute available lumberjacks (used by the send modal)
