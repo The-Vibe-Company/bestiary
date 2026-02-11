@@ -54,7 +54,7 @@ export default async function MapPage() {
   }
 
   const totalInhabitants = villageInhabitants
-    ? INHABITANT_TYPES.reduce((sum, type) => sum + villageInhabitants[type], 0)
+    ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
 
   // Complete any finished missions (lazy pattern)

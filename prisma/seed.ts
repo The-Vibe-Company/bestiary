@@ -62,6 +62,22 @@ const inhabitantTypes = [
     image: '/assets/habitants/agriculteur.png',
     order: 7,
   },
+  {
+    key: 'researcher',
+    title: 'Chercheur',
+    description:
+      'Étudie les mystères du monde pour faire progresser le savoir du village.',
+    image: '/assets/habitants/chercheur.png',
+    order: 8,
+  },
+  {
+    key: 'builder',
+    title: 'Bâtisseur',
+    description:
+      'Construit et améliore les bâtiments du village grâce à son expertise.',
+    image: '/assets/habitants/batisseur.png',
+    order: 9,
+  },
 ]
 
 const buildingTypes = [

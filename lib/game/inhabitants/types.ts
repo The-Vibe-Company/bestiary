@@ -7,6 +7,8 @@ export const INHABITANT_TYPES = [
   "gatherer", // Cueilleur
   "breeder", // Éleveur
   "farmer", // Agriculteur
+  "researcher", // Chercheur
+  "builder", // Bâtisseur
 ] as const;
 
 export type InhabitantType = (typeof INHABITANT_TYPES)[number];
@@ -21,6 +23,8 @@ export interface VillageInhabitants {
   gatherer: number;
   breeder: number;
   farmer: number;
+  researcher: number;
+  builder: number;
   createdAt: Date;
   updatedAt: Date;
 }

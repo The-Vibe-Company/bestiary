@@ -30,7 +30,7 @@ export default async function BestiaryPage() {
   }
 
   const totalInhabitants = villageInhabitants
-    ? INHABITANT_TYPES.reduce((sum, type) => sum + villageInhabitants[type], 0)
+    ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
 
   return (
