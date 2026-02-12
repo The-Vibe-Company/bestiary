@@ -91,9 +91,10 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
   const phaseConfig = PHASE_CONFIG[status.phase]
 
   // Segmented progress bar proportions
+  const isRecalled = !!mission.recalledAt
   const totalDuration = mission.travelSeconds * 2 + mission.workSeconds
-  const travelPct = (mission.travelSeconds / totalDuration) * 100
-  const workPct = (mission.workSeconds / totalDuration) * 100
+  const travelPct = isRecalled ? 50 : (mission.travelSeconds / totalDuration) * 100
+  const workPct = isRecalled ? 0 : (mission.workSeconds / totalDuration) * 100
 
   async function handleRecall() {
     if (!confirmRecall) {
@@ -185,7 +186,7 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
                 width:
                   status.phase === 'working'
                     ? `${status.phaseProgress * 100}%`
-                    : status.phase === 'traveling-back' || status.phase === 'completed'
+                    : (status.phase === 'traveling-back' || status.phase === 'completed') && !mission.recalledAt
                       ? '100%'
                       : '0%',
                 opacity: 0.8,
@@ -197,7 +198,9 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
             <div
               className="absolute inset-0 rounded-r-full"
               style={{
-                backgroundColor: PHASE_CONFIG['traveling-back'].color,
+                backgroundColor: isRecalled
+                  ? 'rgb(192, 80, 70)'
+                  : PHASE_CONFIG['traveling-back'].color,
                 width:
                   status.phase === 'traveling-back'
                     ? `${status.phaseProgress * 100}%`
