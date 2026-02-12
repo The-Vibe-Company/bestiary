@@ -2,6 +2,7 @@
 
 import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiVillage, GiThreeFriends } from 'react-icons/gi'
 import { VillageResources } from '@/lib/game/resources/types'
+import { DailyConsumption } from '@/lib/game/resources/compute-daily-consumption'
 import { Tooltip } from '@/components/ui/tooltip'
 
 interface ResourceBarProps {
@@ -9,6 +10,7 @@ interface ResourceBarProps {
   villageResources: VillageResources
   population?: number
   maxPopulation?: number
+  dailyConsumption?: DailyConsumption
 }
 
 const villageResourceConfig = [
@@ -18,9 +20,9 @@ const villageResourceConfig = [
   { key: 'viande' as const, icon: GiMeat, color: '#CD5C5C', label: 'Viande' },
 ]
 
-export function ResourceBar({ villageName, villageResources, population, maxPopulation }: ResourceBarProps) {
+export function ResourceBar({ villageName, villageResources, population, maxPopulation, dailyConsumption }: ResourceBarProps) {
   return (
-    <div className="h-10 bg-black/80 backdrop-blur-sm border border-[var(--ivory)]/20 rounded-xl px-6">
+    <div className="h-10 overflow-visible bg-black/80 backdrop-blur-sm border border-[var(--ivory)]/20 rounded-xl px-6">
       <div className="h-full flex items-center justify-center gap-6">
         {/* Village Name */}
         {villageName && (
@@ -36,16 +38,32 @@ export function ResourceBar({ villageName, villageResources, population, maxPopu
         )}
 
         {/* Village Resources */}
-        {villageResourceConfig.map(({ key, icon: Icon, color, label }) => (
-          <Tooltip key={key} label={label}>
-            <div className="flex items-center gap-1.5">
-              <Icon size={20} style={{ color }} />
-              <span className="text-sm font-bold" style={{ color }}>
-                {villageResources[key]}
-              </span>
-            </div>
-          </Tooltip>
-        ))}
+        {villageResourceConfig.map(({ key, icon: Icon, color, label }) => {
+          const consumption = (key === 'cereales' || key === 'viande')
+            ? dailyConsumption?.[key] ?? 0
+            : 0
+          const tooltipLabel = consumption > 0
+            ? `${label} — Consommation totale : ${consumption}/jour`
+            : label
+
+          return (
+            <Tooltip key={key} label={tooltipLabel}>
+              <div className="relative flex items-center gap-1.5">
+                <Icon size={20} style={{ color }} />
+                <span className="text-sm font-bold" style={{ color }}>
+                  {villageResources[key]}
+                </span>
+                {consumption > 0 && (
+                  <span className="absolute -top-4 -right-3 h-4 px-1.5 flex items-center justify-center
+                    rounded-full text-[10px] font-bold leading-none whitespace-nowrap
+                    bg-[var(--burnt-amber)] text-black shadow-sm shadow-black/50">
+                    -{consumption}/j
+                  </span>
+                )}
+              </div>
+            </Tooltip>
+          )
+        })}
 
         {/* Population */}
         {population !== undefined && maxPopulation !== undefined && (

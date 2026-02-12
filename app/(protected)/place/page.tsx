@@ -9,6 +9,7 @@ import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types"
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
 import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { getActiveMissions } from "@/lib/game/missions/get-active-missions";
+import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
 import { getUser } from "@/lib/game/user/get-user";
@@ -50,6 +51,8 @@ export default async function PlacePage() {
 
   const lumberjackStats = inhabitantStats['lumberjack'] ?? { speed: 2, gatherRate: 10, maxCapacity: 30 };
 
+  const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
+
   // A traveler awaits when the village has no inhabitants yet
   const totalInhabitants = villageInhabitants
     ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
@@ -83,6 +86,7 @@ export default async function PlacePage() {
           villageResources={villageResources}
           population={totalInhabitants}
           maxPopulation={village.capacity}
+          dailyConsumption={dailyConsumption}
         />
       </div>
 

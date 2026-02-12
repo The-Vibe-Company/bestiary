@@ -13,6 +13,8 @@ const inhabitantTypes = [
     speed: 2,
     gatherRate: 10,
     maxCapacity: 30,
+    consumeCereales: 1.0,
+    consumeViande: 1.2,
   },
   {
     key: 'miner',
@@ -21,6 +23,8 @@ const inhabitantTypes = [
       'Extrait la pierre des montagnes pour approvisionner le village en matériaux de construction.',
     image: '/assets/habitants/mineur.png',
     order: 2,
+    consumeCereales: 1.0,
+    consumeViande: 1.2,
   },
   {
     key: 'explorer',
@@ -29,6 +33,8 @@ const inhabitantTypes = [
       'Parcourt la carte à la recherche d\'objets rares et de connaissances anciennes. Ramène du savoir au village.',
     image: '/assets/habitants/explorateur.png',
     order: 3,
+    consumeCereales: 1.2,
+    consumeViande: 0.8,
   },
   {
     key: 'hunter',
@@ -37,6 +43,8 @@ const inhabitantTypes = [
       'Traque le gibier sur la carte pour ramener de la nourriture au village.',
     image: '/assets/habitants/chasseur.png',
     order: 4,
+    consumeCereales: 0.8,
+    consumeViande: 0.5,
   },
   {
     key: 'gatherer',
@@ -45,6 +53,8 @@ const inhabitantTypes = [
       'Récolte fruits et légumes sur la carte pour nourrir la communauté.',
     image: '/assets/habitants/cueilleur.png',
     order: 5,
+    consumeCereales: 0.8,
+    consumeViande: 0.8,
   },
   {
     key: 'breeder',
@@ -53,6 +63,8 @@ const inhabitantTypes = [
       'Élève les animaux du village pour produire viande et œufs.',
     image: '/assets/habitants/eleveur.png',
     order: 6,
+    consumeCereales: 0.8,
+    consumeViande: 0.5,
   },
   {
     key: 'farmer',
@@ -61,6 +73,8 @@ const inhabitantTypes = [
       'Cultive les champs du village pour produire fruits et légumes.',
     image: '/assets/habitants/agriculteur.png',
     order: 7,
+    consumeCereales: 0.5,
+    consumeViande: 0.8,
   },
   {
     key: 'researcher',
@@ -69,6 +83,8 @@ const inhabitantTypes = [
       'Étudie les mystères du monde pour faire progresser le savoir du village.',
     image: '/assets/habitants/chercheur.png',
     order: 8,
+    consumeCereales: 1.2,
+    consumeViande: 0.6,
   },
   {
     key: 'builder',
@@ -77,6 +93,8 @@ const inhabitantTypes = [
       'Construit et améliore les bâtiments du village grâce à son expertise.',
     image: '/assets/habitants/batisseur.png',
     order: 9,
+    consumeCereales: 1.0,
+    consumeViande: 1.2,
   },
 ]
 
@@ -111,6 +129,8 @@ async function main() {
         speed: type.speed ?? 0,
         gatherRate: type.gatherRate ?? 0,
         maxCapacity: type.maxCapacity ?? 0,
+        consumeCereales: type.consumeCereales ?? 0,
+        consumeViande: type.consumeViande ?? 0,
       },
       create: {
         key: type.key,
@@ -121,6 +141,8 @@ async function main() {
         speed: type.speed ?? 0,
         gatherRate: type.gatherRate ?? 0,
         maxCapacity: type.maxCapacity ?? 0,
+        consumeCereales: type.consumeCereales ?? 0,
+        consumeViande: type.consumeViande ?? 0,
       },
     })
     console.log(`  - ${type.title}`)

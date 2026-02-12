@@ -2,10 +2,12 @@ import { MapPageClient } from "@/components/game/map-page-client";
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
 import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
+import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
 import { INHABITANT_TYPES } from "@/lib/game/inhabitants/types";
 import { generateWorldMap } from "@/lib/game/map/generator";
 import { completePendingMissions } from "@/lib/game/missions/complete-missions";
+import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
 import { getUser } from "@/lib/game/user/get-user";
@@ -39,7 +41,7 @@ export default async function MapPage() {
     },
   });
 
-  const [villageResources, village, userResources, userData, villageInhabitants, inhabitantStats] =
+  const [villageResources, village, userResources, userData, villageInhabitants, inhabitantStats, inhabitantTypes] =
     await Promise.all([
       getVillageResources(session.userId),
       getVillage(session.userId),
@@ -47,6 +49,7 @@ export default async function MapPage() {
       getUser(session.userId),
       getVillageInhabitants(session.userId),
       getInhabitantStats(),
+      getInhabitantTypes(),
     ]);
 
   if (!villageResources || !userData || !village) {
@@ -56,6 +59,8 @@ export default async function MapPage() {
   const totalInhabitants = villageInhabitants
     ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
+
+  const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
 
   // Complete any finished missions (lazy pattern)
   await completePendingMissions(village.id);
@@ -110,6 +115,7 @@ export default async function MapPage() {
           villageResources={villageResources}
           population={totalInhabitants}
           maxPopulation={village.capacity}
+          dailyConsumption={dailyConsumption}
         />
       </div>
       <MapPageClient

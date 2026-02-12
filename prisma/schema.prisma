@@ -93,9 +93,11 @@ model InhabitantType {
   description String
   image       String
   order       Int    // Display order
-  speed       Float  @default(0)  // tiles per hour (0 = no missions)
-  gatherRate  Float  @default(0)  // resources per hour of work
-  maxCapacity Int    @default(0)  // max carry capacity
+  speed           Float  @default(0)  // tiles per hour (0 = no missions)
+  gatherRate      Float  @default(0)  // resources per hour of work
+  maxCapacity     Int    @default(0)  // max carry capacity
+  consumeCereales Float  @default(0)  // daily cereal consumption per unit
+  consumeViande   Float  @default(0)  // daily meat consumption per unit
 
   @@map("InhabitantTypes")
 }
