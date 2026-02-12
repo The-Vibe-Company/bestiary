@@ -8,6 +8,7 @@ import { INHABITANT_TYPES, type InhabitantType } from "@/lib/game/inhabitants/ty
 import { generateWorldMap } from "@/lib/game/map/generator";
 import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
+import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
 import { getUser } from "@/lib/game/user/get-user";
 import { getVillage } from "@/lib/game/village/get-village";
@@ -60,6 +61,8 @@ export default async function HabitantsPage() {
   const totalInhabitants = villageInhabitants
     ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
+
+  const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
 
   // Compute available lumberjacks (used by the send modal)
   const totalLumberjacks = villageInhabitants?.lumberjack ?? 0;
@@ -123,6 +126,7 @@ export default async function HabitantsPage() {
           villageResources={villageResources}
           population={totalInhabitants}
           maxPopulation={village.capacity}
+          dailyConsumption={dailyConsumption}
         />
       </div>
 

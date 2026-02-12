@@ -4,8 +4,10 @@ import { VillagePageClient } from "@/components/village/village-page-client";
 import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
 import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
 import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
+import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
 import { INHABITANT_TYPES } from "@/lib/game/inhabitants/types";
+import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
 import { getUser } from "@/lib/game/user/get-user";
@@ -24,13 +26,14 @@ export default async function VillagePage() {
   // S'assurer que l'utilisateur a un village (créé au signup ou ici en fallback)
   await assignVillageToUser(session.userId);
 
-  const [villageResources, village, userResources, userData, villageInhabitants] =
+  const [villageResources, village, userResources, userData, villageInhabitants, inhabitantTypes] =
     await Promise.all([
       getVillageResources(session.userId),
       getVillage(session.userId),
       getUserResources(session.userId),
       getUser(session.userId),
       getVillageInhabitants(session.userId),
+      getInhabitantTypes(),
     ]);
 
   if (!villageResources || !userData || !village) {
@@ -52,6 +55,8 @@ export default async function VillagePage() {
   const totalInhabitants = villageInhabitants
     ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
+
+  const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
 
   // Aggregate building data per type
   const buildingTypeData = buildingTypes.map((bt) => {
@@ -104,6 +109,7 @@ export default async function VillagePage() {
           villageResources={currentResources}
           population={totalInhabitants}
           maxPopulation={currentVillage.capacity}
+          dailyConsumption={dailyConsumption}
         />
       </div>
 
