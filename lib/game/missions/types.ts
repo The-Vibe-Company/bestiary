@@ -19,5 +19,6 @@ export interface ActiveMission {
   travelSeconds: number
   workSeconds: number
   recalledAt: Date | null
+  loop: boolean
   status: MissionStatus
 }

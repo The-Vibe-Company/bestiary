@@ -44,6 +44,7 @@ export function SendMissionModal({
   const router = useRouter()
   const [workHours, setWorkHours] = useState(0)
   const [workMinutes, setWorkMinutes] = useState(30)
+  const [loop, setLoop] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -78,7 +79,7 @@ export function SendMissionModal({
     if (noLumberjacks || isInvalidDuration) return
     setPending(true)
     setError(null)
-    const result = await createMission(targetX, targetY, clampedWorkSeconds)
+    const result = await createMission(targetX, targetY, clampedWorkSeconds, loop)
     if (result.success) {
       router.refresh()
       onClose()
@@ -229,6 +230,34 @@ export function SendMissionModal({
             {error}
           </div>
         )}
+
+        {/* Loop checkbox */}
+        <label className="flex items-center gap-3 mb-6 cursor-pointer select-none group">
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={loop}
+            onClick={() => setLoop(!loop)}
+            disabled={noLumberjacks}
+            className={`
+              flex-shrink-0 w-5 h-5 rounded border-2 transition-all duration-200
+              flex items-center justify-center cursor-pointer
+              ${loop
+                ? 'bg-[var(--burnt-amber)] border-[var(--burnt-amber)]'
+                : 'bg-transparent border-[var(--ivory)]/30 group-hover:border-[var(--ivory)]/50'}
+              disabled:opacity-50 disabled:cursor-not-allowed
+            `}
+          >
+            {loop && (
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2 6L5 9L10 3" stroke="var(--ivory)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </button>
+          <span className="text-sm text-[var(--ivory)]/70 group-hover:text-[var(--ivory)]/90 transition-colors">
+            Relancer automatiquement
+          </span>
+        </label>
 
         {/* Actions */}
         <div className="flex gap-3 justify-end">

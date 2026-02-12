@@ -16,6 +16,7 @@ export async function createMission(
   targetX: number,
   targetY: number,
   workSeconds: number,
+  loop: boolean = false,
 ): Promise<CreateMissionResult> {
   const { session } = await neonAuth()
   if (!session) {
@@ -80,6 +81,7 @@ export async function createMission(
       targetY,
       travelSeconds,
       workSeconds,
+      loop,
     },
   })
 
