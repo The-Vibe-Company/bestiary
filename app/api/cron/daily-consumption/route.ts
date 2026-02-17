@@ -19,8 +19,12 @@ export async function GET(request: NextRequest) {
   let processed = 0
 
   for (const village of villages) {
-    const updated = await applyDailyConsumption(village.id, inhabitantTypes, now)
-    if (updated) processed++
+    try {
+      const updated = await applyDailyConsumption(village.id, inhabitantTypes, now)
+      if (updated) processed++
+    } catch (error) {
+      console.error(`Failed to process village ${village.id}:`, error)
+    }
   }
 
   return NextResponse.json({
