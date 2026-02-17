@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "VillageResources" ADD COLUMN "lastConsumptionAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

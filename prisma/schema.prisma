@@ -61,6 +61,7 @@ model VillageResources {
   pierre    Int      @default(50)
   cereales  Int      @default(30)
   viande    Int      @default(20)
+  lastConsumptionAt DateTime @default(now())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
