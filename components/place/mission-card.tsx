@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { computeMissionStatus } from '@/lib/game/missions/compute-mission-status'
 import { recallMission } from '@/lib/game/missions/recall-mission'
+import { toggleMissionLoop } from '@/lib/game/missions/toggle-mission-loop'
 import { GiAxeInStump } from 'react-icons/gi'
 import type { ActiveMission, MissionPhase } from '@/lib/game/missions/types'
 
@@ -55,6 +56,7 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
   const router = useRouter()
   const [confirmRecall, setConfirmRecall] = useState(false)
   const [recalling, setRecalling] = useState(false)
+  const [loopActive, setLoopActive] = useState(mission.loop)
 
   const computeStatus = useCallback(() => {
     return computeMissionStatus(
@@ -89,9 +91,10 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
   const phaseConfig = PHASE_CONFIG[status.phase]
 
   // Segmented progress bar proportions
+  const isRecalled = !!mission.recalledAt
   const totalDuration = mission.travelSeconds * 2 + mission.workSeconds
-  const travelPct = (mission.travelSeconds / totalDuration) * 100
-  const workPct = (mission.workSeconds / totalDuration) * 100
+  const travelPct = isRecalled ? 50 : (mission.travelSeconds / totalDuration) * 100
+  const workPct = isRecalled ? 0 : (mission.workSeconds / totalDuration) * 100
 
   async function handleRecall() {
     if (!confirmRecall) {
@@ -105,6 +108,15 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
     }
     setRecalling(false)
     setConfirmRecall(false)
+  }
+
+  async function handleToggleLoop() {
+    const prev = loopActive
+    setLoopActive(!prev)
+    const result = await toggleMissionLoop(mission.id)
+    if (!result.success) {
+      setLoopActive(prev)
+    }
   }
 
   const IconComponent = MISSION_ICON[mission.inhabitantType]
@@ -174,7 +186,7 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
                 width:
                   status.phase === 'working'
                     ? `${status.phaseProgress * 100}%`
-                    : status.phase === 'traveling-back' || status.phase === 'completed'
+                    : (status.phase === 'traveling-back' || status.phase === 'completed') && !mission.recalledAt
                       ? '100%'
                       : '0%',
                 opacity: 0.8,
@@ -186,7 +198,9 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
             <div
               className="absolute inset-0 rounded-r-full"
               style={{
-                backgroundColor: PHASE_CONFIG['traveling-back'].color,
+                backgroundColor: isRecalled
+                  ? 'rgb(192, 80, 70)'
+                  : PHASE_CONFIG['traveling-back'].color,
                 width:
                   status.phase === 'traveling-back'
                     ? `${status.phaseProgress * 100}%`
@@ -205,17 +219,47 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
             1 {mission.inhabitantTitle}
           </span>
 
-          {status.canRecall && (
-            <Button
-              variant="stone"
-              size="sm"
-              onClick={handleRecall}
-              isLoading={recalling}
-              className="text-xs py-1 px-2"
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleToggleLoop}
+              title="Activer/Désactiver la boucle"
+              className="flex items-center justify-center w-7 h-7 rounded transition-colors hover:bg-[var(--ivory)]/10 cursor-pointer"
             >
-              {confirmRecall ? 'CONFIRMER ?' : 'RAPPELER'}
-            </Button>
-          )}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{
+                  color: loopActive ? 'var(--burnt-amber)' : 'rgba(245, 245, 220, 0.3)',
+                }}
+              >
+                <polyline points="17 1 21 5 17 9" />
+                <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                <polyline points="7 23 3 19 7 15" />
+                <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+              </svg>
+            </button>
+
+            {status.canRecall && (
+              <button
+                type="button"
+                onClick={handleRecall}
+                disabled={recalling}
+                className="text-[10px] font-[family-name:var(--font-title)] tracking-wider px-2 py-0.5 rounded
+                  border border-[var(--ivory)]/20 text-[var(--ivory)]/70
+                  hover:bg-[var(--ivory)]/10 hover:text-[var(--ivory)]
+                  disabled:opacity-50 cursor-pointer transition-colors"
+              >
+                {confirmRecall ? 'CONFIRMER ?' : 'RAPPELER'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

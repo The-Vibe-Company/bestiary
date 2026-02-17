@@ -142,6 +142,7 @@ model Mission {
   departedAt     DateTime  @default(now())
   travelSeconds  Int       // one-way travel duration (pre-computed)
   workSeconds    Int       // work duration (chosen by player)
+  loop           Boolean   @default(false)
   recalledAt     DateTime? // set if recalled during outbound travel
   completedAt    DateTime? // set when resources have been collected
   createdAt      DateTime  @default(now())

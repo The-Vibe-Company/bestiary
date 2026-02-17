@@ -45,6 +45,7 @@ export async function getActiveMissions(villageId: string): Promise<ActiveMissio
       travelSeconds: m.travelSeconds,
       workSeconds: m.workSeconds,
       recalledAt: m.recalledAt,
+      loop: m.loop,
       status,
     }
   })
