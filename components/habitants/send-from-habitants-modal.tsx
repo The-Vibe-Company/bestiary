@@ -208,22 +208,13 @@ export function SendFromHabitantsModal({
                           className="object-contain drop-shadow-[0_0_6px_rgba(255,255,255,0.5)]"
                         />
                       )}
-                      {cell?.feature === 'foret' && !isVillage && (
+                      {cell?.feature && !isVillage && (
                         <Image
-                          src="/assets/map/foret.png"
-                          alt="Forêt"
+                          src={`/assets/map/${cell.feature}.png`}
+                          alt={cell.feature}
                           width={34}
                           height={34}
-                          className={`object-contain ${targetFeature !== 'foret' ? 'opacity-40' : ''}`}
-                        />
-                      )}
-                      {cell?.feature === 'montagne' && !isVillage && (
-                        <Image
-                          src="/assets/map/montagne.png"
-                          alt="Montagne"
-                          width={34}
-                          height={34}
-                          className={`object-contain ${targetFeature !== 'montagne' ? 'opacity-40' : ''}`}
+                          className={`object-contain ${targetFeature !== cell.feature ? 'opacity-40' : ''}`}
                         />
                       )}
                       {/* Mission icon overlay on tiles with active missions */}
