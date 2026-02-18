@@ -58,9 +58,8 @@ export async function completePendingMissions(villageId: string): Promise<void> 
         )
 
     // Apply daily density multiplier for prairie missions (hunter/gatherer)
-    if (baseResource > 0 && config && config.feature === null) {
-      const densityType = mission.inhabitantType === 'hunter' ? 'hunting' as const : 'gathering' as const
-      const density = computeTileDensity(mission.targetX, mission.targetY, mission.departedAt, densityType)
+    if (baseResource > 0 && config?.densityType) {
+      const density = computeTileDensity(mission.targetX, mission.targetY, mission.departedAt, config.densityType)
       baseResource = Math.max(1, Math.floor(baseResource * density))
     }
 

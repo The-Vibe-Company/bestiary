@@ -1,6 +1,8 @@
 export interface MissionTypeConfig {
   feature: string | null
   resource: string
+  /** Density category for prairie yield calculation, or null for non-prairie types */
+  densityType: 'hunting' | 'gathering' | null
   featureLabel: string
   resourceLabel: string
   workerLabel: string
@@ -12,6 +14,7 @@ export const MISSION_CONFIG: Record<string, MissionTypeConfig> = {
   lumberjack: {
     feature: 'foret',
     resource: 'bois',
+    densityType: null,
     featureLabel: 'Forêt',
     resourceLabel: 'Bois',
     workerLabel: 'bûcheron',
@@ -21,6 +24,7 @@ export const MISSION_CONFIG: Record<string, MissionTypeConfig> = {
   miner: {
     feature: 'montagne',
     resource: 'pierre',
+    densityType: null,
     featureLabel: 'Montagne',
     resourceLabel: 'Pierre',
     workerLabel: 'mineur',
@@ -30,6 +34,7 @@ export const MISSION_CONFIG: Record<string, MissionTypeConfig> = {
   hunter: {
     feature: null,
     resource: 'viande',
+    densityType: 'hunting',
     featureLabel: 'Prairie',
     resourceLabel: 'Viande',
     workerLabel: 'chasseur',
@@ -39,6 +44,7 @@ export const MISSION_CONFIG: Record<string, MissionTypeConfig> = {
   gatherer: {
     feature: null,
     resource: 'cereales',
+    densityType: 'gathering',
     featureLabel: 'Prairie',
     resourceLabel: 'Céréales',
     workerLabel: 'cueilleur',
