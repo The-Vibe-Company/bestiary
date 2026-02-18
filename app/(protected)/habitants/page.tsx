@@ -104,6 +104,11 @@ export default async function HabitantsPage() {
     },
   });
 
+  // Fetch all village positions so the mini-map can exclude them as targets
+  const allVillagePositions = await prisma.village.findMany({
+    select: { x: true, y: true },
+  });
+
   const missionTiles = activeMissions.map((m) => ({
     x: m.targetX,
     y: m.targetY,
@@ -149,6 +154,7 @@ export default async function HabitantsPage() {
           workerAvailability={workerAvailability}
           workerStats={workerStats}
           missionTiles={missionTiles}
+          allVillagePositions={allVillagePositions}
         />
       </div>
     </div>
