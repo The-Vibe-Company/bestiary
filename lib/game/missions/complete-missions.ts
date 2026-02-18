@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { getInhabitantStats } from '@/lib/game/inhabitants/get-inhabitant-stats'
 import { computeMissionStatus } from './compute-mission-status'
 import { MISSION_CONFIG } from './mission-config'
+import { computeTileDensity } from './density'
 
 /**
  * Lazy completion: called on page load.
@@ -47,14 +48,22 @@ export async function completePendingMissions(villageId: string): Promise<void> 
 
     if (status.phase !== 'completed') continue
 
-    const resourceGathered = mission.recalledAt
+    const config = MISSION_CONFIG[mission.inhabitantType]
+
+    let baseResource = mission.recalledAt
       ? 0
       : Math.min(
           Math.floor((mission.workSeconds / 3600) * typeStats.gatherRate),
           typeStats.maxCapacity,
         )
 
-    const config = MISSION_CONFIG[mission.inhabitantType]
+    // Apply daily density multiplier for prairie missions (hunter/gatherer)
+    if (baseResource > 0 && config?.densityType) {
+      const density = computeTileDensity(mission.targetX, mission.targetY, mission.departedAt, config.densityType)
+      baseResource = Math.max(1, Math.floor(baseResource * density))
+    }
+
+    const resourceGathered = baseResource
 
     await prisma.$transaction([
       prisma.mission.update({

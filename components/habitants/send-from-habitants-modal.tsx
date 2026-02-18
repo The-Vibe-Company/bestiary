@@ -22,6 +22,7 @@ interface SendFromHabitantsModalProps {
   maxCapacity: number
   availableWorkers: number
   missionTiles: MissionTile[]
+  allVillagePositions: { x: number; y: number }[]
   onClose: () => void
 }
 
@@ -37,13 +38,17 @@ export function SendFromHabitantsModal({
   maxCapacity,
   availableWorkers,
   missionTiles,
+  allVillagePositions,
   onClose,
 }: SendFromHabitantsModalProps) {
   const config = MISSION_CONFIG[inhabitantType]
   const targetFeature = config?.feature
 
+  // Set of all village-occupied tiles for O(1) lookup
+  const villageTiles = new Set(allVillagePositions.map((v) => `${v.x},${v.y}`))
+
   // Build mission tile lookup map
-  const tileMissionMap = new Map<string, TileMissionSummary & { workerType?: string }>()
+  const tileMissionMap = new Map<string, TileMissionSummary>()
   const now = new Date()
   for (const t of missionTiles) {
     const key = `${t.x},${t.y}`
@@ -63,6 +68,11 @@ export function SendFromHabitantsModal({
     if (existing) {
       existing.total++
       existing.byPhase[status.phase] = (existing.byPhase[status.phase] ?? 0) + 1
+      if (!existing.byWorkerPhase[t.inhabitantType]) {
+        existing.byWorkerPhase[t.inhabitantType] = {}
+      }
+      existing.byWorkerPhase[t.inhabitantType][status.phase] =
+        (existing.byWorkerPhase[t.inhabitantType][status.phase] ?? 0) + 1
       const priority: MissionPhase[] = ['working', 'traveling-to', 'traveling-back']
       existing.dominantPhase = priority.find((p) => existing.byPhase[p]) ?? status.phase
     } else {
@@ -70,7 +80,7 @@ export function SendFromHabitantsModal({
         total: 1,
         dominantPhase: status.phase,
         byPhase: { [status.phase]: 1 },
-        workerType: t.inhabitantType,
+        byWorkerPhase: { [t.inhabitantType]: { [status.phase]: 1 } },
       })
     }
   }
@@ -168,8 +178,9 @@ export function SendFromHabitantsModal({
                   const mapX = startX + colIdx
                   const mapY = startY + rowIdx
                   const cell = map[mapY]?.[mapX]
-                  const isVillage = mapX === villageX && mapY === villageY
-                  const isTargetFeature = cell?.feature === targetFeature
+                  const isOwnVillage = mapX === villageX && mapY === villageY
+                  const isAnyVillage = villageTiles.has(`${mapX},${mapY}`)
+                  const isTargetFeature = cell?.feature === targetFeature && !isAnyVillage
                   const isOutOfBounds = !cell
 
                   return (
@@ -185,7 +196,7 @@ export function SendFromHabitantsModal({
                         height: 40,
                         backgroundColor: isOutOfBounds
                           ? '#1a1a1a'
-                          : isVillage
+                          : isAnyVillage
                             ? 'rgba(179, 123, 52, 0.3)'
                             : isTargetFeature
                               ? 'rgba(101, 163, 78, 0.2)'
@@ -199,16 +210,16 @@ export function SendFromHabitantsModal({
                         }
                       }}
                     >
-                      {isVillage && (
+                      {isAnyVillage && (
                         <Image
                           src="/assets/map/village_lvl_1.png"
                           alt="Village"
                           width={36}
                           height={36}
-                          className="object-contain drop-shadow-[0_0_6px_rgba(255,255,255,0.5)]"
+                          className={`object-contain ${isOwnVillage ? 'drop-shadow-[0_0_6px_rgba(255,255,255,0.5)]' : 'opacity-70'}`}
                         />
                       )}
-                      {cell?.feature && !isVillage && (
+                      {cell?.feature && !isAnyVillage && (
                         <Image
                           src={`/assets/map/${cell.feature}.png`}
                           alt={cell.feature}
@@ -218,12 +229,14 @@ export function SendFromHabitantsModal({
                         />
                       )}
                       {/* Mission icon overlay on tiles with active missions */}
-                      {!isVillage && (() => {
+                      {!isAnyVillage && (() => {
                         const summary = tileMissionMap.get(`${mapX},${mapY}`)
                         if (!summary) return null
                         const color = PHASE_COLORS[summary.dominantPhase]
-                        // Determine the icon from the worker type for this tile
-                        const tileWorkerType = summary.workerType
+                        // Pick the worker type with the most missions on this tile
+                        const tileWorkerType = Object.entries(summary.byWorkerPhase)
+                          .map(([wt, phases]) => [wt, Object.values(phases).reduce((s, n) => s + (n ?? 0), 0)] as const)
+                          .sort((a, b) => b[1] - a[1])[0]?.[0]
                         const IconComponent = tileWorkerType ? MISSION_ICONS[tileWorkerType] : null
                         if (!IconComponent) return null
                         return (

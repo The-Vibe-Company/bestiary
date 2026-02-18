@@ -30,6 +30,7 @@ interface HabitantsPageClientProps {
     maxCapacity: number
   }>
   missionTiles: MissionTile[]
+  allVillagePositions: { x: number; y: number }[]
 }
 
 export function HabitantsPageClient({
@@ -40,6 +41,7 @@ export function HabitantsPageClient({
   workerAvailability,
   workerStats,
   missionTiles,
+  allVillagePositions,
 }: HabitantsPageClientProps) {
   const [selectedType, setSelectedType] = useState<string | null>(null)
 
@@ -133,6 +135,7 @@ export function HabitantsPageClient({
           maxCapacity={workerStats[selectedType].maxCapacity}
           availableWorkers={workerAvailability[selectedType] ?? 0}
           missionTiles={missionTiles}
+          allVillagePositions={allVillagePositions}
           onClose={() => setSelectedType(null)}
         />
       )}

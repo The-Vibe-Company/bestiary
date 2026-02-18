@@ -198,16 +198,19 @@ export function IsometricMapViewer({
                       />
                     );
                   })()}
-                {/* Mission overlay — shown on any feature with active missions */}
-                {cell.feature &&
-                  !village &&
+                {/* Mission overlay — shown on any tile with active missions */}
+                {!village &&
                   (() => {
                     const summary = tileMissionMap.get(`${cell.x},${cell.y}`);
                     if (!summary) return null;
                     const iconSize = Math.max(14, actualCellSize * 0.3);
                     const color = PHASE_COLORS[summary.dominantPhase];
-                    const IconComponent = summary.workerType
-                      ? MISSION_ICONS[summary.workerType]
+                    // Pick the worker type with the most missions on this tile
+                    const dominantWorkerType = Object.entries(summary.byWorkerPhase)
+                      .map(([wt, phases]) => [wt, Object.values(phases).reduce((s, n) => s + (n ?? 0), 0)] as const)
+                      .sort((a, b) => b[1] - a[1])[0]?.[0];
+                    const IconComponent = dominantWorkerType
+                      ? MISSION_ICONS[dominantWorkerType]
                       : null;
                     if (!IconComponent) return null;
                     return (
