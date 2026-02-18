@@ -60,7 +60,7 @@ export async function createMission(
   }
 
   // Check worker availability
-  const totalWorkers = (village.inhabitants as Record<string, unknown>)?.[inhabitantType] as number ?? 0
+  const totalWorkers = (village.inhabitants as Record<string, number>)?.[inhabitantType] ?? 0
   const activeMissions = await prisma.mission.count({
     where: {
       villageId: village.id,
