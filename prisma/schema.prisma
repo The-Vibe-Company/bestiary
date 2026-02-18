@@ -121,14 +121,15 @@ model BuildingType {
 }
 
 model VillageBuilding {
-  id             String    @id @default(cuid())
-  villageId      String
-  village        Village   @relation(fields: [villageId], references: [id], onDelete: Cascade)
-  buildingType   String
-  startedAt      DateTime  @default(now())
-  buildSeconds   Int
-  completedAt    DateTime?
-  createdAt      DateTime  @default(now())
+  id               String    @id @default(cuid())
+  villageId        String
+  village          Village   @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  buildingType     String
+  startedAt        DateTime  @default(now())
+  buildSeconds     Int
+  assignedBuilders Int       @default(1)
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
 
   @@map("VillageBuildings")
 }

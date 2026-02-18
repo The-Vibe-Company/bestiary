@@ -58,6 +58,13 @@ export default async function VillagePage() {
 
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
 
+  // Calculate available builders (total - busy on active constructions)
+  const totalBuilders = villageInhabitants?.builder ?? 0;
+  const busyBuilders = villageBuildings
+    .filter((vb) => vb.completedAt === null)
+    .reduce((sum, vb) => sum + vb.assignedBuilders, 0);
+  const availableBuilders = totalBuilders - busyBuilders;
+
   // Aggregate building data per type
   const buildingTypeData = buildingTypes.map((bt) => {
     const buildings = villageBuildings.filter((vb) => vb.buildingType === bt.key);
@@ -67,6 +74,7 @@ export default async function VillagePage() {
       .map((vb) => ({
         startedAt: vb.startedAt.toISOString(),
         buildSeconds: vb.buildSeconds,
+        assignedBuilders: vb.assignedBuilders,
       }));
 
     return {
@@ -123,6 +131,7 @@ export default async function VillagePage() {
             cereales: currentResources.cereales,
             viande: currentResources.viande,
           }}
+          availableBuilders={availableBuilders}
         />
       </div>
     </div>
