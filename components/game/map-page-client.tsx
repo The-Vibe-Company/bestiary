@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { SendMissionModal } from "@/components/map/send-mission-modal";
 import { MapCell, WorldMap } from "@/lib/game/map/types";
 import { computeMissionStatus } from "@/lib/game/missions/compute-mission-status";
-import { MISSION_CONFIG, getInhabitantTypeForFeature } from "@/lib/game/missions/mission-config";
+import { MISSION_CONFIG, getInhabitantTypesForFeature } from "@/lib/game/missions/mission-config";
+import { MISSION_ICONS } from "@/lib/game/missions/mission-icons";
 import type { MissionPhase } from "@/lib/game/missions/types";
 import { useState } from "react";
 import { IsometricMapViewer } from "./isometric-map-viewer";
@@ -122,6 +123,8 @@ export function MapPageClient({
   const [startY, setStartY] = useState(Math.max(0, initialY - halfView));
   const [hoveredCell, setHoveredCell] = useState<MapCell | null>(null);
   const [selectedMissionCell, setSelectedMissionCell] = useState<MapCell | null>(null);
+  const [selectedWorkerType, setSelectedWorkerType] = useState<string | null>(null);
+  const [prairiePicking, setPrairiePicking] = useState<MapCell | null>(null);
 
   const MAP_SIZE = 100;
 
@@ -151,9 +154,23 @@ export function MapPageClient({
     const half = Math.floor(viewSize / 2);
     setStartX(clamp(cell.x - half, viewSize));
     setStartY(clamp(cell.y - half, viewSize));
-    // Open mission modal for any feature that has a worker type
-    if (cell.feature && getInhabitantTypeForFeature(cell.feature)) {
+
+    const types = getInhabitantTypesForFeature(cell.feature);
+    if (types.length === 0) return;
+
+    // For prairie (feature: null), skip if a village occupies this cell
+    if (cell.feature === null) {
+      const hasVillage = villages.some((v) => v.x === cell.x && v.y === cell.y);
+      if (hasVillage) return;
+    }
+
+    if (types.length === 1) {
+      // Single worker type (foret → lumberjack, montagne → miner)
+      setSelectedWorkerType(types[0]);
       setSelectedMissionCell(cell);
+    } else {
+      // Multiple types share the same feature (prairie → hunter/gatherer)
+      setPrairiePicking(cell);
     }
   };
 
@@ -162,10 +179,6 @@ export function MapPageClient({
   const handleMoveLeft = () => setStartX((prev) => clamp(prev - 1, viewSize));
   const handleMoveRight = () => setStartX((prev) => clamp(prev + 1, viewSize));
 
-  // Derive worker type from the selected cell's feature
-  const selectedWorkerType = selectedMissionCell?.feature
-    ? getInhabitantTypeForFeature(selectedMissionCell.feature)
-    : undefined;
   const selectedStats = selectedWorkerType ? workerStats[selectedWorkerType] : undefined;
 
   return (
@@ -314,7 +327,65 @@ export function MapPageClient({
         </Button>
       </div>
 
-      {/* Mission modal for clickable feature */}
+      {/* Prairie type picker — choose between hunter and gatherer */}
+      {prairiePicking && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setPrairiePicking(null)}
+          />
+          <div className="relative stone-texture border-engraved p-8 rounded-lg shadow-[var(--shadow-vellum)] max-w-sm w-full mx-4">
+            <h2
+              className="text-lg font-bold mb-1 text-center"
+              style={{ color: "var(--ivory)" }}
+            >
+              Prairie ({prairiePicking.x}, {prairiePicking.y})
+            </h2>
+            <p
+              className="text-sm mb-6 text-center"
+              style={{ color: "var(--ivory)", opacity: 0.7 }}
+            >
+              Quel type de mission ?
+            </p>
+            <div className="flex gap-4 justify-center">
+              {getInhabitantTypesForFeature(null).map((type) => {
+                const config = MISSION_CONFIG[type];
+                const Icon = MISSION_ICONS[type];
+                return (
+                  <Button
+                    key={type}
+                    variant="stone"
+                    className="flex flex-col items-center gap-2 px-6 py-4 border-2 border-[var(--ivory)]/30 rounded hover:border-[var(--burnt-amber)] transition-colors"
+                    onClick={() => {
+                      setSelectedWorkerType(type);
+                      setSelectedMissionCell(prairiePicking);
+                      setPrairiePicking(null);
+                    }}
+                  >
+                    {Icon && <Icon size={28} style={{ color: "var(--ivory)" }} />}
+                    <span style={{ color: "var(--ivory)" }}>
+                      {config.workerLabel.charAt(0).toUpperCase() + config.workerLabel.slice(1)}
+                    </span>
+                    <span
+                      className="text-xs"
+                      style={{ color: "var(--burnt-amber)" }}
+                    >
+                      {config.resourceLabel}
+                    </span>
+                  </Button>
+                );
+              })}
+            </div>
+            <div className="flex justify-center mt-6">
+              <Button variant="stone" onClick={() => setPrairiePicking(null)}>
+                ANNULER
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mission modal for selected worker type */}
       {selectedMissionCell && selectedWorkerType && selectedStats && (
         <SendMissionModal
           targetX={selectedMissionCell.x}
@@ -326,7 +397,10 @@ export function MapPageClient({
           maxCapacity={selectedStats.maxCapacity}
           availableWorkers={workerAvailability[selectedWorkerType] ?? 0}
           inhabitantType={selectedWorkerType}
-          onClose={() => setSelectedMissionCell(null)}
+          onClose={() => {
+            setSelectedMissionCell(null);
+            setSelectedWorkerType(null);
+          }}
         />
       )}
     </div>

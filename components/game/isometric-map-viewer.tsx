@@ -198,9 +198,8 @@ export function IsometricMapViewer({
                       />
                     );
                   })()}
-                {/* Mission overlay — shown on any feature with active missions */}
-                {cell.feature &&
-                  !village &&
+                {/* Mission overlay — shown on any tile with active missions */}
+                {!village &&
                   (() => {
                     const summary = tileMissionMap.get(`${cell.x},${cell.y}`);
                     if (!summary) return null;

@@ -1,5 +1,5 @@
 export interface MissionTypeConfig {
-  feature: string
+  feature: string | null
   resource: string
   featureLabel: string
   resourceLabel: string
@@ -27,12 +27,32 @@ export const MISSION_CONFIG: Record<string, MissionTypeConfig> = {
     workerLabelPlural: 'mineurs',
     emoji: '⛰️',
   },
+  hunter: {
+    feature: null,
+    resource: 'viande',
+    featureLabel: 'Prairie',
+    resourceLabel: 'Viande',
+    workerLabel: 'chasseur',
+    workerLabelPlural: 'chasseurs',
+    emoji: '🏹',
+  },
+  gatherer: {
+    feature: null,
+    resource: 'cereales',
+    featureLabel: 'Prairie',
+    resourceLabel: 'Céréales',
+    workerLabel: 'cueilleur',
+    workerLabelPlural: 'cueilleurs',
+    emoji: '🌾',
+  },
 }
 
 /** All inhabitant types capable of resource-gathering missions */
 export const MISSION_CAPABLE_TYPES = Object.keys(MISSION_CONFIG)
 
-/** Reverse lookup: given a map feature (e.g. 'foret'), return the inhabitant type that works it */
-export function getInhabitantTypeForFeature(feature: string): string | undefined {
-  return Object.entries(MISSION_CONFIG).find(([, cfg]) => cfg.feature === feature)?.[0]
+/** Reverse lookup: given a map feature, return all inhabitant types that work it (array because multiple types can share feature: null) */
+export function getInhabitantTypesForFeature(feature: string | null): string[] {
+  return Object.entries(MISSION_CONFIG)
+    .filter(([, cfg]) => cfg.feature === feature)
+    .map(([type]) => type)
 }

@@ -52,6 +52,16 @@ export async function createMission(
     return { success: false, error: `La case cible n'est pas une ${config.featureLabel.toLowerCase()}` }
   }
 
+  // For prairie missions (feature: null), ensure no village occupies the target cell
+  if (config.feature === null) {
+    const villageOnCell = await prisma.village.findFirst({
+      where: { x: targetX, y: targetY },
+    })
+    if (villageOnCell) {
+      return { success: false, error: 'Impossible d\'envoyer une mission sur un village' }
+    }
+  }
+
   // Get worker stats
   const stats = await getInhabitantStats()
   const workerStats = stats[inhabitantType]
@@ -60,7 +70,7 @@ export async function createMission(
   }
 
   // Check worker availability
-  const totalWorkers = (village.inhabitants as Record<string, number>)?.[inhabitantType] ?? 0
+  const totalWorkers = (village.inhabitants as unknown as Record<string, number>)?.[inhabitantType] ?? 0
   const activeMissions = await prisma.mission.count({
     where: {
       villageId: village.id,

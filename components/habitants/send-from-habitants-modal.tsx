@@ -169,7 +169,7 @@ export function SendFromHabitantsModal({
                   const mapY = startY + rowIdx
                   const cell = map[mapY]?.[mapX]
                   const isVillage = mapX === villageX && mapY === villageY
-                  const isTargetFeature = cell?.feature === targetFeature
+                  const isTargetFeature = cell?.feature === targetFeature && !isVillage
                   const isOutOfBounds = !cell
 
                   return (
