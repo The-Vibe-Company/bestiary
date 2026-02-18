@@ -7,6 +7,7 @@ import { HabitantsPanel } from '@/components/habitants/habitants-panel'
 import { Button } from '@/components/ui/button'
 import { BuildModal } from '@/components/village/build-modal'
 import { startBuilding } from '@/lib/game/buildings/start-building'
+import { formatTimeRemaining } from '@/lib/utils/format-time'
 import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiHammerNails } from 'react-icons/gi'
 
 interface ActiveConstruction {
@@ -47,16 +48,6 @@ const RESOURCE_CONFIG = [
   { key: 'costCereales' as const, resKey: 'cereales' as const, icon: GiWheat, color: '#DAA520', label: 'Céréales' },
   { key: 'costViande' as const, resKey: 'viande' as const, icon: GiMeat, color: '#CD5C5C', label: 'Viande' },
 ]
-
-function formatTimeRemaining(totalSeconds: number): string {
-  if (totalSeconds <= 0) return '0s'
-  const h = Math.floor(totalSeconds / 3600)
-  const m = Math.floor((totalSeconds % 3600) / 60)
-  const s = totalSeconds % 60
-  if (h > 0) return `${h}h ${m.toString().padStart(2, '0')}m`
-  if (m > 0) return `${m}m ${s.toString().padStart(2, '0')}s`
-  return `${s}s`
-}
 
 function ConstructionStatus({
   startedAt,
@@ -131,6 +122,7 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
   const router = useRouter()
   const [buildModalKey, setBuildModalKey] = useState<string | null>(null)
   const [loadingKey, setLoadingKey] = useState<string | null>(null)
+  const [buildErrors, setBuildErrors] = useState<Record<string, string>>({})
 
   const noBuilders = availableBuilders <= 0
 
@@ -142,11 +134,18 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
 
   async function handleBuildClick(key: string, hasActiveConstruction: boolean) {
     if (hasActiveConstruction) return
+    setBuildErrors((prev) => {
+      const next = { ...prev }
+      delete next[key]
+      return next
+    })
+
     if (availableBuilders === 1) {
       // Only 1 builder: skip modal, build directly
       setLoadingKey(key)
       const result = await startBuilding(key, 1)
       if (!result.success) {
+        setBuildErrors((prev) => ({ ...prev, [key]: result.error }))
         setLoadingKey(null)
         return
       }
@@ -226,6 +225,11 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
               <p className="text-sm text-[var(--ivory)]/70 leading-relaxed">
                 {building.description}
               </p>
+              {buildErrors[building.key] && (
+                <p className="mt-2 text-xs text-[var(--burnt-amber-light)]">
+                  {buildErrors[building.key]}
+                </p>
+              )}
 
               {/* Cost display */}
               <div className="flex items-center gap-3 mt-2">
