@@ -49,7 +49,13 @@ export default async function PlacePage() {
   // Fetch active missions
   const missions = await getActiveMissions(village.id);
 
-  const lumberjackStats = inhabitantStats['lumberjack'] ?? { speed: 2, gatherRate: 10, maxCapacity: 30 };
+  // Build statsByType for all mission-capable types
+  const statsByType: Record<string, { gatherRate: number; maxCapacity: number }> = {};
+  for (const [type, stats] of Object.entries(inhabitantStats)) {
+    if (stats.gatherRate > 0 || stats.maxCapacity > 0) {
+      statsByType[type] = { gatherRate: stats.gatherRate, maxCapacity: stats.maxCapacity };
+    }
+  }
 
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
 
@@ -122,8 +128,7 @@ export default async function PlacePage() {
           {/* Jobs en cours */}
           <ActiveJobsPanel
             missions={missions}
-            gatherRate={lumberjackStats.gatherRate}
-            maxCapacity={lumberjackStats.maxCapacity}
+            statsByType={statsByType}
           />
         </div>
       </div>

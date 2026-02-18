@@ -27,7 +27,7 @@ export function computeMissionStatus(mission: MissionData, now: Date = new Date(
         phaseProgress: clamp(elapsed / elapsedBeforeRecall),
         overallProgress: clamp((elapsedBeforeRecall + elapsed) / totalDuration),
         secondsRemaining: Math.max(0, Math.ceil((returnArrivalMs - nowMs) / 1000)),
-        projectedWood: 0,
+        projectedResource: 0,
         canRecall: false,
       }
     }
@@ -37,7 +37,7 @@ export function computeMissionStatus(mission: MissionData, now: Date = new Date(
       phaseProgress: 1,
       overallProgress: 1,
       secondsRemaining: 0,
-      projectedWood: 0,
+      projectedResource: 0,
       canRecall: false,
     }
   }
@@ -51,7 +51,7 @@ export function computeMissionStatus(mission: MissionData, now: Date = new Date(
   const finishWork = arriveAtTarget + workMs
   const arriveHome = finishWork + travelMs
 
-  const projectedWood = Math.min(
+  const projectedResource = Math.min(
     Math.floor((mission.workSeconds / 3600) * mission.gatherRate),
     mission.maxCapacity,
   )
@@ -91,7 +91,7 @@ export function computeMissionStatus(mission: MissionData, now: Date = new Date(
     phaseProgress,
     overallProgress,
     secondsRemaining,
-    projectedWood,
+    projectedResource,
     canRecall: phase === 'traveling-to',
   }
 }

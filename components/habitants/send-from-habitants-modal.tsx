@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { GiAxeInStump } from 'react-icons/gi'
 import { Button } from '@/components/ui/button'
 import { SendMissionModal } from '@/components/map/send-mission-modal'
+import { MISSION_CONFIG } from '@/lib/game/missions/mission-config'
+import { MISSION_ICONS } from '@/lib/game/missions/mission-icons'
 import type { MissionTile, TileMissionSummary } from '@/components/game/map-page-client'
 import { PHASE_COLORS } from '@/components/game/map-page-client'
 import { computeMissionStatus } from '@/lib/game/missions/compute-mission-status'
@@ -12,13 +13,14 @@ import type { MissionPhase } from '@/lib/game/missions/types'
 import type { WorldMap } from '@/lib/game/map/types'
 
 interface SendFromHabitantsModalProps {
+  inhabitantType: string
   map: WorldMap
   villageX: number
   villageY: number
   speed: number
   gatherRate: number
   maxCapacity: number
-  availableLumberjacks: number
+  availableWorkers: number
   missionTiles: MissionTile[]
   onClose: () => void
 }
@@ -26,18 +28,22 @@ interface SendFromHabitantsModalProps {
 const MINIMAP_RADIUS = 4 // 9x9 grid centered on village
 
 export function SendFromHabitantsModal({
+  inhabitantType,
   map,
   villageX,
   villageY,
   speed,
   gatherRate,
   maxCapacity,
-  availableLumberjacks,
+  availableWorkers,
   missionTiles,
   onClose,
 }: SendFromHabitantsModalProps) {
+  const config = MISSION_CONFIG[inhabitantType]
+  const targetFeature = config?.feature
+
   // Build mission tile lookup map
-  const tileMissionMap = new Map<string, TileMissionSummary>()
+  const tileMissionMap = new Map<string, TileMissionSummary & { workerType?: string }>()
   const now = new Date()
   for (const t of missionTiles) {
     const key = `${t.x},${t.y}`
@@ -64,11 +70,12 @@ export function SendFromHabitantsModal({
         total: 1,
         dominantPhase: status.phase,
         byPhase: { [status.phase]: 1 },
+        workerType: t.inhabitantType,
       })
     }
   }
 
-  const [selectedForest, setSelectedForest] = useState<{ x: number; y: number } | null>(null)
+  const [selectedTarget, setSelectedTarget] = useState<{ x: number; y: number } | null>(null)
   const [centerX, setCenterX] = useState(
     Math.max(MINIMAP_RADIUS, Math.min(villageX, map[0].length - 1 - MINIMAP_RADIUS))
   )
@@ -76,19 +83,20 @@ export function SendFromHabitantsModal({
     Math.max(MINIMAP_RADIUS, Math.min(villageY, map.length - 1 - MINIMAP_RADIUS))
   )
 
-  if (selectedForest) {
+  if (selectedTarget) {
     return (
       <SendMissionModal
-        targetX={selectedForest.x}
-        targetY={selectedForest.y}
+        targetX={selectedTarget.x}
+        targetY={selectedTarget.y}
         villageX={villageX}
         villageY={villageY}
         speed={speed}
         gatherRate={gatherRate}
         maxCapacity={maxCapacity}
-        availableLumberjacks={availableLumberjacks}
+        availableWorkers={availableWorkers}
+        inhabitantType={inhabitantType}
         onClose={onClose}
-        onBack={() => setSelectedForest(null)}
+        onBack={() => setSelectedTarget(null)}
       />
     )
   }
@@ -161,7 +169,7 @@ export function SendFromHabitantsModal({
                   const mapY = startY + rowIdx
                   const cell = map[mapY]?.[mapX]
                   const isVillage = mapX === villageX && mapY === villageY
-                  const isForest = cell?.feature === 'foret'
+                  const isTargetFeature = cell?.feature === targetFeature
                   const isOutOfBounds = !cell
 
                   return (
@@ -169,7 +177,7 @@ export function SendFromHabitantsModal({
                       key={`${mapX}-${mapY}`}
                       className={`
                         relative flex items-center justify-center
-                        ${isForest ? 'cursor-pointer hover:ring-2 hover:ring-[var(--burnt-amber)] hover:z-10' : ''}
+                        ${isTargetFeature ? 'cursor-pointer hover:ring-2 hover:ring-[var(--burnt-amber)] hover:z-10' : ''}
                         ${isOutOfBounds ? 'bg-black/80' : ''}
                       `}
                       style={{
@@ -179,15 +187,15 @@ export function SendFromHabitantsModal({
                           ? '#1a1a1a'
                           : isVillage
                             ? 'rgba(179, 123, 52, 0.3)'
-                            : isForest
+                            : isTargetFeature
                               ? 'rgba(101, 163, 78, 0.2)'
                               : 'rgba(101, 163, 78, 0.08)',
                         borderRight: '1px solid rgba(245, 245, 220, 0.06)',
                         borderBottom: '1px solid rgba(245, 245, 220, 0.06)',
                       }}
                       onClick={() => {
-                        if (isForest) {
-                          setSelectedForest({ x: mapX, y: mapY })
+                        if (isTargetFeature) {
+                          setSelectedTarget({ x: mapX, y: mapY })
                         }
                       }}
                     >
@@ -200,19 +208,24 @@ export function SendFromHabitantsModal({
                           className="object-contain drop-shadow-[0_0_6px_rgba(255,255,255,0.5)]"
                         />
                       )}
-                      {isForest && !isVillage && (
+                      {cell?.feature && !isVillage && (
                         <Image
-                          src="/assets/map/foret.png"
-                          alt="Forêt"
+                          src={`/assets/map/${cell.feature}.png`}
+                          alt={cell.feature}
                           width={34}
                           height={34}
-                          className="object-contain"
+                          className={`object-contain ${targetFeature !== cell.feature ? 'opacity-40' : ''}`}
                         />
                       )}
-                      {isForest && !isVillage && (() => {
+                      {/* Mission icon overlay on tiles with active missions */}
+                      {!isVillage && (() => {
                         const summary = tileMissionMap.get(`${mapX},${mapY}`)
                         if (!summary) return null
                         const color = PHASE_COLORS[summary.dominantPhase]
+                        // Determine the icon from the worker type for this tile
+                        const tileWorkerType = summary.workerType
+                        const IconComponent = tileWorkerType ? MISSION_ICONS[tileWorkerType] : null
+                        if (!IconComponent) return null
                         return (
                           <div
                             style={{
@@ -225,7 +238,7 @@ export function SendFromHabitantsModal({
                               gap: 1,
                             }}
                           >
-                            <GiAxeInStump
+                            <IconComponent
                               style={{
                                 width: 14,
                                 height: 14,
@@ -248,15 +261,6 @@ export function SendFromHabitantsModal({
                           </div>
                         )
                       })()}
-                      {cell?.feature === 'montagne' && !isVillage && (
-                        <Image
-                          src="/assets/map/montagne.png"
-                          alt="Montagne"
-                          width={34}
-                          height={34}
-                          className="object-contain opacity-40"
-                        />
-                      )}
                     </div>
                   )
                 }),

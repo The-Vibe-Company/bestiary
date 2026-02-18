@@ -9,6 +9,7 @@ import {
   MIN_WORK_SECONDS,
   MAX_WORK_SECONDS,
 } from '@/lib/game/missions/constants'
+import { MISSION_CONFIG } from '@/lib/game/missions/mission-config'
 
 interface SendMissionModalProps {
   targetX: number
@@ -18,7 +19,8 @@ interface SendMissionModalProps {
   speed: number
   gatherRate: number
   maxCapacity: number
-  availableLumberjacks: number
+  availableWorkers: number
+  inhabitantType: string
   onClose: () => void
   onBack?: () => void // if coming from habitants mini-map
 }
@@ -37,7 +39,8 @@ export function SendMissionModal({
   speed,
   gatherRate,
   maxCapacity,
-  availableLumberjacks,
+  availableWorkers,
+  inhabitantType,
   onClose,
   onBack,
 }: SendMissionModalProps) {
@@ -47,6 +50,12 @@ export function SendMissionModal({
   const [loop, setLoop] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const config = MISSION_CONFIG[inhabitantType]
+  const title = `ENVOYER UN ${config?.workerLabel.toUpperCase() ?? inhabitantType.toUpperCase()}`
+  const emoji = config?.emoji ?? '📍'
+  const featureLabel = config?.featureLabel ?? 'Cible'
+  const resourceLabel = config?.resourceLabel ?? 'Ressource'
 
   const workSeconds = workHours * 3600 + workMinutes * 60
 
@@ -66,20 +75,20 @@ export function SendMissionModal({
   const travelSeconds = computeTravelSeconds(distance, speed)
   const totalSeconds = travelSeconds * 2 + clampedWorkSeconds
 
-  const projectedWood = Math.min(
+  const projectedResource = Math.min(
     Math.floor((clampedWorkSeconds / 3600) * gatherRate),
     maxCapacity,
   )
-  const woodRatio = maxCapacity > 0 ? projectedWood / maxCapacity : 0
-  const isAtCapacity = projectedWood >= maxCapacity
+  const resourceRatio = maxCapacity > 0 ? projectedResource / maxCapacity : 0
+  const isAtCapacity = projectedResource >= maxCapacity
 
-  const noLumberjacks = availableLumberjacks <= 0
+  const noWorkers = availableWorkers <= 0
 
   async function handleSend() {
-    if (noLumberjacks || isInvalidDuration) return
+    if (noWorkers || isInvalidDuration) return
     setPending(true)
     setError(null)
-    const result = await createMission(targetX, targetY, clampedWorkSeconds, loop)
+    const result = await createMission(targetX, targetY, clampedWorkSeconds, loop, inhabitantType)
     if (result.success) {
       router.refresh()
       onClose()
@@ -100,21 +109,21 @@ export function SendMissionModal({
       {/* Modal */}
       <div className="relative stone-texture border-engraved p-8 rounded-lg shadow-[var(--shadow-vellum)] max-w-lg w-full mx-4">
         <h2 className="text-2xl font-[family-name:var(--font-title)] tracking-[0.15em] text-[var(--ivory)] text-center mb-6">
-          ENVOYER UN BUCHERON
+          {title}
         </h2>
 
-        {noLumberjacks && (
+        {noWorkers && (
           <div className="p-4 text-sm bg-[var(--burnt-amber)]/20 border border-[var(--burnt-amber)] border-opacity-40 rounded text-[var(--burnt-amber-light)] mb-4 text-center">
-            Aucun bûcheron disponible
+            Aucun {config?.workerLabel ?? 'travailleur'} disponible
           </div>
         )}
 
         {/* Target info */}
         <div className="flex items-center justify-between mb-4 text-[var(--ivory)]">
           <div className="flex items-center gap-2">
-            <span className="text-lg">🌲</span>
+            <span className="text-lg">{emoji}</span>
             <span className="font-[family-name:var(--font-title)] tracking-wider">
-              Forêt ({targetX}, {targetY})
+              {featureLabel} ({targetX}, {targetY})
             </span>
           </div>
           <span className="text-sm text-[var(--ivory)]/70">
@@ -145,7 +154,7 @@ export function SendMissionModal({
                 setWorkHours(Math.floor(total / 3600))
                 setWorkMinutes(Math.floor((total % 3600) / 60))
               }}
-              disabled={noLumberjacks}
+              disabled={noWorkers}
               className="flex-1 h-2 rounded-full appearance-none cursor-pointer
                 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5
                 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--burnt-amber)]
@@ -163,7 +172,7 @@ export function SendMissionModal({
                 max={8}
                 value={workHours}
                 onChange={(e) => setWorkHours(Math.max(0, Math.min(8, Number(e.target.value) || 0)))}
-                disabled={noLumberjacks}
+                disabled={noWorkers}
                 className="w-12 px-1 py-1 rounded bg-[var(--ivory)]/10 border border-[var(--ivory)]/20
                   text-[var(--ivory)] text-center font-[family-name:var(--font-title)] tracking-wider text-sm
                   focus:outline-none focus:border-[var(--burnt-amber)] focus:ring-1 focus:ring-[var(--burnt-amber)]/50
@@ -177,7 +186,7 @@ export function SendMissionModal({
                 max={59}
                 value={workMinutes}
                 onChange={(e) => setWorkMinutes(Math.max(0, Math.min(59, Number(e.target.value) || 0)))}
-                disabled={noLumberjacks}
+                disabled={noWorkers}
                 className="w-12 px-1 py-1 rounded bg-[var(--ivory)]/10 border border-[var(--ivory)]/20
                   text-[var(--ivory)] text-center font-[family-name:var(--font-title)] tracking-wider text-sm
                   focus:outline-none focus:border-[var(--burnt-amber)] focus:ring-1 focus:ring-[var(--burnt-amber)]/50
@@ -196,16 +205,16 @@ export function SendMissionModal({
           )}
         </div>
 
-        {/* Projected wood gauge */}
+        {/* Projected resource gauge */}
         <div className="mb-5">
           <label className="block text-sm text-[var(--ivory)]/70 mb-2">
-            Bois estimé :
+            {resourceLabel} estimé :
           </label>
           <div className="relative h-6 bg-[var(--ivory)]/10 rounded-full overflow-hidden border border-[var(--ivory)]/20">
             <div
               className="h-full rounded-full transition-all duration-300"
               style={{
-                width: `${woodRatio * 100}%`,
+                width: `${resourceRatio * 100}%`,
                 backgroundColor: isAtCapacity
                   ? 'var(--burnt-amber)'
                   : 'rgb(101, 163, 78)',
@@ -214,7 +223,7 @@ export function SendMissionModal({
             <span
               className="absolute inset-0 flex items-center justify-center text-xs font-bold text-[var(--ivory)]"
             >
-              {projectedWood} / {maxCapacity}
+              {projectedResource} / {maxCapacity}
             </span>
           </div>
         </div>
@@ -238,7 +247,7 @@ export function SendMissionModal({
             role="checkbox"
             aria-checked={loop}
             onClick={() => setLoop(!loop)}
-            disabled={noLumberjacks}
+            disabled={noWorkers}
             className={`
               flex-shrink-0 w-5 h-5 rounded border-2 transition-all duration-200
               flex items-center justify-center cursor-pointer
@@ -273,7 +282,7 @@ export function SendMissionModal({
             variant="seal"
             onClick={handleSend}
             isLoading={pending}
-            disabled={noLumberjacks || isInvalidDuration}
+            disabled={noWorkers || isInvalidDuration}
           >
             ENVOYER
           </Button>

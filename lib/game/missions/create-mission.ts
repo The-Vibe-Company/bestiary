@@ -7,6 +7,7 @@ import { getInhabitantStats } from '@/lib/game/inhabitants/get-inhabitant-stats'
 import { generateWorldMap } from '@/lib/game/map/generator'
 import { manhattanDistance, computeTravelSeconds } from './distance'
 import { MIN_WORK_SECONDS, MAX_WORK_SECONDS } from './constants'
+import { MISSION_CONFIG } from './mission-config'
 
 export type CreateMissionResult =
   | { success: true }
@@ -17,10 +18,17 @@ export async function createMission(
   targetY: number,
   workSeconds: number,
   loop: boolean = false,
+  inhabitantType: string = 'lumberjack',
 ): Promise<CreateMissionResult> {
   const { session } = await neonAuth()
   if (!session) {
     return { success: false, error: 'Non authentifié' }
+  }
+
+  // Validate inhabitant type
+  const config = MISSION_CONFIG[inhabitantType]
+  if (!config) {
+    return { success: false, error: 'Type d\'habitant non valide pour les missions' }
   }
 
   // Validate workSeconds
@@ -37,32 +45,32 @@ export async function createMission(
     return { success: false, error: 'Village introuvable' }
   }
 
-  // Verify target cell is a forest
+  // Verify target cell matches the expected feature for this worker type
   const worldMap = generateWorldMap()
   const cell = worldMap[targetY]?.[targetX]
-  if (!cell || cell.feature !== 'foret') {
-    return { success: false, error: 'La case cible n\'est pas une forêt' }
+  if (!cell || cell.feature !== config.feature) {
+    return { success: false, error: `La case cible n'est pas une ${config.featureLabel.toLowerCase()}` }
   }
 
-  // Get lumberjack stats
+  // Get worker stats
   const stats = await getInhabitantStats()
-  const lumberjackStats = stats['lumberjack']
-  if (!lumberjackStats || lumberjackStats.speed <= 0) {
-    return { success: false, error: 'Statistiques du bûcheron introuvables' }
+  const workerStats = stats[inhabitantType]
+  if (!workerStats || workerStats.speed <= 0) {
+    return { success: false, error: `Statistiques du ${config.workerLabel} introuvables` }
   }
 
-  // Check lumberjack availability
-  const totalLumberjacks = village.inhabitants?.lumberjack ?? 0
+  // Check worker availability
+  const totalWorkers = (village.inhabitants as Record<string, number>)?.[inhabitantType] ?? 0
   const activeMissions = await prisma.mission.count({
     where: {
       villageId: village.id,
-      inhabitantType: 'lumberjack',
+      inhabitantType,
       completedAt: null,
     },
   })
 
-  if (totalLumberjacks - activeMissions <= 0) {
-    return { success: false, error: 'Aucun bûcheron disponible' }
+  if (totalWorkers - activeMissions <= 0) {
+    return { success: false, error: `Aucun ${config.workerLabel} disponible` }
   }
 
   // Compute travel time
@@ -71,12 +79,12 @@ export async function createMission(
     return { success: false, error: 'La cible est sur votre village' }
   }
 
-  const travelSeconds = computeTravelSeconds(distance, lumberjackStats.speed)
+  const travelSeconds = computeTravelSeconds(distance, workerStats.speed)
 
   await prisma.mission.create({
     data: {
       village: { connect: { id: village.id } },
-      inhabitantType: 'lumberjack',
+      inhabitantType,
       targetX,
       targetY,
       travelSeconds,

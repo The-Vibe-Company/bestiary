@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { assignInhabitant } from '@/lib/game/inhabitants/assign-inhabitant'
+import type { InhabitantType } from '@/lib/game/inhabitants/types'
 
 interface AssignJobModalProps {
   inhabitantTypes: { key: string; title: string; image: string }[]
   onClose: () => void
 }
 
-const UNLOCKED_JOBS = ['lumberjack']
+const UNLOCKED_JOBS = ['lumberjack', 'miner']
 
 export function AssignJobModal({ inhabitantTypes, onClose }: AssignJobModalProps) {
   const router = useRouter()
@@ -24,7 +25,7 @@ export function AssignJobModal({ inhabitantTypes, onClose }: AssignJobModalProps
     setPending(true)
     setError(null)
 
-    const result = await assignInhabitant(selected as 'lumberjack')
+    const result = await assignInhabitant(selected as InhabitantType)
 
     if (result.success) {
       router.refresh()
