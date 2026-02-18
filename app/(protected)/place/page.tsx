@@ -4,8 +4,10 @@ import { UserResourceBar } from "@/components/layout/user-resource-bar";
 import { ActiveJobsPanel } from "@/components/place/active-jobs-panel";
 import { PlacePanel } from "@/components/place/place-panel";
 import { TravelersPanel } from "@/components/place/travelers-panel";
+import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
 import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
+import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
 import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { getActiveMissions } from "@/lib/game/missions/get-active-missions";
@@ -43,8 +45,11 @@ export default async function PlacePage() {
     redirect("/sign-in");
   }
 
-  // Complete any finished missions (lazy pattern)
-  await completePendingMissions(village.id);
+  // Complete finished jobs before computing availability
+  await Promise.all([
+    completePendingMissions(village.id),
+    completePendingBuildings(village.id),
+  ]);
 
   // Fetch active missions
   const missions = await getActiveMissions(village.id);
@@ -63,6 +68,7 @@ export default async function PlacePage() {
   const totalInhabitants = villageInhabitants
     ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
+  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
   const hasTraveler = totalInhabitants === 0;
 
   const inhabitantTypesData = inhabitantTypes.map((t) => ({
@@ -92,6 +98,7 @@ export default async function PlacePage() {
           villageResources={villageResources}
           population={totalInhabitants}
           maxPopulation={village.capacity}
+          unoccupiedInhabitants={unoccupiedInhabitants}
           dailyConsumption={dailyConsumption}
         />
       </div>

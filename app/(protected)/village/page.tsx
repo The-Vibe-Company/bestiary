@@ -5,7 +5,9 @@ import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
 import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
 import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
+import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
+import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { INHABITANT_TYPES } from "@/lib/game/inhabitants/types";
 import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
@@ -40,8 +42,11 @@ export default async function VillagePage() {
     redirect("/sign-in");
   }
 
-  // Lazy completion: complete any buildings whose timer has elapsed
-  await completePendingBuildings(village.id);
+  // Complete finished jobs before computing availability
+  await Promise.all([
+    completePendingMissions(village.id),
+    completePendingBuildings(village.id),
+  ]);
 
   // Fetch building data AFTER lazy completion for fresh state
   const [buildingTypes, villageBuildings, freshVillage, freshResources] =
@@ -57,6 +62,7 @@ export default async function VillagePage() {
     : 0;
 
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
+  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
 
   // Calculate available builders (total - busy on active constructions)
   const totalBuilders = villageInhabitants?.builder ?? 0;
@@ -117,6 +123,7 @@ export default async function VillagePage() {
           villageResources={currentResources}
           population={totalInhabitants}
           maxPopulation={currentVillage.capacity}
+          unoccupiedInhabitants={unoccupiedInhabitants}
           dailyConsumption={dailyConsumption}
         />
       </div>
