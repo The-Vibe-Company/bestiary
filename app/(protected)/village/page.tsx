@@ -5,6 +5,7 @@ import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
 import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
 import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
+import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
 import { INHABITANT_TYPES } from "@/lib/game/inhabitants/types";
 import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
@@ -57,6 +58,7 @@ export default async function VillagePage() {
     : 0;
 
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
+  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
 
   // Calculate available builders (total - busy on active constructions)
   const totalBuilders = villageInhabitants?.builder ?? 0;
@@ -117,6 +119,7 @@ export default async function VillagePage() {
           villageResources={currentResources}
           population={totalInhabitants}
           maxPopulation={currentVillage.capacity}
+          unoccupiedInhabitants={unoccupiedInhabitants}
           dailyConsumption={dailyConsumption}
         />
       </div>

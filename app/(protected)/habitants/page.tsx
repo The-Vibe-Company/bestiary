@@ -3,6 +3,7 @@ import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
 import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
+import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
 import { INHABITANT_TYPES, type InhabitantType } from "@/lib/game/inhabitants/types";
 import { generateWorldMap } from "@/lib/game/map/generator";
@@ -64,6 +65,7 @@ export default async function HabitantsPage() {
     : 0;
 
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
+  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
 
   // Compute worker availability and stats for all mission-capable types
   const workerAvailability: Record<string, number> = {};
@@ -140,6 +142,7 @@ export default async function HabitantsPage() {
           villageResources={villageResources}
           population={totalInhabitants}
           maxPopulation={village.capacity}
+          unoccupiedInhabitants={unoccupiedInhabitants}
           dailyConsumption={dailyConsumption}
         />
       </div>

@@ -6,6 +6,7 @@ import { PlacePanel } from "@/components/place/place-panel";
 import { TravelersPanel } from "@/components/place/travelers-panel";
 import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
+import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
 import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { getActiveMissions } from "@/lib/game/missions/get-active-missions";
@@ -63,6 +64,7 @@ export default async function PlacePage() {
   const totalInhabitants = villageInhabitants
     ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
+  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
   const hasTraveler = totalInhabitants === 0;
 
   const inhabitantTypesData = inhabitantTypes.map((t) => ({
@@ -92,6 +94,7 @@ export default async function PlacePage() {
           villageResources={villageResources}
           population={totalInhabitants}
           maxPopulation={village.capacity}
+          unoccupiedInhabitants={unoccupiedInhabitants}
           dailyConsumption={dailyConsumption}
         />
       </div>
