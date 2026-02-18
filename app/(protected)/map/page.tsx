@@ -4,9 +4,10 @@ import { UserResourceBar } from "@/components/layout/user-resource-bar";
 import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
-import { INHABITANT_TYPES } from "@/lib/game/inhabitants/types";
+import { INHABITANT_TYPES, type InhabitantType } from "@/lib/game/inhabitants/types";
 import { generateWorldMap } from "@/lib/game/map/generator";
 import { completePendingMissions } from "@/lib/game/missions/complete-missions";
+import { MISSION_CAPABLE_TYPES } from "@/lib/game/missions/mission-config";
 import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
@@ -65,18 +66,27 @@ export default async function MapPage() {
   // Complete any finished missions (lazy pattern)
   await completePendingMissions(village.id);
 
-  // Compute available lumberjacks
-  const totalLumberjacks = villageInhabitants?.lumberjack ?? 0;
-  const activeLumberjackMissions = await prisma.mission.count({
-    where: {
-      villageId: village.id,
-      inhabitantType: 'lumberjack',
-      completedAt: null,
-    },
+  // Count active missions grouped by inhabitant type
+  const activeMissionCounts = await prisma.mission.groupBy({
+    by: ['inhabitantType'],
+    where: { villageId: village.id, completedAt: null },
+    _count: true,
   });
-  const availableLumberjacks = totalLumberjacks - activeLumberjackMissions;
+  const missionCountMap = Object.fromEntries(
+    activeMissionCounts.map((m) => [m.inhabitantType, m._count])
+  );
 
-  const lumberjackStats = inhabitantStats['lumberjack'] ?? { speed: 2, gatherRate: 10, maxCapacity: 30 };
+  // Compute worker availability and stats for all mission-capable types
+  const workerAvailability: Record<string, number> = {};
+  const workerStats: Record<string, { speed: number; gatherRate: number; maxCapacity: number }> = {};
+  for (const type of MISSION_CAPABLE_TYPES) {
+    const total = villageInhabitants?.[type as InhabitantType] ?? 0;
+    workerAvailability[type] = total - (missionCountMap[type] ?? 0);
+    const stats = inhabitantStats[type];
+    if (stats) {
+      workerStats[type] = { speed: stats.speed, gatherRate: stats.gatherRate, maxCapacity: stats.maxCapacity };
+    }
+  }
 
   // Query active missions with timing data for phase computation on the client
   const activeMissions = await prisma.mission.findMany({
@@ -85,6 +95,7 @@ export default async function MapPage() {
       completedAt: null,
     },
     select: {
+      inhabitantType: true,
       targetX: true,
       targetY: true,
       departedAt: true,
@@ -97,6 +108,7 @@ export default async function MapPage() {
   const missionTiles = activeMissions.map((m) => ({
     x: m.targetX,
     y: m.targetY,
+    inhabitantType: m.inhabitantType,
     departedAt: m.departedAt.toISOString(),
     travelSeconds: m.travelSeconds,
     workSeconds: m.workSeconds,
@@ -126,8 +138,8 @@ export default async function MapPage() {
         currentUserId={session.userId}
         villageX={village.x}
         villageY={village.y}
-        availableLumberjacks={availableLumberjacks}
-        lumberjackStats={lumberjackStats}
+        workerAvailability={workerAvailability}
+        workerStats={workerStats}
         missionTiles={missionTiles}
       />
     </div>

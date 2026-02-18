@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { GiAxeInStump } from "react-icons/gi";
 
 import { MapCell, WorldMap } from "@/lib/game/map/types";
+import { MISSION_ICONS } from "@/lib/game/missions/mission-icons";
 import { Village, TileMissionSummary, PHASE_COLORS } from "./map-page-client";
 
 interface IsometricMapViewerProps {
@@ -198,14 +198,18 @@ export function IsometricMapViewer({
                       />
                     );
                   })()}
-                {/* Lumberjack mission overlay */}
-                {cell.feature === "foret" &&
+                {/* Mission overlay — shown on any feature with active missions */}
+                {cell.feature &&
                   !village &&
                   (() => {
                     const summary = tileMissionMap.get(`${cell.x},${cell.y}`);
                     if (!summary) return null;
                     const iconSize = Math.max(14, actualCellSize * 0.3);
                     const color = PHASE_COLORS[summary.dominantPhase];
+                    const IconComponent = summary.workerType
+                      ? MISSION_ICONS[summary.workerType]
+                      : null;
+                    if (!IconComponent) return null;
                     return (
                       <div
                         style={{
@@ -223,7 +227,7 @@ export function IsometricMapViewer({
                           transform: "scaleY(1.22)",
                         }}
                       >
-                        <GiAxeInStump
+                        <IconComponent
                           style={{
                             width: iconSize,
                             height: iconSize,

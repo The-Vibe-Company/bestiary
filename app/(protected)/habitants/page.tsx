@@ -7,6 +7,7 @@ import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabi
 import { INHABITANT_TYPES, type InhabitantType } from "@/lib/game/inhabitants/types";
 import { generateWorldMap } from "@/lib/game/map/generator";
 import { completePendingMissions } from "@/lib/game/missions/complete-missions";
+import { MISSION_CAPABLE_TYPES } from "@/lib/game/missions/mission-config";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
@@ -64,11 +65,17 @@ export default async function HabitantsPage() {
 
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
 
-  // Compute available lumberjacks (used by the send modal)
-  const totalLumberjacks = villageInhabitants?.lumberjack ?? 0;
-  const availableLumberjacks = totalLumberjacks - (missionCountMap['lumberjack'] ?? 0);
-
-  const lumberjackStats = inhabitantStats['lumberjack'] ?? { speed: 2, gatherRate: 10, maxCapacity: 30 };
+  // Compute worker availability and stats for all mission-capable types
+  const workerAvailability: Record<string, number> = {};
+  const workerStats: Record<string, { speed: number; gatherRate: number; maxCapacity: number }> = {};
+  for (const type of MISSION_CAPABLE_TYPES) {
+    const total = villageInhabitants?.[type as InhabitantType] ?? 0;
+    workerAvailability[type] = total - (missionCountMap[type] ?? 0);
+    const stats = inhabitantStats[type];
+    if (stats) {
+      workerStats[type] = { speed: stats.speed, gatherRate: stats.gatherRate, maxCapacity: stats.maxCapacity };
+    }
+  }
 
   // Build ordered list for display using DB metadata
   const inhabitantsList = inhabitantTypes.map((type) => ({
@@ -87,6 +94,7 @@ export default async function HabitantsPage() {
       completedAt: null,
     },
     select: {
+      inhabitantType: true,
       targetX: true,
       targetY: true,
       departedAt: true,
@@ -99,6 +107,7 @@ export default async function HabitantsPage() {
   const missionTiles = activeMissions.map((m) => ({
     x: m.targetX,
     y: m.targetY,
+    inhabitantType: m.inhabitantType,
     departedAt: m.departedAt.toISOString(),
     travelSeconds: m.travelSeconds,
     workSeconds: m.workSeconds,
@@ -137,8 +146,8 @@ export default async function HabitantsPage() {
           map={worldMap}
           villageX={village.x}
           villageY={village.y}
-          availableLumberjacks={availableLumberjacks}
-          lumberjackStats={lumberjackStats}
+          workerAvailability={workerAvailability}
+          workerStats={workerStats}
           missionTiles={missionTiles}
         />
       </div>

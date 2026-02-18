@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { getInhabitantStats } from '@/lib/game/inhabitants/get-inhabitant-stats'
 import { computeMissionStatus } from './compute-mission-status'
+import { MISSION_CONFIG } from './mission-config'
 
 /**
  * Lazy completion: called on page load.
@@ -46,23 +47,25 @@ export async function completePendingMissions(villageId: string): Promise<void> 
 
     if (status.phase !== 'completed') continue
 
-    const woodGathered = mission.recalledAt
+    const resourceGathered = mission.recalledAt
       ? 0
       : Math.min(
           Math.floor((mission.workSeconds / 3600) * typeStats.gatherRate),
           typeStats.maxCapacity,
         )
 
+    const config = MISSION_CONFIG[mission.inhabitantType]
+
     await prisma.$transaction([
       prisma.mission.update({
         where: { id: mission.id },
         data: { completedAt: now },
       }),
-      ...(woodGathered > 0
+      ...(resourceGathered > 0 && config
         ? [
             prisma.villageResources.update({
               where: { villageId },
-              data: { bois: { increment: woodGathered } },
+              data: { [config.resource]: { increment: resourceGathered } },
             }),
           ]
         : []),

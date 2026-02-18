@@ -5,7 +5,7 @@ export interface MissionStatus {
   phaseProgress: number    // 0–1
   overallProgress: number  // 0–1
   secondsRemaining: number
-  projectedWood: number
+  projectedResource: number
   canRecall: boolean       // true only if phase = traveling-to and not recalled
 }
 

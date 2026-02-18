@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { SendMissionModal } from "@/components/map/send-mission-modal";
 import { MapCell, WorldMap } from "@/lib/game/map/types";
 import { computeMissionStatus } from "@/lib/game/missions/compute-mission-status";
+import { MISSION_CONFIG, getInhabitantTypeForFeature } from "@/lib/game/missions/mission-config";
 import type { MissionPhase } from "@/lib/game/missions/types";
 import { useState } from "react";
 import { IsometricMapViewer } from "./isometric-map-viewer";
@@ -23,15 +24,10 @@ export interface Village {
   owner: { username: string };
 }
 
-interface LumberjackStats {
-  speed: number;
-  gatherRate: number;
-  maxCapacity: number;
-}
-
 export interface MissionTile {
   x: number;
   y: number;
+  inhabitantType: string;
   departedAt: string;
   travelSeconds: number;
   workSeconds: number;
@@ -57,6 +53,8 @@ export interface TileMissionSummary {
   /** The "dominant" phase (priority: working > traveling-to > traveling-back) */
   dominantPhase: MissionPhase;
   byPhase: Partial<Record<MissionPhase, number>>;
+  /** The worker type for this tile (used for icon lookup) */
+  workerType?: string;
 }
 
 interface MapPageClientProps {
@@ -67,8 +65,8 @@ interface MapPageClientProps {
   currentUserId: string;
   villageX: number;
   villageY: number;
-  availableLumberjacks: number;
-  lumberjackStats: LumberjackStats;
+  workerAvailability: Record<string, number>;
+  workerStats: Record<string, { speed: number; gatherRate: number; maxCapacity: number }>;
   missionTiles: MissionTile[];
 }
 
@@ -80,8 +78,8 @@ export function MapPageClient({
   currentUserId,
   villageX,
   villageY,
-  availableLumberjacks,
-  lumberjackStats,
+  workerAvailability,
+  workerStats,
   missionTiles,
 }: MapPageClientProps) {
   // Build a lookup map for mission tiles: "x,y" → TileMissionSummary
@@ -113,6 +111,7 @@ export function MapPageClient({
         total: 1,
         dominantPhase: status.phase,
         byPhase: { [status.phase]: 1 },
+        workerType: t.inhabitantType,
       });
     }
   }
@@ -122,7 +121,7 @@ export function MapPageClient({
   const [startX, setStartX] = useState(Math.max(0, initialX - halfView));
   const [startY, setStartY] = useState(Math.max(0, initialY - halfView));
   const [hoveredCell, setHoveredCell] = useState<MapCell | null>(null);
-  const [selectedForestCell, setSelectedForestCell] = useState<MapCell | null>(null);
+  const [selectedMissionCell, setSelectedMissionCell] = useState<MapCell | null>(null);
 
   const MAP_SIZE = 100;
 
@@ -152,8 +151,9 @@ export function MapPageClient({
     const half = Math.floor(viewSize / 2);
     setStartX(clamp(cell.x - half, viewSize));
     setStartY(clamp(cell.y - half, viewSize));
-    if (cell.feature === 'foret') {
-      setSelectedForestCell(cell);
+    // Open mission modal for any feature that has a worker type
+    if (cell.feature && getInhabitantTypeForFeature(cell.feature)) {
+      setSelectedMissionCell(cell);
     }
   };
 
@@ -161,6 +161,12 @@ export function MapPageClient({
   const handleMoveDown = () => setStartY((prev) => clamp(prev + 1, viewSize));
   const handleMoveLeft = () => setStartX((prev) => clamp(prev - 1, viewSize));
   const handleMoveRight = () => setStartX((prev) => clamp(prev + 1, viewSize));
+
+  // Derive worker type from the selected cell's feature
+  const selectedWorkerType = selectedMissionCell?.feature
+    ? getInhabitantTypeForFeature(selectedMissionCell.feature)
+    : undefined;
+  const selectedStats = selectedWorkerType ? workerStats[selectedWorkerType] : undefined;
 
   return (
     <div
@@ -263,9 +269,13 @@ export function MapPageClient({
                         const label = hoveredCell.feature ? FEATURE_LABELS[hoveredCell.feature] : "Prairie";
                         const summary = missionTileMap.get(`${hoveredCell.x},${hoveredCell.y}`);
                         if (!summary) return label;
+                        // Use dynamic worker label based on tile's worker type
+                        const tileConfig = summary.workerType ? MISSION_CONFIG[summary.workerType] : undefined;
+                        const workerLabel = tileConfig?.workerLabel ?? 'travailleur';
+                        const workerLabelPlural = tileConfig?.workerLabelPlural ?? 'travailleurs';
                         const parts = (Object.entries(summary.byPhase) as [MissionPhase, number][])
                           .filter(([, count]) => count > 0)
-                          .map(([phase, count]) => `${count} bûcheron${count > 1 ? "s" : ""} ${PHASE_LABELS[phase]}`);
+                          .map(([phase, count]) => `${count} ${count > 1 ? workerLabelPlural : workerLabel} ${PHASE_LABELS[phase]}`);
                         return `${label} — ${parts.join(", ")}`;
                       })()}{" "}
                   ({hoveredCell.x}, {hoveredCell.y})
@@ -304,18 +314,19 @@ export function MapPageClient({
         </Button>
       </div>
 
-      {/* Mission modal for forest click */}
-      {selectedForestCell && (
+      {/* Mission modal for clickable feature */}
+      {selectedMissionCell && selectedWorkerType && selectedStats && (
         <SendMissionModal
-          targetX={selectedForestCell.x}
-          targetY={selectedForestCell.y}
+          targetX={selectedMissionCell.x}
+          targetY={selectedMissionCell.y}
           villageX={villageX}
           villageY={villageY}
-          speed={lumberjackStats.speed}
-          gatherRate={lumberjackStats.gatherRate}
-          maxCapacity={lumberjackStats.maxCapacity}
-          availableLumberjacks={availableLumberjacks}
-          onClose={() => setSelectedForestCell(null)}
+          speed={selectedStats.speed}
+          gatherRate={selectedStats.gatherRate}
+          maxCapacity={selectedStats.maxCapacity}
+          availableWorkers={workerAvailability[selectedWorkerType] ?? 0}
+          inhabitantType={selectedWorkerType}
+          onClose={() => setSelectedMissionCell(null)}
         />
       )}
     </div>

@@ -6,12 +6,8 @@ import { Button } from '@/components/ui/button'
 import { computeMissionStatus } from '@/lib/game/missions/compute-mission-status'
 import { recallMission } from '@/lib/game/missions/recall-mission'
 import { toggleMissionLoop } from '@/lib/game/missions/toggle-mission-loop'
-import { GiAxeInStump } from 'react-icons/gi'
+import { MISSION_ICONS } from '@/lib/game/missions/mission-icons'
 import type { ActiveMission, MissionPhase } from '@/lib/game/missions/types'
-
-const MISSION_ICON: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-  lumberjack: GiAxeInStump,
-}
 
 interface MissionCardProps {
   mission: ActiveMission
@@ -119,7 +115,7 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
     }
   }
 
-  const IconComponent = MISSION_ICON[mission.inhabitantType]
+  const IconComponent = MISSION_ICONS[mission.inhabitantType]
 
   return (
     <div

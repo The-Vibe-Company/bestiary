@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { HabitantsPanel } from './habitants-panel'
 import { SendFromHabitantsModal } from './send-from-habitants-modal'
+import { MISSION_CAPABLE_TYPES } from '@/lib/game/missions/mission-config'
 import type { WorldMap } from '@/lib/game/map/types'
 import type { MissionTile } from '@/components/game/map-page-client'
 
@@ -22,24 +23,22 @@ interface HabitantsPageClientProps {
   map: WorldMap
   villageX: number
   villageY: number
-  availableLumberjacks: number
-  lumberjackStats: {
+  workerAvailability: Record<string, number>
+  workerStats: Record<string, {
     speed: number
     gatherRate: number
     maxCapacity: number
-  }
+  }>
   missionTiles: MissionTile[]
 }
-
-const MISSION_CAPABLE_TYPES = ['lumberjack']
 
 export function HabitantsPageClient({
   inhabitantsList,
   map,
   villageX,
   villageY,
-  availableLumberjacks,
-  lumberjackStats,
+  workerAvailability,
+  workerStats,
   missionTiles,
 }: HabitantsPageClientProps) {
   const [selectedType, setSelectedType] = useState<string | null>(null)
@@ -122,16 +121,17 @@ export function HabitantsPageClient({
         })}
       </HabitantsPanel>
 
-      {/* Mission modal (mini-map → config) */}
-      {selectedType === 'lumberjack' && (
+      {/* Mission modal (mini-map → config) for any mission-capable type */}
+      {selectedType && workerStats[selectedType] && (
         <SendFromHabitantsModal
+          inhabitantType={selectedType}
           map={map}
           villageX={villageX}
           villageY={villageY}
-          speed={lumberjackStats.speed}
-          gatherRate={lumberjackStats.gatherRate}
-          maxCapacity={lumberjackStats.maxCapacity}
-          availableLumberjacks={availableLumberjacks}
+          speed={workerStats[selectedType].speed}
+          gatherRate={workerStats[selectedType].gatherRate}
+          maxCapacity={workerStats[selectedType].maxCapacity}
+          availableWorkers={workerAvailability[selectedType] ?? 0}
           missionTiles={missionTiles}
           onClose={() => setSelectedType(null)}
         />
