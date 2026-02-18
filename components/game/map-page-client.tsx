@@ -54,8 +54,8 @@ export interface TileMissionSummary {
   /** The "dominant" phase (priority: working > traveling-to > traveling-back) */
   dominantPhase: MissionPhase;
   byPhase: Partial<Record<MissionPhase, number>>;
-  /** The worker type for this tile (used for icon lookup) */
-  workerType?: string;
+  /** Per worker type, per phase counts (handles mixed types on same tile) */
+  byWorkerPhase: Record<string, Partial<Record<MissionPhase, number>>>;
 }
 
 interface MapPageClientProps {
@@ -104,6 +104,11 @@ export function MapPageClient({
     if (existing) {
       existing.total++;
       existing.byPhase[status.phase] = (existing.byPhase[status.phase] ?? 0) + 1;
+      if (!existing.byWorkerPhase[t.inhabitantType]) {
+        existing.byWorkerPhase[t.inhabitantType] = {};
+      }
+      existing.byWorkerPhase[t.inhabitantType][status.phase] =
+        (existing.byWorkerPhase[t.inhabitantType][status.phase] ?? 0) + 1;
       // Priority: working > traveling-to > traveling-back
       const priority: MissionPhase[] = ['working', 'traveling-to', 'traveling-back'];
       existing.dominantPhase = priority.find((p) => existing.byPhase[p]) ?? status.phase;
@@ -112,7 +117,7 @@ export function MapPageClient({
         total: 1,
         dominantPhase: status.phase,
         byPhase: { [status.phase]: 1 },
-        workerType: t.inhabitantType,
+        byWorkerPhase: { [t.inhabitantType]: { [status.phase]: 1 } },
       });
     }
   }
@@ -282,13 +287,16 @@ export function MapPageClient({
                         const label = hoveredCell.feature ? FEATURE_LABELS[hoveredCell.feature] : "Prairie";
                         const summary = missionTileMap.get(`${hoveredCell.x},${hoveredCell.y}`);
                         if (!summary) return label;
-                        // Use dynamic worker label based on tile's worker type
-                        const tileConfig = summary.workerType ? MISSION_CONFIG[summary.workerType] : undefined;
-                        const workerLabel = tileConfig?.workerLabel ?? 'travailleur';
-                        const workerLabelPlural = tileConfig?.workerLabelPlural ?? 'travailleurs';
-                        const parts = (Object.entries(summary.byPhase) as [MissionPhase, number][])
-                          .filter(([, count]) => count > 0)
-                          .map(([phase, count]) => `${count} ${count > 1 ? workerLabelPlural : workerLabel} ${PHASE_LABELS[phase]}`);
+                        const parts: string[] = [];
+                        for (const [wType, phases] of Object.entries(summary.byWorkerPhase)) {
+                          const wConfig = MISSION_CONFIG[wType];
+                          for (const [phase, count] of Object.entries(phases) as [MissionPhase, number][]) {
+                            if (count > 0) {
+                              const wLabel = count > 1 ? wConfig?.workerLabelPlural : wConfig?.workerLabel;
+                              parts.push(`${count} ${wLabel ?? 'travailleur'} ${PHASE_LABELS[phase]}`);
+                            }
+                          }
+                        }
                         return `${label} — ${parts.join(", ")}`;
                       })()}{" "}
                   ({hoveredCell.x}, {hoveredCell.y})

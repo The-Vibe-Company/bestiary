@@ -43,7 +43,7 @@ export function SendFromHabitantsModal({
   const targetFeature = config?.feature
 
   // Build mission tile lookup map
-  const tileMissionMap = new Map<string, TileMissionSummary & { workerType?: string }>()
+  const tileMissionMap = new Map<string, TileMissionSummary>()
   const now = new Date()
   for (const t of missionTiles) {
     const key = `${t.x},${t.y}`
@@ -63,6 +63,11 @@ export function SendFromHabitantsModal({
     if (existing) {
       existing.total++
       existing.byPhase[status.phase] = (existing.byPhase[status.phase] ?? 0) + 1
+      if (!existing.byWorkerPhase[t.inhabitantType]) {
+        existing.byWorkerPhase[t.inhabitantType] = {}
+      }
+      existing.byWorkerPhase[t.inhabitantType][status.phase] =
+        (existing.byWorkerPhase[t.inhabitantType][status.phase] ?? 0) + 1
       const priority: MissionPhase[] = ['working', 'traveling-to', 'traveling-back']
       existing.dominantPhase = priority.find((p) => existing.byPhase[p]) ?? status.phase
     } else {
@@ -70,7 +75,7 @@ export function SendFromHabitantsModal({
         total: 1,
         dominantPhase: status.phase,
         byPhase: { [status.phase]: 1 },
-        workerType: t.inhabitantType,
+        byWorkerPhase: { [t.inhabitantType]: { [status.phase]: 1 } },
       })
     }
   }
@@ -222,8 +227,10 @@ export function SendFromHabitantsModal({
                         const summary = tileMissionMap.get(`${mapX},${mapY}`)
                         if (!summary) return null
                         const color = PHASE_COLORS[summary.dominantPhase]
-                        // Determine the icon from the worker type for this tile
-                        const tileWorkerType = summary.workerType
+                        // Pick the worker type with the most missions on this tile
+                        const tileWorkerType = Object.entries(summary.byWorkerPhase)
+                          .map(([wt, phases]) => [wt, Object.values(phases).reduce((s, n) => s + (n ?? 0), 0)] as const)
+                          .sort((a, b) => b[1] - a[1])[0]?.[0]
                         const IconComponent = tileWorkerType ? MISSION_ICONS[tileWorkerType] : null
                         if (!IconComponent) return null
                         return (
