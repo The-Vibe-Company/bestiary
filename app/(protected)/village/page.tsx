@@ -7,6 +7,7 @@ import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
+import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { INHABITANT_TYPES } from "@/lib/game/inhabitants/types";
 import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
@@ -41,8 +42,11 @@ export default async function VillagePage() {
     redirect("/sign-in");
   }
 
-  // Lazy completion: complete any buildings whose timer has elapsed
-  await completePendingBuildings(village.id);
+  // Complete finished jobs before computing availability
+  await Promise.all([
+    completePendingMissions(village.id),
+    completePendingBuildings(village.id),
+  ]);
 
   // Fetch building data AFTER lazy completion for fresh state
   const [buildingTypes, villageBuildings, freshVillage, freshResources] =

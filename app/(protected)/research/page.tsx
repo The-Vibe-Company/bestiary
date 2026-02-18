@@ -1,8 +1,10 @@
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
+import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
+import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { INHABITANT_TYPES } from "@/lib/game/inhabitants/types";
 import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
@@ -32,6 +34,11 @@ export default async function ResearchPage() {
   if (!villageResources || !userData || !village) {
     redirect("/sign-in");
   }
+
+  await Promise.all([
+    completePendingMissions(village.id),
+    completePendingBuildings(village.id),
+  ]);
 
   const totalInhabitants = villageInhabitants
     ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)

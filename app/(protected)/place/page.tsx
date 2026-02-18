@@ -4,6 +4,7 @@ import { UserResourceBar } from "@/components/layout/user-resource-bar";
 import { ActiveJobsPanel } from "@/components/place/active-jobs-panel";
 import { PlacePanel } from "@/components/place/place-panel";
 import { TravelersPanel } from "@/components/place/travelers-panel";
+import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
 import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
@@ -44,8 +45,11 @@ export default async function PlacePage() {
     redirect("/sign-in");
   }
 
-  // Complete any finished missions (lazy pattern)
-  await completePendingMissions(village.id);
+  // Complete finished jobs before computing availability
+  await Promise.all([
+    completePendingMissions(village.id),
+    completePendingBuildings(village.id),
+  ]);
 
   // Fetch active missions
   const missions = await getActiveMissions(village.id);
