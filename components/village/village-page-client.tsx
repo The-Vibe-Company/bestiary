@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { HabitantsPanel } from '@/components/habitants/habitants-panel'
 import { Button } from '@/components/ui/button'
+import { BuildModal } from '@/components/village/build-modal'
 import { startBuilding } from '@/lib/game/buildings/start-building'
-import { GiWoodPile, GiStonePile, GiWheat, GiMeat } from 'react-icons/gi'
+import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiHammerNails } from 'react-icons/gi'
 
 interface ActiveConstruction {
   startedAt: string
   buildSeconds: number
+  assignedBuilders: number
 }
 
 export interface BuildingTypeData {
@@ -36,6 +38,7 @@ interface VillagePageClientProps {
     cereales: number
     viande: number
   }
+  availableBuilders: number
 }
 
 const RESOURCE_CONFIG = [
@@ -55,7 +58,11 @@ function formatTimeRemaining(totalSeconds: number): string {
   return `${s}s`
 }
 
-function ConstructionTimer({ startedAt, buildSeconds }: ActiveConstruction) {
+function ConstructionStatus({
+  startedAt,
+  buildSeconds,
+  assignedBuilders,
+}: ActiveConstruction) {
   const router = useRouter()
   const [secondsRemaining, setSecondsRemaining] = useState(() => {
     const elapsed = (Date.now() - new Date(startedAt).getTime()) / 1000
@@ -76,35 +83,84 @@ function ConstructionTimer({ startedAt, buildSeconds }: ActiveConstruction) {
     return () => clearInterval(interval)
   }, [startedAt, buildSeconds, secondsRemaining, router])
 
-  const progress = Math.min(1, (Date.now() - new Date(startedAt).getTime()) / 1000 / buildSeconds)
+  const progress = Math.max(0, Math.min(1, 1 - (secondsRemaining / buildSeconds)))
+  const radius = 9
+  const circumference = 2 * Math.PI * radius
+  const dashOffset = circumference * (1 - progress)
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-[var(--ivory)]/5">
-        <div
-          className="h-full rounded-full transition-all duration-1000"
-          style={{
-            width: `${progress * 100}%`,
-            backgroundColor: 'var(--burnt-amber)',
-            opacity: 0.8,
-          }}
+    <div className="ml-auto inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--burnt-amber)]/35 bg-[var(--obsidian)]/35">
+      <svg
+        className="h-5 w-5"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          cx="12"
+          cy="12"
+          r={radius}
+          stroke="rgba(245,245,220,0.2)"
+          strokeWidth="3"
         />
-      </div>
-      <span className="text-xs text-[var(--burnt-amber)]">
+        <circle
+          cx="12"
+          cy="12"
+          r={radius}
+          stroke="var(--burnt-amber)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={dashOffset}
+          transform="rotate(-90 12 12)"
+          className="transition-all duration-700 ease-linear"
+        />
+      </svg>
+      <span className="text-xs text-[var(--burnt-amber)] font-bold min-w-[56px]">
         {formatTimeRemaining(secondsRemaining)}
+      </span>
+      <span className="inline-flex items-center gap-1 text-xs text-[var(--ivory)]/80">
+        <GiHammerNails size={14} className="text-[var(--burnt-amber)]" />
+        {assignedBuilders}
       </span>
     </div>
   )
 }
 
-export function VillagePageClient({ buildingTypes, villageResources }: VillagePageClientProps) {
+export function VillagePageClient({ buildingTypes, villageResources, availableBuilders }: VillagePageClientProps) {
+  const router = useRouter()
+  const [buildModalKey, setBuildModalKey] = useState<string | null>(null)
   const [loadingKey, setLoadingKey] = useState<string | null>(null)
 
-  async function handleBuild(key: string) {
-    setLoadingKey(key)
-    await startBuilding(key)
-    setLoadingKey(null)
+  const noBuilders = availableBuilders <= 0
+
+  function getButtonLabel(canAfford: boolean) {
+    if (noBuilders) return 'AUCUN BÂTISSEUR'
+    if (!canAfford) return 'RESSOURCES INSUFFISANTES'
+    return 'CONSTRUIRE'
   }
+
+  async function handleBuildClick(key: string, hasActiveConstruction: boolean) {
+    if (hasActiveConstruction) return
+    if (availableBuilders === 1) {
+      // Only 1 builder: skip modal, build directly
+      setLoadingKey(key)
+      const result = await startBuilding(key, 1)
+      if (!result.success) {
+        setLoadingKey(null)
+        return
+      }
+      router.refresh()
+      setLoadingKey(null)
+    } else {
+      // Multiple builders: open modal to choose count
+      setBuildModalKey(key)
+    }
+  }
+
+  const selectedBuilding = buildModalKey
+    ? buildingTypes.find((b) => b.key === buildModalKey) ?? null
+    : null
 
   return (
     <HabitantsPanel>
@@ -118,6 +174,8 @@ export function VillagePageClient({ buildingTypes, villageResources }: VillagePa
         const costs = RESOURCE_CONFIG.filter(
           (r) => building[r.key] > 0
         )
+        const activeConstruction = building.activeConstructions[0]
+        const hasActiveConstruction = Boolean(activeConstruction)
 
         return (
           <div
@@ -145,23 +203,31 @@ export function VillagePageClient({ buildingTypes, villageResources }: VillagePa
                     ×{building.completedCount}
                   </span>
                 )}
-                <Button
-                  variant="seal"
-                  size="sm"
-                  className="ml-auto"
-                  disabled={!canAfford || loadingKey === building.key}
-                  isLoading={loadingKey === building.key}
-                  onClick={() => handleBuild(building.key)}
-                >
-                  {canAfford ? 'CONSTRUIRE' : 'RESSOURCES INSUFFISANTES'}
-                </Button>
+                {hasActiveConstruction ? (
+                  <ConstructionStatus
+                    startedAt={activeConstruction.startedAt}
+                    buildSeconds={activeConstruction.buildSeconds}
+                    assignedBuilders={activeConstruction.assignedBuilders}
+                  />
+                ) : (
+                  <Button
+                    variant="seal"
+                    size="sm"
+                    className="ml-auto"
+                    disabled={!canAfford || noBuilders || loadingKey === building.key}
+                    isLoading={loadingKey === building.key}
+                    onClick={() => handleBuildClick(building.key, hasActiveConstruction)}
+                  >
+                    {getButtonLabel(canAfford)}
+                  </Button>
+                )}
               </div>
 
               <p className="text-sm text-[var(--ivory)]/70 leading-relaxed">
                 {building.description}
               </p>
 
-              {/* Cost display + construction timer on same line */}
+              {/* Cost display */}
               <div className="flex items-center gap-3 mt-2">
                 {costs.map((r) => {
                   const cost = building[r.key]
@@ -181,23 +247,23 @@ export function VillagePageClient({ buildingTypes, villageResources }: VillagePa
                 <span className="text-xs text-[var(--ivory)]/40">
                   +{building.capacityBonus} capacité
                 </span>
-                {building.activeConstructions.length > 0 && (
-                  <div className="ml-auto flex items-center gap-2">
-                    {building.activeConstructions.map((construction, i) => (
-                      <ConstructionTimer
-                        key={`${building.key}-${i}`}
-                        startedAt={construction.startedAt}
-                        buildSeconds={construction.buildSeconds}
-                      />
-                    ))}
-                  </div>
-                )}
               </div>
 
             </div>
           </div>
         )
       })}
+
+      {/* Build modal */}
+      {selectedBuilding && (
+        <BuildModal
+          buildingTitle={selectedBuilding.title}
+          buildingTypeKey={selectedBuilding.key}
+          baseBuildSeconds={selectedBuilding.buildSeconds}
+          availableBuilders={availableBuilders}
+          onClose={() => setBuildModalKey(null)}
+        />
+      )}
     </HabitantsPanel>
   )
 }
