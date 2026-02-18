@@ -13,8 +13,8 @@ type DensityType = 'gathering' | 'hunting'
 /** Simple deterministic hash (same algorithm as many procedural generators). */
 function hashSeed(seed: number): number {
   let h = seed | 0
-  h = ((h >> 16) ^ h) * 0x45d9f3b
-  h = ((h >> 16) ^ h) * 0x45d9f3b
+  h = Math.imul((h >> 16) ^ h, 0x45d9f3b)
+  h = Math.imul((h >> 16) ^ h, 0x45d9f3b)
   h = (h >> 16) ^ h
   return h
 }
