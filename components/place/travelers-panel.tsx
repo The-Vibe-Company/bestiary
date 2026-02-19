@@ -25,7 +25,11 @@ export function TravelersPanel({ travelerStatus, inhabitantTypes, isVillageFull 
 
   async function handleWelcome() {
     if (isWelcomed) {
+      setPendingWelcome(true)
+      setWelcomeError(null)
+      router.refresh()
       setShowModal(true)
+      setPendingWelcome(false)
       return
     }
 

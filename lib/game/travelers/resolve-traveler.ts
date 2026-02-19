@@ -42,8 +42,12 @@ export async function resolveTraveler(villageId: string): Promise<TravelerStatus
       where: { villageId },
     })
 
-    // Cas : pas de record ou voyageur déjà traité (assigné ou reparti)
-    if (!existing || existing.assignedAt !== null || existing.departsAt <= now) {
+    // Cas : pas de record, déjà assigné, ou reparti sans avoir été accueilli
+    if (
+      !existing ||
+      existing.assignedAt !== null ||
+      (existing.welcomedAt === null && existing.departsAt <= now)
+    ) {
       const refreshed = await tx.villageTraveler.upsert({
         where: { villageId },
         create: {
