@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { neonAuth } from '@neondatabase/auth/next/server'
 import { INHABITANT_TYPES, type InhabitantType } from '../inhabitants/types'
+import { Prisma } from '@prisma/client'
 
 export type AssignTravelerResult =
   | { success: true }
@@ -45,8 +46,16 @@ export async function assignTraveler(type: InhabitantType): Promise<AssignTravel
         throw new AssignTravelerError('Aucun voyageur disponible')
       }
 
+      if (traveler.assignedAt !== null) {
+        throw new AssignTravelerError('Ce voyageur est deja assigne')
+      }
+
+      if (traveler.arrivesAt > now) {
+        throw new AssignTravelerError("Le voyageur n'est pas encore arrive")
+      }
+
       if (traveler.welcomedAt === null) {
-        throw new AssignTravelerError("Accueillez d'abord le voyageur")
+        throw new AssignTravelerError("Ce voyageur n'est plus accueilli. Rafraichissez la page.")
       }
 
       const latestInhabitants = await tx.villageInhabitants.findUnique({
@@ -64,30 +73,43 @@ export async function assignTraveler(type: InhabitantType): Promise<AssignTravel
       const claimedTraveler = await tx.villageTraveler.updateMany({
         where: {
           id: traveler.id,
-          welcomedAt: { not: null },
           assignedAt: null,
           arrivesAt: { lte: now },
-          departsAt: { gt: now },
         },
         data: { assignedAt: now },
       })
 
       if (claimedTraveler.count === 0) {
-        throw new AssignTravelerError('Aucun voyageur disponible')
+        throw new AssignTravelerError("Le voyageur n'est plus assignable. Rafraichissez la page.")
       }
 
-      if (!latestInhabitants) {
-        await tx.villageInhabitants.create({
-          data: {
-            villageId: village.id,
-            [type]: 1,
-          },
-        })
-      } else {
-        await tx.villageInhabitants.update({
-          where: { villageId: village.id },
-          data: { [type]: { increment: 1 } },
-        })
+      const updatedInhabitants = await tx.villageInhabitants.updateMany({
+        where: { villageId: village.id },
+        data: { [type]: { increment: 1 } },
+      })
+
+      if (updatedInhabitants.count === 0) {
+        try {
+          await tx.villageInhabitants.create({
+            data: {
+              village: { connect: { id: village.id } },
+              [type]: 1,
+            },
+          })
+        } catch (createError) {
+          // Handle rare race where record is created between updateMany and create.
+          if (
+            createError instanceof Prisma.PrismaClientKnownRequestError &&
+            createError.code === 'P2002'
+          ) {
+            await tx.villageInhabitants.update({
+              where: { villageId: village.id },
+              data: { [type]: { increment: 1 } },
+            })
+          } else {
+            throw createError
+          }
+        }
       }
     })
 
@@ -97,6 +119,22 @@ export async function assignTraveler(type: InhabitantType): Promise<AssignTravel
     if (error instanceof AssignTravelerError) {
       return { success: false, error: error.message }
     }
-    return { success: false, error: "Erreur lors de l'assignation du voyageur" }
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      console.error('assignTraveler prisma known error:', {
+        code: error.code,
+        message: error.message,
+        meta: error.meta,
+      })
+      return { success: false, error: "Le voyageur n'est plus disponible. Rafraichissez puis reessayez." }
+    }
+    if (error instanceof Prisma.PrismaClientValidationError) {
+      console.error('assignTraveler validation error:', error.message)
+      return { success: false, error: `Erreur validation assignation: ${error.message}` }
+    }
+    console.error('assignTraveler unexpected error:', error)
+    if (error instanceof Error) {
+      return { success: false, error: `Erreur assignation: ${error.message}` }
+    }
+    return { success: false, error: "Erreur assignation: erreur inconnue" }
   }
 }

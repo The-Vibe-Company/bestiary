@@ -45,7 +45,6 @@ export async function welcomeTraveler(): Promise<WelcomeTravelerResult> {
     const updated = await prisma.villageTraveler.updateMany({
       where: {
         id: traveler.id,
-        welcomedAt: null,
         assignedAt: null,
         arrivesAt: { lte: now },
         departsAt: { gt: now },

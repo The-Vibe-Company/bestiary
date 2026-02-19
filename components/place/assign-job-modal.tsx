@@ -100,7 +100,7 @@ export function AssignJobModal({ inhabitantTypes, onClose }: AssignJobModalProps
             variant="seal"
             onClick={handleAssign}
             isLoading={pending}
-            disabled={!selected}
+            disabled={!selected || pending}
           >
             ASSIGNER
           </Button>
