@@ -49,6 +49,18 @@ export async function assignTraveler(type: InhabitantType): Promise<AssignTravel
         throw new AssignTravelerError("Accueillez d'abord le voyageur")
       }
 
+      const latestInhabitants = await tx.villageInhabitants.findUnique({
+        where: { villageId: village.id },
+      })
+
+      const totalInhabitants = latestInhabitants
+        ? INHABITANT_TYPES.reduce((sum, t) => sum + (latestInhabitants[t] ?? 0), 0)
+        : 0
+
+      if (totalInhabitants >= village.capacity) {
+        throw new AssignTravelerError('Le village est plein ! Construisez pour augmenter la capacité.')
+      }
+
       const claimedTraveler = await tx.villageTraveler.updateMany({
         where: {
           id: traveler.id,
@@ -62,18 +74,6 @@ export async function assignTraveler(type: InhabitantType): Promise<AssignTravel
 
       if (claimedTraveler.count === 0) {
         throw new AssignTravelerError('Aucun voyageur disponible')
-      }
-
-      const latestInhabitants = await tx.villageInhabitants.findUnique({
-        where: { villageId: village.id },
-      })
-
-      const totalInhabitants = latestInhabitants
-        ? INHABITANT_TYPES.reduce((sum, t) => sum + (latestInhabitants[t] ?? 0), 0)
-        : 0
-
-      if (totalInhabitants >= village.capacity) {
-        throw new AssignTravelerError('Le village est plein ! Construisez pour augmenter la capacité.')
       }
 
       if (!latestInhabitants) {

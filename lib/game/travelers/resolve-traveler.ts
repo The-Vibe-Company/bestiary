@@ -35,35 +35,43 @@ function createTravelerDates() {
  */
 export async function resolveTraveler(villageId: string): Promise<TravelerStatus> {
   const now = new Date()
+  const { arrivesAt: nextArrivesAt, departsAt: nextDepartsAt } = createTravelerDates()
 
-  const existing = await prisma.villageTraveler.findUnique({
-    where: { villageId },
-  })
-
-  // Cas : pas de record ou voyageur déjà traité (assigné ou reparti)
-  if (!existing || existing.assignedAt !== null || existing.departsAt <= now) {
-    const { arrivesAt, departsAt } = createTravelerDates()
-
-    // Upsert atomique : supprime l'ancien et crée le nouveau en une transaction
-    await prisma.$transaction(async (tx) => {
-      await tx.villageTraveler.deleteMany({ where: { villageId } })
-      await tx.villageTraveler.create({
-        data: { villageId, arrivesAt, departsAt },
-      })
+  return prisma.$transaction(async (tx) => {
+    const existing = await tx.villageTraveler.findUnique({
+      where: { villageId },
     })
 
-    return { status: 'waiting', arrivesAt }
-  }
+    // Cas : pas de record ou voyageur déjà traité (assigné ou reparti)
+    if (!existing || existing.assignedAt !== null || existing.departsAt <= now) {
+      const refreshed = await tx.villageTraveler.upsert({
+        where: { villageId },
+        create: {
+          villageId,
+          arrivesAt: nextArrivesAt,
+          departsAt: nextDepartsAt,
+        },
+        update: {
+          arrivesAt: nextArrivesAt,
+          departsAt: nextDepartsAt,
+          welcomedAt: null,
+          assignedAt: null,
+        },
+      })
 
-  // Cas : voyageur pas encore arrivé
-  if (existing.arrivesAt > now) {
-    return { status: 'waiting', arrivesAt: existing.arrivesAt }
-  }
+      return { status: 'waiting', arrivesAt: refreshed.arrivesAt }
+    }
 
-  // Cas : voyageur présent (arrivesAt passé, departsAt futur)
-  return {
-    status: 'present',
-    departsAt: existing.departsAt,
-    isWelcomed: existing.welcomedAt !== null,
-  }
+    // Cas : voyageur pas encore arrivé
+    if (existing.arrivesAt > now) {
+      return { status: 'waiting', arrivesAt: existing.arrivesAt }
+    }
+
+    // Cas : voyageur présent (arrivesAt passé, departsAt futur)
+    return {
+      status: 'present',
+      departsAt: existing.departsAt,
+      isWelcomed: existing.welcomedAt !== null,
+    }
+  })
 }

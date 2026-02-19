@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { GiWalk } from 'react-icons/gi'
 import { Button } from '@/components/ui/button'
 import { PlacePanel } from './place-panel'
@@ -16,12 +17,11 @@ interface TravelersPanelProps {
 }
 
 export function TravelersPanel({ travelerStatus, inhabitantTypes, isVillageFull }: TravelersPanelProps) {
+  const router = useRouter()
   const [showModal, setShowModal] = useState(false)
   const [pendingWelcome, setPendingWelcome] = useState(false)
   const [welcomeError, setWelcomeError] = useState<string | null>(null)
-  const [justWelcomed, setJustWelcomed] = useState(false)
-  const isWelcomed =
-    travelerStatus.status === 'present' && (travelerStatus.isWelcomed || justWelcomed)
+  const isWelcomed = travelerStatus.status === 'present' && travelerStatus.isWelcomed
 
   async function handleWelcome() {
     if (isWelcomed) {
@@ -40,8 +40,8 @@ export function TravelersPanel({ travelerStatus, inhabitantTypes, isVillageFull 
       return
     }
 
-    setJustWelcomed(true)
     setPendingWelcome(false)
+    router.refresh()
     setShowModal(true)
   }
 
