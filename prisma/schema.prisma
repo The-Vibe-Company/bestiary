@@ -36,6 +36,7 @@ model Village {
   resources   VillageResources?
   missions    Mission[]
   buildings   VillageBuilding[]
+  traveler    VillageTraveler?
 
   @@unique([x, y]) // Une seule village par coordonnée
   @@map("Villages")
@@ -132,6 +133,19 @@ model VillageBuilding {
   createdAt        DateTime  @default(now())
 
   @@map("VillageBuildings")
+}
+
+model VillageTraveler {
+  id         String    @id @default(cuid())
+  villageId  String    @unique // Un seul voyageur actif par village
+  village    Village   @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  arrivesAt  DateTime  // Quand le voyageur devient visible
+  departsAt  DateTime  // Quand il repart si non assigné
+  welcomedAt DateTime? // Set quand le joueur accueille le voyageur
+  assignedAt DateTime? // Set quand le joueur assigne le voyageur a un metier
+  createdAt  DateTime  @default(now())
+
+  @@map("VillageTravelers")
 }
 
 model Mission {
