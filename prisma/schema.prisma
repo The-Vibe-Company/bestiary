@@ -141,7 +141,8 @@ model VillageTraveler {
   village    Village   @relation(fields: [villageId], references: [id], onDelete: Cascade)
   arrivesAt  DateTime  // Quand le voyageur devient visible
   departsAt  DateTime  // Quand il repart si non assigné
-  assignedAt DateTime? // Set quand le joueur l'accueille
+  welcomedAt DateTime? // Set quand le joueur accueille le voyageur
+  assignedAt DateTime? // Set quand le joueur assigne le voyageur a un metier
   createdAt  DateTime  @default(now())
 
   @@map("VillageTravelers")

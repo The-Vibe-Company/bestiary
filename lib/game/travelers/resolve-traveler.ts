@@ -8,7 +8,7 @@ import {
 
 export type TravelerStatus =
   | { status: 'waiting'; arrivesAt: Date }
-  | { status: 'present'; departsAt: Date }
+  | { status: 'present'; departsAt: Date; isWelcomed: boolean }
 
 function randomBetween(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -61,5 +61,9 @@ export async function resolveTraveler(villageId: string): Promise<TravelerStatus
   }
 
   // Cas : voyageur présent (arrivesAt passé, departsAt futur)
-  return { status: 'present', departsAt: existing.departsAt }
+  return {
+    status: 'present',
+    departsAt: existing.departsAt,
+    isWelcomed: existing.welcomedAt !== null,
+  }
 }

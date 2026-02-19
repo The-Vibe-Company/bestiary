@@ -19,7 +19,9 @@ export function TravelersPanel({ travelerStatus, inhabitantTypes, isVillageFull 
   const [showModal, setShowModal] = useState(false)
   const [pendingWelcome, setPendingWelcome] = useState(false)
   const [welcomeError, setWelcomeError] = useState<string | null>(null)
-  const [isWelcomed, setIsWelcomed] = useState(false)
+  const [justWelcomed, setJustWelcomed] = useState(false)
+  const isWelcomed =
+    travelerStatus.status === 'present' && (travelerStatus.isWelcomed || justWelcomed)
 
   async function handleWelcome() {
     if (isWelcomed) {
@@ -38,7 +40,7 @@ export function TravelersPanel({ travelerStatus, inhabitantTypes, isVillageFull 
       return
     }
 
-    setIsWelcomed(true)
+    setJustWelcomed(true)
     setPendingWelcome(false)
     setShowModal(true)
   }

@@ -9,6 +9,13 @@ export type AssignTravelerResult =
   | { success: true }
   | { success: false; error: string }
 
+class AssignTravelerError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'AssignTravelerError'
+  }
+}
+
 export async function assignTraveler(type: InhabitantType): Promise<AssignTravelerResult> {
   const { session } = await neonAuth()
 
@@ -21,64 +28,75 @@ export async function assignTraveler(type: InhabitantType): Promise<AssignTravel
   }
 
   try {
-    const village = await prisma.village.findUnique({
-      where: { ownerId: session.userId },
-      include: { inhabitants: true, traveler: true },
-    })
-
-    if (!village) {
-      return { success: false, error: 'Village introuvable' }
-    }
-
-    // Vérifier la capacité du village
-    const totalInhabitants = village.inhabitants
-      ? INHABITANT_TYPES.reduce((sum, t) => sum + (village.inhabitants![t] ?? 0), 0)
-      : 0
-
-    if (totalInhabitants >= village.capacity) {
-      return { success: false, error: 'Le village est plein ! Construisez pour augmenter la capacité.' }
-    }
-
-    // Vérifier que le voyageur est bien présent
     const now = new Date()
-    const traveler = village.traveler
 
-    if (!traveler || traveler.assignedAt !== null) {
-      return { success: false, error: 'Aucun voyageur disponible' }
-    }
+    await prisma.$transaction(async (tx) => {
+      const village = await tx.village.findUnique({
+        where: { ownerId: session.userId },
+        include: { inhabitants: true, traveler: true },
+      })
 
-    if (traveler.arrivesAt > now) {
-      return { success: false, error: "Le voyageur n'est pas encore arrivé" }
-    }
+      if (!village) {
+        throw new AssignTravelerError('Village introuvable')
+      }
 
-    if (traveler.departsAt <= now) {
-      return { success: false, error: 'Le voyageur est déjà reparti' }
-    }
+      const traveler = village.traveler
+      if (!traveler) {
+        throw new AssignTravelerError('Aucun voyageur disponible')
+      }
 
-    // Marquer le voyageur comme assigné
-    await prisma.villageTraveler.update({
-      where: { id: traveler.id },
-      data: { assignedAt: now },
-    })
+      if (traveler.welcomedAt === null) {
+        throw new AssignTravelerError("Accueillez d'abord le voyageur")
+      }
 
-    // Incrémenter le compteur d'habitants
-    if (!village.inhabitants) {
-      await prisma.villageInhabitants.create({
-        data: {
-          villageId: village.id,
-          [type]: 1,
+      const claimedTraveler = await tx.villageTraveler.updateMany({
+        where: {
+          id: traveler.id,
+          welcomedAt: { not: null },
+          assignedAt: null,
+          arrivesAt: { lte: now },
+          departsAt: { gt: now },
         },
+        data: { assignedAt: now },
       })
-    } else {
-      await prisma.villageInhabitants.update({
+
+      if (claimedTraveler.count === 0) {
+        throw new AssignTravelerError('Aucun voyageur disponible')
+      }
+
+      const latestInhabitants = await tx.villageInhabitants.findUnique({
         where: { villageId: village.id },
-        data: { [type]: { increment: 1 } },
       })
-    }
+
+      const totalInhabitants = latestInhabitants
+        ? INHABITANT_TYPES.reduce((sum, t) => sum + (latestInhabitants[t] ?? 0), 0)
+        : 0
+
+      if (totalInhabitants >= village.capacity) {
+        throw new AssignTravelerError('Le village est plein ! Construisez pour augmenter la capacité.')
+      }
+
+      if (!latestInhabitants) {
+        await tx.villageInhabitants.create({
+          data: {
+            villageId: village.id,
+            [type]: 1,
+          },
+        })
+      } else {
+        await tx.villageInhabitants.update({
+          where: { villageId: village.id },
+          data: { [type]: { increment: 1 } },
+        })
+      }
+    })
 
     revalidatePath('/place')
     return { success: true }
-  } catch {
+  } catch (error) {
+    if (error instanceof AssignTravelerError) {
+      return { success: false, error: error.message }
+    }
     return { success: false, error: "Erreur lors de l'assignation du voyageur" }
   }
 }

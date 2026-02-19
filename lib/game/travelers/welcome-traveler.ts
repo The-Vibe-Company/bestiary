@@ -38,10 +38,27 @@ export async function welcomeTraveler(): Promise<WelcomeTravelerResult> {
       return { success: false, error: 'Le voyageur est deja reparti' }
     }
 
-    await prisma.villageTraveler.update({
-      where: { id: traveler.id },
-      data: { departsAt: new Date(now.getTime() + LOCK_DURATION_SECONDS * 1000) },
+    if (traveler.welcomedAt !== null) {
+      return { success: true }
+    }
+
+    const updated = await prisma.villageTraveler.updateMany({
+      where: {
+        id: traveler.id,
+        welcomedAt: null,
+        assignedAt: null,
+        arrivesAt: { lte: now },
+        departsAt: { gt: now },
+      },
+      data: {
+        welcomedAt: now,
+        departsAt: new Date(now.getTime() + LOCK_DURATION_SECONDS * 1000),
+      },
     })
+
+    if (updated.count === 0) {
+      return { success: false, error: 'Aucun voyageur disponible' }
+    }
 
     revalidatePath('/place')
     return { success: true }
