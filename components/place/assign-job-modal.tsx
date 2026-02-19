@@ -4,15 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { assignInhabitant } from '@/lib/game/inhabitants/assign-inhabitant'
+import { assignTraveler } from '@/lib/game/travelers/assign-traveler'
 import type { InhabitantType } from '@/lib/game/inhabitants/types'
 
 interface AssignJobModalProps {
   inhabitantTypes: { key: string; title: string; image: string }[]
   onClose: () => void
 }
-
-const UNLOCKED_JOBS = ['lumberjack', 'miner']
 
 export function AssignJobModal({ inhabitantTypes, onClose }: AssignJobModalProps) {
   const router = useRouter()
@@ -25,7 +23,7 @@ export function AssignJobModal({ inhabitantTypes, onClose }: AssignJobModalProps
     setPending(true)
     setError(null)
 
-    const result = await assignInhabitant(selected as InhabitantType)
+    const result = await assignTraveler(selected as InhabitantType)
 
     if (result.success) {
       router.refresh()
@@ -56,50 +54,28 @@ export function AssignJobModal({ inhabitantTypes, onClose }: AssignJobModalProps
         {/* Job grid */}
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 mb-6">
           {inhabitantTypes.map((type) => {
-            const isUnlocked = UNLOCKED_JOBS.includes(type.key)
             const isSelected = selected === type.key
 
             return (
               <button
                 key={type.key}
                 type="button"
-                disabled={!isUnlocked}
-                onClick={() => isUnlocked && setSelected(type.key)}
+                onClick={() => setSelected(type.key)}
                 className={`
                   flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-200
-                  ${isUnlocked
-                    ? isSelected
-                      ? 'border-2 border-[var(--burnt-amber)] bg-[var(--burnt-amber)]/20 scale-105 shadow-[0_0_20px_rgba(179,123,52,0.3)]'
-                      : 'border-2 border-[var(--ivory)]/20 hover:border-[var(--burnt-amber)]/50 hover:scale-105 cursor-pointer'
-                    : 'opacity-30 grayscale pointer-events-none border-2 border-transparent'
+                  ${isSelected
+                    ? 'border-2 border-[var(--burnt-amber)] bg-[var(--burnt-amber)]/20 scale-105 shadow-[0_0_20px_rgba(179,123,52,0.3)]'
+                    : 'border-2 border-[var(--ivory)]/20 hover:border-[var(--burnt-amber)]/50 hover:scale-105 cursor-pointer'
                   }
                 `}
               >
-                <div className="relative w-20 h-20">
+                <div className="relative w-20 h-20 overflow-hidden rounded-md bg-black/10">
                   <Image
                     src={type.image}
                     alt={type.title}
                     fill
-                    className="object-contain"
+                    className="object-cover object-center"
                   />
-                  {!isUnlocked && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className="w-8 h-8 text-[var(--ivory)]/60"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
-                        />
-                      </svg>
-                    </div>
-                  )}
                 </div>
                 <span className="text-xs font-[family-name:var(--font-title)] tracking-[0.1em] text-[var(--ivory)]">
                   {type.title}

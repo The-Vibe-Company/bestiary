@@ -14,6 +14,7 @@ import { getActiveMissions } from "@/lib/game/missions/get-active-missions";
 import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
+import { resolveTraveler } from "@/lib/game/travelers/resolve-traveler";
 import { getUser } from "@/lib/game/user/get-user";
 import { assignVillageToUser } from "@/lib/game/village/assign-village";
 import { getVillage } from "@/lib/game/village/get-village";
@@ -64,12 +65,14 @@ export default async function PlacePage() {
 
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
 
-  // A traveler awaits when the village has no inhabitants yet
   const totalInhabitants = villageInhabitants
     ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
   const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
-  const hasTraveler = totalInhabitants === 0;
+
+  // Résoudre l'état du voyageur (lazy completion)
+  const travelerStatus = await resolveTraveler(village.id);
+  const isVillageFull = totalInhabitants >= village.capacity;
 
   const inhabitantTypesData = inhabitantTypes.map((t) => ({
     key: t.key,
@@ -108,8 +111,9 @@ export default async function PlacePage() {
         <div className="h-full grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 gap-4 max-w-5xl mx-auto">
           {/* Voyageurs */}
           <TravelersPanel
-            hasTraveler={hasTraveler}
+            travelerStatus={travelerStatus}
             inhabitantTypes={inhabitantTypesData}
+            isVillageFull={isVillageFull}
           />
 
           {/* Placeholder — Animaux errants */}
