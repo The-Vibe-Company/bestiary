@@ -47,7 +47,9 @@ export async function completePendingBuildings(villageId: string): Promise<void>
             }),
           ]
         : []),
-      ...(capacityBonus > 0
+      // Only apply capacity bonus for new constructions, not upgrades
+      // (upgrades replace the old building which already granted the bonus)
+      ...(capacityBonus > 0 && !isUpgrade
         ? [
             prisma.village.update({
               where: { id: villageId },
