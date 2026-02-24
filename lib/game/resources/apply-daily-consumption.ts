@@ -3,6 +3,8 @@ import type { InhabitantType as PrismaInhabitantType } from '@prisma/client'
 import { INHABITANT_TYPES } from '@/lib/game/inhabitants/types'
 import type { VillageInhabitants } from '@/lib/game/inhabitants/types'
 import { computeStarvation } from './compute-starvation'
+import { createNotification } from '@/lib/game/notifications/create-notification'
+import { NOTIFICATION_TYPES } from '@/lib/game/notifications/types'
 
 /** Duration of one consumption cycle in milliseconds (1 day). */
 const CYCLE_MS = 86_400_000
@@ -100,6 +102,11 @@ export async function applyDailyConsumption(
   }
 
   let starvationOccurred = false
+  let totalStarvationDeaths = 0
+  const initialTotalPop = INHABITANT_TYPES.reduce(
+    (s, k) => s + currentInhabitants[k],
+    0,
+  )
 
   for (let day = 0; day < daysElapsed; day++) {
     const result = computeStarvation(
@@ -111,6 +118,7 @@ export async function applyDailyConsumption(
 
     if (result.starvation) {
       starvationOccurred = true
+      totalStarvationDeaths += result.totalDeaths
       for (const key of INHABITANT_TYPES) {
         currentInhabitants[key] = result.survivingInhabitants[key] ?? 0
       }
@@ -163,6 +171,29 @@ export async function applyDailyConsumption(
         where: { villageId },
         data: currentInhabitants,
       })
+
+      const finalTotalPop = INHABITANT_TYPES.reduce(
+        (s, k) => s + currentInhabitants[k],
+        0,
+      )
+
+      await createNotification(
+        {
+          villageId,
+          type: NOTIFICATION_TYPES.STARVATION,
+          title: 'Famine',
+          message:
+            totalStarvationDeaths === 1
+              ? `1 habitant est mort de faim. Population : ${finalTotalPop}.`
+              : `${totalStarvationDeaths} habitants sont morts de faim. Population : ${finalTotalPop}.`,
+          data: {
+            totalDeaths: totalStarvationDeaths,
+            totalPopulationBefore: initialTotalPop,
+            totalPopulationAfter: finalTotalPop,
+          },
+        },
+        tx,
+      )
     }
 
     return true

@@ -36,7 +36,8 @@ model Village {
   resources   VillageResources?
   missions    Mission[]
   buildings   VillageBuilding[]
-  traveler    VillageTraveler?
+  traveler      VillageTraveler?
+  notifications Notification[]
 
   @@unique([x, y]) // Une seule village par coordonnée
   @@map("Villages")
@@ -147,6 +148,21 @@ model VillageTraveler {
   createdAt  DateTime  @default(now())
 
   @@map("VillageTravelers")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  villageId String
+  village   Village   @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  type      String    // "starvation", "mission_complete", etc.
+  title     String
+  message   String
+  data      Json?     // Type-specific metadata (deaths count, resource info, etc.)
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([villageId, readAt])
+  @@map("Notifications")
 }
 
 model Mission {
