@@ -60,6 +60,7 @@ export async function resolveTraveler(villageId: string): Promise<TravelerStatus
           departsAt: nextDepartsAt,
           welcomedAt: null,
           assignedAt: null,
+          detectedAt: null,
         },
       })
 
