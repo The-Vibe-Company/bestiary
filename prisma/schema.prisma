@@ -60,9 +60,10 @@ model VillageResources {
   village   Village  @relation(fields: [villageId], references: [id], onDelete: Cascade)
   bois      Int      @default(100)
   pierre    Int      @default(50)
-  cereales  Int      @default(30)
-  viande    Int      @default(20)
-  lastConsumptionAt DateTime @default(now())
+  cereales  Float    @default(30)
+  viande    Float    @default(20)
+  lastConsumptionAt  DateTime  @default(now())
+  lastStarvationAt   DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -10,6 +10,7 @@ import { INHABITANT_TYPES, type InhabitantType } from "@/lib/game/inhabitants/ty
 import { generateWorldMap } from "@/lib/game/map/generator";
 import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { MISSION_CAPABLE_TYPES } from "@/lib/game/missions/mission-config";
+import { applyDailyConsumption } from "@/lib/game/resources/apply-daily-consumption";
 import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
@@ -44,18 +45,33 @@ export default async function MapPage() {
     },
   });
 
-  const [villageResources, village, userResources, userData, villageInhabitants, inhabitantStats, inhabitantTypes] =
+  const [village, userResources, userData, inhabitantStats, inhabitantTypes] =
     await Promise.all([
-      getVillageResources(session.userId),
       getVillage(session.userId),
       getUserResources(session.userId),
       getUser(session.userId),
-      getVillageInhabitants(session.userId),
       getInhabitantStats(),
       getInhabitantTypes(),
     ]);
 
-  if (!villageResources || !userData || !village) {
+  if (!userData || !village) {
+    redirect("/sign-in");
+  }
+
+  // Complete finished jobs and apply pending consumption before computing availability
+  await Promise.all([
+    completePendingMissions(village.id),
+    completePendingBuildings(village.id),
+    applyDailyConsumption(village.id, inhabitantTypes),
+  ]);
+
+  // Fetch mutable data AFTER catch-up for fresh values
+  const [villageResources, villageInhabitants] = await Promise.all([
+    getVillageResources(session.userId),
+    getVillageInhabitants(session.userId),
+  ]);
+
+  if (!villageResources) {
     redirect("/sign-in");
   }
 
@@ -64,12 +80,6 @@ export default async function MapPage() {
     : 0;
 
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
-
-  // Complete finished jobs before computing availability
-  await Promise.all([
-    completePendingMissions(village.id),
-    completePendingBuildings(village.id),
-  ]);
 
   // Count active missions grouped by inhabitant type
   const activeMissionCounts = await prisma.mission.groupBy({

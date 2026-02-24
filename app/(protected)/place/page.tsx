@@ -11,6 +11,7 @@ import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccu
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
 import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { getActiveMissions } from "@/lib/game/missions/get-active-missions";
+import { applyDailyConsumption } from "@/lib/game/resources/apply-daily-consumption";
 import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
@@ -31,26 +32,35 @@ export default async function PlacePage() {
 
   await assignVillageToUser(session.userId);
 
-  const [villageResources, village, userResources, userData, villageInhabitants, inhabitantTypes, inhabitantStats] =
+  const [village, userResources, userData, inhabitantTypes, inhabitantStats] =
     await Promise.all([
-      getVillageResources(session.userId),
       getVillage(session.userId),
       getUserResources(session.userId),
       getUser(session.userId),
-      getVillageInhabitants(session.userId),
       getInhabitantTypes(),
       getInhabitantStats(),
     ]);
 
-  if (!villageResources || !userData || !village) {
+  if (!userData || !village) {
     redirect("/sign-in");
   }
 
-  // Complete finished jobs before computing availability
+  // Complete finished jobs and apply pending consumption before computing availability
   await Promise.all([
     completePendingMissions(village.id),
     completePendingBuildings(village.id),
+    applyDailyConsumption(village.id, inhabitantTypes),
   ]);
+
+  // Fetch mutable data AFTER catch-up for fresh values
+  const [villageResources, villageInhabitants] = await Promise.all([
+    getVillageResources(session.userId),
+    getVillageInhabitants(session.userId),
+  ]);
+
+  if (!villageResources) {
+    redirect("/sign-in");
+  }
 
   // Fetch active missions
   const missions = await getActiveMissions(village.id);

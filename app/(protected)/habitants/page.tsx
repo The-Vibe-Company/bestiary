@@ -11,6 +11,7 @@ import { generateWorldMap } from "@/lib/game/map/generator";
 import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { MISSION_CAPABLE_TYPES } from "@/lib/game/missions/mission-config";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
+import { applyDailyConsumption } from "@/lib/game/resources/apply-daily-consumption";
 import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
 import { getUser } from "@/lib/game/user/get-user";
@@ -26,33 +27,35 @@ export default async function HabitantsPage() {
     redirect("/sign-in");
   }
 
-  const [
-    villageResources,
-    village,
-    userResources,
-    userData,
-    villageInhabitants,
-    inhabitantTypes,
-    inhabitantStats,
-  ] = await Promise.all([
-    getVillageResources(session.userId),
-    getVillage(session.userId),
-    getUserResources(session.userId),
-    getUser(session.userId),
-    getVillageInhabitants(session.userId),
-    getInhabitantTypes(),
-    getInhabitantStats(),
-  ]);
+  const [village, userResources, userData, inhabitantTypes, inhabitantStats] =
+    await Promise.all([
+      getVillage(session.userId),
+      getUserResources(session.userId),
+      getUser(session.userId),
+      getInhabitantTypes(),
+      getInhabitantStats(),
+    ]);
 
-  if (!villageResources || !userData || !village) {
+  if (!userData || !village) {
     redirect("/sign-in");
   }
 
-  // Complete finished jobs before computing availability
+  // Complete finished jobs and apply pending consumption before computing availability
   await Promise.all([
     completePendingMissions(village.id),
     completePendingBuildings(village.id),
+    applyDailyConsumption(village.id, inhabitantTypes),
   ]);
+
+  // Fetch mutable data AFTER catch-up for fresh values
+  const [villageResources, villageInhabitants] = await Promise.all([
+    getVillageResources(session.userId),
+    getVillageInhabitants(session.userId),
+  ]);
+
+  if (!villageResources) {
+    redirect("/sign-in");
+  }
 
   // Count active missions grouped by inhabitant type
   const activeMissionCounts = await prisma.mission.groupBy({
