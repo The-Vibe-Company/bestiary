@@ -149,8 +149,8 @@ export async function completePendingMissions(villageId: string): Promise<void> 
     await prisma.$executeRaw`
       UPDATE "VillageResources"
       SET
-        bois = LEAST(bois, ${capacity.bois}),
-        pierre = LEAST(pierre, ${capacity.pierre}),
+        bois = LEAST(bois, ${capacity.bois}::int),
+        pierre = LEAST(pierre, ${capacity.pierre}::int),
         cereales = LEAST(cereales, ${capacity.cereales}::double precision),
         viande = LEAST(viande, ${capacity.viande}::double precision)
       WHERE "villageId" = ${villageId}
