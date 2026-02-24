@@ -103,7 +103,7 @@ export default async function PlacePage() {
     <div
       className="h-full flex flex-col bg-cover bg-center bg-no-repeat relative"
       style={{
-        backgroundImage: "url('/assets/backgrounds/background-place.png')",
+        backgroundImage: "url('/assets/backgrounds/background-place.webp')",
       }}
     >
       {/* Dark overlay for better contrast */}

@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 
 export interface User {
@@ -6,7 +7,8 @@ export interface User {
   email: string
 }
 
-export async function getUser(userId: string): Promise<User | null> {
+/** Cached per-request: avoids duplicate DB lookups within the same render. */
+export const getUser = cache(async (userId: string): Promise<User | null> => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -17,4 +19,4 @@ export async function getUser(userId: string): Promise<User | null> {
   })
 
   return user
-}
+})

@@ -8,7 +8,7 @@ const inhabitantTypes = [
     title: 'Bûcheron',
     description:
       'Abat les arbres des forêts et jungles environnantes pour fournir le bois nécessaire au village.',
-    image: '/assets/habitants/bucheron.png',
+    image: '/assets/habitants/bucheron.webp',
     order: 1,
     speed: 2,
     gatherRate: 10,
@@ -21,7 +21,7 @@ const inhabitantTypes = [
     title: 'Mineur',
     description:
       'Extrait la pierre des montagnes pour approvisionner le village en matériaux de construction.',
-    image: '/assets/habitants/mineur.png',
+    image: '/assets/habitants/mineur.webp',
     order: 2,
     speed: 2,
     gatherRate: 8,
@@ -34,7 +34,7 @@ const inhabitantTypes = [
     title: 'Explorateur',
     description:
       'Parcourt la carte à la recherche d\'objets rares et de connaissances anciennes. Ramène du savoir au village.',
-    image: '/assets/habitants/explorateur.png',
+    image: '/assets/habitants/explorateur.webp',
     order: 3,
     consumeCereales: 1.2,
     consumeViande: 0.8,
@@ -44,7 +44,7 @@ const inhabitantTypes = [
     title: 'Chasseur',
     description:
       'Traque le gibier sur la carte pour ramener de la nourriture au village.',
-    image: '/assets/habitants/chasseur.png',
+    image: '/assets/habitants/chasseur.webp',
     order: 4,
     speed: 2,
     gatherRate: 8,
@@ -57,7 +57,7 @@ const inhabitantTypes = [
     title: 'Cueilleur',
     description:
       'Récolte fruits et légumes sur la carte pour nourrir la communauté.',
-    image: '/assets/habitants/cueilleur.png',
+    image: '/assets/habitants/cueilleur.webp',
     order: 5,
     speed: 2,
     gatherRate: 8,
@@ -70,7 +70,7 @@ const inhabitantTypes = [
     title: 'Éleveur',
     description:
       'Élève les animaux du village pour produire viande et œufs.',
-    image: '/assets/habitants/eleveur.png',
+    image: '/assets/habitants/eleveur.webp',
     order: 6,
     consumeCereales: 0.8,
     consumeViande: 0.5,
@@ -80,7 +80,7 @@ const inhabitantTypes = [
     title: 'Agriculteur',
     description:
       'Cultive les champs du village pour produire fruits et légumes.',
-    image: '/assets/habitants/agriculteur.png',
+    image: '/assets/habitants/agriculteur.webp',
     order: 7,
     consumeCereales: 0.5,
     consumeViande: 0.8,
@@ -90,7 +90,7 @@ const inhabitantTypes = [
     title: 'Chercheur',
     description:
       'Étudie les mystères du monde pour faire progresser le savoir du village.',
-    image: '/assets/habitants/chercheur.png',
+    image: '/assets/habitants/chercheur.webp',
     order: 8,
     consumeCereales: 1.2,
     consumeViande: 0.6,
@@ -100,7 +100,7 @@ const inhabitantTypes = [
     title: 'Bâtisseur',
     description:
       'Construit et améliore les bâtiments du village grâce à son expertise.',
-    image: '/assets/habitants/batisseur.png',
+    image: '/assets/habitants/batisseur.webp',
     order: 9,
     consumeCereales: 1.0,
     consumeViande: 1.2,
@@ -113,7 +113,7 @@ const buildingTypes = [
     title: 'Cabane en bois',
     description:
       'Une petite cabane en bois permettant d\'accueillir un habitant supplémentaire dans le village.',
-    image: '/assets/batiments/cabane_en_bois.png',
+    image: '/assets/batiments/cabane_en_bois.webp',
     order: 1,
     costBois: 50,
     costPierre: 0,
@@ -133,7 +133,7 @@ const buildingTypes = [
     title: 'Laboratoire',
     description:
       'Un atelier dédié à la recherche et à l\'étude des mystères du monde. Permet d\'accéder aux technologies avancées.',
-    image: '/assets/batiments/laboratoire.png',
+    image: '/assets/batiments/laboratoire.webp',
     order: 2,
     costBois: 100,
     costPierre: 80,
@@ -153,7 +153,7 @@ const buildingTypes = [
     title: 'Bûcher',
     description:
       'Un abri couvert où le bois est empilé et séché avant d\'être utilisé. Augmente la capacité de stockage de bois du village.',
-    image: '/assets/batiments/bucher.png',
+    image: '/assets/batiments/bucher.webp',
     order: 3,
     costBois: 40,
     costPierre: 30,
@@ -173,7 +173,7 @@ const buildingTypes = [
     title: 'Taillerie',
     description:
       'Un atelier où la pierre est taillée, triée et entreposée. Augmente la capacité de stockage de pierre du village.',
-    image: '/assets/batiments/taillerie.png',
+    image: '/assets/batiments/taillerie.webp',
     order: 4,
     costBois: 40,
     costPierre: 30,
@@ -193,7 +193,7 @@ const buildingTypes = [
     title: 'Cellier',
     description:
       'Une réserve fraîche et ventilée pour conserver fruits, légumes et céréales. Augmente la capacité de stockage de nourriture du village.',
-    image: '/assets/batiments/cellier.png',
+    image: '/assets/batiments/cellier.webp',
     order: 5,
     costBois: 35,
     costPierre: 20,
@@ -213,7 +213,7 @@ const buildingTypes = [
     title: 'Fumoir',
     description:
       'Un bâtiment où la viande est fumée et séchée pour être conservée longtemps. Augmente la capacité de stockage de viande du village.',
-    image: '/assets/batiments/fumoir.png',
+    image: '/assets/batiments/fumoir.webp',
     order: 6,
     costBois: 35,
     costPierre: 20,

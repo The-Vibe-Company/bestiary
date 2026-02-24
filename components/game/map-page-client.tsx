@@ -190,7 +190,7 @@ export function MapPageClient({
     <div
       className="min-h-screen w-full flex items-center justify-center overflow-hidden relative"
       style={{
-        backgroundImage: "url(/assets/backgrounds/background-map.png)",
+        backgroundImage: "url(/assets/backgrounds/background-map.webp)",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",

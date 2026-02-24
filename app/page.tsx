@@ -7,7 +7,7 @@ export default function LandingPage() {
       {/* Background Image (full page, behind header) */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(/assets/backgrounds/background-main.png)' }}
+        style={{ backgroundImage: 'url(/assets/backgrounds/background-main.webp)' }}
       />
 
       {/* Dark overlay for better text readability */}

@@ -87,7 +87,7 @@ export default async function ResearchPage() {
     <div
       className="h-full flex flex-col bg-cover bg-center bg-no-repeat relative"
       style={{
-        backgroundImage: "url('/assets/backgrounds/background-lab.png')",
+        backgroundImage: "url('/assets/backgrounds/background-lab.webp')",
       }}
     >
       {/* Dark overlay for better contrast */}

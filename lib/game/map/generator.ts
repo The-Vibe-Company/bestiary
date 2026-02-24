@@ -76,7 +76,17 @@ class MapGenerator {
   }
 }
 
+/**
+ * Module-level singleton: the map is deterministic (seeded PRNG),
+ * so we generate it once and reuse across all requests.
+ * Uses globalThis to persist across dev hot reloads.
+ */
+const globalForMap = globalThis as unknown as { worldMap: WorldMap | undefined }
+
 export function generateWorldMap(): WorldMap {
+  if (globalForMap.worldMap) return globalForMap.worldMap
+
   const generator = new MapGenerator()
-  return generator.generate()
+  globalForMap.worldMap = generator.generate()
+  return globalForMap.worldMap
 }
