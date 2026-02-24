@@ -6,6 +6,7 @@ export interface VillageResources {
   cereales: number
   viande: number
   lastConsumptionAt: Date
+  lastStarvationAt: Date | null
   createdAt: Date
   updatedAt: Date
 }

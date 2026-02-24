@@ -12,6 +12,7 @@ interface ResourceBarProps {
   maxPopulation?: number
   unoccupiedInhabitants?: number
   dailyConsumption?: DailyConsumption
+  starvationRisk?: boolean
 }
 
 const villageResourceConfig = [
@@ -28,6 +29,7 @@ export function ResourceBar({
   maxPopulation,
   unoccupiedInhabitants,
   dailyConsumption,
+  starvationRisk,
 }: ResourceBarProps) {
   return (
     <div className="h-10 overflow-visible bg-black/80 backdrop-blur-sm border border-[var(--ivory)]/20 rounded-xl px-6">
@@ -50,21 +52,29 @@ export function ResourceBar({
           const consumption = (key === 'cereales' || key === 'viande')
             ? dailyConsumption?.[key] ?? 0
             : 0
-          const tooltipLabel = consumption > 0
-            ? `${label} — Consommation totale : ${consumption}/jour`
-            : label
+          const isAtRisk = starvationRisk && (key === 'cereales' || key === 'viande') &&
+            villageResources[key] < Math.round(consumption)
+          const tooltipLabel = isAtRisk
+            ? `${label} — Famine imminente ! Vos reserves ne suffiront pas demain`
+            : consumption > 0
+              ? `${label} — Consommation totale : ${consumption}/jour`
+              : label
 
           return (
             <Tooltip key={key} label={tooltipLabel}>
               <div className="relative flex items-center gap-1.5">
                 <Icon size={20} style={{ color }} />
                 <span className="text-sm font-bold" style={{ color }}>
-                  {villageResources[key]}
+                  {Number(villageResources[key].toFixed(1))}
                 </span>
                 {consumption > 0 && (
-                  <span className="absolute -top-5 -right-4 h-5 px-2 flex items-center justify-center
+                  <span className={`absolute -top-5 -right-4 h-5 px-2 flex items-center justify-center
                     rounded-full text-[11px] font-bold leading-none whitespace-nowrap
-                    bg-[var(--burnt-amber)] text-black shadow-sm shadow-black/50">
+                    shadow-sm shadow-black/50 ${
+                      isAtRisk
+                        ? 'bg-red-600 text-white'
+                        : 'bg-[var(--burnt-amber)] text-black'
+                    }`}>
                     -{consumption}/j
                   </span>
                 )}
@@ -77,7 +87,9 @@ export function ResourceBar({
         {population !== undefined && maxPopulation !== undefined && (
           <>
             <div className="w-px h-5 bg-[var(--ivory)]/30" />
-            <Tooltip label={unoccupiedInhabitants !== undefined ? "Population et habitants inoccupés" : "Population"}>
+            <Tooltip label={
+              unoccupiedInhabitants !== undefined ? "Population et habitants inoccupés" : "Population"
+            }>
               <div className="flex items-center gap-1.5">
                 <GiThreeFriends size={20} style={{ color: '#C19A6B' }} />
                 <span className="text-sm font-bold" style={{ color: '#C19A6B' }}>

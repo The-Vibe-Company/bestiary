@@ -9,6 +9,7 @@ import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccu
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
 import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { INHABITANT_TYPES } from "@/lib/game/inhabitants/types";
+import { applyDailyConsumption } from "@/lib/game/resources/apply-daily-consumption";
 import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
@@ -28,34 +29,37 @@ export default async function VillagePage() {
   // S'assurer que l'utilisateur a un village (créé au signup ou ici en fallback)
   await assignVillageToUser(session.userId);
 
-  const [villageResources, village, userResources, userData, villageInhabitants, inhabitantTypes] =
+  const [village, userResources, userData, inhabitantTypes] =
     await Promise.all([
-      getVillageResources(session.userId),
       getVillage(session.userId),
       getUserResources(session.userId),
       getUser(session.userId),
-      getVillageInhabitants(session.userId),
       getInhabitantTypes(),
     ]);
 
-  if (!villageResources || !userData || !village) {
+  if (!userData || !village) {
     redirect("/sign-in");
   }
 
-  // Complete finished jobs before computing availability
+  // Complete finished jobs and apply pending consumption before computing availability
   await Promise.all([
     completePendingMissions(village.id),
     completePendingBuildings(village.id),
+    applyDailyConsumption(village.id, inhabitantTypes),
   ]);
 
-  // Fetch building data AFTER lazy completion for fresh state
-  const [buildingTypes, villageBuildings, freshVillage, freshResources] =
+  // Fetch all mutable data AFTER catch-up for fresh state
+  const [buildingTypes, villageBuildings, villageResources, villageInhabitants] =
     await Promise.all([
       getBuildingTypes(),
       getVillageBuildings(session.userId),
-      getVillage(session.userId),
       getVillageResources(session.userId),
+      getVillageInhabitants(session.userId),
     ]);
+
+  if (!villageResources) {
+    redirect("/sign-in");
+  }
 
   const totalInhabitants = villageInhabitants
     ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
@@ -99,9 +103,6 @@ export default async function VillagePage() {
     };
   });
 
-  const currentResources = freshResources ?? villageResources;
-  const currentVillage = freshVillage ?? village;
-
   return (
     <div
       className="h-full flex flex-col bg-cover bg-center bg-no-repeat relative"
@@ -119,12 +120,16 @@ export default async function VillagePage() {
           userResources={userResources}
         />
         <ResourceBar
-          villageName={currentVillage?.name ?? null}
-          villageResources={currentResources}
+          villageName={village?.name ?? null}
+          villageResources={villageResources}
           population={totalInhabitants}
-          maxPopulation={currentVillage.capacity}
+          maxPopulation={village.capacity}
           unoccupiedInhabitants={unoccupiedInhabitants}
           dailyConsumption={dailyConsumption}
+          starvationRisk={
+            villageResources.cereales < Math.round(dailyConsumption.cereales) ||
+            villageResources.viande < Math.round(dailyConsumption.viande)
+          }
         />
       </div>
 
@@ -133,10 +138,10 @@ export default async function VillagePage() {
         <VillagePageClient
           buildingTypes={buildingTypeData}
           villageResources={{
-            bois: currentResources.bois,
-            pierre: currentResources.pierre,
-            cereales: currentResources.cereales,
-            viande: currentResources.viande,
+            bois: villageResources.bois,
+            pierre: villageResources.pierre,
+            cereales: villageResources.cereales,
+            viande: villageResources.viande,
           }}
           availableBuilders={availableBuilders}
         />
