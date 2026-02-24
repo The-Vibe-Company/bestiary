@@ -181,7 +181,7 @@ export function IsometricMapViewer({
                   (() => {
                     return (
                       <Image
-                        src={`/assets/map/${cell.feature}.png`}
+                        src={`/assets/map/${cell.feature}.webp`}
                         alt={cell.feature}
                         height={actualCellSize}
                         width={actualCellSize}
@@ -255,7 +255,7 @@ export function IsometricMapViewer({
                   })()}
                 {village && (
                   <Image
-                    src="/assets/map/village_lvl_1.png"
+                    src="/assets/map/village_lvl_1.webp"
                     alt="Village"
                     height={10}
                     width={actualCellSize * 1.1}

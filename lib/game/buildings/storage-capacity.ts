@@ -1,5 +1,6 @@
 import type { BuildingType, VillageBuilding } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { getBuildingTypes } from './get-building-types'
 
 /** Base storage capacity before any warehouses are built */
 export const BASE_STORAGE = {
@@ -46,7 +47,7 @@ export function computeStorageCapacity(
  */
 export async function getStorageCapacityForVillage(villageId: string): Promise<StorageCapacity> {
   const [buildingTypes, completedBuildings] = await Promise.all([
-    prisma.buildingType.findMany(),
+    getBuildingTypes(),
     prisma.villageBuilding.findMany({
       where: { villageId, completedAt: { not: null } },
     }),

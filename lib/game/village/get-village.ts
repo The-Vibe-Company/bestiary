@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 
 export interface Village {
@@ -8,7 +9,8 @@ export interface Village {
   capacity: number
 }
 
-export async function getVillage(userId: string): Promise<Village | null> {
+/** Cached per-request: deduplicates layout + page calls for the same userId. */
+export const getVillage = cache(async (userId: string): Promise<Village | null> => {
   const village = await prisma.village.findUnique({
     where: { ownerId: userId },
     select: {
@@ -21,4 +23,4 @@ export async function getVillage(userId: string): Promise<Village | null> {
   })
 
   return village
-}
+})

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { getBuildingTypes } from './get-building-types'
 
 /**
  * Lazy completion: called on page load.
@@ -16,15 +17,17 @@ export async function completePendingBuildings(villageId: string): Promise<void>
     },
   })
 
+  if (pendingBuildings.length === 0) return
+
+  // Fetch all building types once (cached) instead of per-building N+1 queries
+  const buildingTypes = await getBuildingTypes()
+  const typeMap = new Map(buildingTypes.map((t) => [t.key, t]))
+
   for (const building of pendingBuildings) {
     const elapsedSeconds = (now.getTime() - building.startedAt.getTime()) / 1000
     if (elapsedSeconds < building.buildSeconds) continue
 
-    // Look up the building type to get capacityBonus and maxCount
-    const buildingType = await prisma.buildingType.findUnique({
-      where: { key: building.buildingType },
-    })
-
+    const buildingType = typeMap.get(building.buildingType)
     const capacityBonus = buildingType?.capacityBonus ?? 0
 
     // For upgrades (unique buildings with level > 1): delete the previous-level building

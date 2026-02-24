@@ -212,7 +212,7 @@ export function SendFromHabitantsModal({
                     >
                       {isAnyVillage && (
                         <Image
-                          src="/assets/map/village_lvl_1.png"
+                          src="/assets/map/village_lvl_1.webp"
                           alt="Village"
                           width={36}
                           height={36}
@@ -221,7 +221,7 @@ export function SendFromHabitantsModal({
                       )}
                       {cell?.feature && !isAnyVillage && (
                         <Image
-                          src={`/assets/map/${cell.feature}.png`}
+                          src={`/assets/map/${cell.feature}.webp`}
                           alt={cell.feature}
                           width={34}
                           height={34}
