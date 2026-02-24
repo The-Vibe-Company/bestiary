@@ -228,6 +228,26 @@ const buildingTypes = [
     maxCount: null,
     maxLevel: 1,
   },
+  {
+    key: 'tour_de_guet',
+    title: 'Tour de guet',
+    description:
+      'Une haute tour en bois et pierre offrant une vue dégagée sur les environs. Permet de détecter les voyageurs en approche avant leur arrivée.',
+    image: '/assets/batiments/tour_de_guet.webp',
+    order: 7,
+    costBois: 80,
+    costPierre: 60,
+    costCereales: 0,
+    costViande: 0,
+    buildSeconds: 90,
+    capacityBonus: 0,
+    storageBonusBois: 0,
+    storageBonusPierre: 0,
+    storageBonusCereales: 0,
+    storageBonusViande: 0,
+    maxCount: 1,
+    maxLevel: 3,
+  },
 ]
 
 async function main() {

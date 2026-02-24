@@ -19,6 +19,7 @@ import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-cons
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
 import { resolveTraveler } from "@/lib/game/travelers/resolve-traveler";
+import { detectTraveler } from "@/lib/game/travelers/detect-traveler";
 import { getUser } from "@/lib/game/user/get-user";
 import { assignVillageToUser } from "@/lib/game/village/assign-village";
 import { getVillage } from "@/lib/game/village/get-village";
@@ -89,8 +90,11 @@ export default async function PlacePage() {
   const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
   const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings);
 
-  // Résoudre l'état du voyageur (lazy completion)
-  const travelerStatus = await resolveTraveler(village.id);
+  // Résoudre l'état du voyageur (lazy completion) + détection tour de guet
+  const rawTravelerStatus = await resolveTraveler(village.id);
+  const watchtower = completedBuildings.find((b) => b.buildingType === "tour_de_guet");
+  const towerLevel = watchtower?.level ?? 0;
+  const travelerStatus = await detectTraveler(village.id, rawTravelerStatus, towerLevel);
   const isVillageFull = totalInhabitants >= village.capacity;
 
   const inhabitantTypesData = inhabitantTypes.map((t) => ({

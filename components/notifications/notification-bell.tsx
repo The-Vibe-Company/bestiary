@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { GiRingingBell, GiAnimalSkull } from 'react-icons/gi'
+import { GiRingingBell, GiAnimalSkull, GiWatchtower } from 'react-icons/gi'
 import { markNotificationsRead } from '@/lib/game/notifications/mark-notifications-read'
 import { Tooltip } from '@/components/ui/tooltip'
 
@@ -21,6 +21,7 @@ interface NotificationBellProps {
 
 const ICON_BY_TYPE: Record<string, typeof GiAnimalSkull> = {
   starvation: GiAnimalSkull,
+  traveler_detected: GiWatchtower,
 }
 
 function formatTimeAgo(dateStr: string): string {
@@ -121,7 +122,9 @@ export function NotificationBell({
                       className={`flex-shrink-0 mt-0.5 ${
                         notif.type === 'starvation'
                           ? 'text-red-400'
-                          : 'text-[var(--burnt-amber)]'
+                          : notif.type === 'traveler_detected'
+                            ? 'text-amber-400'
+                            : 'text-[var(--burnt-amber)]'
                       }`}
                     >
                       <Icon size={18} />

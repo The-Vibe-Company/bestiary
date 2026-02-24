@@ -152,6 +152,7 @@ model VillageTraveler {
   departsAt  DateTime  // Quand il repart si non assigné
   welcomedAt DateTime? // Set quand le joueur accueille le voyageur
   assignedAt DateTime? // Set quand le joueur assigne le voyageur a un metier
+  detectedAt DateTime? // Set quand la tour de guet détecte le voyageur (évite les notifications en double)
   createdAt  DateTime  @default(now())
 
   @@map("VillageTravelers")

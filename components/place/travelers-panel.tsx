@@ -2,16 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { GiWalk } from 'react-icons/gi'
+import { GiWalk, GiWatchtower } from 'react-icons/gi'
 import { Button } from '@/components/ui/button'
 import { PlacePanel } from './place-panel'
 import { AssignJobModal } from './assign-job-modal'
 import { Countdown } from './countdown'
-import type { TravelerStatus } from '@/lib/game/travelers/resolve-traveler'
+import type { DetectedTravelerStatus } from '@/lib/game/travelers/detection'
 import { welcomeTraveler } from '@/lib/game/travelers/welcome-traveler'
 
 interface TravelersPanelProps {
-  travelerStatus: TravelerStatus
+  travelerStatus: DetectedTravelerStatus
   inhabitantTypes: { key: string; title: string; image: string }[]
   isVillageFull: boolean
 }
@@ -87,10 +87,11 @@ export function TravelersPanel({ travelerStatus, inhabitantTypes, isVillageFull 
               <p className="mt-3 text-xs text-[var(--burnt-amber)]/90">{welcomeError}</p>
             )}
           </div>
-        ) : travelerStatus.status === 'waiting' ? (
+        ) : travelerStatus.status === 'detected' ? (
           <div className="mx-auto flex min-h-full w-full max-w-sm flex-col items-center justify-center rounded-xl border border-[var(--ivory)]/10 bg-[var(--ivory)]/5 px-5 py-6 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <GiWatchtower size={28} className="mb-2 text-amber-400/80" />
             <p className="text-sm text-[var(--ivory)]/75">
-              Un voyageur est en route...
+              La tour de guet a repéré un voyageur en approche !
             </p>
             <div className="mt-2 text-xs uppercase tracking-[0.12em] text-[var(--ivory)]/50">
               Arrive dans
