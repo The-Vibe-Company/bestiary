@@ -98,6 +98,7 @@ export default async function VillagePage() {
       costViande: bt.costViande,
       buildSeconds: bt.buildSeconds,
       capacityBonus: bt.capacityBonus,
+      maxCount: bt.maxCount,
       completedCount,
       activeConstructions,
     };

@@ -121,6 +121,22 @@ const buildingTypes = [
     costViande: 0,
     buildSeconds: 30,
     capacityBonus: 1,
+    maxCount: null,
+  },
+  {
+    key: 'laboratoire',
+    title: 'Laboratoire',
+    description:
+      'Un atelier dédié à la recherche et à l\'étude des mystères du monde. Permet d\'accéder aux technologies avancées.',
+    image: '/assets/batiments/laboratoire.png',
+    order: 2,
+    costBois: 100,
+    costPierre: 80,
+    costCereales: 0,
+    costViande: 0,
+    buildSeconds: 120,
+    capacityBonus: 0,
+    maxCount: 1,
   },
 ]
 
@@ -173,6 +189,7 @@ async function main() {
         costViande: type.costViande,
         buildSeconds: type.buildSeconds,
         capacityBonus: type.capacityBonus,
+        maxCount: type.maxCount,
       },
       create: {
         key: type.key,
@@ -186,6 +203,7 @@ async function main() {
         costViande: type.costViande,
         buildSeconds: type.buildSeconds,
         capacityBonus: type.capacityBonus,
+        maxCount: type.maxCount,
       },
     })
     console.log(`  - ${type.title}`)

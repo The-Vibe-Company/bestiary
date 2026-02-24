@@ -27,6 +27,7 @@ export interface BuildingTypeData {
   costViande: number
   buildSeconds: number
   capacityBonus: number
+  maxCount: number | null
   completedCount: number
   activeConstructions: ActiveConstruction[]
 }
@@ -126,7 +127,8 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
 
   const noBuilders = availableBuilders <= 0
 
-  function getButtonLabel(canAfford: boolean) {
+  function getButtonLabel(canAfford: boolean, maxReached: boolean) {
+    if (maxReached) return 'DÉJÀ CONSTRUIT'
     if (noBuilders) return 'AUCUN BÂTISSEUR'
     if (!canAfford) return 'RESSOURCES INSUFFISANTES'
     return 'CONSTRUIRE'
@@ -170,6 +172,7 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
           villageResources.cereales >= building.costCereales &&
           villageResources.viande >= building.costViande
 
+        const maxReached = building.maxCount !== null && building.completedCount >= building.maxCount
         const costs = RESOURCE_CONFIG.filter(
           (r) => building[r.key] > 0
         )
@@ -213,11 +216,11 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
                     variant="seal"
                     size="sm"
                     className="ml-auto"
-                    disabled={!canAfford || noBuilders || loadingKey === building.key}
+                    disabled={maxReached || !canAfford || noBuilders || loadingKey === building.key}
                     isLoading={loadingKey === building.key}
                     onClick={() => handleBuildClick(building.key, hasActiveConstruction)}
                   >
-                    {getButtonLabel(canAfford)}
+                    {getButtonLabel(canAfford, maxReached)}
                   </Button>
                 )}
               </div>
