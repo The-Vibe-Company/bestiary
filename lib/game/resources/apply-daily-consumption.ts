@@ -145,24 +145,33 @@ export async function applyDailyConsumption(
     resourceUpdate.lastStarvationAt = now
   }
 
-  // Optimistic lock: only update if lastConsumptionAt hasn't changed
-  const result = await prisma.villageResources.updateMany({
-    where: {
-      villageId,
-      lastConsumptionAt: resources.lastConsumptionAt,
-    },
-    data: resourceUpdate,
-  })
-
-  if (result.count === 0) return false
-
-  // If starvation occurred, update inhabitants and cancel orphaned missions
-  if (starvationOccurred) {
-    await prisma.villageInhabitants.update({
-      where: { villageId },
-      data: currentInhabitants,
+  // Atomically update resources (and inhabitants if starvation occurred)
+  const committed = await prisma.$transaction(async (tx) => {
+    // Optimistic lock: only update if lastConsumptionAt hasn't changed
+    const result = await tx.villageResources.updateMany({
+      where: {
+        villageId,
+        lastConsumptionAt: resources.lastConsumptionAt,
+      },
+      data: resourceUpdate,
     })
 
+    if (result.count === 0) return false
+
+    if (starvationOccurred) {
+      await tx.villageInhabitants.update({
+        where: { villageId },
+        data: currentInhabitants,
+      })
+    }
+
+    return true
+  })
+
+  if (!committed) return false
+
+  // Cancel orphaned missions outside the transaction (non-critical)
+  if (starvationOccurred) {
     await cancelOrphanedMissions(villageId, currentInhabitants)
   }
 
