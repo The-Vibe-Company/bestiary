@@ -12,6 +12,7 @@ interface BuildModalProps {
   buildingTypeKey: string
   baseBuildSeconds: number
   availableBuilders: number
+  isUpgrade?: boolean
   onClose: () => void
 }
 
@@ -20,6 +21,7 @@ export function BuildModal({
   buildingTypeKey,
   baseBuildSeconds,
   availableBuilders,
+  isUpgrade = false,
   onClose,
 }: BuildModalProps) {
   const router = useRouter()
@@ -56,7 +58,7 @@ export function BuildModal({
       {/* Modal */}
       <div className="relative stone-texture border-engraved p-8 rounded-lg shadow-[var(--shadow-vellum)] max-w-md w-full mx-4">
         <h2 className="text-2xl font-[family-name:var(--font-title)] tracking-[0.15em] text-[var(--ivory)] text-center mb-6">
-          CONSTRUIRE
+          {isUpgrade ? 'AMÉLIORER' : 'CONSTRUIRE'}
         </h2>
         <p className="text-sm text-[var(--ivory)]/70 text-center mb-6">
           {buildingTitle}
@@ -96,7 +98,7 @@ export function BuildModal({
         <div className="flex items-center gap-2 mb-6 text-sm text-[var(--ivory)]/70">
           <span>⏱</span>
           <span>
-            Temps de construction : <span className="text-[var(--burnt-amber)] font-bold">{formatTimeRemaining(estimatedSeconds)}</span>
+            Temps {isUpgrade ? "d'amélioration" : 'de construction'} : <span className="text-[var(--burnt-amber)] font-bold">{formatTimeRemaining(estimatedSeconds)}</span>
           </span>
         </div>
 
@@ -116,7 +118,7 @@ export function BuildModal({
             onClick={handleConfirm}
             isLoading={pending}
           >
-            CONSTRUIRE
+            {isUpgrade ? 'AMÉLIORER' : 'CONSTRUIRE'}
           </Button>
         </div>
       </div>

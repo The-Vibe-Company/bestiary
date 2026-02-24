@@ -122,6 +122,7 @@ const buildingTypes = [
     buildSeconds: 30,
     capacityBonus: 1,
     maxCount: null,
+    maxLevel: 1,
   },
   {
     key: 'laboratoire',
@@ -137,6 +138,7 @@ const buildingTypes = [
     buildSeconds: 120,
     capacityBonus: 0,
     maxCount: 1,
+    maxLevel: 5,
   },
 ]
 
@@ -190,6 +192,7 @@ async function main() {
         buildSeconds: type.buildSeconds,
         capacityBonus: type.capacityBonus,
         maxCount: type.maxCount,
+        maxLevel: type.maxLevel,
       },
       create: {
         key: type.key,
@@ -204,6 +207,7 @@ async function main() {
         buildSeconds: type.buildSeconds,
         capacityBonus: type.capacityBonus,
         maxCount: type.maxCount,
+        maxLevel: type.maxLevel,
       },
     })
     console.log(`  - ${type.title}`)

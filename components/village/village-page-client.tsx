@@ -28,7 +28,9 @@ export interface BuildingTypeData {
   buildSeconds: number
   capacityBonus: number
   maxCount: number | null
+  maxLevel: number
   completedCount: number
+  currentLevel: number
   activeConstructions: ActiveConstruction[]
 }
 
@@ -127,11 +129,17 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
 
   const noBuilders = availableBuilders <= 0
 
-  function getButtonLabel(canAfford: boolean, maxReached: boolean) {
-    if (maxReached) return 'DÉJÀ CONSTRUIT'
+  function getButtonLabel(building: BuildingTypeData, canAfford: boolean) {
+    const isUnique = building.maxCount === 1
+    const isUpgradeable = isUnique && building.maxLevel > 1
+    const maxLevelReached = isUnique && building.currentLevel >= building.maxLevel
+    const maxCountReached = building.maxCount !== null && building.completedCount >= building.maxCount
+
+    if (maxLevelReached) return 'NIVEAU MAX'
+    if (!isUpgradeable && maxCountReached) return 'DÉJÀ CONSTRUIT'
     if (noBuilders) return 'AUCUN BÂTISSEUR'
     if (!canAfford) return 'RESSOURCES INSUFFISANTES'
-    return 'CONSTRUIRE'
+    return isUpgradeable && building.currentLevel > 0 ? 'AMÉLIORER' : 'CONSTRUIRE'
   }
 
   async function handleBuildClick(key: string, hasActiveConstruction: boolean) {
@@ -166,13 +174,24 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
   return (
     <HabitantsPanel>
       {buildingTypes.map((building) => {
-        const canAfford =
-          villageResources.bois >= building.costBois &&
-          villageResources.pierre >= building.costPierre &&
-          villageResources.cereales >= building.costCereales &&
-          villageResources.viande >= building.costViande
+        const isUnique = building.maxCount === 1
+        const isUpgradeable = isUnique && building.maxLevel > 1
+        const isUpgrade = isUpgradeable && building.currentLevel > 0
+        const maxLevelReached = isUnique && building.currentLevel >= building.maxLevel
+        const maxCountReached = !isUpgradeable && building.maxCount !== null && building.completedCount >= building.maxCount
 
-        const maxReached = building.maxCount !== null && building.completedCount >= building.maxCount
+        // Scale costs by target level for upgrades
+        const targetLevel = isUpgrade ? building.currentLevel + 1 : 1
+        const costMultiplier = isUpgrade ? targetLevel : 1
+
+        const canAfford =
+          villageResources.bois >= building.costBois * costMultiplier &&
+          villageResources.pierre >= building.costPierre * costMultiplier &&
+          villageResources.cereales >= building.costCereales * costMultiplier &&
+          villageResources.viande >= building.costViande * costMultiplier
+
+        const isDisabled = maxLevelReached || maxCountReached || !canAfford || noBuilders || loadingKey === building.key
+
         const costs = RESOURCE_CONFIG.filter(
           (r) => building[r.key] > 0
         )
@@ -182,7 +201,7 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
         return (
           <div
             key={building.key}
-            className="flex items-center gap-4 p-4"
+            className="relative flex items-center gap-4 p-4"
           >
             {/* Image on the left */}
             <div className="relative w-[140px] h-[140px] flex-shrink-0 rounded-xl overflow-hidden border-2 border-[var(--burnt-amber)]">
@@ -200,11 +219,6 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
                 <h2 className="text-xl font-bold font-[family-name:var(--font-title)] tracking-wider text-[var(--ivory)]">
                   {building.title}
                 </h2>
-                {building.completedCount > 0 && (
-                  <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/30">
-                    ×{building.completedCount}
-                  </span>
-                )}
                 {hasActiveConstruction ? (
                   <ConstructionStatus
                     startedAt={activeConstruction.startedAt}
@@ -216,11 +230,11 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
                     variant="seal"
                     size="sm"
                     className="ml-auto"
-                    disabled={maxReached || !canAfford || noBuilders || loadingKey === building.key}
+                    disabled={isDisabled}
                     isLoading={loadingKey === building.key}
                     onClick={() => handleBuildClick(building.key, hasActiveConstruction)}
                   >
-                    {getButtonLabel(canAfford, maxReached)}
+                    {getButtonLabel(building, canAfford)}
                   </Button>
                 )}
               </div>
@@ -234,43 +248,63 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
                 </p>
               )}
 
-              {/* Cost display */}
-              <div className="flex items-center gap-3 mt-2">
-                {costs.map((r) => {
-                  const cost = building[r.key]
-                  const hasEnough = villageResources[r.resKey] >= cost
-                  return (
-                    <div key={r.key} className="flex items-center gap-1">
-                      <r.icon size={16} style={{ color: r.color }} />
-                      <span
-                        className="text-sm font-bold"
-                        style={{ color: hasEnough ? r.color : '#CD5C5C' }}
-                      >
-                        {cost}
-                      </span>
-                    </div>
-                  )
-                })}
-                <span className="text-xs text-[var(--ivory)]/40">
-                  +{building.capacityBonus} capacité
-                </span>
-              </div>
+              {/* Cost display — scaled for upgrades */}
+              {!maxLevelReached && !maxCountReached && (
+                <div className="flex items-center gap-3 mt-2">
+                  {costs.map((r) => {
+                    const cost = building[r.key] * costMultiplier
+                    const hasEnough = villageResources[r.resKey] >= cost
+                    return (
+                      <div key={r.key} className="flex items-center gap-1">
+                        <r.icon size={16} style={{ color: r.color }} />
+                        <span
+                          className="text-sm font-bold"
+                          style={{ color: hasEnough ? r.color : '#CD5C5C' }}
+                        >
+                          {cost}
+                        </span>
+                      </div>
+                    )
+                  })}
+                  {building.capacityBonus > 0 && (
+                    <span className="text-xs text-[var(--ivory)]/40">
+                      +{building.capacityBonus} capacité
+                    </span>
+                  )}
+                </div>
+              )}
 
             </div>
+
+            {/* Badge: bottom-right of the card */}
+            {isUpgradeable && building.currentLevel > 0 ? (
+              <span className="absolute bottom-2 right-2 px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/30">
+                Niv. {building.currentLevel}
+              </span>
+            ) : building.completedCount > 0 && !isUpgradeable ? (
+              <span className="absolute bottom-2 right-2 px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/30">
+                ×{building.completedCount}
+              </span>
+            ) : null}
           </div>
         )
       })}
 
       {/* Build modal */}
-      {selectedBuilding && (
-        <BuildModal
-          buildingTitle={selectedBuilding.title}
-          buildingTypeKey={selectedBuilding.key}
-          baseBuildSeconds={selectedBuilding.buildSeconds}
-          availableBuilders={availableBuilders}
-          onClose={() => setBuildModalKey(null)}
-        />
-      )}
+      {selectedBuilding && (() => {
+        const isUpgradeModal = selectedBuilding.maxCount === 1 && selectedBuilding.maxLevel > 1 && selectedBuilding.currentLevel > 0
+        const targetLevel = isUpgradeModal ? selectedBuilding.currentLevel + 1 : 1
+        return (
+          <BuildModal
+            buildingTitle={selectedBuilding.title}
+            buildingTypeKey={selectedBuilding.key}
+            baseBuildSeconds={selectedBuilding.buildSeconds * targetLevel}
+            availableBuilders={availableBuilders}
+            isUpgrade={isUpgradeModal}
+            onClose={() => setBuildModalKey(null)}
+          />
+        )
+      })()}
     </HabitantsPanel>
   )
 }
