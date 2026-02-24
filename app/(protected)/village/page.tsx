@@ -87,6 +87,11 @@ export default async function VillagePage() {
         assignedBuilders: vb.assignedBuilders,
       }));
 
+    // For unique buildings: find the current level from the highest-level completed building
+    const currentLevel = buildings
+      .filter((vb) => vb.completedAt !== null)
+      .reduce((max, vb) => Math.max(max, vb.level), 0)
+
     return {
       key: bt.key,
       title: bt.title,
@@ -99,7 +104,9 @@ export default async function VillagePage() {
       buildSeconds: bt.buildSeconds,
       capacityBonus: bt.capacityBonus,
       maxCount: bt.maxCount,
+      maxLevel: bt.maxLevel,
       completedCount,
+      currentLevel,
       activeConstructions,
     };
   });

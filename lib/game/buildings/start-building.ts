@@ -67,19 +67,43 @@ export async function startBuilding(
           throw new StartBuildingError('Ce type de bâtiment est déjà en construction')
         }
 
-        // Check maxCount: limit how many of this building type can exist
+        // Check maxCount and determine if this is an upgrade
+        let isUpgrade = false
+        let currentLevel = 0
         if (buildingType.maxCount !== null) {
-          const completedCount = await tx.villageBuilding.count({
+          const existingBuilding = await tx.villageBuilding.findFirst({
             where: {
               villageId: village.id,
               buildingType: buildingTypeKey,
               completedAt: { not: null },
             },
+            orderBy: { level: 'desc' },
           })
-          if (completedCount >= buildingType.maxCount) {
-            throw new StartBuildingError('Nombre maximum de ce bâtiment atteint')
+
+          if (existingBuilding) {
+            // Unique building already exists — this is an upgrade
+            isUpgrade = true
+            currentLevel = existingBuilding.level
+
+            if (currentLevel >= buildingType.maxLevel) {
+              throw new StartBuildingError('Niveau maximum atteint')
+            }
+          } else {
+            // No existing building — check maxCount for new construction
+            const completedCount = await tx.villageBuilding.count({
+              where: {
+                villageId: village.id,
+                buildingType: buildingTypeKey,
+                completedAt: { not: null },
+              },
+            })
+            if (completedCount >= buildingType.maxCount) {
+              throw new StartBuildingError('Nombre maximum de ce bâtiment atteint')
+            }
           }
         }
+
+        const targetLevel = isUpgrade ? currentLevel + 1 : 1
 
         const totalBuilders = village.inhabitants.builder
         const busyBuilders = activeBuildings.reduce((sum, b) => sum + b.assignedBuilders, 0)
@@ -93,21 +117,28 @@ export async function startBuilding(
           throw new StartBuildingError(`Seulement ${availableBuilders} bâtisseur(s) disponible(s)`)
         }
 
-        const actualBuildSeconds = Math.ceil(buildingType.buildSeconds / builderCount)
+        // Scale costs and build time by target level for upgrades
+        const costBois = buildingType.costBois * targetLevel
+        const costPierre = buildingType.costPierre * targetLevel
+        const costCereales = buildingType.costCereales * targetLevel
+        const costViande = buildingType.costViande * targetLevel
+        const scaledBuildSeconds = buildingType.buildSeconds * targetLevel
+
+        const actualBuildSeconds = Math.ceil(scaledBuildSeconds / builderCount)
 
         const resourceUpdate = await tx.villageResources.updateMany({
           where: {
             villageId: village.id,
-            bois: { gte: buildingType.costBois },
-            pierre: { gte: buildingType.costPierre },
-            cereales: { gte: buildingType.costCereales },
-            viande: { gte: buildingType.costViande },
+            bois: { gte: costBois },
+            pierre: { gte: costPierre },
+            cereales: { gte: costCereales },
+            viande: { gte: costViande },
           },
           data: {
-            bois: { decrement: buildingType.costBois },
-            pierre: { decrement: buildingType.costPierre },
-            cereales: { decrement: buildingType.costCereales },
-            viande: { decrement: buildingType.costViande },
+            bois: { decrement: costBois },
+            pierre: { decrement: costPierre },
+            cereales: { decrement: costCereales },
+            viande: { decrement: costViande },
           },
         })
 
@@ -119,6 +150,7 @@ export async function startBuilding(
           data: {
             villageId: village.id,
             buildingType: buildingTypeKey,
+            level: targetLevel,
             buildSeconds: actualBuildSeconds,
             assignedBuilders: builderCount,
           },

@@ -120,6 +120,7 @@ model BuildingType {
   buildSeconds  Int
   capacityBonus Int    @default(0)
   maxCount      Int?   // null = unlimited, e.g. 1 for unique buildings like laboratory
+  maxLevel      Int    @default(1) // max upgrade level for unique buildings
 
   @@map("BuildingTypes")
 }
@@ -129,6 +130,7 @@ model VillageBuilding {
   villageId        String
   village          Village   @relation(fields: [villageId], references: [id], onDelete: Cascade)
   buildingType     String
+  level            Int       @default(1) // building level (for upgradeable unique buildings)
   startedAt        DateTime  @default(now())
   buildSeconds     Int
   assignedBuilders Int       @default(1)
