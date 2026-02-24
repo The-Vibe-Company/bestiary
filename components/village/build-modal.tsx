@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { startBuilding } from '@/lib/game/buildings/start-building'
 import { formatTimeRemaining } from '@/lib/utils/format-time'
+import { GiSandsOfTime } from 'react-icons/gi'
 
 interface BuildModalProps {
   buildingTitle: string
@@ -96,7 +97,7 @@ export function BuildModal({
 
         {/* Estimated time */}
         <div className="flex items-center gap-2 mb-6 text-sm text-[var(--ivory)]/70">
-          <span>⏱</span>
+          <GiSandsOfTime size={16} className="text-[var(--ivory)]/70" />
           <span>
             Temps {isUpgrade ? "d'amélioration" : 'de construction'} : <span className="text-[var(--burnt-amber)] font-bold">{formatTimeRemaining(estimatedSeconds)}</span>
           </span>

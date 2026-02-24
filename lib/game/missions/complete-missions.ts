@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getInhabitantStats } from '@/lib/game/inhabitants/get-inhabitant-stats'
+import { getStorageCapacityForVillage } from '@/lib/game/buildings/storage-capacity'
 import { computeMissionStatus } from './compute-mission-status'
 import { MISSION_CONFIG } from './mission-config'
 import { computeTileDensity } from './density'
@@ -31,6 +32,7 @@ export async function completePendingMissions(villageId: string): Promise<void> 
   }
 
   const loopCandidates: LoopCandidate[] = []
+  let resourcesDeposited = false
 
   for (const mission of pendingMissions) {
     const typeStats = stats[mission.inhabitantType] ?? { speed: 0, gatherRate: 0, maxCapacity: 0 }
@@ -64,6 +66,10 @@ export async function completePendingMissions(villageId: string): Promise<void> 
     }
 
     const resourceGathered = baseResource
+
+    if (resourceGathered > 0 && config) {
+      resourcesDeposited = true
+    }
 
     await prisma.$transaction([
       prisma.mission.update({
@@ -135,5 +141,19 @@ export async function completePendingMissions(villageId: string): Promise<void> 
 
       allocatedByType[candidate.inhabitantType] = (allocatedByType[candidate.inhabitantType] ?? 0) + 1
     }
+  }
+
+  // Cap resources to storage capacity after all deposits
+  if (resourcesDeposited) {
+    const capacity = await getStorageCapacityForVillage(villageId)
+    await prisma.$executeRaw`
+      UPDATE "VillageResources"
+      SET
+        bois = LEAST(bois, ${capacity.bois}),
+        pierre = LEAST(pierre, ${capacity.pierre}),
+        cereales = LEAST(cereales, ${capacity.cereales}::double precision),
+        viande = LEAST(viande, ${capacity.viande}::double precision)
+      WHERE "villageId" = ${villageId}
+    `
   }
 }

@@ -1,7 +1,9 @@
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
+import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
 import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
 import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
+import { computeStorageCapacity } from "@/lib/game/buildings/storage-capacity";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
@@ -44,11 +46,12 @@ export default async function ResearchPage() {
   ]);
 
   // Fetch mutable data AFTER catch-up for fresh values
-  const [villageResources, villageInhabitants, villageBuildings] =
+  const [villageResources, villageInhabitants, villageBuildings, buildingTypes] =
     await Promise.all([
       getVillageResources(session.userId),
       getVillageInhabitants(session.userId),
       getVillageBuildings(session.userId),
+      getBuildingTypes(),
     ]);
 
   if (!villageResources) {
@@ -70,6 +73,10 @@ export default async function ResearchPage() {
     village.id,
     totalInhabitants
   );
+
+  // Compute storage capacity from completed buildings
+  const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
+  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings);
 
   // Check if the player has a completed laboratory building
   const hasLaboratory = villageBuildings.some(
@@ -95,6 +102,7 @@ export default async function ResearchPage() {
         <ResourceBar
           villageName={village?.name ?? null}
           villageResources={villageResources}
+          storageCapacity={storageCapacity}
           population={totalInhabitants}
           maxPopulation={village.capacity}
           unoccupiedInhabitants={unoccupiedInhabitants}

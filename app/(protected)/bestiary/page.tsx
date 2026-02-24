@@ -1,6 +1,9 @@
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
+import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
+import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
 import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
+import { computeStorageCapacity } from "@/lib/game/buildings/storage-capacity";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
@@ -41,9 +44,11 @@ export default async function BestiaryPage() {
   ]);
 
   // Fetch mutable data AFTER catch-up for fresh values
-  const [villageResources, villageInhabitants] = await Promise.all([
+  const [villageResources, villageInhabitants, buildingTypes, villageBuildings] = await Promise.all([
     getVillageResources(session.userId),
     getVillageInhabitants(session.userId),
+    getBuildingTypes(),
+    getVillageBuildings(session.userId),
   ]);
 
   if (!villageResources) {
@@ -56,6 +61,10 @@ export default async function BestiaryPage() {
 
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
   const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
+
+  // Compute storage capacity from completed buildings
+  const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
+  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings);
 
   return (
     <div
@@ -76,6 +85,7 @@ export default async function BestiaryPage() {
         <ResourceBar
           villageName={village?.name ?? null}
           villageResources={villageResources}
+          storageCapacity={storageCapacity}
           population={totalInhabitants}
           maxPopulation={village.capacity}
           unoccupiedInhabitants={unoccupiedInhabitants}

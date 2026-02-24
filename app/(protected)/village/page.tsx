@@ -13,6 +13,7 @@ import { applyDailyConsumption } from "@/lib/game/resources/apply-daily-consumpt
 import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
+import { computeStorageCapacity } from "@/lib/game/buildings/storage-capacity";
 import { getUser } from "@/lib/game/user/get-user";
 import { assignVillageToUser } from "@/lib/game/village/assign-village";
 import { getVillage } from "@/lib/game/village/get-village";
@@ -68,6 +69,10 @@ export default async function VillagePage() {
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
   const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
 
+  // Compute storage capacity from completed buildings
+  const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
+  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings);
+
   // Calculate available builders (total - busy on active constructions)
   const totalBuilders = villageInhabitants?.builder ?? 0;
   const busyBuilders = villageBuildings
@@ -102,7 +107,11 @@ export default async function VillagePage() {
       costCereales: bt.costCereales,
       costViande: bt.costViande,
       buildSeconds: bt.buildSeconds,
-      capacityBonus: bt.capacityBonus,
+      capacityBonus: bt.capacityBonus ?? 0,
+      storageBonusBois: bt.storageBonusBois ?? 0,
+      storageBonusPierre: bt.storageBonusPierre ?? 0,
+      storageBonusCereales: bt.storageBonusCereales ?? 0,
+      storageBonusViande: bt.storageBonusViande ?? 0,
       maxCount: bt.maxCount,
       maxLevel: bt.maxLevel,
       completedCount,
@@ -130,6 +139,7 @@ export default async function VillagePage() {
         <ResourceBar
           villageName={village?.name ?? null}
           villageResources={villageResources}
+          storageCapacity={storageCapacity}
           population={totalInhabitants}
           maxPopulation={village.capacity}
           unoccupiedInhabitants={unoccupiedInhabitants}

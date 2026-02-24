@@ -1,7 +1,10 @@
 import { MapPageClient } from "@/components/game/map-page-client";
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
+import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
+import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
 import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
+import { computeStorageCapacity } from "@/lib/game/buildings/storage-capacity";
 import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
@@ -66,9 +69,11 @@ export default async function MapPage() {
   ]);
 
   // Fetch mutable data AFTER catch-up for fresh values
-  const [villageResources, villageInhabitants] = await Promise.all([
+  const [villageResources, villageInhabitants, buildingTypes, villageBuildings] = await Promise.all([
     getVillageResources(session.userId),
     getVillageInhabitants(session.userId),
+    getBuildingTypes(),
+    getVillageBuildings(session.userId),
   ]);
 
   if (!villageResources) {
@@ -80,6 +85,10 @@ export default async function MapPage() {
     : 0;
 
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
+
+  // Compute storage capacity from completed buildings
+  const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
+  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings);
 
   // Count active missions grouped by inhabitant type
   const activeMissionCounts = await prisma.mission.groupBy({
@@ -141,6 +150,7 @@ export default async function MapPage() {
         <ResourceBar
           villageName={village?.name ?? null}
           villageResources={villageResources}
+          storageCapacity={storageCapacity}
           population={totalInhabitants}
           maxPopulation={village.capacity}
           unoccupiedInhabitants={unoccupiedInhabitants}

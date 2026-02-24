@@ -7,7 +7,6 @@ export interface MissionTypeConfig {
   resourceLabel: string
   workerLabel: string
   workerLabelPlural: string
-  emoji: string
 }
 
 export const MISSION_CONFIG: Record<string, MissionTypeConfig> = {
@@ -19,7 +18,6 @@ export const MISSION_CONFIG: Record<string, MissionTypeConfig> = {
     resourceLabel: 'Bois',
     workerLabel: 'bûcheron',
     workerLabelPlural: 'bûcherons',
-    emoji: '🌲',
   },
   miner: {
     feature: 'montagne',
@@ -29,7 +27,6 @@ export const MISSION_CONFIG: Record<string, MissionTypeConfig> = {
     resourceLabel: 'Pierre',
     workerLabel: 'mineur',
     workerLabelPlural: 'mineurs',
-    emoji: '⛰️',
   },
   hunter: {
     feature: null,
@@ -39,7 +36,6 @@ export const MISSION_CONFIG: Record<string, MissionTypeConfig> = {
     resourceLabel: 'Viande',
     workerLabel: 'chasseur',
     workerLabelPlural: 'chasseurs',
-    emoji: '🏹',
   },
   gatherer: {
     feature: null,
@@ -49,7 +45,6 @@ export const MISSION_CONFIG: Record<string, MissionTypeConfig> = {
     resourceLabel: 'Céréales',
     workerLabel: 'cueilleur',
     workerLabelPlural: 'cueilleurs',
-    emoji: '🌾',
   },
 }
 
