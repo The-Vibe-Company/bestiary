@@ -55,6 +55,20 @@ export async function startBuilding(
           throw new StartBuildingError('Type de bâtiment introuvable')
         }
 
+        // Check technology prerequisite
+        if (buildingType.requiredTechnology) {
+          const techCompleted = await tx.villageTechnology.findFirst({
+            where: {
+              villageId: village.id,
+              technologyKey: buildingType.requiredTechnology,
+              completedAt: { not: null },
+            },
+          })
+          if (!techCompleted) {
+            throw new StartBuildingError('Technologie requise non recherchée')
+          }
+        }
+
         const activeBuildings = await tx.villageBuilding.findMany({
           where: { villageId: village.id, completedAt: null },
           select: { assignedBuilders: true, buildingType: true },

@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button'
 import { BuildModal } from '@/components/village/build-modal'
 import { startBuilding } from '@/lib/game/buildings/start-building'
 import { formatTimeRemaining } from '@/lib/utils/format-time'
-import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiHammerNails, GiThreeFriends } from 'react-icons/gi'
+import Link from 'next/link'
+import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiHammerNails, GiThreeFriends, GiPadlock } from 'react-icons/gi'
 
 interface ActiveConstruction {
   startedAt: string
@@ -33,6 +34,9 @@ export interface BuildingTypeData {
   storageBonusViande: number
   maxCount: number | null
   maxLevel: number
+  requiredTechnology: string | null
+  requiredTechnologyTitle: string | null
+  isTechMet: boolean
   completedCount: number
   currentLevel: number
   activeConstructions: ActiveConstruction[]
@@ -146,6 +150,7 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
     const maxLevelReached = isUnique && building.currentLevel >= building.maxLevel
     const maxCountReached = building.maxCount !== null && building.completedCount >= building.maxCount
 
+    if (!building.isTechMet) return 'TECHNOLOGIE REQUISE'
     if (maxLevelReached) return 'NIVEAU MAX'
     if (!isUpgradeable && maxCountReached) return 'DÉJÀ CONSTRUIT'
     if (noBuilders) return 'AUCUN BÂTISSEUR'
@@ -201,7 +206,8 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
           villageResources.cereales >= building.costCereales * costMultiplier &&
           villageResources.viande >= building.costViande * costMultiplier
 
-        const isDisabled = maxLevelReached || maxCountReached || !canAfford || noBuilders || loadingKey === building.key
+        const isTechLocked = !building.isTechMet
+        const isDisabled = isTechLocked || maxLevelReached || maxCountReached || !canAfford || noBuilders || loadingKey === building.key
 
         const costs = RESOURCE_CONFIG.filter(
           (r) => building[r.key] > 0
@@ -215,7 +221,7 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
             className="relative flex items-center gap-4 p-4"
           >
             {/* Image on the left */}
-            <div className="relative w-[140px] h-[140px] flex-shrink-0 rounded-xl overflow-hidden border-2 border-[var(--burnt-amber)]">
+            <div className={`relative w-[140px] h-[140px] flex-shrink-0 rounded-xl overflow-hidden border-2 ${isTechLocked ? 'border-[var(--ivory)]/20 grayscale opacity-50' : 'border-[var(--burnt-amber)]'}`}>
               <Image
                 src={building.image}
                 alt={building.title}
@@ -279,8 +285,18 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
                 </p>
               )}
 
+              {isTechLocked && building.requiredTechnology && (
+                <Link
+                  href={`/research?focus=${building.requiredTechnology}`}
+                  className="mt-2 inline-flex items-center gap-1.5 text-xs text-[var(--burnt-amber)]/70 hover:text-[var(--burnt-amber)] transition-colors"
+                >
+                  <GiPadlock size={12} />
+                  Nécessite {building.requiredTechnologyTitle} Niv. 1
+                </Link>
+              )}
+
               {/* Cost display */}
-              {!maxLevelReached && !maxCountReached && (
+              {!maxLevelReached && !maxCountReached && !isTechLocked && (
                 <div className="flex items-center gap-3 mt-2">
                   {costs.map((r) => {
                     const cost = building[r.key] * costMultiplier

@@ -5,6 +5,7 @@ import {
   MIN_STAY_DURATION,
   MAX_STAY_DURATION,
 } from './constants'
+import { TAVERN_STAY_MULTIPLIER } from './tavern'
 
 export type TravelerStatus =
   | { status: 'waiting'; arrivesAt: Date }
@@ -14,10 +15,12 @@ function randomBetween(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-function createTravelerDates() {
+function createTravelerDates(tavernLevel: number = 0) {
   const now = new Date()
   const arrivalDelay = randomBetween(MIN_ARRIVAL_DELAY, MAX_ARRIVAL_DELAY)
-  const stayDuration = randomBetween(MIN_STAY_DURATION, MAX_STAY_DURATION)
+  const baseStayDuration = randomBetween(MIN_STAY_DURATION, MAX_STAY_DURATION)
+  const multiplier = TAVERN_STAY_MULTIPLIER[tavernLevel] ?? 1
+  const stayDuration = Math.round(baseStayDuration * multiplier)
 
   const arrivesAt = new Date(now.getTime() + arrivalDelay * 1000)
   const departsAt = new Date(arrivesAt.getTime() + stayDuration * 1000)
@@ -33,9 +36,9 @@ function createTravelerDates() {
  * - Voyageur en route → retourne le countdown d'arrivée
  * - Voyageur présent → retourne le countdown de départ
  */
-export async function resolveTraveler(villageId: string): Promise<TravelerStatus> {
+export async function resolveTraveler(villageId: string, tavernLevel: number = 0): Promise<TravelerStatus> {
   const now = new Date()
-  const { arrivesAt: nextArrivesAt, departsAt: nextDepartsAt } = createTravelerDates()
+  const { arrivesAt: nextArrivesAt, departsAt: nextDepartsAt } = createTravelerDates(tavernLevel)
 
   return prisma.$transaction(async (tx) => {
     const existing = await tx.villageTraveler.findUnique({

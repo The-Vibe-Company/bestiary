@@ -127,6 +127,7 @@ const buildingTypes = [
     storageBonusViande: 0,
     maxCount: null,
     maxLevel: 1,
+    requiredTechnology: null,
   },
   {
     key: 'laboratoire',
@@ -147,6 +148,7 @@ const buildingTypes = [
     storageBonusViande: 0,
     maxCount: 1,
     maxLevel: 5,
+    requiredTechnology: null,
   },
   {
     key: 'entrepot_bois',
@@ -167,6 +169,7 @@ const buildingTypes = [
     storageBonusViande: 0,
     maxCount: null,
     maxLevel: 1,
+    requiredTechnology: null,
   },
   {
     key: 'entrepot_pierre',
@@ -187,6 +190,7 @@ const buildingTypes = [
     storageBonusViande: 0,
     maxCount: null,
     maxLevel: 1,
+    requiredTechnology: null,
   },
   {
     key: 'entrepot_cereales',
@@ -207,6 +211,7 @@ const buildingTypes = [
     storageBonusViande: 0,
     maxCount: null,
     maxLevel: 1,
+    requiredTechnology: null,
   },
   {
     key: 'entrepot_viande',
@@ -227,6 +232,7 @@ const buildingTypes = [
     storageBonusViande: 100,
     maxCount: null,
     maxLevel: 1,
+    requiredTechnology: null,
   },
   {
     key: 'tour_de_guet',
@@ -246,6 +252,61 @@ const buildingTypes = [
     storageBonusCereales: 0,
     storageBonusViande: 0,
     maxCount: 1,
+    maxLevel: 3,
+    requiredTechnology: 'optique_rudimentaire',
+  },
+  {
+    key: 'taverne',
+    title: 'Taverne',
+    description:
+      'Un lieu chaleureux où les voyageurs peuvent se restaurer et prolonger leur séjour au village grâce aux boissons fermentées.',
+    image: '/assets/batiments/taverne.webp',
+    order: 8,
+    costBois: 60,
+    costPierre: 40,
+    costCereales: 20,
+    costViande: 0,
+    buildSeconds: 90,
+    capacityBonus: 0,
+    storageBonusBois: 0,
+    storageBonusPierre: 0,
+    storageBonusCereales: 0,
+    storageBonusViande: 0,
+    maxCount: 1,
+    maxLevel: 3,
+    requiredTechnology: 'boissons_fermentees',
+  },
+]
+
+const technologies = [
+  {
+    key: 'optique_rudimentaire',
+    title: 'Optique rudimentaire',
+    description:
+      'Étudiez les propriétés de la lumière et des lentilles pour observer les environs à grande distance. Permet la construction d\'une tour de guet.',
+    image: '/assets/technologies/optique_rudimentaire.webp',
+    order: 1,
+    costBois: 0,
+    costPierre: 20,
+    costCereales: 0,
+    costViande: 0,
+    researchSeconds: 90,
+    requiredLabLevel: 1,
+    maxLevel: 3,
+  },
+  {
+    key: 'boissons_fermentees',
+    title: 'Boissons fermentées',
+    description:
+      'Maîtrisez l\'art de la fermentation pour produire des boissons qui attirent et retiennent les voyageurs plus longtemps au village.',
+    image: '/assets/technologies/boissons_fermentees.webp',
+    order: 2,
+    costBois: 0,
+    costPierre: 0,
+    costCereales: 30,
+    costViande: 0,
+    researchSeconds: 120,
+    requiredLabLevel: 1,
     maxLevel: 3,
   },
 ]
@@ -305,6 +366,7 @@ async function main() {
         storageBonusViande: type.storageBonusViande,
         maxCount: type.maxCount,
         maxLevel: type.maxLevel,
+        requiredTechnology: type.requiredTechnology,
       },
       create: {
         key: type.key,
@@ -324,9 +386,46 @@ async function main() {
         storageBonusViande: type.storageBonusViande,
         maxCount: type.maxCount,
         maxLevel: type.maxLevel,
+        requiredTechnology: type.requiredTechnology,
       },
     })
     console.log(`  - ${type.title}`)
+  }
+
+  console.log('Seeding technologies...')
+
+  for (const tech of technologies) {
+    await prisma.technology.upsert({
+      where: { key: tech.key },
+      update: {
+        title: tech.title,
+        description: tech.description,
+        image: tech.image,
+        order: tech.order,
+        costBois: tech.costBois,
+        costPierre: tech.costPierre,
+        costCereales: tech.costCereales,
+        costViande: tech.costViande,
+        researchSeconds: tech.researchSeconds,
+        requiredLabLevel: tech.requiredLabLevel,
+        maxLevel: tech.maxLevel,
+      },
+      create: {
+        key: tech.key,
+        title: tech.title,
+        description: tech.description,
+        image: tech.image,
+        order: tech.order,
+        costBois: tech.costBois,
+        costPierre: tech.costPierre,
+        costCereales: tech.costCereales,
+        costViande: tech.costViande,
+        researchSeconds: tech.researchSeconds,
+        requiredLabLevel: tech.requiredLabLevel,
+        maxLevel: tech.maxLevel,
+      },
+    })
+    console.log(`  - ${tech.title}`)
   }
 
   console.log('Seeding complete!')

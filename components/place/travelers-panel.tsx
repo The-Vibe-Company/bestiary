@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { GiWalk, GiWatchtower } from 'react-icons/gi'
+import { GiWalk, GiWatchtower, GiBeerStein } from 'react-icons/gi'
 import { Button } from '@/components/ui/button'
 import { PlacePanel } from './place-panel'
 import { AssignJobModal } from './assign-job-modal'
@@ -14,9 +14,10 @@ interface TravelersPanelProps {
   travelerStatus: DetectedTravelerStatus
   inhabitantTypes: { key: string; title: string; image: string }[]
   isVillageFull: boolean
+  tavernLevel?: number
 }
 
-export function TravelersPanel({ travelerStatus, inhabitantTypes, isVillageFull }: TravelersPanelProps) {
+export function TravelersPanel({ travelerStatus, inhabitantTypes, isVillageFull, tavernLevel = 0 }: TravelersPanelProps) {
   const router = useRouter()
   const [showModal, setShowModal] = useState(false)
   const [pendingWelcome, setPendingWelcome] = useState(false)
@@ -62,6 +63,12 @@ export function TravelersPanel({ travelerStatus, inhabitantTypes, isVillageFull 
                 <div className="mt-1 text-base font-semibold text-[var(--burnt-amber)]">
                   <Countdown targetDate={travelerStatus.departsAt} />
                 </div>
+                {tavernLevel > 0 && (
+                  <div className="mt-2 flex items-center gap-1.5 text-xs text-amber-400/70">
+                    <GiBeerStein size={14} />
+                    <span>Séjour prolongé par la taverne</span>
+                  </div>
+                )}
               </>
             ) : (
               <div className="mt-3 text-xs uppercase tracking-[0.12em] text-[var(--burnt-amber)]/90">
