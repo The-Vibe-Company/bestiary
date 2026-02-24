@@ -35,9 +35,10 @@ model Village {
   inhabitants VillageInhabitants?
   resources   VillageResources?
   missions    Mission[]
-  buildings   VillageBuilding[]
-  traveler      VillageTraveler?
-  notifications Notification[]
+  buildings      VillageBuilding[]
+  technologies   VillageTechnology[]
+  traveler       VillageTraveler?
+  notifications  Notification[]
 
   @@unique([x, y]) // Une seule village par coordonnée
   @@map("Villages")
@@ -123,10 +124,45 @@ model BuildingType {
   storageBonusPierre   Int @default(0)
   storageBonusCereales Int @default(0)
   storageBonusViande   Int @default(0)
-  maxCount      Int?   // null = unlimited, e.g. 1 for unique buildings like laboratory
-  maxLevel      Int    @default(1) // max upgrade level for unique buildings
+  maxCount           Int?    // null = unlimited, e.g. 1 for unique buildings like laboratory
+  maxLevel           Int     @default(1) // max upgrade level for unique buildings
+  requiredTechnology String? // Technology key that must be completed before building
 
   @@map("BuildingTypes")
+}
+
+model Technology {
+  id              String @id @default(cuid())
+  key             String @unique
+  title           String
+  description     String
+  image           String
+  order           Int
+  costBois        Int    @default(0)
+  costPierre      Int    @default(0)
+  costCereales    Int    @default(0)
+  costViande      Int    @default(0)
+  researchSeconds Int
+  requiredLabLevel Int   @default(1)
+  maxLevel        Int    @default(1)
+
+  @@map("Technologies")
+}
+
+model VillageTechnology {
+  id                  String    @id @default(cuid())
+  villageId           String
+  village             Village   @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  technologyKey       String
+  level               Int       @default(1)
+  startedAt           DateTime  @default(now())
+  researchSeconds     Int
+  assignedResearchers Int       @default(1)
+  completedAt         DateTime?
+  createdAt           DateTime  @default(now())
+
+  @@unique([villageId, technologyKey])
+  @@map("VillageTechnologies")
 }
 
 model VillageBuilding {

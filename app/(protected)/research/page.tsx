@@ -1,5 +1,6 @@
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
+import { ResearchPageClient } from "@/components/research/research-page-client";
 import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
 import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
 import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
@@ -13,6 +14,9 @@ import { applyDailyConsumption } from "@/lib/game/resources/apply-daily-consumpt
 import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
+import { getTechnologies } from "@/lib/game/research/get-technologies";
+import { getVillageTechnologies } from "@/lib/game/research/get-village-technologies";
+import { completePendingResearch } from "@/lib/game/research/complete-pending-research";
 import { getUser } from "@/lib/game/user/get-user";
 import { getVillage } from "@/lib/game/village/get-village";
 import { neonAuth } from "@neondatabase/auth/next/server";
@@ -20,7 +24,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { GiScrollUnfurled } from "react-icons/gi";
 
-export default async function ResearchPage() {
+export default async function ResearchPage({ searchParams }: { searchParams: Promise<{ focus?: string }> }) {
+  const { focus } = await searchParams;
   const { session } = await neonAuth();
 
   if (!session) {
@@ -39,19 +44,23 @@ export default async function ResearchPage() {
     redirect("/sign-in");
   }
 
+  // Complete finished jobs and apply pending consumption before computing state
   await Promise.all([
     completePendingMissions(village.id),
     completePendingBuildings(village.id),
+    completePendingResearch(village.id),
     applyDailyConsumption(village.id, inhabitantTypes),
   ]);
 
   // Fetch mutable data AFTER catch-up for fresh values
-  const [villageResources, villageInhabitants, villageBuildings, buildingTypes] =
+  const [villageResources, villageInhabitants, villageBuildings, buildingTypes, technologies, villageTechnologies] =
     await Promise.all([
       getVillageResources(session.userId),
       getVillageInhabitants(session.userId),
       getVillageBuildings(session.userId),
       getBuildingTypes(),
+      getTechnologies(),
+      getVillageTechnologies(village.id),
     ]);
 
   if (!villageResources) {
@@ -78,10 +87,57 @@ export default async function ResearchPage() {
   const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
   const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings);
 
-  // Check if the player has a completed laboratory building
-  const hasLaboratory = villageBuildings.some(
-    (b) => b.buildingType === "laboratoire" && b.completedAt !== null
-  );
+  // Check if the player has a completed laboratory building and its level
+  const laboratory = completedBuildings
+    .filter((b) => b.buildingType === "laboratoire")
+    .sort((a, b) => b.level - a.level)[0];
+  const hasLaboratory = Boolean(laboratory);
+  const labLevel = laboratory?.level ?? 0;
+
+  // Calculate available researchers
+  const totalResearchers = villageInhabitants?.researcher ?? 0;
+  const busyResearchers = villageTechnologies
+    .filter((vt) => vt.completedAt === null)
+    .reduce((sum, vt) => sum + vt.assignedResearchers, 0);
+  const availableResearchers = totalResearchers - busyResearchers;
+
+  // Build technology data for the client
+  const technologyData = technologies.map((tech) => {
+    const villagetech = villageTechnologies.find(
+      (vt) => vt.technologyKey === tech.key
+    );
+    const currentLevel = villagetech?.completedAt ? villagetech.level : 0;
+    const isMaxLevel = currentLevel >= tech.maxLevel;
+    const activeResearch =
+      villagetech && !villagetech.completedAt
+        ? {
+            startedAt: villagetech.startedAt.toISOString(),
+            researchSeconds: villagetech.researchSeconds,
+            assignedResearchers: villagetech.assignedResearchers,
+          }
+        : null;
+
+    // Next level costs scale by target level (same as buildings)
+    const nextLevel = currentLevel + 1;
+
+    return {
+      key: tech.key,
+      title: tech.title,
+      description: tech.description,
+      image: tech.image,
+      costBois: tech.costBois * nextLevel,
+      costPierre: tech.costPierre * nextLevel,
+      costCereales: tech.costCereales * nextLevel,
+      costViande: tech.costViande * nextLevel,
+      researchSeconds: tech.researchSeconds * nextLevel,
+      requiredLabLevel: tech.requiredLabLevel,
+      maxLevel: tech.maxLevel,
+      currentLevel,
+      isMaxLevel,
+      activeResearch,
+      isLabLevelMet: labLevel >= tech.requiredLabLevel,
+    };
+  });
 
   return (
     <div
@@ -111,8 +167,8 @@ export default async function ResearchPage() {
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 flex items-center justify-center relative z-10">
-        {!hasLaboratory && (
+      <div className="flex-1 min-h-0 flex items-start justify-center py-6 relative z-10">
+        {!hasLaboratory ? (
           <div className="max-w-md w-full mx-4 bg-black/75 backdrop-blur border border-[var(--burnt-amber)]/50 rounded-xl p-8 text-center">
             <GiScrollUnfurled
               size={64}
@@ -132,6 +188,18 @@ export default async function ResearchPage() {
               Construire
             </Link>
           </div>
+        ) : (
+          <ResearchPageClient
+            technologies={technologyData}
+            villageResources={{
+              bois: villageResources.bois,
+              pierre: villageResources.pierre,
+              cereales: villageResources.cereales,
+              viande: villageResources.viande,
+            }}
+            availableResearchers={availableResearchers}
+            focusKey={focus}
+          />
         )}
       </div>
     </div>

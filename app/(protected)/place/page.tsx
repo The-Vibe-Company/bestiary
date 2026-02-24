@@ -8,6 +8,7 @@ import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
 import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
 import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
 import { computeStorageCapacity } from "@/lib/game/buildings/storage-capacity";
+import { completePendingResearch } from "@/lib/game/research/complete-pending-research";
 import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
@@ -53,6 +54,7 @@ export default async function PlacePage() {
   await Promise.all([
     completePendingMissions(village.id),
     completePendingBuildings(village.id),
+    completePendingResearch(village.id),
     applyDailyConsumption(village.id, inhabitantTypes),
   ]);
 
@@ -90,8 +92,10 @@ export default async function PlacePage() {
   const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
   const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings);
 
-  // Résoudre l'état du voyageur (lazy completion) + détection tour de guet
-  const rawTravelerStatus = await resolveTraveler(village.id);
+  // Résoudre l'état du voyageur (lazy completion) + détection tour de guet + taverne
+  const tavern = completedBuildings.find((b) => b.buildingType === "taverne");
+  const tavernLevel = tavern?.level ?? 0;
+  const rawTravelerStatus = await resolveTraveler(village.id, tavernLevel);
   const watchtower = completedBuildings.find((b) => b.buildingType === "tour_de_guet");
   const towerLevel = watchtower?.level ?? 0;
   const travelerStatus = await detectTraveler(village.id, rawTravelerStatus, towerLevel);
@@ -138,6 +142,7 @@ export default async function PlacePage() {
             travelerStatus={travelerStatus}
             inhabitantTypes={inhabitantTypesData}
             isVillageFull={isVillageFull}
+            tavernLevel={tavernLevel}
           />
 
           {/* Placeholder — Animaux errants */}

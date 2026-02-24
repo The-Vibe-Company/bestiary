@@ -14,6 +14,9 @@ import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-cons
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
 import { computeStorageCapacity } from "@/lib/game/buildings/storage-capacity";
+import { getTechnologies } from "@/lib/game/research/get-technologies";
+import { getVillageTechnologies } from "@/lib/game/research/get-village-technologies";
+import { completePendingResearch } from "@/lib/game/research/complete-pending-research";
 import { getUser } from "@/lib/game/user/get-user";
 import { assignVillageToUser } from "@/lib/game/village/assign-village";
 import { getVillage } from "@/lib/game/village/get-village";
@@ -46,16 +49,19 @@ export default async function VillagePage() {
   await Promise.all([
     completePendingMissions(village.id),
     completePendingBuildings(village.id),
+    completePendingResearch(village.id),
     applyDailyConsumption(village.id, inhabitantTypes),
   ]);
 
   // Fetch all mutable data AFTER catch-up for fresh state
-  const [buildingTypes, villageBuildings, villageResources, villageInhabitants] =
+  const [buildingTypes, villageBuildings, villageResources, villageInhabitants, villageTechnologies, allTechnologies] =
     await Promise.all([
       getBuildingTypes(),
       getVillageBuildings(session.userId),
       getVillageResources(session.userId),
       getVillageInhabitants(session.userId),
+      getVillageTechnologies(village.id),
+      getTechnologies(),
     ]);
 
   if (!villageResources) {
@@ -79,6 +85,16 @@ export default async function VillagePage() {
     .filter((vb) => vb.completedAt === null)
     .reduce((sum, vb) => sum + vb.assignedBuilders, 0);
   const availableBuilders = totalBuilders - busyBuilders;
+
+  // Build a set of completed technology keys for prerequisite checks
+  const completedTechKeys = new Set(
+    villageTechnologies
+      .filter((vt) => vt.completedAt !== null)
+      .map((vt) => vt.technologyKey)
+  );
+
+  // Map technology key → title for display on locked buildings
+  const techTitleMap = new Map(allTechnologies.map((t) => [t.key, t.title]));
 
   // Aggregate building data per type
   const buildingTypeData = buildingTypes.map((bt) => {
@@ -114,6 +130,9 @@ export default async function VillagePage() {
       storageBonusViande: bt.storageBonusViande ?? 0,
       maxCount: bt.maxCount,
       maxLevel: bt.maxLevel,
+      requiredTechnology: bt.requiredTechnology,
+      requiredTechnologyTitle: bt.requiredTechnology ? (techTitleMap.get(bt.requiredTechnology) ?? bt.requiredTechnology) : null,
+      isTechMet: !bt.requiredTechnology || completedTechKeys.has(bt.requiredTechnology),
       completedCount,
       currentLevel,
       activeConstructions,
