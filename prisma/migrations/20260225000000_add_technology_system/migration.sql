@@ -12,6 +12,7 @@ CREATE TABLE "Technologies" (
     "costViande" INTEGER NOT NULL DEFAULT 0,
     "researchSeconds" INTEGER NOT NULL,
     "requiredLabLevel" INTEGER NOT NULL DEFAULT 1,
+    "maxLevel" INTEGER NOT NULL DEFAULT 1,
 
     CONSTRAINT "Technologies_pkey" PRIMARY KEY ("id")
 );
@@ -21,6 +22,7 @@ CREATE TABLE "VillageTechnologies" (
     "id" TEXT NOT NULL,
     "villageId" TEXT NOT NULL,
     "technologyKey" TEXT NOT NULL,
+    "level" INTEGER NOT NULL DEFAULT 1,
     "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "researchSeconds" INTEGER NOT NULL,
     "assignedResearchers" INTEGER NOT NULL DEFAULT 1,
