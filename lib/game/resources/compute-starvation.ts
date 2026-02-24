@@ -1,6 +1,5 @@
 import type { InhabitantType as PrismaInhabitantType } from '@prisma/client'
 import { INHABITANT_TYPES } from '@/lib/game/inhabitants/types'
-import type { VillageInhabitants } from '@/lib/game/inhabitants/types'
 
 export interface StarvationResult {
   starvation: boolean
@@ -31,12 +30,12 @@ function shuffle<T>(arr: T[]): T[] {
  * deficient resource, then randomly selects which inhabitants die.
  */
 export function computeStarvation(
-  villageInhabitants: VillageInhabitants | null,
+  inhabitantCounts: Record<string, number>,
   inhabitantTypes: PrismaInhabitantType[],
   availableCereales: number,
   availableViande: number,
 ): StarvationResult {
-  if (!villageInhabitants) {
+  if (!inhabitantCounts) {
     return {
       starvation: false,
       survivingInhabitants: Object.fromEntries(
@@ -56,7 +55,7 @@ export function computeStarvation(
   let totalPop = 0
 
   for (const key of INHABITANT_TYPES) {
-    const count = villageInhabitants[key] ?? 0
+    const count = inhabitantCounts[key] ?? 0
     const typeData = typeMap.get(key)
     if (!typeData || count === 0) continue
     totalPop += count
@@ -69,7 +68,7 @@ export function computeStarvation(
     return {
       starvation: false,
       survivingInhabitants: Object.fromEntries(
-        INHABITANT_TYPES.map((k) => [k, villageInhabitants[k] ?? 0]),
+        INHABITANT_TYPES.map((k) => [k, inhabitantCounts[k] ?? 0]),
       ),
       totalDeaths: 0,
       consumedCereales: 0,
@@ -89,7 +88,7 @@ export function computeStarvation(
     return {
       starvation: false,
       survivingInhabitants: Object.fromEntries(
-        INHABITANT_TYPES.map((k) => [k, villageInhabitants[k] ?? 0]),
+        INHABITANT_TYPES.map((k) => [k, inhabitantCounts[k] ?? 0]),
       ),
       totalDeaths: 0,
       consumedCereales: neededCereales,
@@ -104,7 +103,7 @@ export function computeStarvation(
   // Build a pool of all inhabitants by type, then shuffle to pick random deaths
   const pool: string[] = []
   for (const key of INHABITANT_TYPES) {
-    const count = villageInhabitants[key] ?? 0
+    const count = inhabitantCounts[key] ?? 0
     for (let i = 0; i < count; i++) {
       pool.push(key)
     }

@@ -12,7 +12,6 @@ interface ResourceBarProps {
   maxPopulation?: number
   unoccupiedInhabitants?: number
   dailyConsumption?: DailyConsumption
-  starvationRisk?: boolean
 }
 
 const villageResourceConfig = [
@@ -29,7 +28,6 @@ export function ResourceBar({
   maxPopulation,
   unoccupiedInhabitants,
   dailyConsumption,
-  starvationRisk,
 }: ResourceBarProps) {
   return (
     <div className="h-10 overflow-visible bg-black/80 backdrop-blur-sm border border-[var(--ivory)]/20 rounded-xl px-6">
@@ -52,8 +50,7 @@ export function ResourceBar({
           const consumption = (key === 'cereales' || key === 'viande')
             ? dailyConsumption?.[key] ?? 0
             : 0
-          const isAtRisk = starvationRisk && (key === 'cereales' || key === 'viande') &&
-            villageResources[key] < Math.round(consumption)
+          const isAtRisk = consumption > 0 && villageResources[key] < Math.round(consumption)
           const tooltipLabel = isAtRisk
             ? `${label} — Famine imminente ! Vos reserves ne suffiront pas demain`
             : consumption > 0

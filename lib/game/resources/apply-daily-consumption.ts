@@ -102,17 +102,8 @@ export async function applyDailyConsumption(
   let starvationOccurred = false
 
   for (let day = 0; day < daysElapsed; day++) {
-    // Snapshot for the pure function
-    const snapshot = {
-      ...currentInhabitants,
-      id: '',
-      villageId: '',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as VillageInhabitants
-
     const result = computeStarvation(
-      snapshot,
+      { ...currentInhabitants },
       inhabitantTypes,
       currentCereales,
       currentViande,

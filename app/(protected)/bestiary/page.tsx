@@ -80,10 +80,6 @@ export default async function BestiaryPage() {
           maxPopulation={village.capacity}
           unoccupiedInhabitants={unoccupiedInhabitants}
           dailyConsumption={dailyConsumption}
-          starvationRisk={
-            villageResources.cereales < Math.round(dailyConsumption.cereales) ||
-            villageResources.viande < Math.round(dailyConsumption.viande)
-          }
         />
       </div>
 
