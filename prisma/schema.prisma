@@ -119,6 +119,7 @@ model BuildingType {
   costViande    Int    @default(0)
   buildSeconds  Int
   capacityBonus Int    @default(0)
+  maxCount      Int?   // null = unlimited, e.g. 1 for unique buildings like laboratory
 
   @@map("BuildingTypes")
 }

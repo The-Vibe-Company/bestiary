@@ -67,6 +67,20 @@ export async function startBuilding(
           throw new StartBuildingError('Ce type de bâtiment est déjà en construction')
         }
 
+        // Check maxCount: limit how many of this building type can exist
+        if (buildingType.maxCount !== null) {
+          const completedCount = await tx.villageBuilding.count({
+            where: {
+              villageId: village.id,
+              buildingType: buildingTypeKey,
+              completedAt: { not: null },
+            },
+          })
+          if (completedCount >= buildingType.maxCount) {
+            throw new StartBuildingError('Nombre maximum de ce bâtiment atteint')
+          }
+        }
+
         const totalBuilders = village.inhabitants.builder
         const busyBuilders = activeBuildings.reduce((sum, b) => sum + b.assignedBuilders, 0)
         const availableBuilders = totalBuilders - busyBuilders
