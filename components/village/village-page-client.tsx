@@ -201,7 +201,7 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
         return (
           <div
             key={building.key}
-            className="flex items-center gap-4 p-4"
+            className="relative flex items-center gap-4 p-4"
           >
             {/* Image on the left */}
             <div className="relative w-[140px] h-[140px] flex-shrink-0 rounded-xl overflow-hidden border-2 border-[var(--burnt-amber)]">
@@ -219,16 +219,6 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
                 <h2 className="text-xl font-bold font-[family-name:var(--font-title)] tracking-wider text-[var(--ivory)]">
                   {building.title}
                 </h2>
-                {/* Badge: show level for upgradeable unique buildings, count for multiples */}
-                {isUpgradeable && building.currentLevel > 0 ? (
-                  <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/30">
-                    Niv. {building.currentLevel}
-                  </span>
-                ) : building.completedCount > 0 && !isUpgradeable ? (
-                  <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/30">
-                    ×{building.completedCount}
-                  </span>
-                ) : null}
                 {hasActiveConstruction ? (
                   <ConstructionStatus
                     startedAt={activeConstruction.startedAt}
@@ -284,14 +274,18 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
                 </div>
               )}
 
-              {/* Level progress for upgradeable buildings */}
-              {isUpgradeable && building.currentLevel > 0 && !maxLevelReached && (
-                <div className="text-xs text-[var(--ivory)]/40 mt-1">
-                  Prochain niveau : {building.currentLevel + 1}/{building.maxLevel}
-                </div>
-              )}
-
             </div>
+
+            {/* Badge: bottom-right of the card */}
+            {isUpgradeable && building.currentLevel > 0 ? (
+              <span className="absolute bottom-2 right-2 px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/30">
+                Niv. {building.currentLevel}
+              </span>
+            ) : building.completedCount > 0 && !isUpgradeable ? (
+              <span className="absolute bottom-2 right-2 px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/30">
+                ×{building.completedCount}
+              </span>
+            ) : null}
           </div>
         )
       })}
