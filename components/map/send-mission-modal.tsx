@@ -10,6 +10,8 @@ import {
   MAX_WORK_SECONDS,
 } from '@/lib/game/missions/constants'
 import { MISSION_CONFIG } from '@/lib/game/missions/mission-config'
+import { MISSION_ICONS } from '@/lib/game/missions/mission-icons'
+import { GiSandsOfTime, GiPositionMarker } from 'react-icons/gi'
 
 interface SendMissionModalProps {
   targetX: number
@@ -53,7 +55,7 @@ export function SendMissionModal({
 
   const config = MISSION_CONFIG[inhabitantType]
   const title = `ENVOYER UN ${config?.workerLabel.toUpperCase() ?? inhabitantType.toUpperCase()}`
-  const emoji = config?.emoji ?? '📍'
+  const MissionIcon = MISSION_ICONS[inhabitantType] ?? GiPositionMarker
   const featureLabel = config?.featureLabel ?? 'Cible'
   const resourceLabel = config?.resourceLabel ?? 'Ressource'
 
@@ -121,7 +123,7 @@ export function SendMissionModal({
         {/* Target info */}
         <div className="flex items-center justify-between mb-4 text-[var(--ivory)]">
           <div className="flex items-center gap-2">
-            <span className="text-lg">{emoji}</span>
+            <MissionIcon size={20} className="text-[var(--burnt-amber)]" />
             <span className="font-[family-name:var(--font-title)] tracking-wider">
               {featureLabel} ({targetX}, {targetY})
             </span>
@@ -133,7 +135,7 @@ export function SendMissionModal({
 
         {/* Travel time outbound */}
         <div className="flex items-center gap-2 mb-5 text-sm text-[var(--ivory)]/70">
-          <span>⏱</span>
+          <GiSandsOfTime size={16} className="text-[var(--ivory)]/70" />
           <span>Trajet aller : {formatDuration(travelSeconds)}</span>
         </div>
 
@@ -230,7 +232,7 @@ export function SendMissionModal({
 
         {/* Total return time */}
         <div className="flex items-center gap-2 mb-6 text-sm text-[var(--ivory)]/70">
-          <span>⏱</span>
+          <GiSandsOfTime size={16} className="text-[var(--ivory)]/70" />
           <span>Retour au village : {formatDuration(totalSeconds)}</span>
         </div>
 

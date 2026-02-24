@@ -119,6 +119,10 @@ model BuildingType {
   costViande    Int    @default(0)
   buildSeconds  Int
   capacityBonus Int    @default(0)
+  storageBonusBois     Int @default(0)
+  storageBonusPierre   Int @default(0)
+  storageBonusCereales Int @default(0)
+  storageBonusViande   Int @default(0)
   maxCount      Int?   // null = unlimited, e.g. 1 for unique buildings like laboratory
   maxLevel      Int    @default(1) // max upgrade level for unique buildings
 

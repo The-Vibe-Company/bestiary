@@ -4,7 +4,10 @@ import { UserResourceBar } from "@/components/layout/user-resource-bar";
 import { ActiveJobsPanel } from "@/components/place/active-jobs-panel";
 import { PlacePanel } from "@/components/place/place-panel";
 import { TravelersPanel } from "@/components/place/travelers-panel";
+import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
+import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
 import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
+import { computeStorageCapacity } from "@/lib/game/buildings/storage-capacity";
 import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
@@ -53,9 +56,11 @@ export default async function PlacePage() {
   ]);
 
   // Fetch mutable data AFTER catch-up for fresh values
-  const [villageResources, villageInhabitants] = await Promise.all([
+  const [villageResources, villageInhabitants, buildingTypes, villageBuildings] = await Promise.all([
     getVillageResources(session.userId),
     getVillageInhabitants(session.userId),
+    getBuildingTypes(),
+    getVillageBuildings(session.userId),
   ]);
 
   if (!villageResources) {
@@ -79,6 +84,10 @@ export default async function PlacePage() {
     ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
   const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
+
+  // Compute storage capacity from completed buildings
+  const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
+  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings);
 
   // Résoudre l'état du voyageur (lazy completion)
   const travelerStatus = await resolveTraveler(village.id);
@@ -109,6 +118,7 @@ export default async function PlacePage() {
         <ResourceBar
           villageName={village?.name ?? null}
           villageResources={villageResources}
+          storageCapacity={storageCapacity}
           population={totalInhabitants}
           maxPopulation={village.capacity}
           unoccupiedInhabitants={unoccupiedInhabitants}

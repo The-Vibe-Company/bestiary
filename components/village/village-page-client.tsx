@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { BuildModal } from '@/components/village/build-modal'
 import { startBuilding } from '@/lib/game/buildings/start-building'
 import { formatTimeRemaining } from '@/lib/utils/format-time'
-import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiHammerNails } from 'react-icons/gi'
+import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiHammerNails, GiThreeFriends } from 'react-icons/gi'
 
 interface ActiveConstruction {
   startedAt: string
@@ -27,6 +27,10 @@ export interface BuildingTypeData {
   costViande: number
   buildSeconds: number
   capacityBonus: number
+  storageBonusBois: number
+  storageBonusPierre: number
+  storageBonusCereales: number
+  storageBonusViande: number
   maxCount: number | null
   maxLevel: number
   completedCount: number
@@ -50,6 +54,13 @@ const RESOURCE_CONFIG = [
   { key: 'costPierre' as const, resKey: 'pierre' as const, icon: GiStonePile, color: '#708090', label: 'Pierre' },
   { key: 'costCereales' as const, resKey: 'cereales' as const, icon: GiWheat, color: '#DAA520', label: 'Céréales' },
   { key: 'costViande' as const, resKey: 'viande' as const, icon: GiMeat, color: '#CD5C5C', label: 'Viande' },
+]
+
+const STORAGE_BONUS_CONFIG = [
+  { key: 'storageBonusBois' as const, icon: GiWoodPile, color: '#8B4513', label: 'stockage bois' },
+  { key: 'storageBonusPierre' as const, icon: GiStonePile, color: '#708090', label: 'stockage pierre' },
+  { key: 'storageBonusCereales' as const, icon: GiWheat, color: '#DAA520', label: 'stockage céréales' },
+  { key: 'storageBonusViande' as const, icon: GiMeat, color: '#CD5C5C', label: 'stockage viande' },
 ]
 
 function ConstructionStatus({
@@ -226,16 +237,36 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
                     assignedBuilders={activeConstruction.assignedBuilders}
                   />
                 ) : (
-                  <Button
-                    variant="seal"
-                    size="sm"
-                    className="ml-auto"
-                    disabled={isDisabled}
-                    isLoading={loadingKey === building.key}
-                    onClick={() => handleBuildClick(building.key, hasActiveConstruction)}
-                  >
-                    {getButtonLabel(building, canAfford)}
-                  </Button>
+                  <>
+                    <div className="flex-1" />
+                    {building.capacityBonus > 0 && (
+                      <div className="flex items-center gap-1">
+                        <GiThreeFriends size={14} style={{ color: '#C19A6B' }} />
+                        <span className="text-xs font-bold text-[var(--ivory)]/60">
+                          +{building.capacityBonus}
+                        </span>
+                      </div>
+                    )}
+                    {STORAGE_BONUS_CONFIG.map((sb) =>
+                      building[sb.key] > 0 ? (
+                        <div key={sb.key} className="flex items-center gap-1">
+                          <sb.icon size={14} style={{ color: sb.color }} />
+                          <span className="text-xs font-bold text-[var(--ivory)]/60">
+                            +{building[sb.key]}
+                          </span>
+                        </div>
+                      ) : null
+                    )}
+                    <Button
+                      variant="seal"
+                      size="xs"
+                      disabled={isDisabled}
+                      isLoading={loadingKey === building.key}
+                      onClick={() => handleBuildClick(building.key, hasActiveConstruction)}
+                    >
+                      {getButtonLabel(building, canAfford)}
+                    </Button>
+                  </>
                 )}
               </div>
 
@@ -248,7 +279,7 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
                 </p>
               )}
 
-              {/* Cost display — scaled for upgrades */}
+              {/* Cost display */}
               {!maxLevelReached && !maxCountReached && (
                 <div className="flex items-center gap-3 mt-2">
                   {costs.map((r) => {
@@ -266,11 +297,6 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
                       </div>
                     )
                   })}
-                  {building.capacityBonus > 0 && (
-                    <span className="text-xs text-[var(--ivory)]/40">
-                      +{building.capacityBonus} capacité
-                    </span>
-                  )}
                 </div>
               )}
 

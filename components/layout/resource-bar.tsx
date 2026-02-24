@@ -3,11 +3,13 @@
 import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiVillage, GiThreeFriends } from 'react-icons/gi'
 import { VillageResources } from '@/lib/game/resources/types'
 import { DailyConsumption } from '@/lib/game/resources/compute-daily-consumption'
+import { StorageCapacity } from '@/lib/game/buildings/storage-capacity'
 import { Tooltip } from '@/components/ui/tooltip'
 
 interface ResourceBarProps {
   villageName: string | null
   villageResources: VillageResources
+  storageCapacity?: StorageCapacity
   population?: number
   maxPopulation?: number
   unoccupiedInhabitants?: number
@@ -24,6 +26,7 @@ const villageResourceConfig = [
 export function ResourceBar({
   villageName,
   villageResources,
+  storageCapacity,
   population,
   maxPopulation,
   unoccupiedInhabitants,
@@ -51,17 +54,26 @@ export function ResourceBar({
             ? dailyConsumption?.[key] ?? 0
             : 0
           const isAtRisk = consumption > 0 && villageResources[key] < Math.round(consumption)
-          const tooltipLabel = isAtRisk
-            ? `${label} — Famine imminente ! Vos reserves ne suffiront pas demain`
-            : consumption > 0
-              ? `${label} — Consommation totale : ${consumption}/jour`
-              : label
+          const maxStorage = storageCapacity?.[key]
+          const isFull = maxStorage !== undefined && villageResources[key] >= maxStorage
+          const capacityInfo = maxStorage !== undefined
+            ? `Capacité : ${Math.floor(villageResources[key])} / ${maxStorage}`
+            : null
+          const consumptionInfo = consumption > 0
+            ? `Consommation : ${consumption}/jour`
+            : null
+          const tooltipParts = [label]
+          if (isFull) tooltipParts.push('Stockage plein !')
+          if (isAtRisk) tooltipParts.push('Famine imminente !')
+          if (capacityInfo) tooltipParts.push(capacityInfo)
+          if (consumptionInfo) tooltipParts.push(consumptionInfo)
+          const tooltipLabel = tooltipParts.join(' — ')
 
           return (
             <Tooltip key={key} label={tooltipLabel}>
               <div className="relative flex items-center gap-1.5">
                 <Icon size={20} style={{ color }} />
-                <span className="text-sm font-bold" style={{ color }}>
+                <span className="text-sm font-bold" style={{ color: isFull ? '#CD5C5C' : color }}>
                   {Number(villageResources[key].toFixed(1))}
                 </span>
                 {consumption > 0 && (
