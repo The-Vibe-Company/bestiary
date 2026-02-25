@@ -20,7 +20,7 @@ export async function getNotifications(
 ): Promise<NotificationItem[]> {
   return prisma.notification.findMany({
     where: { villageId },
-    orderBy: [{ readAt: 'asc' }, { createdAt: 'desc' }],
+    orderBy: { createdAt: 'desc' },
     take: limit,
     select: {
       id: true,

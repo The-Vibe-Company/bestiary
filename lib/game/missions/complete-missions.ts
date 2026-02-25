@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { getInhabitantStats } from '@/lib/game/inhabitants/get-inhabitant-stats'
 import { getStorageCapacityForVillage } from '@/lib/game/buildings/storage-capacity'
+import { createNotification } from '@/lib/game/notifications/create-notification'
+import { NOTIFICATION_TYPES } from '@/lib/game/notifications/types'
 import { computeMissionStatus } from './compute-mission-status'
 import { MISSION_CONFIG } from './mission-config'
 import { computeTileDensity } from './density'
@@ -85,6 +87,24 @@ export async function completePendingMissions(villageId: string): Promise<void> 
           ]
         : []),
     ])
+
+    // Notify player of completed mission (skip recalled missions)
+    if (!mission.recalledAt && config) {
+      const workerLabel = config.workerLabel.charAt(0).toUpperCase() + config.workerLabel.slice(1)
+      await createNotification({
+        villageId,
+        type: NOTIFICATION_TYPES.MISSION_COMPLETED,
+        title: 'Mission terminée',
+        message: resourceGathered > 0
+          ? `${workerLabel} est revenu avec ${resourceGathered} ${config.resourceLabel.toLowerCase()}.`
+          : `${workerLabel} est revenu de mission.`,
+        data: {
+          inhabitantType: mission.inhabitantType,
+          resourceGathered,
+          resourceType: config.resource,
+        },
+      })
+    }
 
     // Collect looped, non-recalled missions for auto-restart
     if (mission.loop && !mission.recalledAt) {

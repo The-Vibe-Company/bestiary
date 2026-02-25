@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/prisma'
+import { createNotification } from '@/lib/game/notifications/create-notification'
+import { NOTIFICATION_TYPES } from '@/lib/game/notifications/types'
 import { getBuildingTypes } from './get-building-types'
 
 /**
@@ -61,5 +63,21 @@ export async function completePendingBuildings(villageId: string): Promise<void>
           ]
         : []),
     ])
+
+    // Notify player of completed construction
+    const displayTitle = buildingType?.title ?? building.buildingType
+    await createNotification({
+      villageId,
+      type: NOTIFICATION_TYPES.BUILDING_COMPLETED,
+      title: 'Construction terminée',
+      message: isUpgrade
+        ? `${displayTitle} a été amélioré au niveau ${building.level}.`
+        : `${displayTitle} a été construit.`,
+      data: {
+        buildingType: building.buildingType,
+        buildingTitle: displayTitle,
+        level: building.level,
+      },
+    })
   }
 }
