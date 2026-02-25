@@ -166,7 +166,7 @@ export function NotificationBell({
                       </p>
                     </div>
                     <button
-                      onClick={() => deleteNotification(notif.id)}
+                      onClick={async () => await deleteNotification(notif.id)}
                       className="flex-shrink-0 mt-0.5 text-[var(--ivory)]/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                       aria-label="Supprimer la notification"
                     >
