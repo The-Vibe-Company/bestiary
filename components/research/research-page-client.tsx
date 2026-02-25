@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { ResearchModal } from '@/components/research/research-modal'
 import { formatTimeRemaining } from '@/lib/utils/format-time'
-import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiMicroscope } from 'react-icons/gi'
+import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiMicroscope, GiSandsOfTime } from 'react-icons/gi'
 
 interface ActiveResearch {
   startedAt: string
@@ -260,7 +260,7 @@ export function ResearchPageClient({ technologies, villageResources, availableRe
                     </p>
                   )}
 
-                  {/* Cost display — show next level costs if not max */}
+                  {/* Cost & time display — show next level costs if not max */}
                   {!tech.isMaxLevel && !hasActiveResearch && (
                     <div className="flex items-center gap-3 mt-2">
                       {costs.map((r) => {
@@ -278,6 +278,13 @@ export function ResearchPageClient({ technologies, villageResources, availableRe
                           </div>
                         )
                       })}
+                      <span className="text-[var(--ivory)]/30">|</span>
+                      <div className="flex items-center gap-1">
+                        <GiSandsOfTime size={16} className="text-[var(--ivory)]/60" />
+                        <span className="text-sm font-bold text-[var(--ivory)]/60">
+                          {formatTimeRemaining(tech.researchSeconds)}
+                        </span>
+                      </div>
                     </div>
                   )}
 
