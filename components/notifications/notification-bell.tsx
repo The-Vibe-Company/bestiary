@@ -1,8 +1,16 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { GiRingingBell, GiAnimalSkull, GiWatchtower } from 'react-icons/gi'
-import { markNotificationsRead } from '@/lib/game/notifications/mark-notifications-read'
+import {
+  GiRingingBell,
+  GiAnimalSkull,
+  GiWatchtower,
+  GiTreasureMap,
+  GiHammerNails,
+  GiMagnifyingGlass,
+} from 'react-icons/gi'
+import { markNotificationRead } from '@/lib/game/notifications/mark-notification-read'
+import { deleteNotification } from '@/lib/game/notifications/delete-notification'
 import { Tooltip } from '@/components/ui/tooltip'
 
 interface NotificationData {
@@ -22,6 +30,17 @@ interface NotificationBellProps {
 const ICON_BY_TYPE: Record<string, typeof GiAnimalSkull> = {
   starvation: GiAnimalSkull,
   traveler_detected: GiWatchtower,
+  mission_completed: GiTreasureMap,
+  building_completed: GiHammerNails,
+  research_completed: GiMagnifyingGlass,
+}
+
+const COLOR_BY_TYPE: Record<string, string> = {
+  starvation: 'text-red-400',
+  traveler_detected: 'text-amber-400',
+  mission_completed: 'text-emerald-400',
+  building_completed: 'text-sky-400',
+  research_completed: 'text-violet-400',
 }
 
 function formatTimeAgo(dateStr: string): string {
@@ -44,7 +63,13 @@ export function NotificationBell({
   unreadCount,
 }: NotificationBellProps) {
   const [open, setOpen] = useState(false)
+  const [readIds, setReadIds] = useState<Set<string>>(new Set())
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Reset local read state when server data changes
+  useEffect(() => {
+    setReadIds(new Set())
+  }, [notifications])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -62,24 +87,25 @@ export function NotificationBell({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
 
-  async function handleOpen() {
-    setOpen((prev) => !prev)
-    if (!open && unreadCount > 0) {
-      await markNotificationsRead()
-    }
+  function handleHoverNotification(notif: NotificationData) {
+    if (notif.readAt || readIds.has(notif.id)) return
+    setReadIds((prev) => new Set(prev).add(notif.id))
+    markNotificationRead(notif.id)
   }
+
+  const displayedUnread = Math.max(0, unreadCount - readIds.size)
 
   return (
     <div className="relative" ref={dropdownRef}>
       <Tooltip label="Notifications" position="bottom">
         <button
-          onClick={handleOpen}
+          onClick={() => setOpen((prev) => !prev)}
           className="relative flex items-center justify-center w-10 h-10 border-2 rounded-full transition-all duration-300 cursor-pointer border-[var(--ivory)] text-[var(--ivory)] hover:bg-[var(--burnt-amber)]/20 hover:text-[var(--burnt-amber)] hover:border-[var(--burnt-amber)] hover:scale-105 hover:shadow-md hover:shadow-[var(--burnt-amber)]/30"
         >
           <GiRingingBell size={20} />
-          {unreadCount > 0 && (
+          {displayedUnread > 0 && (
             <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full bg-red-600 text-white border border-[var(--obsidian)]">
-              {unreadCount > 99 ? '99+' : unreadCount}
+              {displayedUnread > 99 ? '99+' : displayedUnread}
             </span>
           )}
         </button>
@@ -109,24 +135,18 @@ export function NotificationBell({
             <div className="divide-y divide-[var(--ivory)]/5">
               {notifications.map((notif) => {
                 const Icon = ICON_BY_TYPE[notif.type] ?? GiRingingBell
-                const isUnread = !notif.readAt
+                const iconColor = COLOR_BY_TYPE[notif.type] ?? 'text-[var(--burnt-amber)]'
+                const isUnread = !notif.readAt && !readIds.has(notif.id)
 
                 return (
                   <div
                     key={notif.id}
-                    className={`px-4 py-3 flex gap-3 items-start transition-colors ${
+                    onMouseEnter={() => handleHoverNotification(notif)}
+                    className={`group px-4 py-3 flex gap-3 items-start transition-colors ${
                       isUnread ? 'bg-[var(--burnt-amber)]/5' : ''
                     }`}
                   >
-                    <div
-                      className={`flex-shrink-0 mt-0.5 ${
-                        notif.type === 'starvation'
-                          ? 'text-red-400'
-                          : notif.type === 'traveler_detected'
-                            ? 'text-amber-400'
-                            : 'text-[var(--burnt-amber)]'
-                      }`}
-                    >
+                    <div className={`flex-shrink-0 mt-0.5 ${iconColor}`}>
                       <Icon size={18} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -145,6 +165,20 @@ export function NotificationBell({
                         {formatTimeAgo(notif.createdAt)}
                       </p>
                     </div>
+                    <button
+                      onClick={async () => await deleteNotification(notif.id)}
+                      className="flex-shrink-0 mt-0.5 text-[var(--ivory)]/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      aria-label="Supprimer la notification"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className="w-4 h-4"
+                      >
+                        <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                      </svg>
+                    </button>
                   </div>
                 )
               })}
