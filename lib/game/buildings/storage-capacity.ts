@@ -32,10 +32,11 @@ export function computeStorageCapacity(
   for (const building of completedBuildings) {
     const type = typeMap.get(building.buildingType)
     if (!type) continue
-    capacity.bois += type.storageBonusBois ?? 0
-    capacity.pierre += type.storageBonusPierre ?? 0
-    capacity.cereales += type.storageBonusCereales ?? 0
-    capacity.viande += type.storageBonusViande ?? 0
+    const level = building.level ?? 1
+    capacity.bois += (type.storageBonusBois ?? 0) * level
+    capacity.pierre += (type.storageBonusPierre ?? 0) * level
+    capacity.cereales += (type.storageBonusCereales ?? 0) * level
+    capacity.viande += (type.storageBonusViande ?? 0) * level
   }
 
   return capacity
