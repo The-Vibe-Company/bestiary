@@ -9,7 +9,9 @@ import { BuildModal } from '@/components/village/build-modal'
 import { startBuilding } from '@/lib/game/buildings/start-building'
 import { formatTimeRemaining } from '@/lib/utils/format-time'
 import Link from 'next/link'
-import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiHammerNails, GiThreeFriends, GiPadlock, GiSandsOfTime } from 'react-icons/gi'
+import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiHammerNails, GiThreeFriends, GiPadlock, GiSandsOfTime, GiWatchtower, GiBeerStein } from 'react-icons/gi'
+import { DETECTION_WINDOW_SECONDS } from '@/lib/game/travelers/detection'
+import { TAVERN_STAY_MULTIPLIER } from '@/lib/game/travelers/tavern'
 
 interface ActiveConstruction {
   startedAt: string
@@ -50,6 +52,12 @@ interface VillagePageClientProps {
     cereales: number
     viande: number
   }
+  storageCapacity: {
+    bois: number
+    pierre: number
+    cereales: number
+    viande: number
+  }
   availableBuilders: number
 }
 
@@ -61,10 +69,10 @@ const RESOURCE_CONFIG = [
 ]
 
 const STORAGE_BONUS_CONFIG = [
-  { key: 'storageBonusBois' as const, icon: GiWoodPile, color: '#8B4513', label: 'stockage bois' },
-  { key: 'storageBonusPierre' as const, icon: GiStonePile, color: '#708090', label: 'stockage pierre' },
-  { key: 'storageBonusCereales' as const, icon: GiWheat, color: '#DAA520', label: 'stockage céréales' },
-  { key: 'storageBonusViande' as const, icon: GiMeat, color: '#CD5C5C', label: 'stockage viande' },
+  { key: 'storageBonusBois' as const, capacityKey: 'bois' as const, icon: GiWoodPile, color: '#8B4513', label: 'stockage bois' },
+  { key: 'storageBonusPierre' as const, capacityKey: 'pierre' as const, icon: GiStonePile, color: '#708090', label: 'stockage pierre' },
+  { key: 'storageBonusCereales' as const, capacityKey: 'cereales' as const, icon: GiWheat, color: '#DAA520', label: 'stockage céréales' },
+  { key: 'storageBonusViande' as const, capacityKey: 'viande' as const, icon: GiMeat, color: '#CD5C5C', label: 'stockage viande' },
 ]
 
 function ConstructionStatus({
@@ -136,7 +144,7 @@ function ConstructionStatus({
   )
 }
 
-export function VillagePageClient({ buildingTypes, villageResources, availableBuilders }: VillagePageClientProps) {
+export function VillagePageClient({ buildingTypes, villageResources, storageCapacity, availableBuilders }: VillagePageClientProps) {
   const router = useRouter()
   const [buildModalKey, setBuildModalKey] = useState<string | null>(null)
   const [loadingKey, setLoadingKey] = useState<string | null>(null)
@@ -279,6 +287,67 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
               <p className="text-sm text-[var(--ivory)]/70 leading-relaxed">
                 {building.description}
               </p>
+
+              {/* Current effect for upgradeable buildings */}
+              {isUpgradeable &&
+                STORAGE_BONUS_CONFIG.some((sb) => building[sb.key] > 0) && (
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="text-xs text-[var(--ivory)]/40">
+                    Capacité actuelle
+                  </span>
+                  <span className="text-[var(--ivory)]/20">|</span>
+                  {STORAGE_BONUS_CONFIG.map((sb) => {
+                    if (building[sb.key] <= 0) return null
+                    return (
+                      <div key={sb.key} className="flex items-center gap-1">
+                        <sb.icon size={14} style={{ color: sb.color }} />
+                        <span className="text-xs font-bold text-[var(--burnt-amber)]">
+                          {storageCapacity[sb.capacityKey]}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {isUpgradeable && building.key === 'tour_de_guet' && (
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="text-xs text-[var(--ivory)]/40">
+                    Détection
+                  </span>
+                  <span className="text-[var(--ivory)]/20">|</span>
+                  <div className="flex items-center gap-1">
+                    <GiWatchtower size={14} className="text-amber-400/80" />
+                    {building.currentLevel > 0 ? (
+                      <span className="text-xs font-bold text-[var(--burnt-amber)]">
+                        {(DETECTION_WINDOW_SECONDS[building.currentLevel] ?? 0) / 60} min avant l&apos;arrivée
+                      </span>
+                    ) : (
+                      <span className="text-xs text-[var(--ivory)]/30">aucune</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {isUpgradeable && building.key === 'taverne' && (
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="text-xs text-[var(--ivory)]/40">
+                    Durée de séjour
+                  </span>
+                  <span className="text-[var(--ivory)]/20">|</span>
+                  <div className="flex items-center gap-1">
+                    <GiBeerStein size={14} className="text-amber-600/80" />
+                    {building.currentLevel > 0 ? (
+                      <span className="text-xs font-bold text-[var(--burnt-amber)]">
+                        ×{TAVERN_STAY_MULTIPLIER[building.currentLevel] ?? 1}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-[var(--ivory)]/30">normale</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {buildErrors[building.key] && (
                 <p className="mt-2 text-xs text-[var(--burnt-amber-light)]">
                   {buildErrors[building.key]}

@@ -176,6 +176,7 @@ export default async function VillagePage() {
             cereales: villageResources.cereales,
             viande: villageResources.viande,
           }}
+          storageCapacity={storageCapacity}
           availableBuilders={availableBuilders}
         />
       </div>
