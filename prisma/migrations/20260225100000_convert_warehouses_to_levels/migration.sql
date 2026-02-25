@@ -39,3 +39,8 @@ WHERE vb."villageId" = wk."villageId"
   AND vb."buildingType" = wk."buildingType"
   AND vb."completedAt" IS NOT NULL
   AND vb."id" != wk."keepId";
+
+-- Step 4: Delete pending (in-construction) warehouse buildings to prevent maxCount violations
+DELETE FROM "VillageBuildings"
+WHERE "buildingType" IN ('entrepot_bois', 'entrepot_pierre', 'entrepot_cereales', 'entrepot_viande')
+  AND "completedAt" IS NULL;
