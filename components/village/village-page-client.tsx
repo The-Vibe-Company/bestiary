@@ -9,7 +9,7 @@ import { BuildModal } from '@/components/village/build-modal'
 import { startBuilding } from '@/lib/game/buildings/start-building'
 import { formatTimeRemaining } from '@/lib/utils/format-time'
 import Link from 'next/link'
-import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiHammerNails, GiThreeFriends, GiPadlock } from 'react-icons/gi'
+import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiHammerNails, GiThreeFriends, GiPadlock, GiSandsOfTime } from 'react-icons/gi'
 
 interface ActiveConstruction {
   startedAt: string
@@ -295,7 +295,7 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
                 </Link>
               )}
 
-              {/* Cost display */}
+              {/* Cost & time display */}
               {!maxLevelReached && !maxCountReached && !isTechLocked && (
                 <div className="flex items-center gap-3 mt-2">
                   {costs.map((r) => {
@@ -313,6 +313,13 @@ export function VillagePageClient({ buildingTypes, villageResources, availableBu
                       </div>
                     )
                   })}
+                  <span className="text-[var(--ivory)]/30">|</span>
+                  <div className="flex items-center gap-1">
+                    <GiSandsOfTime size={16} className="text-[var(--ivory)]/60" />
+                    <span className="text-sm font-bold text-[var(--ivory)]/60">
+                      {formatTimeRemaining(building.buildSeconds * costMultiplier)}
+                    </span>
+                  </div>
                 </div>
               )}
 
