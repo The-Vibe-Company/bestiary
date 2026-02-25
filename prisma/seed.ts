@@ -167,8 +167,8 @@ const buildingTypes = [
     storageBonusPierre: 0,
     storageBonusCereales: 0,
     storageBonusViande: 0,
-    maxCount: null,
-    maxLevel: 1,
+    maxCount: 1,
+    maxLevel: 5,
     requiredTechnology: null,
   },
   {
@@ -188,8 +188,8 @@ const buildingTypes = [
     storageBonusPierre: 200,
     storageBonusCereales: 0,
     storageBonusViande: 0,
-    maxCount: null,
-    maxLevel: 1,
+    maxCount: 1,
+    maxLevel: 5,
     requiredTechnology: null,
   },
   {
@@ -209,8 +209,8 @@ const buildingTypes = [
     storageBonusPierre: 0,
     storageBonusCereales: 100,
     storageBonusViande: 0,
-    maxCount: null,
-    maxLevel: 1,
+    maxCount: 1,
+    maxLevel: 5,
     requiredTechnology: null,
   },
   {
@@ -230,8 +230,8 @@ const buildingTypes = [
     storageBonusPierre: 0,
     storageBonusCereales: 0,
     storageBonusViande: 100,
-    maxCount: null,
-    maxLevel: 1,
+    maxCount: 1,
+    maxLevel: 5,
     requiredTechnology: null,
   },
   {
