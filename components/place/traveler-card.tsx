@@ -91,7 +91,7 @@ export function TravelerCard({
   })
 
   useEffect(() => {
-    if (!targetDate || secondsRemaining <= 0) return
+    if (!targetDate) return
     const target = new Date(targetDate).getTime()
     const interval = setInterval(() => {
       const remaining = Math.max(0, Math.ceil((target - Date.now()) / 1000))
@@ -102,7 +102,7 @@ export function TravelerCard({
       }
     }, 1000)
     return () => clearInterval(interval)
-  }, [targetDate, secondsRemaining, router])
+  }, [targetDate, router])
 
   return (
     <div
