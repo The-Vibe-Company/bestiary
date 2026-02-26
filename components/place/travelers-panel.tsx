@@ -2,11 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { GiWalk, GiWatchtower, GiBeerStein } from 'react-icons/gi'
-import { Button } from '@/components/ui/button'
-import { PlacePanel } from './place-panel'
 import { AssignJobModal } from './assign-job-modal'
-import { Countdown } from './countdown'
+import { TravelerCard } from './traveler-card'
 import type { DetectedTravelerStatus } from '@/lib/game/travelers/detection'
 import { welcomeTraveler } from '@/lib/game/travelers/welcome-traveler'
 
@@ -22,15 +19,8 @@ export function TravelersPanel({ travelerStatus, inhabitantTypes, isVillageFull,
   const [showModal, setShowModal] = useState(false)
   const [pendingWelcome, setPendingWelcome] = useState(false)
   const [welcomeError, setWelcomeError] = useState<string | null>(null)
-  const isWelcomed = travelerStatus.status === 'present' && travelerStatus.isWelcomed
 
   async function handleWelcome() {
-    if (isWelcomed) {
-      setWelcomeError(null)
-      setShowModal(true)
-      return
-    }
-
     setPendingWelcome(true)
     setWelcomeError(null)
 
@@ -47,72 +37,34 @@ export function TravelersPanel({ travelerStatus, inhabitantTypes, isVillageFull,
     setShowModal(true)
   }
 
+  function handleAssign() {
+    setWelcomeError(null)
+    setShowModal(true)
+  }
+
+  if (travelerStatus.status === 'hidden') {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-sm text-[var(--ivory)]/30 font-[family-name:var(--font-title)] tracking-[0.15em]">
+          Aucun voyageur en vue
+        </p>
+      </div>
+    )
+  }
+
   return (
     <>
-      <PlacePanel icon={<GiWalk size={22} />} title="Voyageurs">
-        {travelerStatus.status === 'present' ? (
-          <div className="mx-auto flex min-h-full w-full max-w-sm flex-col items-center justify-center rounded-xl border border-[var(--ivory)]/10 bg-[var(--ivory)]/5 px-5 py-6 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-            <p className="text-sm text-[var(--ivory)]/90">
-              Un voyageur attend aux portes du village !
-            </p>
-            {!isWelcomed ? (
-              <>
-                <div className="mt-2 text-xs uppercase tracking-[0.12em] text-[var(--ivory)]/50">
-                  Repart dans
-                </div>
-                <div className="mt-1 text-base font-semibold text-[var(--burnt-amber)]">
-                  <Countdown targetDate={travelerStatus.departsAt} />
-                </div>
-                {tavernLevel > 0 && (
-                  <div className="mt-2 flex items-center gap-1.5 text-xs text-amber-400/70">
-                    <GiBeerStein size={14} />
-                    <span>Séjour prolongé par la taverne</span>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="mt-3 text-xs uppercase tracking-[0.12em] text-[var(--burnt-amber)]/90">
-                Voyageur accueilli
-              </div>
-            )}
-            {isVillageFull ? (
-              <p className="mt-4 text-xs text-[var(--burnt-amber)]/80">
-                Le village est plein. Construisez pour augmenter la capacité.
-              </p>
-            ) : (
-              <Button
-                variant="seal"
-                className="mt-5 w-full max-w-[220px]"
-                onClick={handleWelcome}
-                isLoading={pendingWelcome}
-                disabled={pendingWelcome}
-              >
-                {isWelcomed ? 'ASSIGNER' : 'ACCUEILLIR'}
-              </Button>
-            )}
-            {welcomeError && (
-              <p className="mt-3 text-xs text-[var(--burnt-amber)]/90">{welcomeError}</p>
-            )}
-          </div>
-        ) : travelerStatus.status === 'detected' ? (
-          <div className="mx-auto flex min-h-full w-full max-w-sm flex-col items-center justify-center rounded-xl border border-[var(--ivory)]/10 bg-[var(--ivory)]/5 px-5 py-6 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-            <GiWatchtower size={28} className="mb-2 text-amber-400/80" />
-            <p className="text-sm text-[var(--ivory)]/75">
-              La tour de guet a repéré un voyageur en approche !
-            </p>
-            <div className="mt-2 text-xs uppercase tracking-[0.12em] text-[var(--ivory)]/50">
-              Arrive dans
-            </div>
-            <div className="mt-1 text-base font-semibold text-[var(--burnt-amber)]">
-              <Countdown targetDate={travelerStatus.arrivesAt} />
-            </div>
-          </div>
-        ) : (
-          <div className="mx-auto flex min-h-full w-full max-w-sm flex-col items-center justify-center rounded-xl border border-[var(--ivory)]/10 bg-[var(--ivory)]/5 px-5 py-6 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-            <p className="text-sm text-[var(--ivory)]/60">Aucun voyageur en vue pour le moment.</p>
-          </div>
-        )}
-      </PlacePanel>
+      <div className="flex flex-col gap-3">
+        <TravelerCard
+          travelerStatus={travelerStatus}
+          tavernLevel={tavernLevel}
+          isVillageFull={isVillageFull}
+          onWelcome={handleWelcome}
+          onAssign={handleAssign}
+          pendingWelcome={pendingWelcome}
+          welcomeError={welcomeError}
+        />
+      </div>
 
       {showModal && (
         <AssignJobModal
