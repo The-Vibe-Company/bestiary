@@ -90,14 +90,14 @@ export default async function MapPage() {
   const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
   const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings);
 
-  // Count active missions grouped by inhabitant type
-  const activeMissionCounts = await prisma.mission.groupBy({
+  // Sum busy workers grouped by inhabitant type
+  const activeMissionSums = await prisma.mission.groupBy({
     by: ['inhabitantType'],
     where: { villageId: village.id, completedAt: null },
-    _count: true,
+    _sum: { workerCount: true },
   });
-  const missionCountMap = Object.fromEntries(
-    activeMissionCounts.map((m) => [m.inhabitantType, m._count])
+  const busyWorkerMap = Object.fromEntries(
+    activeMissionSums.map((m) => [m.inhabitantType, m._sum.workerCount ?? 0])
   );
 
   // Compute worker availability and stats for all mission-capable types
@@ -105,7 +105,7 @@ export default async function MapPage() {
   const workerStats: Record<string, { speed: number; gatherRate: number; maxCapacity: number }> = {};
   for (const type of MISSION_CAPABLE_TYPES) {
     const total = villageInhabitants?.[type as InhabitantType] ?? 0;
-    workerAvailability[type] = total - (missionCountMap[type] ?? 0);
+    workerAvailability[type] = total - (busyWorkerMap[type] ?? 0);
     const stats = inhabitantStats[type];
     if (stats) {
       workerStats[type] = { speed: stats.speed, gatherRate: stats.gatherRate, maxCapacity: stats.maxCapacity };
@@ -120,6 +120,7 @@ export default async function MapPage() {
     },
     select: {
       inhabitantType: true,
+      workerCount: true,
       targetX: true,
       targetY: true,
       departedAt: true,
@@ -133,6 +134,7 @@ export default async function MapPage() {
     x: m.targetX,
     y: m.targetY,
     inhabitantType: m.inhabitantType,
+    workerCount: m.workerCount,
     departedAt: m.departedAt.toISOString(),
     travelSeconds: m.travelSeconds,
     workSeconds: m.workSeconds,

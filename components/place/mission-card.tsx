@@ -63,6 +63,7 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
         recalledAt: mission.recalledAt ? new Date(mission.recalledAt) : null,
         gatherRate,
         maxCapacity,
+        workerCount: mission.workerCount,
       },
       new Date(),
     )
@@ -212,7 +213,7 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
         {/* Line 3: worker info + recall button */}
         <div className="flex items-center justify-between">
           <span className="text-xs text-[var(--ivory)]/40">
-            1 {mission.inhabitantTitle}
+            {mission.workerCount} {mission.inhabitantTitle}
           </span>
 
           <div className="flex items-center gap-2">

@@ -25,6 +25,7 @@ export async function completePendingMissions(villageId: string): Promise<void> 
 
   interface LoopCandidate {
     inhabitantType: string
+    workerCount: number
     targetX: number
     targetY: number
     workSeconds: number
@@ -54,7 +55,7 @@ export async function completePendingMissions(villageId: string): Promise<void> 
 
     let baseResource = mission.recalledAt
       ? 0
-      : Math.min(
+      : mission.workerCount * Math.min(
           Math.floor((mission.workSeconds / 3600) * typeStats.gatherRate),
           typeStats.maxCapacity,
         )
@@ -90,6 +91,7 @@ export async function completePendingMissions(villageId: string): Promise<void> 
     if (mission.loop && !mission.recalledAt) {
       loopCandidates.push({
         inhabitantType: mission.inhabitantType,
+        workerCount: mission.workerCount,
         targetX: mission.targetX,
         targetY: mission.targetY,
         workSeconds: mission.workSeconds,
@@ -106,31 +108,32 @@ export async function completePendingMissions(villageId: string): Promise<void> 
     })
     if (!village || !village.inhabitants) return
 
-    // Count still-active missions per type (those NOT completed in this run)
+    // Sum busy workers per type from still-active missions
     const stillActiveMissions = await prisma.mission.findMany({
       where: { villageId, completedAt: null },
-      select: { inhabitantType: true },
+      select: { inhabitantType: true, workerCount: true },
     })
 
-    const activeCountByType: Record<string, number> = {}
+    const busyByType: Record<string, number> = {}
     for (const m of stillActiveMissions) {
-      activeCountByType[m.inhabitantType] = (activeCountByType[m.inhabitantType] ?? 0) + 1
+      busyByType[m.inhabitantType] = (busyByType[m.inhabitantType] ?? 0) + m.workerCount
     }
 
-    // Track how many new missions we allocate per type in this batch
+    // Track how many new workers we allocate per type in this batch
     const allocatedByType: Record<string, number> = {}
 
     for (const candidate of loopCandidates) {
       const totalOfType = (village.inhabitants as Record<string, unknown>)[candidate.inhabitantType] as number ?? 0
-      const activeOfType = (activeCountByType[candidate.inhabitantType] ?? 0)
+      const busyOfType = (busyByType[candidate.inhabitantType] ?? 0)
         + (allocatedByType[candidate.inhabitantType] ?? 0)
 
-      if (totalOfType - activeOfType <= 0) continue
+      if (totalOfType - busyOfType < candidate.workerCount) continue
 
       await prisma.mission.create({
         data: {
           villageId,
           inhabitantType: candidate.inhabitantType,
+          workerCount: candidate.workerCount,
           targetX: candidate.targetX,
           targetY: candidate.targetY,
           travelSeconds: candidate.travelSeconds,
@@ -139,7 +142,7 @@ export async function completePendingMissions(villageId: string): Promise<void> 
         },
       })
 
-      allocatedByType[candidate.inhabitantType] = (allocatedByType[candidate.inhabitantType] ?? 0) + 1
+      allocatedByType[candidate.inhabitantType] = (allocatedByType[candidate.inhabitantType] ?? 0) + candidate.workerCount
     }
   }
 

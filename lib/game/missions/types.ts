@@ -13,6 +13,7 @@ export interface ActiveMission {
   id: string
   inhabitantType: string
   inhabitantTitle: string
+  workerCount: number
   targetX: number
   targetY: number
   departedAt: Date

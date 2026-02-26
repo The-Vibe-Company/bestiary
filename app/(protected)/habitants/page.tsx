@@ -62,14 +62,14 @@ export default async function HabitantsPage() {
     redirect("/sign-in");
   }
 
-  // Count active missions grouped by inhabitant type
-  const activeMissionCounts = await prisma.mission.groupBy({
+  // Sum busy workers grouped by inhabitant type
+  const activeMissionSums = await prisma.mission.groupBy({
     by: ['inhabitantType'],
     where: { villageId: village.id, completedAt: null },
-    _count: true,
+    _sum: { workerCount: true },
   });
   const missionCountMap = Object.fromEntries(
-    activeMissionCounts.map((m) => [m.inhabitantType, m._count])
+    activeMissionSums.map((m) => [m.inhabitantType, m._sum.workerCount ?? 0])
   );
 
   const totalInhabitants = villageInhabitants
@@ -113,6 +113,7 @@ export default async function HabitantsPage() {
     },
     select: {
       inhabitantType: true,
+      workerCount: true,
       targetX: true,
       targetY: true,
       departedAt: true,
@@ -131,6 +132,7 @@ export default async function HabitantsPage() {
     x: m.targetX,
     y: m.targetY,
     inhabitantType: m.inhabitantType,
+    workerCount: m.workerCount,
     departedAt: m.departedAt.toISOString(),
     travelSeconds: m.travelSeconds,
     workSeconds: m.workSeconds,

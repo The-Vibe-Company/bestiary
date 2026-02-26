@@ -19,6 +19,7 @@ export async function createMission(
   workSeconds: number,
   loop: boolean = false,
   inhabitantType: string = 'lumberjack',
+  workerCount: number = 1,
 ): Promise<CreateMissionResult> {
   const { session } = await neonAuth()
   if (!session) {
@@ -34,6 +35,11 @@ export async function createMission(
   // Validate workSeconds
   if (workSeconds < MIN_WORK_SECONDS || workSeconds > MAX_WORK_SECONDS) {
     return { success: false, error: 'Durée de travail invalide' }
+  }
+
+  // Validate workerCount
+  if (!Number.isInteger(workerCount) || workerCount < 1) {
+    return { success: false, error: 'Nombre de travailleurs invalide' }
   }
 
   const village = await prisma.village.findUnique({
@@ -71,16 +77,19 @@ export async function createMission(
 
   // Check worker availability
   const totalWorkers = (village.inhabitants as unknown as Record<string, number>)?.[inhabitantType] ?? 0
-  const activeMissions = await prisma.mission.count({
+  const activeMissionsAgg = await prisma.mission.aggregate({
+    _sum: { workerCount: true },
     where: {
       villageId: village.id,
       inhabitantType,
       completedAt: null,
     },
   })
+  const busyWorkers = activeMissionsAgg._sum.workerCount ?? 0
+  const availableWorkers = totalWorkers - busyWorkers
 
-  if (totalWorkers - activeMissions <= 0) {
-    return { success: false, error: `Aucun ${config.workerLabel} disponible` }
+  if (workerCount > availableWorkers) {
+    return { success: false, error: `Pas assez de ${config.workerLabelPlural} disponibles` }
   }
 
   // Compute travel time
@@ -95,6 +104,7 @@ export async function createMission(
     data: {
       village: { connect: { id: village.id } },
       inhabitantType,
+      workerCount,
       targetX,
       targetY,
       travelSeconds,
