@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { GiWell, GiVillage, GiFarmer, GiScrollUnfurled, GiPawPrint, GiTreasureMap } from 'react-icons/gi'
 import { SignOutButton } from '@/components/auth/sign-out-button'
-import { NotificationBell } from '@/components/notifications/notification-bell'
 import { Tooltip } from '@/components/ui/tooltip'
 import type { IconType } from 'react-icons'
 
@@ -17,21 +16,7 @@ const NAV_ITEMS: { href: string; icon: IconType; label: string }[] = [
   { href: '/map', icon: GiTreasureMap, label: 'Carte' },
 ]
 
-interface NotificationData {
-  id: string
-  type: string
-  title: string
-  message: string
-  readAt: string | null
-  createdAt: string
-}
-
-interface HeaderProps {
-  notifications?: NotificationData[]
-  unreadCount?: number
-}
-
-export function Header({ notifications = [], unreadCount = 0 }: HeaderProps) {
+export function Header() {
   const pathname = usePathname()
 
   return (
@@ -68,12 +53,8 @@ export function Header({ notifications = [], unreadCount = 0 }: HeaderProps) {
           ))}
         </nav>
 
-        {/* Right: Notifications + Sign Out */}
+        {/* Right: Sign Out */}
         <div className="flex items-center gap-3">
-          <NotificationBell
-            notifications={notifications}
-            unreadCount={unreadCount}
-          />
           <SignOutButton />
         </div>
       </div>
