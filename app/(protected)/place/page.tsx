@@ -1,9 +1,6 @@
-import { GiPawPrint, GiCrossedSwords } from "react-icons/gi";
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
-import { ActiveJobsPanel } from "@/components/place/active-jobs-panel";
-import { PlacePanel } from "@/components/place/place-panel";
-import { TravelersPanel } from "@/components/place/travelers-panel";
+import { PlacePageClient } from "@/components/place/place-page-client";
 import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
 import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
 import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
@@ -134,43 +131,16 @@ export default async function PlacePage() {
         />
       </div>
 
-      {/* Main content — 2×2 grid */}
+      {/* Main content — dual-panel layout */}
       <div className="flex-1 min-h-0 relative z-10 p-6 pt-4">
-        <div className="h-full grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 gap-4 max-w-5xl mx-auto">
-          {/* Voyageurs */}
-          <TravelersPanel
-            travelerStatus={travelerStatus}
-            inhabitantTypes={inhabitantTypesData}
-            isVillageFull={isVillageFull}
-            tavernLevel={tavernLevel}
-          />
-
-          {/* Placeholder — Animaux errants */}
-          <PlacePanel icon={<GiPawPrint size={22} />} title="Animaux errants">
-            <div className="h-full flex flex-col items-center justify-center gap-3">
-              <GiPawPrint size={48} className="text-[var(--ivory)]/20" />
-              <p className="text-sm font-[family-name:var(--font-title)] tracking-[0.15em] text-[var(--ivory)]/30 uppercase">
-                Bientôt disponible
-              </p>
-            </div>
-          </PlacePanel>
-
-          {/* Placeholder — Troupes & Combats */}
-          <PlacePanel icon={<GiCrossedSwords size={22} />} title="Troupes & Combats">
-            <div className="h-full flex flex-col items-center justify-center gap-3">
-              <GiCrossedSwords size={48} className="text-[var(--ivory)]/20" />
-              <p className="text-sm font-[family-name:var(--font-title)] tracking-[0.15em] text-[var(--ivory)]/30 uppercase">
-                Bientôt disponible
-              </p>
-            </div>
-          </PlacePanel>
-
-          {/* Jobs en cours */}
-          <ActiveJobsPanel
-            missions={missions}
-            statsByType={statsByType}
-          />
-        </div>
+        <PlacePageClient
+          travelerStatus={travelerStatus}
+          inhabitantTypes={inhabitantTypesData}
+          isVillageFull={isVillageFull}
+          tavernLevel={tavernLevel}
+          missions={missions}
+          statsByType={statsByType}
+        />
       </div>
     </div>
   );
