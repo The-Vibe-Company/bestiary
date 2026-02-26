@@ -112,7 +112,7 @@ const buildingTypes = [
     key: 'hotel_de_ville',
     title: 'Hôtel de Ville',
     description:
-      'Le centre administratif du village. Son niveau détermine le nombre maximum d\'habitations constructibles.',
+      'Le centre administratif du village. Permet d\'accueillir plus d\'habitants et de développer le village.',
     image: '/assets/batiments/hotel_de_ville.webp',
     order: 1,
     category: 'centre',

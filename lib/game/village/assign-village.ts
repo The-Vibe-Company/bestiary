@@ -79,7 +79,14 @@ export async function assignVillageToUser(userId: string) {
     }
   })
 
-  // Auto-construire l'Hôtel de Ville niveau 1 et appliquer son bonus de capacité (+6)
+  // Fetch capacityBonus from BuildingType to avoid hardcoded values
+  const hotelType = await prisma.buildingType.findUnique({
+    where: { key: 'hotel_de_ville' },
+    select: { capacityBonus: true },
+  })
+  const capacityBonus = hotelType?.capacityBonus ?? 0
+
+  // Auto-construire l'Hôtel de Ville niveau 1 et appliquer son bonus de capacité
   await prisma.$transaction([
     prisma.villageBuilding.create({
       data: {
@@ -92,10 +99,14 @@ export async function assignVillageToUser(userId: string) {
         completedAt: now,
       },
     }),
-    prisma.village.update({
-      where: { id: village.id },
-      data: { capacity: { increment: 6 } },
-    }),
+    ...(capacityBonus > 0
+      ? [
+          prisma.village.update({
+            where: { id: village.id },
+            data: { capacity: { increment: capacityBonus } },
+          }),
+        ]
+      : []),
   ])
 
   return village
