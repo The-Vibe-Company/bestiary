@@ -9,7 +9,7 @@ import { BuildModal } from '@/components/village/build-modal'
 import { startBuilding } from '@/lib/game/buildings/start-building'
 import { formatTimeRemaining } from '@/lib/utils/format-time'
 import Link from 'next/link'
-import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiHammerNails, GiThreeFriends, GiPadlock, GiSandsOfTime, GiWatchtower, GiBeerStein } from 'react-icons/gi'
+import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiHammerNails, GiThreeFriends, GiPadlock, GiSandsOfTime, GiWatchtower, GiBeerStein, GiTowerFlag, GiBookshelf, GiBarrel, GiCrossedSwords, GiPartyPopper } from 'react-icons/gi'
 import { DETECTION_WINDOW_SECONDS } from '@/lib/game/travelers/detection'
 import { TAVERN_STAY_MULTIPLIER } from '@/lib/game/travelers/tavern'
 
@@ -24,6 +24,7 @@ export interface BuildingTypeData {
   title: string
   description: string
   image: string
+  category: string
   costBois: number
   costPierre: number
   costCereales: number
@@ -60,6 +61,15 @@ interface VillagePageClientProps {
   }
   availableBuilders: number
 }
+
+const BUILDING_CATEGORIES = [
+  { key: 'all', label: 'Tous', icon: null },
+  { key: 'centre', label: 'Centre', icon: GiTowerFlag },
+  { key: 'ressources', label: 'Ressources', icon: GiBarrel },
+  { key: 'savoir', label: 'Savoir', icon: GiBookshelf },
+  { key: 'militaire', label: 'Militaire', icon: GiCrossedSwords },
+  { key: 'social', label: 'Social', icon: GiPartyPopper },
+] as const
 
 const RESOURCE_CONFIG = [
   { key: 'costBois' as const, resKey: 'bois' as const, icon: GiWoodPile, color: '#8B4513', label: 'Bois' },
@@ -144,13 +154,51 @@ function ConstructionStatus({
   )
 }
 
+function CategoryTabs({
+  activeCategory,
+  onCategoryChange,
+}: {
+  activeCategory: string
+  onCategoryChange: (category: string) => void
+}) {
+  return (
+    <div className="flex items-center gap-1 px-4 py-2.5">
+      {BUILDING_CATEGORIES.map((cat) => {
+        const isActive = activeCategory === cat.key
+        const Icon = cat.icon
+        return (
+          <button
+            key={cat.key}
+            onClick={() => onCategoryChange(cat.key)}
+            className={`
+              cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-all duration-150
+              ${isActive
+                ? 'bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/40'
+                : 'text-[var(--ivory)]/40 hover:text-[var(--ivory)]/70 hover:bg-[var(--ivory)]/5 border border-transparent'
+              }
+            `}
+          >
+            {Icon && <Icon size={13} />}
+            {cat.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export function VillagePageClient({ buildingTypes, villageResources, storageCapacity, availableBuilders }: VillagePageClientProps) {
   const router = useRouter()
   const [buildModalKey, setBuildModalKey] = useState<string | null>(null)
   const [loadingKey, setLoadingKey] = useState<string | null>(null)
   const [buildErrors, setBuildErrors] = useState<Record<string, string>>({})
+  const [activeCategory, setActiveCategory] = useState('all')
 
   const noBuilders = availableBuilders <= 0
+
+  const filteredBuildings = activeCategory === 'all'
+    ? buildingTypes
+    : buildingTypes.filter((b) => b.category === activeCategory)
 
   function getButtonLabel(building: BuildingTypeData, canAfford: boolean) {
     const isUnique = building.maxCount === 1
@@ -195,9 +243,16 @@ export function VillagePageClient({ buildingTypes, villageResources, storageCapa
     ? buildingTypes.find((b) => b.key === buildModalKey) ?? null
     : null
 
+  const categoryHeader = (
+    <CategoryTabs
+      activeCategory={activeCategory}
+      onCategoryChange={setActiveCategory}
+    />
+  )
+
   return (
-    <HabitantsPanel>
-      {buildingTypes.map((building) => {
+    <HabitantsPanel header={categoryHeader}>
+      {filteredBuildings.map((building) => {
         const isUnique = building.maxCount === 1
         const isUpgradeable = isUnique && building.maxLevel > 1
         const isUpgrade = isUpgradeable && building.currentLevel > 0
@@ -226,7 +281,7 @@ export function VillagePageClient({ buildingTypes, villageResources, storageCapa
         return (
           <div
             key={building.key}
-            className="relative flex items-center gap-4 p-4"
+            className="relative flex items-start gap-4 p-4 h-[176px]"
           >
             {/* Image on the left */}
             <div className={`relative w-[140px] h-[140px] flex-shrink-0 rounded-xl overflow-hidden border-2 ${isTechLocked ? 'border-[var(--ivory)]/20 grayscale opacity-50' : 'border-[var(--burnt-amber)]'}`}>
@@ -239,8 +294,9 @@ export function VillagePageClient({ buildingTypes, villageResources, storageCapa
             </div>
 
             {/* Content on the right */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-2">
+            <div className="flex-1 min-w-0 flex flex-col h-[140px]">
+              {/* Top: title + action */}
+              <div className="flex items-center gap-3">
                 <h2 className="text-xl font-bold font-[family-name:var(--font-title)] tracking-wider text-[var(--ivory)]">
                   {building.title}
                 </h2>
@@ -253,7 +309,7 @@ export function VillagePageClient({ buildingTypes, villageResources, storageCapa
                 ) : (
                   <>
                     <div className="flex-1" />
-                    {building.capacityBonus > 0 && (
+                    {building.capacityBonus > 0 && building.key !== 'cabane_en_bois' && (
                       <div className="flex items-center gap-1">
                         <GiThreeFriends size={14} style={{ color: '#C19A6B' }} />
                         <span className="text-xs font-bold text-[var(--ivory)]/60">
@@ -284,114 +340,120 @@ export function VillagePageClient({ buildingTypes, villageResources, storageCapa
                 )}
               </div>
 
-              <p className="text-sm text-[var(--ivory)]/70 leading-relaxed">
+              {/* Description (fixed 2 lines) */}
+              <p className="text-sm text-[var(--ivory)]/70 leading-relaxed line-clamp-2 mt-2">
                 {building.description}
               </p>
 
-              {/* Current effect for upgradeable buildings */}
-              {isUpgradeable &&
-                STORAGE_BONUS_CONFIG.some((sb) => building[sb.key] > 0) && (
-                <div className="flex items-center gap-3 mt-2">
-                  <span className="text-xs text-[var(--ivory)]/40">
-                    Capacité actuelle
-                  </span>
-                  <span className="text-[var(--ivory)]/20">|</span>
-                  {STORAGE_BONUS_CONFIG.map((sb) => {
-                    if (building[sb.key] <= 0) return null
-                    return (
-                      <div key={sb.key} className="flex items-center gap-1">
-                        <sb.icon size={14} style={{ color: sb.color }} />
-                        <span className="text-xs font-bold text-[var(--burnt-amber)]">
-                          {storageCapacity[sb.capacityKey]}
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
+              {/* Spacer to push bottom content down */}
+              <div className="flex-1" />
 
-              {isUpgradeable && building.key === 'tour_de_guet' && (
-                <div className="flex items-center gap-3 mt-2">
-                  <span className="text-xs text-[var(--ivory)]/40">
-                    Détection
-                  </span>
-                  <span className="text-[var(--ivory)]/20">|</span>
-                  <div className="flex items-center gap-1">
-                    <GiWatchtower size={14} className="text-amber-400/80" />
-                    {building.currentLevel > 0 ? (
-                      <span className="text-xs font-bold text-[var(--burnt-amber)]">
-                        {(DETECTION_WINDOW_SECONDS[building.currentLevel] ?? 0) / 60} min avant l&apos;arrivée
-                      </span>
-                    ) : (
-                      <span className="text-xs text-[var(--ivory)]/30">aucune</span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {isUpgradeable && building.key === 'taverne' && (
-                <div className="flex items-center gap-3 mt-2">
-                  <span className="text-xs text-[var(--ivory)]/40">
-                    Durée de séjour
-                  </span>
-                  <span className="text-[var(--ivory)]/20">|</span>
-                  <div className="flex items-center gap-1">
-                    <GiBeerStein size={14} className="text-amber-600/80" />
-                    {building.currentLevel > 0 ? (
-                      <span className="text-xs font-bold text-[var(--burnt-amber)]">
-                        ×{TAVERN_STAY_MULTIPLIER[building.currentLevel] ?? 1}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-[var(--ivory)]/30">normale</span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {buildErrors[building.key] && (
-                <p className="mt-2 text-xs text-[var(--burnt-amber-light)]">
-                  {buildErrors[building.key]}
-                </p>
-              )}
-
-              {isTechLocked && building.requiredTechnology && (
-                <Link
-                  href={`/research?focus=${building.requiredTechnology}`}
-                  className="mt-2 inline-flex items-center gap-1.5 text-xs text-[var(--burnt-amber)]/70 hover:text-[var(--burnt-amber)] transition-colors"
-                >
-                  <GiPadlock size={12} />
-                  Nécessite {building.requiredTechnologyTitle} Niv. 1
-                </Link>
-              )}
-
-              {/* Cost & time display */}
-              {!maxLevelReached && !maxCountReached && !isTechLocked && (
-                <div className="flex items-center gap-3 mt-2">
-                  {costs.map((r) => {
-                    const cost = building[r.key] * costMultiplier
-                    const hasEnough = villageResources[r.resKey] >= cost
-                    return (
-                      <div key={r.key} className="flex items-center gap-1">
-                        <r.icon size={16} style={{ color: r.color }} />
-                        <span
-                          className="text-sm font-bold"
-                          style={{ color: hasEnough ? r.color : '#CD5C5C' }}
-                        >
-                          {cost}
-                        </span>
-                      </div>
-                    )
-                  })}
-                  <span className="text-[var(--ivory)]/30">|</span>
-                  <div className="flex items-center gap-1">
-                    <GiSandsOfTime size={16} className="text-[var(--ivory)]/60" />
-                    <span className="text-sm font-bold text-[var(--ivory)]/60">
-                      {formatTimeRemaining(building.buildSeconds * costMultiplier)}
+              {/* Bottom: effect line + costs (always at bottom of card) */}
+              <div>
+                {/* Current effect for upgradeable buildings */}
+                {isUpgradeable &&
+                  STORAGE_BONUS_CONFIG.some((sb) => building[sb.key] > 0) && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-[var(--ivory)]/40">
+                      Capacité actuelle
                     </span>
+                    <span className="text-[var(--ivory)]/20">|</span>
+                    {STORAGE_BONUS_CONFIG.map((sb) => {
+                      if (building[sb.key] <= 0) return null
+                      return (
+                        <div key={sb.key} className="flex items-center gap-1">
+                          <sb.icon size={14} style={{ color: sb.color }} />
+                          <span className="text-xs font-bold text-[var(--burnt-amber)]">
+                            {storageCapacity[sb.capacityKey]}
+                          </span>
+                        </div>
+                      )
+                    })}
                   </div>
-                </div>
-              )}
+                )}
 
+                {isUpgradeable && building.key === 'tour_de_guet' && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-[var(--ivory)]/40">
+                      Détection
+                    </span>
+                    <span className="text-[var(--ivory)]/20">|</span>
+                    <div className="flex items-center gap-1">
+                      <GiWatchtower size={14} className="text-amber-400/80" />
+                      {building.currentLevel > 0 ? (
+                        <span className="text-xs font-bold text-[var(--burnt-amber)]">
+                          {(DETECTION_WINDOW_SECONDS[building.currentLevel] ?? 0) / 60} min avant l&apos;arrivée
+                        </span>
+                      ) : (
+                        <span className="text-xs text-[var(--ivory)]/30">aucune</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {isUpgradeable && building.key === 'taverne' && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-[var(--ivory)]/40">
+                      Durée de séjour
+                    </span>
+                    <span className="text-[var(--ivory)]/20">|</span>
+                    <div className="flex items-center gap-1">
+                      <GiBeerStein size={14} className="text-amber-600/80" />
+                      {building.currentLevel > 0 ? (
+                        <span className="text-xs font-bold text-[var(--burnt-amber)]">
+                          ×{TAVERN_STAY_MULTIPLIER[building.currentLevel] ?? 1}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-[var(--ivory)]/30">normale</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {buildErrors[building.key] && (
+                  <p className="text-xs text-[var(--burnt-amber-light)]">
+                    {buildErrors[building.key]}
+                  </p>
+                )}
+
+                {isTechLocked && building.requiredTechnology && (
+                  <Link
+                    href={`/research?focus=${building.requiredTechnology}`}
+                    className="inline-flex items-center gap-1.5 text-xs text-[var(--burnt-amber)]/70 hover:text-[var(--burnt-amber)] transition-colors"
+                  >
+                    <GiPadlock size={12} />
+                    Nécessite {building.requiredTechnologyTitle} Niv. 1
+                  </Link>
+                )}
+
+                {/* Cost & time display */}
+                {!maxLevelReached && !maxCountReached && !isTechLocked && (
+                  <div className="flex items-center gap-3 mt-1">
+                    {costs.map((r) => {
+                      const cost = building[r.key] * costMultiplier
+                      const hasEnough = villageResources[r.resKey] >= cost
+                      return (
+                        <div key={r.key} className="flex items-center gap-1">
+                          <r.icon size={16} style={{ color: r.color }} />
+                          <span
+                            className="text-sm font-bold"
+                            style={{ color: hasEnough ? r.color : '#CD5C5C' }}
+                          >
+                            {cost}
+                          </span>
+                        </div>
+                      )
+                    })}
+                    <span className="text-[var(--ivory)]/30">|</span>
+                    <div className="flex items-center gap-1">
+                      <GiSandsOfTime size={16} className="text-[var(--ivory)]/60" />
+                      <span className="text-sm font-bold text-[var(--ivory)]/60">
+                        {formatTimeRemaining(building.buildSeconds * costMultiplier)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Badge: bottom-right of the card */}

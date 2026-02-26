@@ -118,6 +118,7 @@ export default async function VillagePage() {
       title: bt.title,
       description: bt.description,
       image: bt.image,
+      category: bt.category,
       costBois: bt.costBois,
       costPierre: bt.costPierre,
       costCereales: bt.costCereales,

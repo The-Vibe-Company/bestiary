@@ -114,6 +114,7 @@ model BuildingType {
   description   String
   image         String
   order         Int
+  category      String @default("centre") // centre, ressources, savoir, militaire, social
   costBois      Int    @default(0)
   costPierre    Int    @default(0)
   costCereales  Int    @default(0)

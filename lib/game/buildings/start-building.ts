@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { neonAuth } from '@neondatabase/auth/next/server'
 import { Prisma } from '@prisma/client'
-
 export type StartBuildingResult =
   | { success: true }
   | { success: false; error: string }
