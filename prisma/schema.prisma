@@ -215,6 +215,7 @@ model Mission {
   villageId      String
   village        Village   @relation(fields: [villageId], references: [id], onDelete: Cascade)
   inhabitantType String    // "lumberjack"
+  workerCount    Int       @default(1) // number of workers assigned to this mission
   targetX        Int
   targetY        Int
   departedAt     DateTime  @default(now())

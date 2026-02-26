@@ -39,6 +39,7 @@ export async function getActiveMissions(villageId: string): Promise<ActiveMissio
       id: m.id,
       inhabitantType: m.inhabitantType,
       inhabitantTitle: titleByKey[m.inhabitantType] ?? m.inhabitantType,
+      workerCount: m.workerCount,
       targetX: m.targetX,
       targetY: m.targetY,
       departedAt: m.departedAt,

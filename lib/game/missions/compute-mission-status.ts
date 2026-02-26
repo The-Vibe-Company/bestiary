@@ -7,6 +7,7 @@ interface MissionData {
   recalledAt: Date | null
   gatherRate: number
   maxCapacity: number
+  workerCount?: number
 }
 
 export function computeMissionStatus(mission: MissionData, now: Date = new Date()): MissionStatus {
@@ -51,7 +52,8 @@ export function computeMissionStatus(mission: MissionData, now: Date = new Date(
   const finishWork = arriveAtTarget + workMs
   const arriveHome = finishWork + travelMs
 
-  const projectedResource = Math.min(
+  const workers = mission.workerCount ?? 1
+  const projectedResource = workers * Math.min(
     Math.floor((mission.workSeconds / 3600) * mission.gatherRate),
     mission.maxCapacity,
   )

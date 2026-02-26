@@ -29,6 +29,7 @@ export interface MissionTile {
   x: number;
   y: number;
   inhabitantType: string;
+  workerCount: number;
   departedAt: string;
   travelSeconds: number;
   workSeconds: number;
@@ -100,24 +101,25 @@ export function MapPageClient({
       now,
     );
     if (status.phase === 'completed') continue;
+    const workers = t.workerCount;
     const existing = missionTileMap.get(key);
     if (existing) {
-      existing.total++;
-      existing.byPhase[status.phase] = (existing.byPhase[status.phase] ?? 0) + 1;
+      existing.total += workers;
+      existing.byPhase[status.phase] = (existing.byPhase[status.phase] ?? 0) + workers;
       if (!existing.byWorkerPhase[t.inhabitantType]) {
         existing.byWorkerPhase[t.inhabitantType] = {};
       }
       existing.byWorkerPhase[t.inhabitantType][status.phase] =
-        (existing.byWorkerPhase[t.inhabitantType][status.phase] ?? 0) + 1;
+        (existing.byWorkerPhase[t.inhabitantType][status.phase] ?? 0) + workers;
       // Priority: working > traveling-to > traveling-back
       const priority: MissionPhase[] = ['working', 'traveling-to', 'traveling-back'];
       existing.dominantPhase = priority.find((p) => existing.byPhase[p]) ?? status.phase;
     } else {
       missionTileMap.set(key, {
-        total: 1,
+        total: workers,
         dominantPhase: status.phase,
-        byPhase: { [status.phase]: 1 },
-        byWorkerPhase: { [t.inhabitantType]: { [status.phase]: 1 } },
+        byPhase: { [status.phase]: workers },
+        byWorkerPhase: { [t.inhabitantType]: { [status.phase]: workers } },
       });
     }
   }

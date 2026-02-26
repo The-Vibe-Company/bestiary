@@ -7,6 +7,7 @@ import { computeMissionStatus } from '@/lib/game/missions/compute-mission-status
 import { recallMission } from '@/lib/game/missions/recall-mission'
 import { toggleMissionLoop } from '@/lib/game/missions/toggle-mission-loop'
 import { MISSION_ICONS } from '@/lib/game/missions/mission-icons'
+import { MISSION_CONFIG } from '@/lib/game/missions/mission-config'
 import type { ActiveMission, MissionPhase } from '@/lib/game/missions/types'
 
 interface MissionCardProps {
@@ -63,6 +64,7 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
         recalledAt: mission.recalledAt ? new Date(mission.recalledAt) : null,
         gatherRate,
         maxCapacity,
+        workerCount: mission.workerCount,
       },
       new Date(),
     )
@@ -212,7 +214,9 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
         {/* Line 3: worker info + recall button */}
         <div className="flex items-center justify-between">
           <span className="text-xs text-[var(--ivory)]/40">
-            1 {mission.inhabitantTitle}
+            {mission.workerCount} {mission.workerCount > 1
+              ? MISSION_CONFIG[mission.inhabitantType]?.workerLabelPlural ?? mission.inhabitantTitle
+              : mission.inhabitantTitle}
           </span>
 
           <div className="flex items-center gap-2">
