@@ -164,7 +164,7 @@ export function TravelerCard({
               )
             )}
 
-            {travelerStatus.status === 'present' && travelerStatus.isWelcomed && !isVillageFull && (
+            {travelerStatus.status === 'present' && travelerStatus.isWelcomed && (
               <button
                 type="button"
                 onClick={onAssign}
