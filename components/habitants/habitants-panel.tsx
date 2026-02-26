@@ -1,14 +1,16 @@
 import { type ReactNode } from 'react'
 
 interface HabitantsPanelProps {
+  header?: ReactNode
   children: ReactNode
 }
 
 /**
  * Panel wrapper for the habitants list.
  * The panel stays fixed while its content scrolls internally.
+ * An optional header renders above the scroll area (stays sticky).
  */
-export function HabitantsPanel({ children }: HabitantsPanelProps) {
+export function HabitantsPanel({ header, children }: HabitantsPanelProps) {
   return (
     <>
       <style>{`
@@ -27,6 +29,11 @@ export function HabitantsPanel({ children }: HabitantsPanelProps) {
         }
       `}</style>
       <div className="w-[60%] max-w-3xl max-h-full bg-black/75 backdrop-blur border border-[var(--burnt-amber)]/50 rounded-l-2xl rounded-r-lg overflow-hidden flex flex-col">
+        {header && (
+          <div className="flex-shrink-0 border-b border-[var(--ivory)]/10">
+            {header}
+          </div>
+        )}
         <div className="overflow-y-auto habitants-scroll divide-y divide-[var(--ivory)]/10 pr-1 min-h-0">
           {children}
         </div>

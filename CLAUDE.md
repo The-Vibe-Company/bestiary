@@ -34,6 +34,7 @@ Any code or feature added to the project must respect these principles.
   - hover state
   - active state
   - disabled state when relevant
+- **All clickable elements must have `cursor-pointer`.**
 - No interactive element should look like static text.
 - Clickable areas must be comfortable and accessible.
 

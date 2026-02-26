@@ -39,3 +39,4 @@ export interface ResearchCompletedData {
   technologyTitle: string
   level: number
 }
+

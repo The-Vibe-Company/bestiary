@@ -69,12 +69,45 @@ export async function assignVillageToUser(userId: string) {
   const randomIndex = Math.floor(Math.random() * freePrairies.length)
   const freePrairie = freePrairies[randomIndex]
 
-  // Créer le village
-  return prisma.village.create({
+  // Créer le village avec l'Hôtel de Ville niveau 1 pré-construit
+  const now = new Date()
+  const village = await prisma.village.create({
     data: {
       x: freePrairie.x,
       y: freePrairie.y,
-      ownerId: userId
+      ownerId: userId,
     }
   })
+
+  // Fetch capacityBonus from BuildingType to avoid hardcoded values
+  const hotelType = await prisma.buildingType.findUnique({
+    where: { key: 'hotel_de_ville' },
+    select: { capacityBonus: true },
+  })
+  const capacityBonus = hotelType?.capacityBonus ?? 0
+
+  // Auto-construire l'Hôtel de Ville niveau 1 et appliquer son bonus de capacité
+  await prisma.$transaction([
+    prisma.villageBuilding.create({
+      data: {
+        villageId: village.id,
+        buildingType: 'hotel_de_ville',
+        level: 1,
+        buildSeconds: 0,
+        assignedBuilders: 0,
+        startedAt: now,
+        completedAt: now,
+      },
+    }),
+    ...(capacityBonus > 0
+      ? [
+          prisma.village.update({
+            where: { id: village.id },
+            data: { capacity: { increment: capacityBonus } },
+          }),
+        ]
+      : []),
+  ])
+
+  return village
 }

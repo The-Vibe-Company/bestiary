@@ -79,5 +79,6 @@ export async function completePendingBuildings(villageId: string): Promise<void>
         level: building.level,
       },
     })
+
   }
 }
