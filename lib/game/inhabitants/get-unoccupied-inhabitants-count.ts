@@ -8,7 +8,7 @@ export async function getUnoccupiedInhabitantsCount(
     return 0
   }
 
-  const [activeMissionsAgg, activeBuildings, activeResearch] = await Promise.all([
+  const [activeMissionsAgg, activeBuildings, activeResearch, buildingStaff] = await Promise.all([
     prisma.mission.aggregate({
       _sum: { workerCount: true },
       where: {
@@ -34,12 +34,16 @@ export async function getUnoccupiedInhabitantsCount(
         assignedResearchers: true,
       },
     }),
+    prisma.villageInhabitants.findUnique({
+      where: { villageId },
+      select: { watchman: true, tavernkeeper: true },
+    }),
   ])
 
   const busyBuilders = activeBuildings._sum.assignedBuilders ?? 0
   const busyResearchers = activeResearch._sum.assignedResearchers ?? 0
-
   const busyMissionWorkers = activeMissionsAgg._sum.workerCount ?? 0
+  const busyBuildingStaff = (buildingStaff?.watchman ?? 0) + (buildingStaff?.tavernkeeper ?? 0)
 
-  return Math.max(totalInhabitants - busyMissionWorkers - busyBuilders - busyResearchers, 0)
+  return Math.max(totalInhabitants - busyMissionWorkers - busyBuilders - busyResearchers - busyBuildingStaff, 0)
 }
