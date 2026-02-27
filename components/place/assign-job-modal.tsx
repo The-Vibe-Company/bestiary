@@ -57,7 +57,7 @@ export function AssignJobModal({ inhabitantTypes, jobCapacities, onClose }: Assi
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-md"
-        onClick={onClose}
+        onClick={pending ? undefined : onClose}
       />
 
       {/* Modal */}
