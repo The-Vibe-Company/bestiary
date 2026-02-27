@@ -9,7 +9,7 @@ import { BuildModal } from '@/components/village/build-modal'
 import { startBuilding } from '@/lib/game/buildings/start-building'
 import { formatTimeRemaining } from '@/lib/utils/format-time'
 import Link from 'next/link'
-import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiHammerNails, GiThreeFriends, GiPadlock, GiSandsOfTime, GiWatchtower, GiBeerStein, GiTowerFlag, GiBookshelf, GiBarrel, GiCrossedSwords, GiPartyPopper } from 'react-icons/gi'
+import { GiWoodPile, GiStonePile, GiWheat, GiMeat, GiHammerNails, GiThreeFriends, GiPadlock, GiSandsOfTime, GiWatchtower, GiBeerStein, GiTowerFlag, GiBookshelf, GiBarrel, GiCrossedSwords } from 'react-icons/gi'
 import { DETECTION_WINDOW_SECONDS } from '@/lib/game/travelers/detection'
 import { TAVERN_STAY_MULTIPLIER } from '@/lib/game/travelers/tavern'
 
@@ -67,9 +67,9 @@ const BUILDING_CATEGORIES = [
   { key: 'all', label: 'Tous', icon: null },
   { key: 'centre', label: 'Centre', icon: GiTowerFlag },
   { key: 'ressources', label: 'Ressources', icon: GiBarrel },
-  { key: 'savoir', label: 'Savoir', icon: GiBookshelf },
+  { key: 'recherche', label: 'Recherche', icon: GiBookshelf },
+  { key: 'habitation', label: 'Habitation', icon: GiThreeFriends },
   { key: 'militaire', label: 'Militaire', icon: GiCrossedSwords },
-  { key: 'social', label: 'Social', icon: GiPartyPopper },
 ] as const
 
 const RESOURCE_CONFIG = [
@@ -219,9 +219,18 @@ export function VillagePageClient({ buildingTypes, villageResources, storageCapa
 
   const noBuilders = availableBuilders <= 0
 
+  function getBuildingCategory(building: BuildingTypeData): string {
+    if (building.key === 'hotel_de_ville' || building.key === 'taverne') return 'centre'
+    if (building.key.startsWith('entrepot_')) return 'ressources'
+    if (building.key === 'laboratoire') return 'recherche'
+    if (building.key === 'cabane_en_bois') return 'habitation'
+    if (building.key === 'tour_de_guet') return 'militaire'
+    return 'autres'
+  }
+
   const filteredBuildings = activeCategory === 'all'
     ? buildingTypes
-    : buildingTypes.filter((b) => b.category === activeCategory)
+    : buildingTypes.filter((b) => getBuildingCategory(b) === activeCategory)
 
   function getButtonLabel(building: BuildingTypeData, canAfford: boolean) {
     const isUnique = building.maxCount === 1

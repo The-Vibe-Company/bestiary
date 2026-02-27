@@ -26,6 +26,7 @@ interface PlacePageClientProps {
   inhabitantCounts: Record<string, number>
   totalInhabitants: number
   maxPopulation: number
+  jobCapacities: Record<string, { current: number; max: number | null; available: boolean }>
 }
 
 /* ── Snippet cards (left sidebar) ────────────────────────── */
@@ -139,9 +140,11 @@ function InhabitantsSnippet({
   totalInhabitants: number
   maxPopulation: number
 }) {
-  const sortedInhabitantTypes = [...inhabitantTypes].sort((a, b) =>
-    a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' })
-  )
+  const sortedInhabitantTypes = [...inhabitantTypes].sort((a, b) => {
+    if (a.key === 'mayor' && b.key !== 'mayor') return -1
+    if (b.key === 'mayor' && a.key !== 'mayor') return 1
+    return a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' })
+  })
 
   return (
     <div className="w-full flex-1 min-h-0 bg-black/75 backdrop-blur rounded-xl overflow-hidden border border-[var(--burnt-amber)]/20 flex flex-col">
@@ -188,6 +191,7 @@ export function PlacePageClient({
   inhabitantCounts,
   totalInhabitants,
   maxPopulation,
+  jobCapacities,
 }: PlacePageClientProps) {
   const [activeTab, setActiveTab] = useState('voyageurs')
 
@@ -257,6 +261,7 @@ export function PlacePageClient({
                 inhabitantTypes={inhabitantTypes}
                 isVillageFull={isVillageFull}
                 tavernLevel={tavernLevel}
+                jobCapacities={jobCapacities}
               />
             )}
             {activeTab === 'missions' && (
