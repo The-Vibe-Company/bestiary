@@ -80,7 +80,7 @@ export async function assignTraveler(type: InhabitantType): Promise<AssignTravel
 
       // Validate building staff capacity (e.g. watchman → tour_de_guet, splitter → entrepot_bois)
       const requiredBuilding = BUILDING_STAFF_TYPES[type]
-      if (requiredBuilding && type !== 'mayor') {
+      if (requiredBuilding) {
         const building = await tx.villageBuilding.findFirst({
           where: {
             villageId: village.id,
