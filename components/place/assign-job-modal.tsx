@@ -119,16 +119,16 @@ export function AssignJobModal({ inhabitantTypes, jobCapacities, onClose }: Assi
                       className="object-cover object-center"
                     />
                   </div>
-                  <span className={`text-xs font-[family-name:var(--font-title)] tracking-[0.1em] leading-tight text-center transition-colors ${isSelected ? 'text-[var(--burnt-amber)]' : 'text-[var(--ivory)]/60'}`}>
+                  <span className={`text-sm font-[family-name:var(--font-title)] tracking-[0.1em] leading-tight text-center transition-colors ${isSelected ? 'text-[var(--burnt-amber)]' : 'text-[var(--ivory)]/60'}`}>
                     {type.title}
                   </span>
                   {/* Capacity badge */}
                   {capacity?.max != null ? (
-                    <span className={`text-[11px] tracking-wider ${isFull ? 'text-[var(--ivory)]/30' : 'text-[var(--ivory)]/40'}`}>
-                      {capacity.current}/{capacity.max}
+                    <span className={`text-sm font-bold tracking-wider ${isFull ? 'text-[var(--ivory)]/30' : isSelected ? 'text-[var(--burnt-amber)]' : 'text-[var(--ivory)]/50'}`}>
+                      {capacity.current}<span className="text-[var(--ivory)]/30 font-normal">/{capacity.max}</span>
                     </span>
                   ) : (
-                    <span className="text-[11px] tracking-wider text-[var(--ivory)]/30">
+                    <span className={`text-sm font-bold tracking-wider ${isSelected ? 'text-[var(--burnt-amber)]' : 'text-[var(--ivory)]/50'}`}>
                       {capacity?.current ?? 0}
                     </span>
                   )}
