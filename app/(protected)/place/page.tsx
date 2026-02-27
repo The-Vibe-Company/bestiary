@@ -21,7 +21,7 @@ import { detectTraveler } from "@/lib/game/travelers/detect-traveler";
 import { getUser } from "@/lib/game/user/get-user";
 import { assignVillageToUser } from "@/lib/game/village/assign-village";
 import { getVillage } from "@/lib/game/village/get-village";
-import { INHABITANT_TYPES } from "@/lib/game/inhabitants/types";
+import { INHABITANT_TYPES, BUILDING_STAFF_TYPES } from "@/lib/game/inhabitants/types";
 import { computeEffectiveLevel } from "@/lib/game/buildings/compute-effective-level";
 import { neonAuth } from "@neondatabase/auth/next/server";
 import { redirect } from "next/navigation";
@@ -115,6 +115,24 @@ export default async function PlacePage() {
     inhabitantCounts[type] = villageInhabitants?.[type] ?? 0;
   }
 
+  // Compute per-job capacity info for the assign modal
+  // Mayor is excluded entirely; building staff only shown if their building exists
+  const jobCapacities: Record<string, { current: number; max: number | null; available: boolean }> = {};
+  for (const type of INHABITANT_TYPES) {
+    if (type === "mayor") continue;
+
+    const current = villageInhabitants?.[type] ?? 0;
+    const requiredBuilding = BUILDING_STAFF_TYPES[type];
+
+    if (requiredBuilding) {
+      const building = completedBuildings.find((b) => b.buildingType === requiredBuilding);
+      if (!building) continue; // building not built → hide from modal
+      jobCapacities[type] = { current, max: building.level, available: current < building.level };
+    } else {
+      jobCapacities[type] = { current, max: null, available: true };
+    }
+  }
+
   return (
     <div
       className="h-full flex flex-col bg-cover bg-center bg-no-repeat relative"
@@ -154,6 +172,7 @@ export default async function PlacePage() {
           inhabitantCounts={inhabitantCounts}
           totalInhabitants={totalInhabitants}
           maxPopulation={village.capacity}
+          jobCapacities={jobCapacities}
         />
       </div>
     </div>

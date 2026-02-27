@@ -12,9 +12,10 @@ interface TravelersPanelProps {
   inhabitantTypes: { key: string; title: string; image: string }[]
   isVillageFull: boolean
   tavernLevel?: number
+  jobCapacities: Record<string, { current: number; max: number | null; available: boolean }>
 }
 
-export function TravelersPanel({ travelerStatus, inhabitantTypes, isVillageFull, tavernLevel = 0 }: TravelersPanelProps) {
+export function TravelersPanel({ travelerStatus, inhabitantTypes, isVillageFull, tavernLevel = 0, jobCapacities }: TravelersPanelProps) {
   const router = useRouter()
   const [showModal, setShowModal] = useState(false)
   const [pendingWelcome, setPendingWelcome] = useState(false)
@@ -69,6 +70,7 @@ export function TravelersPanel({ travelerStatus, inhabitantTypes, isVillageFull,
       {showModal && (
         <AssignJobModal
           inhabitantTypes={inhabitantTypes}
+          jobCapacities={jobCapacities}
           onClose={() => setShowModal(false)}
         />
       )}

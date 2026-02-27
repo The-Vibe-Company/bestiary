@@ -7,6 +7,7 @@ import { SendFromHabitantsModal } from './send-from-habitants-modal'
 import { MISSION_CAPABLE_TYPES } from '@/lib/game/missions/mission-config'
 import type { WorldMap } from '@/lib/game/map/types'
 import type { MissionTile } from '@/components/game/map-page-client'
+import { GiCompass, GiGearHammer, GiVillage } from 'react-icons/gi'
 
 interface HabitantData {
   id: string
@@ -33,6 +34,68 @@ interface HabitantsPageClientProps {
   allVillagePositions: { x: number; y: number }[]
 }
 
+const INHABITANT_CATEGORIES = [
+  { key: 'all', label: 'Tous', icon: null },
+  { key: 'outside', label: 'Expeditions', icon: GiCompass },
+  { key: 'staff', label: 'Postes', icon: GiGearHammer },
+  { key: 'community', label: 'Village', icon: GiVillage },
+] as const
+
+const INHABITANT_CATEGORY_BY_KEY: Record<string, string> = {
+  explorer: 'outside',
+  lumberjack: 'outside',
+  miner: 'outside',
+  hunter: 'outside',
+  gatherer: 'outside',
+
+  researcher: 'community',
+  builder: 'community',
+
+  tavernkeeper: 'staff',
+  watchman: 'staff',
+  splitter: 'staff',
+  stonecutter: 'staff',
+  victualer: 'staff',
+  butcher: 'staff',
+  farmer: 'staff',
+  breeder: 'staff',
+
+  mayor: 'community',
+}
+
+function CategoryTabs({
+  activeCategory,
+  onCategoryChange,
+}: {
+  activeCategory: string
+  onCategoryChange: (category: string) => void
+}) {
+  return (
+    <div className="flex items-center gap-1 px-4 py-2.5">
+      {INHABITANT_CATEGORIES.map((cat) => {
+        const isActive = activeCategory === cat.key
+        const Icon = cat.icon
+        return (
+          <button
+            key={cat.key}
+            onClick={() => onCategoryChange(cat.key)}
+            className={`
+              cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-all duration-150
+              ${isActive
+                ? 'bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/40'
+                : 'text-[var(--ivory)]/40 hover:text-[var(--ivory)]/70 hover:bg-[var(--ivory)]/5 border border-transparent'
+              }
+            `}
+          >
+            {Icon && <Icon size={13} />}
+            {cat.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export function HabitantsPageClient({
   inhabitantsList,
   map,
@@ -44,6 +107,7 @@ export function HabitantsPageClient({
   allVillagePositions,
 }: HabitantsPageClientProps) {
   const [selectedType, setSelectedType] = useState<string | null>(null)
+  const [activeCategory, setActiveCategory] = useState('all')
 
   function handleClickHabitant(habitant: HabitantData) {
     if (!MISSION_CAPABLE_TYPES.includes(habitant.key)) return
@@ -51,10 +115,23 @@ export function HabitantsPageClient({
     setSelectedType(habitant.key)
   }
 
+  const filteredInhabitants = activeCategory === 'all'
+    ? inhabitantsList
+    : inhabitantsList.filter((habitant) =>
+        (INHABITANT_CATEGORY_BY_KEY[habitant.key] ?? 'community') === activeCategory
+      )
+
+  const categoryHeader = (
+    <CategoryTabs
+      activeCategory={activeCategory}
+      onCategoryChange={setActiveCategory}
+    />
+  )
+
   return (
     <>
-      <HabitantsPanel>
-        {inhabitantsList.map((habitant) => {
+      <HabitantsPanel header={categoryHeader}>
+        {filteredInhabitants.map((habitant) => {
           const isMissionCapable = MISSION_CAPABLE_TYPES.includes(habitant.key)
           const canSendMission =
             isMissionCapable && habitant.count > 0 && (habitant.count - habitant.inMission) > 0

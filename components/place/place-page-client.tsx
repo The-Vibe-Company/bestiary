@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { ComponentType } from 'react'
-import { GiWalk, GiHammerNails, GiPawPrint, GiCrossedSwords, GiWatchtower, GiThreeFriends, GiAxeInStump, GiWarPick, GiBowArrow, GiBasket, GiCompass, GiSheep, GiWheat, GiBookshelf, GiBeerStein } from 'react-icons/gi'
+import { GiWalk, GiHammerNails, GiPawPrint, GiCrossedSwords, GiWatchtower, GiThreeFriends, GiAxeInStump, GiWarPick, GiBowArrow, GiBasket, GiCompass, GiSheep, GiWheat, GiBookshelf, GiBeerStein, GiVillage, GiWoodPile, GiStonePile, GiMeal, GiCleaver } from 'react-icons/gi'
 import { TravelersPanel } from './travelers-panel'
 import { ActiveJobsPanel } from './active-jobs-panel'
 import { Countdown } from './countdown'
@@ -26,6 +26,7 @@ interface PlacePageClientProps {
   inhabitantCounts: Record<string, number>
   totalInhabitants: number
   maxPopulation: number
+  jobCapacities: Record<string, { current: number; max: number | null; available: boolean }>
 }
 
 /* ── Snippet cards (left sidebar) ────────────────────────── */
@@ -49,7 +50,7 @@ function SnippetCard({ icon, title, isActive, onClick, children }: { icon: React
           {title}
         </h3>
       </div>
-      <div className="px-3.5 py-2.5">
+      <div className="px-3.5 py-2.5 flex-1 min-h-0">
         {children}
       </div>
     </button>
@@ -121,6 +122,11 @@ const INHABITANT_ICONS: Record<string, ComponentType<{ size?: number; className?
   builder: GiHammerNails,
   watchman: GiWatchtower,
   tavernkeeper: GiBeerStein,
+  mayor: GiVillage,
+  splitter: GiWoodPile,
+  stonecutter: GiStonePile,
+  victualer: GiMeal,
+  butcher: GiCleaver,
 }
 
 function InhabitantsSnippet({
@@ -134,10 +140,14 @@ function InhabitantsSnippet({
   totalInhabitants: number
   maxPopulation: number
 }) {
-  const typesWithCount = inhabitantTypes.filter((t) => (inhabitantCounts[t.key] ?? 0) > 0)
+  const sortedInhabitantTypes = [...inhabitantTypes].sort((a, b) => {
+    if (a.key === 'mayor' && b.key !== 'mayor') return -1
+    if (b.key === 'mayor' && a.key !== 'mayor') return 1
+    return a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' })
+  })
 
   return (
-    <div className="w-full bg-black/75 backdrop-blur rounded-xl overflow-hidden border border-[var(--burnt-amber)]/20">
+    <div className="w-full flex-1 min-h-0 bg-black/75 backdrop-blur rounded-xl overflow-hidden border border-[var(--burnt-amber)]/20 flex flex-col">
       <div className="flex items-center gap-2 px-3.5 py-2 border-b border-[var(--ivory)]/10">
         <span className="text-[var(--burnt-amber)]"><GiThreeFriends size={16} /></span>
         <h3 className="text-xs font-[family-name:var(--font-title)] tracking-[0.15em] text-[var(--ivory)] uppercase">
@@ -147,18 +157,18 @@ function InhabitantsSnippet({
           {totalInhabitants}<span className="text-[var(--ivory)]/30 font-normal">/{maxPopulation}</span>
         </span>
       </div>
-      <div className="px-3.5 py-2.5">
-        {typesWithCount.length === 0 ? (
+      <div className="px-3.5 py-2.5 flex-1 min-h-0 flex flex-col">
+        {sortedInhabitantTypes.length === 0 ? (
           <span className="text-xs text-[var(--ivory)]/40">Aucun habitant</span>
         ) : (
-          <div className="flex flex-col gap-1.5">
-            {typesWithCount.map((type) => {
-              const Icon = INHABITANT_ICONS[type.key]
+          <div className="flex-1 min-h-0 overflow-y-auto pr-5 space-y-1.5">
+            {sortedInhabitantTypes.map((type) => {
+              const Icon = INHABITANT_ICONS[type.key] ?? GiThreeFriends
               return (
                 <div key={type.key} className="flex items-center gap-2">
-                  {Icon && <Icon size={14} className="text-[var(--burnt-amber)]/70" />}
+                  <Icon size={14} className="text-[var(--burnt-amber)]/70" />
                   <span className="text-xs text-[var(--ivory)]/70 flex-1 truncate">{type.title}</span>
-                  <span className="text-xs font-bold text-[var(--ivory)]">{inhabitantCounts[type.key]}</span>
+                  <span className="text-xs font-bold text-[var(--ivory)] shrink-0 min-w-[1.75rem] text-right">{inhabitantCounts[type.key] ?? 0}</span>
                 </div>
               )
             })}
@@ -181,6 +191,7 @@ export function PlacePageClient({
   inhabitantCounts,
   totalInhabitants,
   maxPopulation,
+  jobCapacities,
 }: PlacePageClientProps) {
   const [activeTab, setActiveTab] = useState('voyageurs')
 
@@ -204,7 +215,7 @@ export function PlacePageClient({
 
       <div className="h-full flex gap-4 max-w-6xl mx-auto">
         {/* Left: Overview sidebar */}
-        <div className="w-[260px] flex-shrink-0 flex flex-col gap-3 py-1">
+        <div className="w-[260px] flex-shrink-0 flex flex-col gap-3 py-1 min-h-0">
           <TravelerSnippet travelerStatus={travelerStatus} isActive={activeTab === 'voyageurs'} onClick={() => setActiveTab('voyageurs')} />
           <MissionsSnippet missions={missions} isActive={activeTab === 'missions'} onClick={() => setActiveTab('missions')} />
           <PlaceholderSnippet icon={GiPawPrint} title="Animaux errants" isActive={activeTab === 'animaux'} onClick={() => setActiveTab('animaux')} />
@@ -250,6 +261,7 @@ export function PlacePageClient({
                 inhabitantTypes={inhabitantTypes}
                 isVillageFull={isVillageFull}
                 tavernLevel={tavernLevel}
+                jobCapacities={jobCapacities}
               />
             )}
             {activeTab === 'missions' && (
