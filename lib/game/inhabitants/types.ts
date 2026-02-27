@@ -9,9 +9,17 @@ export const INHABITANT_TYPES = [
   "farmer", // Agriculteur
   "researcher", // Chercheur
   "builder", // Bâtisseur
+  "watchman", // Guetteur
+  "tavernkeeper", // Tavernier
 ] as const;
 
 export type InhabitantType = (typeof INHABITANT_TYPES)[number];
+
+/** Inhabitant types that are permanently stationed at a building */
+export const BUILDING_STAFF_TYPES: Record<string, string> = {
+  watchman: "tour_de_guet",
+  tavernkeeper: "taverne",
+};
 
 export interface VillageInhabitants {
   id: string;
@@ -25,6 +33,8 @@ export interface VillageInhabitants {
   farmer: number;
   researcher: number;
   builder: number;
+  watchman: number;
+  tavernkeeper: number;
   createdAt: Date;
   updatedAt: Date;
 }

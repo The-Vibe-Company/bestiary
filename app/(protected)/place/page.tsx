@@ -22,6 +22,7 @@ import { getUser } from "@/lib/game/user/get-user";
 import { assignVillageToUser } from "@/lib/game/village/assign-village";
 import { getVillage } from "@/lib/game/village/get-village";
 import { INHABITANT_TYPES } from "@/lib/game/inhabitants/types";
+import { computeEffectiveLevel } from "@/lib/game/buildings/compute-effective-level";
 import { neonAuth } from "@neondatabase/auth/next/server";
 import { redirect } from "next/navigation";
 
@@ -90,12 +91,15 @@ export default async function PlacePage() {
   const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings);
 
   // Résoudre l'état du voyageur (lazy completion) + détection tour de guet + taverne
+  // Effective level = building level + assigned staff (0 staff → building doesn't function)
   const tavern = completedBuildings.find((b) => b.buildingType === "taverne");
   const tavernLevel = tavern?.level ?? 0;
-  const rawTravelerStatus = await resolveTraveler(village.id, tavernLevel);
+  const effectiveTavernLevel = computeEffectiveLevel(tavernLevel, villageInhabitants?.tavernkeeper ?? 0);
+  const rawTravelerStatus = await resolveTraveler(village.id, effectiveTavernLevel);
   const watchtower = completedBuildings.find((b) => b.buildingType === "tour_de_guet");
   const towerLevel = watchtower?.level ?? 0;
-  const travelerStatus = await detectTraveler(village.id, rawTravelerStatus, towerLevel);
+  const effectiveTowerLevel = computeEffectiveLevel(towerLevel, villageInhabitants?.watchman ?? 0);
+  const travelerStatus = await detectTraveler(village.id, rawTravelerStatus, effectiveTowerLevel);
   const isVillageFull = totalInhabitants >= village.capacity;
 
   const inhabitantTypesData = inhabitantTypes.map((t) => ({
@@ -103,6 +107,12 @@ export default async function PlacePage() {
     title: t.title,
     image: t.image,
   }));
+
+  // Build inhabitant counts per type for the overview panel
+  const inhabitantCounts: Record<string, number> = {};
+  for (const type of INHABITANT_TYPES) {
+    inhabitantCounts[type] = villageInhabitants?.[type] ?? 0;
+  }
 
   return (
     <div
@@ -137,9 +147,12 @@ export default async function PlacePage() {
           travelerStatus={travelerStatus}
           inhabitantTypes={inhabitantTypesData}
           isVillageFull={isVillageFull}
-          tavernLevel={tavernLevel}
+          tavernLevel={effectiveTavernLevel}
           missions={missions}
           statsByType={statsByType}
+          inhabitantCounts={inhabitantCounts}
+          totalInhabitants={totalInhabitants}
+          maxPopulation={village.capacity}
         />
       </div>
     </div>

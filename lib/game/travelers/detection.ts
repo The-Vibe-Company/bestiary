@@ -1,19 +1,25 @@
 import type { TravelerStatus } from './resolve-traveler'
 
 /**
- * Detection window (in seconds) by watchtower level.
+ * Detection window (in seconds) by effective watchtower level.
  *
- * This is how far in advance the tower can detect an approaching traveler.
- * - Level 0 (no tower): no detection — travelers appear only when present
+ * Effective level = building level + assigned watchmen (0 watchmen → level 0).
+ * - Level 0: no detection — travelers appear only when present
  * - Level 1: detects 5 minutes before arrival
  * - Level 2: detects 10 minutes before arrival
- * - Level 3: detects 15 minutes before arrival (covers max delay)
+ * - Level 3: detects 15 minutes before arrival
+ * - Level 4: detects 20 minutes before arrival
+ * - Level 5: detects 25 minutes before arrival
+ * - Level 6: detects 30 minutes before arrival (covers max arrival delay)
  */
 export const DETECTION_WINDOW_SECONDS: Record<number, number> = {
   0: 0,
   1: 5 * 60,
   2: 10 * 60,
   3: 15 * 60,
+  4: 20 * 60,
+  5: 25 * 60,
+  6: 30 * 60,
 }
 
 export type DetectedTravelerStatus =

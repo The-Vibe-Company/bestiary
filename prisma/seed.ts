@@ -105,6 +105,26 @@ const inhabitantTypes = [
     consumeCereales: 1.0,
     consumeViande: 1.2,
   },
+  {
+    key: 'watchman',
+    title: 'Guetteur',
+    description:
+      'Stationné dans la tour de guet, il scrute l\'horizon pour repérer les voyageurs en approche. Plus ils sont nombreux, plus la détection est efficace.',
+    image: '/assets/habitants/guetteur.webp',
+    order: 10,
+    consumeCereales: 0.8,
+    consumeViande: 0.6,
+  },
+  {
+    key: 'tavernkeeper',
+    title: 'Tavernier',
+    description:
+      'Tient la taverne du village et s\'occupe des voyageurs de passage. Plus ils sont nombreux, plus les voyageurs prolongent leur séjour.',
+    image: '/assets/habitants/tavernier.webp',
+    order: 11,
+    consumeCereales: 0.6,
+    consumeViande: 0.8,
+  },
 ]
 
 const buildingTypes = [

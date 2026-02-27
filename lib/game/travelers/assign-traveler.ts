@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { neonAuth } from '@neondatabase/auth/next/server'
-import { INHABITANT_TYPES, type InhabitantType } from '../inhabitants/types'
+import { INHABITANT_TYPES, BUILDING_STAFF_TYPES, type InhabitantType } from '../inhabitants/types'
 import { Prisma } from '@prisma/client'
 
 export type AssignTravelerResult =
@@ -68,6 +68,32 @@ export async function assignTraveler(type: InhabitantType): Promise<AssignTravel
 
       if (totalInhabitants >= village.capacity) {
         throw new AssignTravelerError('Le village est plein ! Construisez pour augmenter la capacité.')
+      }
+
+      // Validate building staff capacity (watchman → tour_de_guet, tavernkeeper → taverne)
+      const requiredBuilding = BUILDING_STAFF_TYPES[type]
+      if (requiredBuilding) {
+        const building = await tx.villageBuilding.findFirst({
+          where: {
+            villageId: village.id,
+            buildingType: requiredBuilding,
+            completedAt: { not: null },
+          },
+          orderBy: { level: 'desc' },
+        })
+
+        if (!building) {
+          const buildingName = requiredBuilding === 'tour_de_guet' ? 'La tour de guet' : 'La taverne'
+          throw new AssignTravelerError(`${buildingName} n'est pas construite.`)
+        }
+
+        const currentStaff = latestInhabitants?.[type as keyof typeof latestInhabitants] as number ?? 0
+        if (currentStaff >= building.level) {
+          const buildingName = requiredBuilding === 'tour_de_guet' ? 'la tour de guet' : 'la taverne'
+          throw new AssignTravelerError(
+            `Pas de place pour un ${type === 'watchman' ? 'guetteur' : 'tavernier'} supplémentaire. Améliorez ${buildingName} pour en accueillir davantage.`
+          )
+        }
       }
 
       const claimedTraveler = await tx.villageTraveler.updateMany({
