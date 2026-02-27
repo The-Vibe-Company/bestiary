@@ -35,6 +35,7 @@ export async function assignInhabitant(type: InhabitantType): Promise<AssignInha
       await prisma.villageInhabitants.create({
         data: {
           villageId: village.id,
+          mayor: 1,
           [type]: 1,
         },
       })

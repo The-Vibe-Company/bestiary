@@ -1,7 +1,6 @@
 import type { BuildingType, VillageBuilding } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getBuildingTypes } from './get-building-types'
-import { computeEffectiveLevel } from './compute-effective-level'
 import type { VillageInhabitants } from '../inhabitants/types'
 
 /** Base storage capacity before any warehouses are built */
@@ -39,8 +38,8 @@ export function getStorageStaffCounts(inhabitants: VillageInhabitants | null): B
  * Pure computation: given building types, completed buildings, and staff counts,
  * compute the total storage capacity for each resource.
  *
- * Storage buildings require at least 1 staff to function (effective level 0 without staff).
- * Each additional staff increases the effective level beyond the building level.
+ * Storage buildings only provide bonus capacity if at least 1 corresponding staff is assigned.
+ * Without staff, storage bonus is 0 regardless of building level (base storage only).
  */
 export function computeStorageCapacity(
   buildingTypes: BuildingType[],
@@ -62,10 +61,8 @@ export function computeStorageCapacity(
       (type.storageBonusCereales ?? 0) > 0 ||
       (type.storageBonusViande ?? 0) > 0
 
-    // Storage buildings use effective level (requires staff to function).
-    // Non-storage buildings keep raw level (unchanged behaviour).
-    const level = hasStorageBonus
-      ? computeEffectiveLevel(rawLevel, buildingStaffCounts[building.buildingType] ?? 0)
+    const level = hasStorageBonus && (buildingStaffCounts[building.buildingType] ?? 0) <= 0
+      ? 0
       : rawLevel
 
     capacity.bois += (type.storageBonusBois ?? 0) * level

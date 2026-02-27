@@ -97,13 +97,8 @@ export default async function VillagePage() {
   // Map technology key → title for display on locked buildings
   const techTitleMap = new Map(allTechnologies.map((t) => [t.key, t.title]));
 
-  // Compute staff counts for buildings with personnel
-  const busyResearchers = villageTechnologies
-    .filter((vt) => vt.completedAt === null)
-    .reduce((sum, vt) => sum + vt.assignedResearchers, 0);
-
   const buildingStaffCounts: Record<string, number> = {
-    laboratoire: busyResearchers,
+    laboratoire: villageInhabitants?.researcher ?? 0,
     tour_de_guet: villageInhabitants?.watchman ?? 0,
     taverne: villageInhabitants?.tavernkeeper ?? 0,
     hotel_de_ville: villageInhabitants?.mayor ?? 0,

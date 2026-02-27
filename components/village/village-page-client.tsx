@@ -86,6 +86,28 @@ const STORAGE_BONUS_CONFIG = [
   { key: 'storageBonusViande' as const, capacityKey: 'viande' as const, icon: GiMeat, color: '#CD5C5C', label: 'stockage viande' },
 ]
 
+const BUILDINGS_WITH_STAFF = new Set([
+  'laboratoire',
+  'tour_de_guet',
+  'taverne',
+  'hotel_de_ville',
+  'entrepot_bois',
+  'entrepot_pierre',
+  'entrepot_cereales',
+  'entrepot_viande',
+])
+
+const BUILDING_STAFF_LABELS: Record<string, { singular: string; plural: string }> = {
+  laboratoire: { singular: 'chercheur', plural: 'chercheurs' },
+  tour_de_guet: { singular: 'guetteur', plural: 'guetteurs' },
+  taverne: { singular: 'tavernier', plural: 'taverniers' },
+  hotel_de_ville: { singular: 'maire', plural: 'maires' },
+  entrepot_bois: { singular: 'fendeur', plural: 'fendeurs' },
+  entrepot_pierre: { singular: 'tailleur', plural: 'tailleurs' },
+  entrepot_cereales: { singular: 'vivandier', plural: 'vivandiers' },
+  entrepot_viande: { singular: 'boucher', plural: 'bouchers' },
+}
+
 function ConstructionStatus({
   startedAt,
   buildSeconds,
@@ -359,23 +381,17 @@ export function VillagePageClient({ buildingTypes, villageResources, storageCapa
                       Capacité actuelle
                     </span>
                     <span className="text-[var(--ivory)]/20">|</span>
-                    {building.completedCount > 0 && building.staffCount === 0 ? (
-                      <span className="text-xs italic text-amber-400/60">
-                        Inactif — aucun professionnel
-                      </span>
-                    ) : (
-                      STORAGE_BONUS_CONFIG.map((sb) => {
-                        if (building[sb.key] <= 0) return null
-                        return (
-                          <div key={sb.key} className="flex items-center gap-1">
-                            <sb.icon size={14} style={{ color: sb.color }} />
-                            <span className="text-xs font-bold text-[var(--burnt-amber)]">
-                              {storageCapacity[sb.capacityKey]}
-                            </span>
-                          </div>
-                        )
-                      })
-                    )}
+                    {STORAGE_BONUS_CONFIG.map((sb) => {
+                      if (building[sb.key] <= 0) return null
+                      return (
+                        <div key={sb.key} className="flex items-center gap-1">
+                          <sb.icon size={14} style={{ color: sb.color }} />
+                          <span className="text-xs font-bold text-[var(--burnt-amber)]">
+                            {storageCapacity[sb.capacityKey]}
+                          </span>
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
 
@@ -465,15 +481,22 @@ export function VillagePageClient({ buildingTypes, villageResources, storageCapa
 
             {/* Badges: bottom-right of the card */}
             <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
-              {building.staffCount > 0 && (
+              {BUILDINGS_WITH_STAFF.has(building.key) && building.completedCount > 0 && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-full bg-[#C19A6B]/15 text-[#C19A6B] border border-[#C19A6B]/30">
                   <GiThreeFriends size={11} />
-                  {building.staffCount}
+                  {building.staffCount}{' '}
+                  {(building.staffCount > 1
+                    ? BUILDING_STAFF_LABELS[building.key]?.plural
+                    : BUILDING_STAFF_LABELS[building.key]?.singular) ?? 'pro'}
                 </span>
               )}
               {isUpgradeable && building.currentLevel > 0 ? (
                 <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/30">
                   Niv. {building.currentLevel}
+                </span>
+              ) : isUpgradeable ? (
+                <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--ivory)]/10 text-[var(--ivory)]/60 border border-[var(--ivory)]/20">
+                  Niv. 0
                 </span>
               ) : building.completedCount > 0 && !isUpgradeable ? (
                 <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/30">
