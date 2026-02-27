@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { GiWalk, GiHammerNails, GiPawPrint, GiCrossedSwords, GiWatchtower } from 'react-icons/gi'
+import type { ComponentType } from 'react'
+import { GiWalk, GiHammerNails, GiPawPrint, GiCrossedSwords, GiWatchtower, GiThreeFriends, GiAxeInStump, GiWarPick, GiBowArrow, GiBasket, GiCompass, GiSheep, GiWheat, GiBookshelf, GiBeerStein } from 'react-icons/gi'
 import { TravelersPanel } from './travelers-panel'
 import { ActiveJobsPanel } from './active-jobs-panel'
 import { Countdown } from './countdown'
@@ -22,6 +23,9 @@ interface PlacePageClientProps {
   tavernLevel: number
   missions: ActiveMission[]
   statsByType: Record<string, { gatherRate: number; maxCapacity: number }>
+  inhabitantCounts: Record<string, number>
+  totalInhabitants: number
+  maxPopulation: number
 }
 
 /* ── Snippet cards (left sidebar) ────────────────────────── */
@@ -105,6 +109,66 @@ function PlaceholderSnippet({ icon: Icon, title, isActive, onClick }: { icon: Re
   )
 }
 
+const INHABITANT_ICONS: Record<string, ComponentType<{ size?: number; className?: string }>> = {
+  lumberjack: GiAxeInStump,
+  miner: GiWarPick,
+  hunter: GiBowArrow,
+  gatherer: GiBasket,
+  explorer: GiCompass,
+  breeder: GiSheep,
+  farmer: GiWheat,
+  researcher: GiBookshelf,
+  builder: GiHammerNails,
+  watchman: GiWatchtower,
+  tavernkeeper: GiBeerStein,
+}
+
+function InhabitantsSnippet({
+  inhabitantTypes,
+  inhabitantCounts,
+  totalInhabitants,
+  maxPopulation,
+}: {
+  inhabitantTypes: { key: string; title: string; image: string }[]
+  inhabitantCounts: Record<string, number>
+  totalInhabitants: number
+  maxPopulation: number
+}) {
+  const typesWithCount = inhabitantTypes.filter((t) => (inhabitantCounts[t.key] ?? 0) > 0)
+
+  return (
+    <div className="w-full bg-black/75 backdrop-blur rounded-xl overflow-hidden border border-[var(--burnt-amber)]/20">
+      <div className="flex items-center gap-2 px-3.5 py-2 border-b border-[var(--ivory)]/10">
+        <span className="text-[var(--burnt-amber)]"><GiThreeFriends size={16} /></span>
+        <h3 className="text-xs font-[family-name:var(--font-title)] tracking-[0.15em] text-[var(--ivory)] uppercase">
+          Habitants
+        </h3>
+        <span className="ml-auto text-xs font-bold text-[var(--burnt-amber)]">
+          {totalInhabitants}<span className="text-[var(--ivory)]/30 font-normal">/{maxPopulation}</span>
+        </span>
+      </div>
+      <div className="px-3.5 py-2.5">
+        {typesWithCount.length === 0 ? (
+          <span className="text-xs text-[var(--ivory)]/40">Aucun habitant</span>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            {typesWithCount.map((type) => {
+              const Icon = INHABITANT_ICONS[type.key]
+              return (
+                <div key={type.key} className="flex items-center gap-2">
+                  {Icon && <Icon size={14} className="text-[var(--burnt-amber)]/70" />}
+                  <span className="text-xs text-[var(--ivory)]/70 flex-1 truncate">{type.title}</span>
+                  <span className="text-xs font-bold text-[var(--ivory)]">{inhabitantCounts[type.key]}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /* ── Main layout ─────────────────────────────────────────── */
 
 export function PlacePageClient({
@@ -114,6 +178,9 @@ export function PlacePageClient({
   tavernLevel,
   missions,
   statsByType,
+  inhabitantCounts,
+  totalInhabitants,
+  maxPopulation,
 }: PlacePageClientProps) {
   const [activeTab, setActiveTab] = useState('voyageurs')
 
@@ -142,6 +209,12 @@ export function PlacePageClient({
           <MissionsSnippet missions={missions} isActive={activeTab === 'missions'} onClick={() => setActiveTab('missions')} />
           <PlaceholderSnippet icon={GiPawPrint} title="Animaux errants" isActive={activeTab === 'animaux'} onClick={() => setActiveTab('animaux')} />
           <PlaceholderSnippet icon={GiCrossedSwords} title="Troupes & Combats" isActive={activeTab === 'troupes'} onClick={() => setActiveTab('troupes')} />
+          <InhabitantsSnippet
+            inhabitantTypes={inhabitantTypes}
+            inhabitantCounts={inhabitantCounts}
+            totalInhabitants={totalInhabitants}
+            maxPopulation={maxPopulation}
+          />
         </div>
 
         {/* Right: Detail panel */}

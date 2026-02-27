@@ -108,6 +108,12 @@ export default async function PlacePage() {
     image: t.image,
   }));
 
+  // Build inhabitant counts per type for the overview panel
+  const inhabitantCounts: Record<string, number> = {};
+  for (const type of INHABITANT_TYPES) {
+    inhabitantCounts[type] = villageInhabitants?.[type] ?? 0;
+  }
+
   return (
     <div
       className="h-full flex flex-col bg-cover bg-center bg-no-repeat relative"
@@ -144,6 +150,9 @@ export default async function PlacePage() {
           tavernLevel={effectiveTavernLevel}
           missions={missions}
           statsByType={statsByType}
+          inhabitantCounts={inhabitantCounts}
+          totalInhabitants={totalInhabitants}
+          maxPopulation={village.capacity}
         />
       </div>
     </div>

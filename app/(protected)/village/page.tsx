@@ -96,6 +96,17 @@ export default async function VillagePage() {
   // Map technology key → title for display on locked buildings
   const techTitleMap = new Map(allTechnologies.map((t) => [t.key, t.title]));
 
+  // Compute staff counts for buildings with personnel
+  const busyResearchers = villageTechnologies
+    .filter((vt) => vt.completedAt === null)
+    .reduce((sum, vt) => sum + vt.assignedResearchers, 0);
+
+  const buildingStaffCounts: Record<string, number> = {
+    laboratoire: busyResearchers,
+    tour_de_guet: villageInhabitants?.watchman ?? 0,
+    taverne: villageInhabitants?.tavernkeeper ?? 0,
+  };
+
   // Aggregate building data per type
   const buildingTypeData = buildingTypes.map((bt) => {
     const buildings = villageBuildings.filter((vb) => vb.buildingType === bt.key);
@@ -137,6 +148,7 @@ export default async function VillagePage() {
       completedCount,
       currentLevel,
       activeConstructions,
+      staffCount: buildingStaffCounts[bt.key] ?? 0,
     };
   });
 

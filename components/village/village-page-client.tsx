@@ -43,6 +43,7 @@ export interface BuildingTypeData {
   completedCount: number
   currentLevel: number
   activeConstructions: ActiveConstruction[]
+  staffCount: number
 }
 
 interface VillagePageClientProps {
@@ -456,16 +457,24 @@ export function VillagePageClient({ buildingTypes, villageResources, storageCapa
               </div>
             </div>
 
-            {/* Badge: bottom-right of the card */}
-            {isUpgradeable && building.currentLevel > 0 ? (
-              <span className="absolute bottom-2 right-2 px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/30">
-                Niv. {building.currentLevel}
-              </span>
-            ) : building.completedCount > 0 && !isUpgradeable ? (
-              <span className="absolute bottom-2 right-2 px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/30">
-                ×{building.completedCount}
-              </span>
-            ) : null}
+            {/* Badges: bottom-right of the card */}
+            <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
+              {building.staffCount > 0 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-full bg-[#C19A6B]/15 text-[#C19A6B] border border-[#C19A6B]/30">
+                  <GiThreeFriends size={11} />
+                  {building.staffCount}
+                </span>
+              )}
+              {isUpgradeable && building.currentLevel > 0 ? (
+                <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/30">
+                  Niv. {building.currentLevel}
+                </span>
+              ) : building.completedCount > 0 && !isUpgradeable ? (
+                <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--burnt-amber)]/20 text-[var(--burnt-amber)] border border-[var(--burnt-amber)]/30">
+                  ×{building.completedCount}
+                </span>
+              ) : null}
+            </div>
           </div>
         )
       })}
