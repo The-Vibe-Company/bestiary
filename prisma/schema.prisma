@@ -87,6 +87,11 @@ model VillageInhabitants {
   builder      Int      @default(0) // Bâtisseur
   watchman     Int      @default(0) // Guetteur
   tavernkeeper Int      @default(0) // Tavernier
+  mayor        Int      @default(0) // Maire
+  splitter     Int      @default(0) // Fendeur
+  stonecutter  Int      @default(0) // Tailleur de pierre
+  victualer    Int      @default(0) // Vivandier
+  butcher      Int      @default(0) // Boucher
   createdAt    DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

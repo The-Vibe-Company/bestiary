@@ -86,7 +86,8 @@ export async function assignVillageToUser(userId: string) {
   })
   const capacityBonus = hotelType?.capacityBonus ?? 0
 
-  // Auto-construire l'Hôtel de Ville niveau 1 et appliquer son bonus de capacité
+  // Auto-construire l'Hôtel de Ville niveau 1, appliquer son bonus de capacité,
+  // et créer le premier habitant (maire)
   await prisma.$transaction([
     prisma.villageBuilding.create({
       data: {
@@ -107,6 +108,12 @@ export async function assignVillageToUser(userId: string) {
           }),
         ]
       : []),
+    prisma.villageInhabitants.create({
+      data: {
+        villageId: village.id,
+        mayor: 1,
+      },
+    }),
   ])
 
   return village

@@ -4,7 +4,7 @@ import { PlacePageClient } from "@/components/place/place-page-client";
 import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
 import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
 import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
-import { computeStorageCapacity } from "@/lib/game/buildings/storage-capacity";
+import { computeStorageCapacity, getStorageStaffCounts } from "@/lib/game/buildings/storage-capacity";
 import { completePendingResearch } from "@/lib/game/research/complete-pending-research";
 import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
@@ -86,9 +86,10 @@ export default async function PlacePage() {
     : 0;
   const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
 
-  // Compute storage capacity from completed buildings
+  // Compute storage capacity from completed buildings (staff-aware: no staff = inactive)
   const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
-  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings);
+  const storageStaffCounts = getStorageStaffCounts(villageInhabitants);
+  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings, storageStaffCounts);
 
   // Résoudre l'état du voyageur (lazy completion) + détection tour de guet + taverne
   // Effective level = building level + assigned staff (0 staff → building doesn't function)

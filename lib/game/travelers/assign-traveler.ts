@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { neonAuth } from '@neondatabase/auth/next/server'
-import { INHABITANT_TYPES, BUILDING_STAFF_TYPES, type InhabitantType } from '../inhabitants/types'
+import { INHABITANT_TYPES, BUILDING_STAFF_TYPES, STAFF_BUILDING_NAMES, STAFF_TYPE_NAMES, type InhabitantType } from '../inhabitants/types'
 import { Prisma } from '@prisma/client'
 
 export type AssignTravelerResult =
@@ -70,9 +70,17 @@ export async function assignTraveler(type: InhabitantType): Promise<AssignTravel
         throw new AssignTravelerError('Le village est plein ! Construisez pour augmenter la capacité.')
       }
 
-      // Validate building staff capacity (watchman → tour_de_guet, tavernkeeper → taverne)
+      // Mayor special case: always max 1, regardless of building level
+      if (type === 'mayor') {
+        const currentMayors = latestInhabitants?.mayor ?? 0
+        if (currentMayors >= 1) {
+          throw new AssignTravelerError('Le village a déjà un maire.')
+        }
+      }
+
+      // Validate building staff capacity (e.g. watchman → tour_de_guet, splitter → entrepot_bois)
       const requiredBuilding = BUILDING_STAFF_TYPES[type]
-      if (requiredBuilding) {
+      if (requiredBuilding && type !== 'mayor') {
         const building = await tx.villageBuilding.findFirst({
           where: {
             villageId: village.id,
@@ -82,16 +90,16 @@ export async function assignTraveler(type: InhabitantType): Promise<AssignTravel
           orderBy: { level: 'desc' },
         })
 
+        const buildingName = STAFF_BUILDING_NAMES[requiredBuilding] ?? requiredBuilding
         if (!building) {
-          const buildingName = requiredBuilding === 'tour_de_guet' ? 'La tour de guet' : 'La taverne'
-          throw new AssignTravelerError(`${buildingName} n'est pas construite.`)
+          throw new AssignTravelerError(`${buildingName} n'est pas construit(e).`)
         }
 
         const currentStaff = latestInhabitants?.[type as keyof typeof latestInhabitants] as number ?? 0
         if (currentStaff >= building.level) {
-          const buildingName = requiredBuilding === 'tour_de_guet' ? 'la tour de guet' : 'la taverne'
+          const staffName = STAFF_TYPE_NAMES[type] ?? type
           throw new AssignTravelerError(
-            `Pas de place pour un ${type === 'watchman' ? 'guetteur' : 'tavernier'} supplémentaire. Améliorez ${buildingName} pour en accueillir davantage.`
+            `Pas de place pour un ${staffName} supplémentaire. Améliorez ${buildingName.toLowerCase()} pour en accueillir davantage.`
           )
         }
       }
