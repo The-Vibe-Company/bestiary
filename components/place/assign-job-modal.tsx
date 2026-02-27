@@ -123,15 +123,17 @@ export function AssignJobModal({ inhabitantTypes, jobCapacities, onClose }: Assi
                     {type.title}
                   </span>
                   {/* Capacity badge */}
-                  {capacity?.max != null ? (
-                    <span className={`text-sm font-bold tracking-wider ${isFull ? 'text-[var(--ivory)]/30' : isSelected ? 'text-[var(--burnt-amber)]' : 'text-[var(--ivory)]/50'}`}>
-                      {capacity.current}<span className="text-[var(--ivory)]/30 font-normal">/{capacity.max}</span>
-                    </span>
-                  ) : (
-                    <span className={`text-sm font-bold tracking-wider ${isSelected ? 'text-[var(--burnt-amber)]' : 'text-[var(--ivory)]/50'}`}>
-                      {capacity?.current ?? 0}
-                    </span>
-                  )}
+                  <span className={`text-xs tracking-wider ${isFull ? 'text-[var(--ivory)]/25' : 'text-[var(--ivory)]/35'}`}>
+                    en poste : {capacity?.max != null ? (
+                      <span className={`font-bold ${isFull ? '' : isSelected ? 'text-[var(--burnt-amber)]' : 'text-[var(--ivory)]/60'}`}>
+                        {capacity.current}<span className="text-[var(--ivory)]/30 font-normal">/{capacity.max}</span>
+                      </span>
+                    ) : (
+                      <span className={`font-bold ${isSelected ? 'text-[var(--burnt-amber)]' : 'text-[var(--ivory)]/60'}`}>
+                        {capacity?.current ?? 0}
+                      </span>
+                    )}
+                  </span>
                 </button>
               )
             })}
