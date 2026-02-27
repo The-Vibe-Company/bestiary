@@ -125,6 +125,56 @@ const inhabitantTypes = [
     consumeCereales: 0.6,
     consumeViande: 0.8,
   },
+  {
+    key: 'mayor',
+    title: 'Maire',
+    description:
+      'Le dirigeant du village. Installé à l\'Hôtel de Ville, il veille au bon fonctionnement de la communauté.',
+    image: '/assets/habitants/maire.webp',
+    order: 12,
+    consumeCereales: 1.0,
+    consumeViande: 1.0,
+  },
+  {
+    key: 'splitter',
+    title: 'Fendeur',
+    description:
+      'Spécialiste du bois, il fend et empile les bûches au Bûcher. Plus ils sont nombreux, plus le stockage de bois est efficace.',
+    image: '/assets/habitants/fendeur.webp',
+    order: 13,
+    consumeCereales: 0.8,
+    consumeViande: 0.6,
+  },
+  {
+    key: 'stonecutter',
+    title: 'Tailleur de pierre',
+    description:
+      'Artisan de la Taillerie, il taille et range les blocs de pierre. Plus ils sont nombreux, plus le stockage de pierre est efficace.',
+    image: '/assets/habitants/tailleur.webp',
+    order: 14,
+    consumeCereales: 0.8,
+    consumeViande: 0.6,
+  },
+  {
+    key: 'victualer',
+    title: 'Vivandier',
+    description:
+      'Gardien du Cellier, il trie et conserve les céréales et provisions. Plus ils sont nombreux, plus le stockage de céréales est efficace.',
+    image: '/assets/habitants/vivandier.webp',
+    order: 15,
+    consumeCereales: 0.6,
+    consumeViande: 0.6,
+  },
+  {
+    key: 'butcher',
+    title: 'Boucher',
+    description:
+      'Maître du Fumoir, il prépare et fume la viande pour la conserver. Plus ils sont nombreux, plus le stockage de viande est efficace.',
+    image: '/assets/habitants/boucher.webp',
+    order: 16,
+    consumeCereales: 0.6,
+    consumeViande: 0.8,
+  },
 ]
 
 const buildingTypes = [

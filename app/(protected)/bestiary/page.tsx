@@ -3,7 +3,7 @@ import { UserResourceBar } from "@/components/layout/user-resource-bar";
 import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
 import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
 import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
-import { computeStorageCapacity } from "@/lib/game/buildings/storage-capacity";
+import { computeStorageCapacity, getStorageStaffCounts } from "@/lib/game/buildings/storage-capacity";
 import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
 import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
 import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
@@ -62,9 +62,10 @@ export default async function BestiaryPage() {
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
   const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
 
-  // Compute storage capacity from completed buildings
+  // Compute storage capacity from completed buildings (staff-aware: no staff = inactive)
   const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
-  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings);
+  const storageStaffCounts = getStorageStaffCounts(villageInhabitants);
+  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings, storageStaffCounts);
 
   return (
     <div

@@ -36,14 +36,29 @@ export async function getUnoccupiedInhabitantsCount(
     }),
     prisma.villageInhabitants.findUnique({
       where: { villageId },
-      select: { watchman: true, tavernkeeper: true },
+      select: {
+        watchman: true,
+        tavernkeeper: true,
+        mayor: true,
+        splitter: true,
+        stonecutter: true,
+        victualer: true,
+        butcher: true,
+      },
     }),
   ])
 
   const busyBuilders = activeBuildings._sum.assignedBuilders ?? 0
   const busyResearchers = activeResearch._sum.assignedResearchers ?? 0
   const busyMissionWorkers = activeMissionsAgg._sum.workerCount ?? 0
-  const busyBuildingStaff = (buildingStaff?.watchman ?? 0) + (buildingStaff?.tavernkeeper ?? 0)
+  const busyBuildingStaff =
+    (buildingStaff?.watchman ?? 0) +
+    (buildingStaff?.tavernkeeper ?? 0) +
+    (buildingStaff?.mayor ?? 0) +
+    (buildingStaff?.splitter ?? 0) +
+    (buildingStaff?.stonecutter ?? 0) +
+    (buildingStaff?.victualer ?? 0) +
+    (buildingStaff?.butcher ?? 0)
 
   return Math.max(totalInhabitants - busyMissionWorkers - busyBuilders - busyResearchers - busyBuildingStaff, 0)
 }

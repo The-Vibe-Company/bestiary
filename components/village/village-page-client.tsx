@@ -359,17 +359,23 @@ export function VillagePageClient({ buildingTypes, villageResources, storageCapa
                       Capacité actuelle
                     </span>
                     <span className="text-[var(--ivory)]/20">|</span>
-                    {STORAGE_BONUS_CONFIG.map((sb) => {
-                      if (building[sb.key] <= 0) return null
-                      return (
-                        <div key={sb.key} className="flex items-center gap-1">
-                          <sb.icon size={14} style={{ color: sb.color }} />
-                          <span className="text-xs font-bold text-[var(--burnt-amber)]">
-                            {storageCapacity[sb.capacityKey]}
-                          </span>
-                        </div>
-                      )
-                    })}
+                    {building.completedCount > 0 && building.staffCount === 0 ? (
+                      <span className="text-xs italic text-amber-400/60">
+                        Inactif — aucun professionnel
+                      </span>
+                    ) : (
+                      STORAGE_BONUS_CONFIG.map((sb) => {
+                        if (building[sb.key] <= 0) return null
+                        return (
+                          <div key={sb.key} className="flex items-center gap-1">
+                            <sb.icon size={14} style={{ color: sb.color }} />
+                            <span className="text-xs font-bold text-[var(--burnt-amber)]">
+                              {storageCapacity[sb.capacityKey]}
+                            </span>
+                          </div>
+                        )
+                      })
+                    )}
                   </div>
                 )}
 

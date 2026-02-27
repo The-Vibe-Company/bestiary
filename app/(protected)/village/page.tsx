@@ -13,7 +13,7 @@ import { applyDailyConsumption } from "@/lib/game/resources/apply-daily-consumpt
 import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
 import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
-import { computeStorageCapacity } from "@/lib/game/buildings/storage-capacity";
+import { computeStorageCapacity, getStorageStaffCounts } from "@/lib/game/buildings/storage-capacity";
 import { getTechnologies } from "@/lib/game/research/get-technologies";
 import { getVillageTechnologies } from "@/lib/game/research/get-village-technologies";
 import { completePendingResearch } from "@/lib/game/research/complete-pending-research";
@@ -75,9 +75,10 @@ export default async function VillagePage() {
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
   const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
 
-  // Compute storage capacity from completed buildings
+  // Compute storage capacity from completed buildings (staff-aware: no staff = inactive)
   const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
-  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings);
+  const storageStaffCounts = getStorageStaffCounts(villageInhabitants);
+  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings, storageStaffCounts);
 
   // Calculate available builders (total - busy on active constructions)
   const totalBuilders = villageInhabitants?.builder ?? 0;
@@ -105,6 +106,11 @@ export default async function VillagePage() {
     laboratoire: busyResearchers,
     tour_de_guet: villageInhabitants?.watchman ?? 0,
     taverne: villageInhabitants?.tavernkeeper ?? 0,
+    hotel_de_ville: villageInhabitants?.mayor ?? 0,
+    entrepot_bois: villageInhabitants?.splitter ?? 0,
+    entrepot_pierre: villageInhabitants?.stonecutter ?? 0,
+    entrepot_cereales: villageInhabitants?.victualer ?? 0,
+    entrepot_viande: villageInhabitants?.butcher ?? 0,
   };
 
   // Aggregate building data per type

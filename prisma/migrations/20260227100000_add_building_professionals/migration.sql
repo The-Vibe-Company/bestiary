@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "VillageInhabitants" ADD COLUMN "mayor" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "VillageInhabitants" ADD COLUMN "splitter" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "VillageInhabitants" ADD COLUMN "stonecutter" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "VillageInhabitants" ADD COLUMN "victualer" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "VillageInhabitants" ADD COLUMN "butcher" INTEGER NOT NULL DEFAULT 0;
