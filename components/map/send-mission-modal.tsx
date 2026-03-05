@@ -67,16 +67,19 @@ export function SendMissionModal({
   const [error, setError] = useState<string | null>(null)
 
   const config = MISSION_CONFIG[inhabitantType]
+  const isExploration = config?.exploration ?? false
   const MissionIcon = MISSION_ICONS[inhabitantType] ?? GiPositionMarker
   const featureLabel = config?.featureLabel ?? 'Cible'
   const resourceLabel = config?.resourceLabel ?? 'Ressource'
 
   const workSeconds = workHours * 3600 + workMinutes * 60
 
-  // Cap duration to the time needed to fill capacity
-  const capacitySeconds = gatherRate > 0
-    ? Math.ceil((maxCapacity / gatherRate) * 3600 / 60) * 60
-    : MAX_WORK_SECONDS
+  // For exploration: no capacity cap; for resource: cap to fill capacity
+  const capacitySeconds = isExploration
+    ? MAX_WORK_SECONDS
+    : gatherRate > 0
+      ? Math.ceil((maxCapacity / gatherRate) * 3600 / 60) * 60
+      : MAX_WORK_SECONDS
   const effectiveMax = Math.min(MAX_WORK_SECONDS, capacitySeconds)
 
   const isBelowMin = workSeconds < MIN_WORK_SECONDS
@@ -89,6 +92,7 @@ export function SendMissionModal({
   const travelSeconds = computeTravelSeconds(distance, speed)
   const totalSeconds = travelSeconds * 2 + clampedWorkSeconds
 
+  // Resource projection (only for non-exploration)
   const perWorkerResource = Math.min(
     Math.floor((clampedWorkSeconds / 3600) * gatherRate),
     maxCapacity,
@@ -97,6 +101,12 @@ export function SendMissionModal({
   const totalCapacity = workerCount * maxCapacity
   const resourceRatio = totalCapacity > 0 ? projectedResource / totalCapacity : 0
   const isAtCapacity = perWorkerResource >= maxCapacity
+
+  // Exploration: savoir projection (same formula as resources)
+  const projectedSavoir = workerCount * Math.min(
+    Math.floor((clampedWorkSeconds / 3600) * gatherRate),
+    maxCapacity,
+  )
 
   const noWorkers = availableWorkers <= 0
 
@@ -197,7 +207,7 @@ export function SendMissionModal({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-[var(--ivory)]/50 uppercase tracking-wider font-[family-name:var(--font-title)]">
-                  Travailleurs
+                  {isExploration ? 'Explorateurs' : 'Travailleurs'}
                 </span>
                 <span className="text-sm text-[var(--ivory)] font-[family-name:var(--font-title)] tracking-wider">
                   {workerCount} / {availableWorkers}
@@ -221,7 +231,7 @@ export function SendMissionModal({
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-[var(--ivory)]/50 uppercase tracking-wider font-[family-name:var(--font-title)]">
-                Durée de travail
+                {isExploration ? "Durée d'exploration" : 'Durée de travail'}
               </span>
               <div className="flex items-center gap-1">
                 <input
@@ -278,31 +288,48 @@ export function SendMissionModal({
             )}
           </div>
 
-          {/* Resource projection */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-[var(--ivory)]/50 uppercase tracking-wider font-[family-name:var(--font-title)]">
-                {resourceLabel} estimé
-              </span>
-              <span className="text-sm text-[var(--ivory)] font-[family-name:var(--font-title)] tracking-wider">
-                {projectedResource}
-              </span>
+          {isExploration ? (
+            /* Exploration: savoir projection */
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-[var(--ivory)]/50 uppercase tracking-wider font-[family-name:var(--font-title)]">
+                  Savoir estimé
+                </span>
+                <span className="text-sm font-[family-name:var(--font-title)] tracking-wider" style={{ color: '#9370DB' }}>
+                  +{projectedSavoir}
+                </span>
+              </div>
+              <p className="text-[10px] text-[var(--ivory)]/40">
+                Les explorateurs peuvent aussi rapporter des objets
+              </p>
             </div>
-            <div className="relative h-5 bg-[var(--ivory)]/10 rounded-full overflow-hidden border border-[var(--ivory)]/10">
-              <div
-                className="h-full rounded-full transition-all duration-300"
-                style={{
-                  width: `${resourceRatio * 100}%`,
-                  backgroundColor: isAtCapacity
-                    ? 'var(--burnt-amber)'
-                    : 'rgb(101, 163, 78)',
-                }}
-              />
-              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[var(--ivory)]/70">
-                {projectedResource} / {totalCapacity}
-              </span>
+          ) : (
+            /* Resource projection */
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-[var(--ivory)]/50 uppercase tracking-wider font-[family-name:var(--font-title)]">
+                  {resourceLabel} estimé
+                </span>
+                <span className="text-sm text-[var(--ivory)] font-[family-name:var(--font-title)] tracking-wider">
+                  {projectedResource}
+                </span>
+              </div>
+              <div className="relative h-5 bg-[var(--ivory)]/10 rounded-full overflow-hidden border border-[var(--ivory)]/10">
+                <div
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{
+                    width: `${resourceRatio * 100}%`,
+                    backgroundColor: isAtCapacity
+                      ? 'var(--burnt-amber)'
+                      : 'rgb(101, 163, 78)',
+                  }}
+                />
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[var(--ivory)]/70">
+                  {projectedResource} / {totalCapacity}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Summary row: travel times + loop */}
           <div className="flex items-center justify-between pt-1">
@@ -367,9 +394,13 @@ export function SendMissionModal({
             disabled={noWorkers || isInvalidDuration}
             className="w-full"
           >
-            {workerCount > 1
-              ? `ENVOYER ${workerCount} ${(config?.workerLabelPlural ?? inhabitantType).toUpperCase()}`
-              : `ENVOYER`}
+            {isExploration
+              ? workerCount > 1
+                ? `ENVOYER ${workerCount} ${(config?.workerLabelPlural ?? inhabitantType).toUpperCase()}`
+                : 'EXPLORER'
+              : workerCount > 1
+                ? `ENVOYER ${workerCount} ${(config?.workerLabelPlural ?? inhabitantType).toUpperCase()}`
+                : `ENVOYER`}
           </Button>
         </div>
       </div>

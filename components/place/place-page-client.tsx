@@ -8,7 +8,6 @@ import { ActiveJobsPanel } from './active-jobs-panel'
 import { Countdown } from './countdown'
 import type { DetectedTravelerStatus } from '@/lib/game/travelers/detection'
 import type { ActiveMission } from '@/lib/game/missions/types'
-
 const PLACE_TABS = [
   { key: 'voyageurs', label: 'Voyageurs', icon: GiWalk },
   { key: 'missions', label: 'Missions', icon: GiHammerNails },
