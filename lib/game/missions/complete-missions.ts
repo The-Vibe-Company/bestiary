@@ -138,6 +138,14 @@ export async function completePendingMissions(villageId: string): Promise<void> 
     }
   }
 
+  // Award savoir to the user (per-user resource) — must run before loop-restart which can early-return
+  if (totalSavoirGained > 0) {
+    await prisma.userResources.update({
+      where: { userId: village.ownerId },
+      data: { savoir: { increment: totalSavoirGained } },
+    })
+  }
+
   // Auto-restart looped missions if inhabitants are available
   if (loopCandidates.length > 0) {
     const villageWithInhabitants = await prisma.village.findUnique({
@@ -182,14 +190,6 @@ export async function completePendingMissions(villageId: string): Promise<void> 
 
       allocatedByType[candidate.inhabitantType] = (allocatedByType[candidate.inhabitantType] ?? 0) + candidate.workerCount
     }
-  }
-
-  // Award savoir to the user (per-user resource)
-  if (totalSavoirGained > 0) {
-    await prisma.userResources.update({
-      where: { userId: village.ownerId },
-      data: { savoir: { increment: totalSavoirGained } },
-    })
   }
 
   // Cap resources to storage capacity after all deposits
