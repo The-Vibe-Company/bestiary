@@ -58,6 +58,13 @@ export async function completePendingMissions(villageId: string): Promise<void> 
 
     if (status.phase !== 'completed') continue
 
+    // Atomic guard: only the first concurrent completion succeeds
+    const claimed = await prisma.mission.updateMany({
+      where: { id: mission.id, completedAt: null },
+      data: { completedAt: now },
+    })
+    if (claimed.count === 0) continue
+
     const config = MISSION_CONFIG[mission.inhabitantType]
 
     // Exploration missions: discover items + award savoir
@@ -73,21 +80,19 @@ export async function completePendingMissions(villageId: string): Promise<void> 
 
       totalSavoirGained += savoir
 
-      await prisma.$transaction([
-        prisma.mission.update({
-          where: { id: mission.id },
-          data: { completedAt: now },
-        }),
-        ...items.map((rarity) =>
-          prisma.villageItem.create({
-            data: {
-              villageId,
-              missionId: mission.id,
-              rarity,
-            },
-          }),
-        ),
-      ])
+      if (items.length > 0) {
+        await prisma.$transaction(
+          items.map((rarity) =>
+            prisma.villageItem.create({
+              data: {
+                villageId,
+                missionId: mission.id,
+                rarity,
+              },
+            }),
+          ),
+        )
+      }
     } else {
       // Resource-gathering missions
       let baseResource = mission.recalledAt
@@ -107,22 +112,11 @@ export async function completePendingMissions(villageId: string): Promise<void> 
 
       if (resourceGathered > 0 && config) {
         resourcesDeposited = true
+        await prisma.villageResources.update({
+          where: { villageId },
+          data: { [config.resource]: { increment: resourceGathered } },
+        })
       }
-
-      await prisma.$transaction([
-        prisma.mission.update({
-          where: { id: mission.id },
-          data: { completedAt: now },
-        }),
-        ...(resourceGathered > 0 && config
-          ? [
-              prisma.villageResources.update({
-                where: { villageId },
-                data: { [config.resource]: { increment: resourceGathered } },
-              }),
-            ]
-          : []),
-      ])
     }
 
     // Collect looped, non-recalled missions for auto-restart
