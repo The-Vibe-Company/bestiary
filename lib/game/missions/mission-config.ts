@@ -7,6 +7,8 @@ export interface MissionTypeConfig {
   resourceLabel: string
   workerLabel: string
   workerLabelPlural: string
+  /** If true, the mission discovers items instead of gathering resources and can target any terrain */
+  exploration?: boolean
 }
 
 export const MISSION_CONFIG: Record<string, MissionTypeConfig> = {
@@ -46,14 +48,25 @@ export const MISSION_CONFIG: Record<string, MissionTypeConfig> = {
     workerLabel: 'cueilleur',
     workerLabelPlural: 'cueilleurs',
   },
+  explorer: {
+    feature: null,
+    resource: '',
+    densityType: null,
+    featureLabel: 'Exploration',
+    resourceLabel: 'Items',
+    workerLabel: 'explorateur',
+    workerLabelPlural: 'explorateurs',
+    exploration: true,
+  },
 }
 
-/** All inhabitant types capable of resource-gathering missions */
+/** All inhabitant types capable of missions (resource-gathering + exploration) */
 export const MISSION_CAPABLE_TYPES = Object.keys(MISSION_CONFIG)
 
-/** Reverse lookup: given a map feature, return all inhabitant types that work it (array because multiple types can share feature: null) */
+/** Reverse lookup: given a map feature, return all inhabitant types that work it.
+ *  Exploration types are always included (they can go anywhere). */
 export function getInhabitantTypesForFeature(feature: string | null): string[] {
   return Object.entries(MISSION_CONFIG)
-    .filter(([, cfg]) => cfg.feature === feature)
+    .filter(([, cfg]) => cfg.exploration || cfg.feature === feature)
     .map(([type]) => type)
 }
