@@ -58,66 +58,62 @@ export async function completePendingMissions(villageId: string): Promise<void> 
 
     if (status.phase !== 'completed') continue
 
-    // Atomic guard: only the first concurrent completion succeeds
-    const claimed = await prisma.mission.updateMany({
-      where: { id: mission.id, completedAt: null },
-      data: { completedAt: now },
-    })
-    if (claimed.count === 0) continue
-
     const config = MISSION_CONFIG[mission.inhabitantType]
+    const recalled = !!mission.recalledAt
 
-    // Exploration missions: discover items + award savoir
-    if (config?.exploration) {
-      const recalled = !!mission.recalledAt
-      const items = recalled ? [] : rollDiscoveredItems(mission.workSeconds, mission.workerCount)
-      const savoir = recalled
-        ? 0
-        : mission.workerCount * Math.min(
-            Math.floor((mission.workSeconds / 3600) * typeStats.gatherRate),
-            typeStats.maxCapacity,
-          )
+    // Atomic claim + rewards in a single interactive transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const claimed = await tx.mission.updateMany({
+        where: { id: mission.id, completedAt: null },
+        data: { completedAt: now },
+      })
+      if (claimed.count === 0) return null
 
-      totalSavoirGained += savoir
+      if (config?.exploration) {
+        const items = recalled ? [] : rollDiscoveredItems(mission.workSeconds, mission.workerCount)
+        const savoir = recalled
+          ? 0
+          : mission.workerCount * Math.min(
+              Math.floor((mission.workSeconds / 3600) * typeStats.gatherRate),
+              typeStats.maxCapacity,
+            )
 
-      if (items.length > 0) {
-        await prisma.$transaction(
-          items.map((rarity) =>
-            prisma.villageItem.create({
-              data: {
-                villageId,
-                missionId: mission.id,
-                rarity,
-              },
-            }),
-          ),
-        )
+        for (const rarity of items) {
+          await tx.villageItem.create({
+            data: { villageId, missionId: mission.id, rarity },
+          })
+        }
+
+        return { savoir, resourceDeposited: false }
+      } else {
+        let baseResource = recalled
+          ? 0
+          : mission.workerCount * Math.min(
+              Math.floor((mission.workSeconds / 3600) * typeStats.gatherRate),
+              typeStats.maxCapacity,
+            )
+
+        if (baseResource > 0 && config?.densityType) {
+          const density = computeTileDensity(mission.targetX, mission.targetY, mission.departedAt, config.densityType)
+          baseResource = Math.max(1, Math.floor(baseResource * density))
+        }
+
+        if (baseResource > 0 && config) {
+          await tx.villageResources.update({
+            where: { villageId },
+            data: { [config.resource]: { increment: baseResource } },
+          })
+          return { savoir: 0, resourceDeposited: true }
+        }
+
+        return { savoir: 0, resourceDeposited: false }
       }
-    } else {
-      // Resource-gathering missions
-      let baseResource = mission.recalledAt
-        ? 0
-        : mission.workerCount * Math.min(
-            Math.floor((mission.workSeconds / 3600) * typeStats.gatherRate),
-            typeStats.maxCapacity,
-          )
+    })
 
-      // Apply daily density multiplier for prairie missions (hunter/gatherer)
-      if (baseResource > 0 && config?.densityType) {
-        const density = computeTileDensity(mission.targetX, mission.targetY, mission.departedAt, config.densityType)
-        baseResource = Math.max(1, Math.floor(baseResource * density))
-      }
+    if (!result) continue
 
-      const resourceGathered = baseResource
-
-      if (resourceGathered > 0 && config) {
-        resourcesDeposited = true
-        await prisma.villageResources.update({
-          where: { villageId },
-          data: { [config.resource]: { increment: resourceGathered } },
-        })
-      }
-    }
+    totalSavoirGained += result.savoir
+    if (result.resourceDeposited) resourcesDeposited = true
 
     // Collect looped, non-recalled missions for auto-restart
     if (mission.loop && !mission.recalledAt) {
