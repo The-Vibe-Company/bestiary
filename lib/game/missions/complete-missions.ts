@@ -40,7 +40,6 @@ export async function completePendingMissions(villageId: string): Promise<void> 
 
   const loopCandidates: LoopCandidate[] = []
   let resourcesDeposited = false
-  let totalSavoirGained = 0
 
   for (const mission of pendingMissions) {
     const typeStats = stats[mission.inhabitantType] ?? { speed: 0, gatherRate: 0, maxCapacity: 0 }
@@ -84,7 +83,17 @@ export async function completePendingMissions(villageId: string): Promise<void> 
           })
         }
 
-        return { savoir, resourceDeposited: false }
+        // Award savoir atomically with item insertion + mission completion.
+        // Otherwise a crash between transaction commit and a separate update could
+        // leave items in the village without the corresponding savoir reward.
+        if (savoir > 0) {
+          await tx.userResources.update({
+            where: { userId: village.ownerId },
+            data: { savoir: { increment: savoir } },
+          })
+        }
+
+        return { resourceDeposited: false }
       } else {
         let baseResource = recalled
           ? 0
@@ -103,16 +112,15 @@ export async function completePendingMissions(villageId: string): Promise<void> 
             where: { villageId },
             data: { [config.resource]: { increment: baseResource } },
           })
-          return { savoir: 0, resourceDeposited: true }
+          return { resourceDeposited: true }
         }
 
-        return { savoir: 0, resourceDeposited: false }
+        return { resourceDeposited: false }
       }
     })
 
     if (!result) continue
 
-    totalSavoirGained += result.savoir
     if (result.resourceDeposited) resourcesDeposited = true
 
     // Collect looped, non-recalled missions for auto-restart
@@ -126,14 +134,6 @@ export async function completePendingMissions(villageId: string): Promise<void> 
         travelSeconds: mission.travelSeconds,
       })
     }
-  }
-
-  // Award savoir to the user (per-user resource) — must run before loop-restart which can early-return
-  if (totalSavoirGained > 0) {
-    await prisma.userResources.update({
-      where: { userId: village.ownerId },
-      data: { savoir: { increment: totalSavoirGained } },
-    })
   }
 
   // Auto-restart looped missions if inhabitants are available

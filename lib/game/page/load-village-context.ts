@@ -71,16 +71,17 @@ export async function loadVillageContext(opts: LoadOptions = {}): Promise<Villag
     await assignVillageToUser(session.userId)
   }
 
-  const [village, userResources, userData, inhabitantTypes] = await Promise.all([
+  const [village, userData, inhabitantTypes] = await Promise.all([
     getVillage(session.userId),
-    getUserResources(session.userId),
     getUser(session.userId),
     getInhabitantTypes(),
   ])
 
   if (!userData || !village) redirect('/sign-in')
 
-  // Catch up on lazily-completed jobs and apply pending consumption
+  // Catch up on lazily-completed jobs and apply pending consumption.
+  // userResources is fetched AFTER catch-up because completePendingMissions
+  // can increment savoir; we want the resource bar to reflect fresh values.
   const catchUp: Promise<unknown>[] = [
     completePendingMissions(village.id),
     completePendingBuildings(village.id),
@@ -92,7 +93,8 @@ export async function loadVillageContext(opts: LoadOptions = {}): Promise<Villag
   await Promise.all(catchUp)
 
   // Fetch mutable state AFTER catch-up so derived values reflect fresh data
-  const [villageResources, villageInhabitants, buildingTypes, villageBuildings] = await Promise.all([
+  const [userResources, villageResources, villageInhabitants, buildingTypes, villageBuildings] = await Promise.all([
+    getUserResources(session.userId),
     getVillageResources(session.userId),
     getVillageInhabitants(session.userId),
     getBuildingTypes(),

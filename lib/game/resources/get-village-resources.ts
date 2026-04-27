@@ -8,14 +8,11 @@ export async function getVillageResources(
   const village = await getVillage(userId)
   if (!village) return null
 
-  const resources = await prisma.villageResources.findUnique({
+  // Atomic lazy initialization — prevents unique-constraint race when two
+  // concurrent requests both observe a missing row.
+  return prisma.villageResources.upsert({
     where: { villageId: village.id },
-  })
-
-  if (resources) return resources
-
-  // Lazy initialization
-  return prisma.villageResources.create({
-    data: { villageId: village.id },
+    update: {},
+    create: { villageId: village.id },
   })
 }
