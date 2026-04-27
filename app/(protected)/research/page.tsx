@@ -80,7 +80,8 @@ export default async function ResearchPage({ searchParams }: { searchParams: Pro
   );
   const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(
     village.id,
-    totalInhabitants
+    totalInhabitants,
+    villageInhabitants,
   );
 
   // Compute storage capacity from completed buildings (staff-aware: no staff = inactive)

@@ -19,6 +19,7 @@ import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-cons
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
 import { getUser } from "@/lib/game/user/get-user";
 import { getVillage } from "@/lib/game/village/get-village";
+import { getAllVillagePositions } from "@/lib/game/village/get-all-villages";
 import { prisma } from "@/lib/prisma";
 import { neonAuth } from "@neondatabase/auth/next/server";
 import { redirect } from "next/navigation";
@@ -50,34 +51,49 @@ export default async function HabitantsPage() {
     applyDailyConsumption(village.id, inhabitantTypes),
   ]);
 
-  // Fetch mutable data AFTER catch-up for fresh values
-  const [villageResources, villageInhabitants, buildingTypes, villageBuildings] = await Promise.all([
-    getVillageResources(session.userId),
-    getVillageInhabitants(session.userId),
-    getBuildingTypes(),
-    getVillageBuildings(session.userId),
-  ]);
+  // Fetch mutable data + active missions + village positions in one round-trip
+  const [villageResources, villageInhabitants, buildingTypes, villageBuildings, activeMissions, allVillagePositions] =
+    await Promise.all([
+      getVillageResources(session.userId),
+      getVillageInhabitants(session.userId),
+      getBuildingTypes(),
+      getVillageBuildings(session.userId),
+      prisma.mission.findMany({
+        where: { villageId: village.id, completedAt: null },
+        select: {
+          inhabitantType: true,
+          workerCount: true,
+          targetX: true,
+          targetY: true,
+          departedAt: true,
+          travelSeconds: true,
+          workSeconds: true,
+          recalledAt: true,
+        },
+      }),
+      getAllVillagePositions(),
+    ]);
 
   if (!villageResources) {
     redirect("/sign-in");
   }
 
-  // Sum busy workers grouped by inhabitant type
-  const activeMissionSums = await prisma.mission.groupBy({
-    by: ['inhabitantType'],
-    where: { villageId: village.id, completedAt: null },
-    _sum: { workerCount: true },
-  });
-  const missionCountMap = Object.fromEntries(
-    activeMissionSums.map((m) => [m.inhabitantType, m._sum.workerCount ?? 0])
-  );
+  // Aggregate busy workers per inhabitant type in JS (no DB groupBy needed)
+  const missionCountMap: Record<string, number> = {};
+  for (const m of activeMissions) {
+    missionCountMap[m.inhabitantType] = (missionCountMap[m.inhabitantType] ?? 0) + m.workerCount;
+  }
 
   const totalInhabitants = villageInhabitants
     ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
 
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
-  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
+  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(
+    village.id,
+    totalInhabitants,
+    villageInhabitants,
+  );
 
   // Compute storage capacity from completed buildings (staff-aware: no staff = inactive)
   const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
@@ -105,29 +121,6 @@ export default async function HabitantsPage() {
   }));
 
   const worldMap = generateWorldMap();
-
-  // Query active missions with timing data for mini-map icons
-  const activeMissions = await prisma.mission.findMany({
-    where: {
-      villageId: village.id,
-      completedAt: null,
-    },
-    select: {
-      inhabitantType: true,
-      workerCount: true,
-      targetX: true,
-      targetY: true,
-      departedAt: true,
-      travelSeconds: true,
-      workSeconds: true,
-      recalledAt: true,
-    },
-  });
-
-  // Fetch all village positions so the mini-map can exclude them as targets
-  const allVillagePositions = await prisma.village.findMany({
-    select: { x: true, y: true },
-  });
 
   const missionTiles = activeMissions.map((m) => ({
     x: m.targetX,

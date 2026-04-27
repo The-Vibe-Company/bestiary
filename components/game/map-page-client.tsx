@@ -131,7 +131,8 @@ export function MapPageClient({
   const [hoveredCell, setHoveredCell] = useState<MapCell | null>(null);
   const [selectedMissionCell, setSelectedMissionCell] = useState<MapCell | null>(null);
   const [selectedWorkerType, setSelectedWorkerType] = useState<string | null>(null);
-  const [prairiePicking, setPrairiePicking] = useState<MapCell | null>(null);
+  const [typePicking, setTypePicking] = useState<MapCell | null>(null);
+  const [cameFromPicker, setCameFromPicker] = useState(false);
 
   const MAP_SIZE = 100;
 
@@ -165,19 +166,17 @@ export function MapPageClient({
     const types = getInhabitantTypesForFeature(cell.feature);
     if (types.length === 0) return;
 
-    // For prairie (feature: null), skip if a village occupies this cell
-    if (cell.feature === null) {
-      const hasVillage = villages.some((v) => v.x === cell.x && v.y === cell.y);
-      if (hasVillage) return;
-    }
+    // Skip if a village occupies this cell
+    const hasVillage = villages.some((v) => v.x === cell.x && v.y === cell.y);
+    if (hasVillage) return;
 
     if (types.length === 1) {
-      // Single worker type (foret → lumberjack, montagne → miner)
+      setCameFromPicker(false);
       setSelectedWorkerType(types[0]);
       setSelectedMissionCell(cell);
     } else {
-      // Multiple types share the same feature (prairie → hunter/gatherer)
-      setPrairiePicking(cell);
+      // Multiple types available for this terrain
+      setTypePicking(cell);
     }
   };
 
@@ -337,19 +336,19 @@ export function MapPageClient({
         </Button>
       </div>
 
-      {/* Prairie type picker — choose between hunter and gatherer */}
-      {prairiePicking && (
+      {/* Mission type picker — choose between available worker types */}
+      {typePicking && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setPrairiePicking(null)}
+            onClick={() => setTypePicking(null)}
           />
           <div className="relative stone-texture border-engraved p-8 rounded-lg shadow-[var(--shadow-vellum)] max-w-sm w-full mx-4">
             <h2
               className="text-lg font-bold mb-1 text-center"
               style={{ color: "var(--ivory)" }}
             >
-              Prairie ({prairiePicking.x}, {prairiePicking.y})
+              {typePicking.feature ? FEATURE_LABELS[typePicking.feature] : "Prairie"} ({typePicking.x}, {typePicking.y})
             </h2>
             <p
               className="text-sm mb-6 text-center"
@@ -357,27 +356,34 @@ export function MapPageClient({
             >
               Quel type de mission ?
             </p>
-            <div className="flex gap-4 justify-center">
-              {getInhabitantTypesForFeature(null).map((type) => {
+            <div className="flex flex-col gap-2">
+              {getInhabitantTypesForFeature(typePicking.feature)
+                .sort((a, b) => {
+                  const labelA = MISSION_CONFIG[a].workerLabel;
+                  const labelB = MISSION_CONFIG[b].workerLabel;
+                  return labelA.localeCompare(labelB, 'fr');
+                })
+                .map((type) => {
                 const config = MISSION_CONFIG[type];
                 const Icon = MISSION_ICONS[type];
                 return (
                   <Button
                     key={type}
                     variant="stone"
-                    className="flex flex-col items-center gap-2 px-6 py-4 border-2 border-[var(--ivory)]/30 rounded hover:border-[var(--burnt-amber)] transition-colors"
+                    className="flex items-center gap-3 px-4 py-3 border-2 border-[var(--ivory)]/30 rounded hover:border-[var(--burnt-amber)] transition-colors w-full"
                     onClick={() => {
+                      setCameFromPicker(true);
                       setSelectedWorkerType(type);
-                      setSelectedMissionCell(prairiePicking);
-                      setPrairiePicking(null);
+                      setSelectedMissionCell(typePicking);
+                      setTypePicking(null);
                     }}
                   >
-                    {Icon && <Icon size={28} style={{ color: "var(--ivory)" }} />}
+                    {Icon && <Icon size={22} style={{ color: "var(--ivory)" }} />}
                     <span style={{ color: "var(--ivory)" }}>
                       {config.workerLabel.charAt(0).toUpperCase() + config.workerLabel.slice(1)}
                     </span>
                     <span
-                      className="text-xs"
+                      className="text-xs ml-auto"
                       style={{ color: "var(--burnt-amber)" }}
                     >
                       {config.resourceLabel}
@@ -387,7 +393,7 @@ export function MapPageClient({
               })}
             </div>
             <div className="flex justify-center mt-6">
-              <Button variant="stone" onClick={() => setPrairiePicking(null)}>
+              <Button variant="stone" onClick={() => setTypePicking(null)}>
                 ANNULER
               </Button>
             </div>
@@ -411,6 +417,12 @@ export function MapPageClient({
             setSelectedMissionCell(null);
             setSelectedWorkerType(null);
           }}
+          onBack={cameFromPicker ? () => {
+            const cell = selectedMissionCell;
+            setSelectedMissionCell(null);
+            setSelectedWorkerType(null);
+            setTypePicking(cell);
+          } : undefined}
         />
       )}
     </div>

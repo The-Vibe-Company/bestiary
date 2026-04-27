@@ -86,7 +86,9 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
     return () => clearInterval(interval)
   }, [computeStatus, status.phase, router])
 
+  const isExploration = MISSION_CONFIG[mission.inhabitantType]?.exploration ?? false
   const phaseConfig = PHASE_CONFIG[status.phase]
+  const phaseLabel = isExploration && status.phase === 'working' ? 'En exploration' : phaseConfig.label
 
   // Segmented progress bar proportions
   const isRecalled = !!mission.recalledAt
@@ -144,7 +146,7 @@ export function MissionCard({ mission, gatherRate, maxCapacity }: MissionCardPro
               className="text-sm font-[family-name:var(--font-title)] tracking-wider"
               style={{ color: phaseConfig.color }}
             >
-              {phaseConfig.label}
+              {phaseLabel}
             </span>
             <span className="text-xs text-[var(--ivory)]/50">
               {status.secondsRemaining > 0

@@ -39,6 +39,7 @@ model Village {
   technologies   VillageTechnology[]
   traveler       VillageTraveler?
   notifications  Notification[]
+  items          VillageItem[]
 
   @@unique([x, y]) // Une seule village par coordonnée
   @@map("Villages")
@@ -170,6 +171,7 @@ model VillageTechnology {
   createdAt           DateTime  @default(now())
 
   @@unique([villageId, technologyKey])
+  @@index([villageId, completedAt])
   @@map("VillageTechnologies")
 }
 
@@ -185,6 +187,7 @@ model VillageBuilding {
   completedAt      DateTime?
   createdAt        DateTime  @default(now())
 
+  @@index([villageId, completedAt])
   @@map("VillageBuildings")
 }
 
@@ -221,7 +224,7 @@ model Mission {
   id             String    @id @default(cuid())
   villageId      String
   village        Village   @relation(fields: [villageId], references: [id], onDelete: Cascade)
-  inhabitantType String    // "lumberjack"
+  inhabitantType String    // "lumberjack", "explorer", etc.
   workerCount    Int       @default(1) // number of workers assigned to this mission
   targetX        Int
   targetY        Int
@@ -232,6 +235,22 @@ model Mission {
   recalledAt     DateTime? // set if recalled during outbound travel
   completedAt    DateTime? // set when resources have been collected
   createdAt      DateTime  @default(now())
+  discoveredItems VillageItem[]
 
+  @@index([villageId, completedAt])
+  @@index([villageId, inhabitantType, completedAt])
   @@map("Missions")
+}
+
+model VillageItem {
+  id           String   @id @default(cuid())
+  villageId    String
+  village      Village  @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  missionId    String?
+  mission      Mission? @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  rarity       String   // "commun", "rare", "epique", "legendaire", "mythique"
+  discoveredAt DateTime @default(now())
+
+  @@index([villageId])
+  @@map("VillageItems")
 }

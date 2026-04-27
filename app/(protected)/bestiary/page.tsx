@@ -60,7 +60,11 @@ export default async function BestiaryPage() {
     : 0;
 
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
-  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
+  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(
+    village.id,
+    totalInhabitants,
+    villageInhabitants,
+  );
 
   // Compute storage capacity from completed buildings (staff-aware: no staff = inactive)
   const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);

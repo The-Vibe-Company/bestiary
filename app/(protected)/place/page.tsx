@@ -68,13 +68,12 @@ export default async function PlacePage() {
     redirect("/sign-in");
   }
 
-  // Fetch active missions
   const missions = await getActiveMissions(village.id);
 
-  // Build statsByType for all mission-capable types
+  // Build statsByType for all mission-capable types (including exploration)
   const statsByType: Record<string, { gatherRate: number; maxCapacity: number }> = {};
   for (const [type, stats] of Object.entries(inhabitantStats)) {
-    if (stats.gatherRate > 0 || stats.maxCapacity > 0) {
+    if (stats.gatherRate > 0 || stats.maxCapacity > 0 || stats.speed > 0) {
       statsByType[type] = { gatherRate: stats.gatherRate, maxCapacity: stats.maxCapacity };
     }
   }
@@ -84,7 +83,11 @@ export default async function PlacePage() {
   const totalInhabitants = villageInhabitants
     ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
-  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
+  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(
+    village.id,
+    totalInhabitants,
+    villageInhabitants,
+  );
 
   // Compute storage capacity from completed buildings (staff-aware: no staff = inactive)
   const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);

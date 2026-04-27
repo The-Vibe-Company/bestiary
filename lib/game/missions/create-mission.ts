@@ -54,12 +54,17 @@ export async function createMission(
   // Verify target cell matches the expected feature for this worker type
   const worldMap = generateWorldMap()
   const cell = worldMap[targetY]?.[targetX]
-  if (!cell || cell.feature !== config.feature) {
+  if (!cell) {
+    return { success: false, error: 'Case cible invalide' }
+  }
+
+  // Exploration missions can go to any terrain; resource missions must match feature
+  if (!config.exploration && cell.feature !== config.feature) {
     return { success: false, error: `La case cible n'est pas une ${config.featureLabel.toLowerCase()}` }
   }
 
-  // For prairie missions (feature: null), ensure no village occupies the target cell
-  if (config.feature === null) {
+  // Ensure no village occupies the target cell (for prairie and exploration missions)
+  if (config.feature === null || config.exploration) {
     const villageOnCell = await prisma.village.findFirst({
       where: { x: targetX, y: targetY },
     })

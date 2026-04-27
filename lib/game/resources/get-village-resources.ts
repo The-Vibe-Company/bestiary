@@ -1,22 +1,21 @@
 import { prisma } from '@/lib/prisma'
+import { getVillage } from '@/lib/game/village/get-village'
 import { VillageResources } from './types'
 
 export async function getVillageResources(
   userId: string
 ): Promise<VillageResources | null> {
-  const village = await prisma.village.findUnique({
-    where: { ownerId: userId },
-    include: { resources: true },
-  })
-
+  const village = await getVillage(userId)
   if (!village) return null
 
-  // Create resources record if not exists (lazy initialization)
-  if (!village.resources) {
-    return await prisma.villageResources.create({
-      data: { villageId: village.id },
-    })
-  }
+  const resources = await prisma.villageResources.findUnique({
+    where: { villageId: village.id },
+  })
 
-  return village.resources
+  if (resources) return resources
+
+  // Lazy initialization
+  return prisma.villageResources.create({
+    data: { villageId: village.id },
+  })
 }

@@ -8,7 +8,6 @@ import { ActiveJobsPanel } from './active-jobs-panel'
 import { Countdown } from './countdown'
 import type { DetectedTravelerStatus } from '@/lib/game/travelers/detection'
 import type { ActiveMission } from '@/lib/game/missions/types'
-
 const PLACE_TABS = [
   { key: 'voyageurs', label: 'Voyageurs', icon: GiWalk },
   { key: 'missions', label: 'Missions', icon: GiHammerNails },
@@ -140,11 +139,13 @@ function InhabitantsSnippet({
   totalInhabitants: number
   maxPopulation: number
 }) {
-  const sortedInhabitantTypes = [...inhabitantTypes].sort((a, b) => {
-    if (a.key === 'mayor' && b.key !== 'mayor') return -1
-    if (b.key === 'mayor' && a.key !== 'mayor') return 1
-    return a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' })
-  })
+  const sortedInhabitantTypes = [...inhabitantTypes]
+    .filter((t) => (inhabitantCounts[t.key] ?? 0) > 0)
+    .sort((a, b) => {
+      if (a.key === 'mayor' && b.key !== 'mayor') return -1
+      if (b.key === 'mayor' && a.key !== 'mayor') return 1
+      return a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' })
+    })
 
   return (
     <div className="w-full flex-1 min-h-0 bg-black/75 backdrop-blur rounded-xl overflow-hidden border border-[var(--burnt-amber)]/20 flex flex-col">
