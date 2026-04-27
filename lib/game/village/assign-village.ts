@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { generateWorldMap } from '@/lib/game/map/generator'
 import { MapCell, MapFeature, WorldMap } from '@/lib/game/map/types'
+import { invalidateVillageListCache } from './get-all-villages'
 
 const MAP_SIZE = 100
 const MIN_BORDER_DISTANCE = 3
@@ -115,6 +116,8 @@ export async function assignVillageToUser(userId: string) {
       },
     }),
   ])
+
+  invalidateVillageListCache()
 
   return village
 }

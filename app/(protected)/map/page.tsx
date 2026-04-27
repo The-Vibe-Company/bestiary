@@ -19,6 +19,7 @@ import { getUserResources } from "@/lib/game/resources/get-user-resources";
 import { getVillageResources } from "@/lib/game/resources/get-village-resources";
 import { getUser } from "@/lib/game/user/get-user";
 import { getVillage } from "@/lib/game/village/get-village";
+import { getAllVillagesWithOwner } from "@/lib/game/village/get-all-villages";
 import { prisma } from "@/lib/prisma";
 import { neonAuth } from "@neondatabase/auth/next/server";
 import { redirect } from "next/navigation";
@@ -32,29 +33,14 @@ export default async function MapPage() {
 
   const worldMap = generateWorldMap();
 
-  // Récupérer le village du joueur
-  const userVillage = await prisma.village.findUnique({
-    where: { ownerId: session.userId },
-  });
-
-  // Récupérer tous les villages pour les afficher sur la map
-  const allVillages = await prisma.village.findMany({
-    select: {
-      x: true,
-      y: true,
-      ownerId: true,
-      name: true,
-      owner: { select: { username: true } },
-    },
-  });
-
-  const [village, userResources, userData, inhabitantStats, inhabitantTypes] =
+  const [village, userResources, userData, inhabitantStats, inhabitantTypes, allVillages] =
     await Promise.all([
       getVillage(session.userId),
       getUserResources(session.userId),
       getUser(session.userId),
       getInhabitantStats(),
       getInhabitantTypes(),
+      getAllVillagesWithOwner(),
     ]);
 
   if (!userData || !village) {
@@ -68,12 +54,25 @@ export default async function MapPage() {
     applyDailyConsumption(village.id, inhabitantTypes),
   ]);
 
-  // Fetch mutable data AFTER catch-up for fresh values
-  const [villageResources, villageInhabitants, buildingTypes, villageBuildings] = await Promise.all([
+  // Fetch mutable data + active missions in one round-trip
+  const [villageResources, villageInhabitants, buildingTypes, villageBuildings, activeMissions] = await Promise.all([
     getVillageResources(session.userId),
     getVillageInhabitants(session.userId),
     getBuildingTypes(),
     getVillageBuildings(session.userId),
+    prisma.mission.findMany({
+      where: { villageId: village.id, completedAt: null },
+      select: {
+        inhabitantType: true,
+        workerCount: true,
+        targetX: true,
+        targetY: true,
+        departedAt: true,
+        travelSeconds: true,
+        workSeconds: true,
+        recalledAt: true,
+      },
+    }),
   ]);
 
   if (!villageResources) {
@@ -91,15 +90,11 @@ export default async function MapPage() {
   const storageStaffCounts = getStorageStaffCounts(villageInhabitants);
   const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings, storageStaffCounts);
 
-  // Sum busy workers grouped by inhabitant type
-  const activeMissionSums = await prisma.mission.groupBy({
-    by: ['inhabitantType'],
-    where: { villageId: village.id, completedAt: null },
-    _sum: { workerCount: true },
-  });
-  const busyWorkerMap = Object.fromEntries(
-    activeMissionSums.map((m) => [m.inhabitantType, m._sum.workerCount ?? 0])
-  );
+  // Aggregate busy workers per inhabitant type from the active missions list (no extra query)
+  const busyWorkerMap: Record<string, number> = {};
+  for (const m of activeMissions) {
+    busyWorkerMap[m.inhabitantType] = (busyWorkerMap[m.inhabitantType] ?? 0) + m.workerCount;
+  }
 
   // Compute worker availability and stats for all mission-capable types
   const workerAvailability: Record<string, number> = {};
@@ -113,24 +108,6 @@ export default async function MapPage() {
     }
   }
 
-  // Query active missions with timing data for phase computation on the client
-  const activeMissions = await prisma.mission.findMany({
-    where: {
-      villageId: village.id,
-      completedAt: null,
-    },
-    select: {
-      inhabitantType: true,
-      workerCount: true,
-      targetX: true,
-      targetY: true,
-      departedAt: true,
-      travelSeconds: true,
-      workSeconds: true,
-      recalledAt: true,
-    },
-  });
-
   const missionTiles = activeMissions.map((m) => ({
     x: m.targetX,
     y: m.targetY,
@@ -141,7 +118,11 @@ export default async function MapPage() {
     workSeconds: m.workSeconds,
     recalledAt: m.recalledAt?.toISOString() ?? null,
   }));
-  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
+  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(
+    village.id,
+    totalInhabitants,
+    villageInhabitants,
+  );
 
   return (
     <div className="relative">
@@ -163,8 +144,8 @@ export default async function MapPage() {
       <MapPageClient
         map={worldMap}
         villages={allVillages}
-        initialX={userVillage?.x ?? 50}
-        initialY={userVillage?.y ?? 50}
+        initialX={village.x}
+        initialY={village.y}
         currentUserId={session.userId}
         villageX={village.x}
         villageY={village.y}

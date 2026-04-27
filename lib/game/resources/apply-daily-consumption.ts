@@ -35,29 +35,37 @@ async function cancelOrphanedMissions(
 ): Promise<void> {
   const now = new Date()
 
-  for (const key of INHABITANT_TYPES) {
-    const surviving = survivingInhabitants[key] ?? 0
+  const activeMissions = await prisma.mission.findMany({
+    where: { villageId, completedAt: null },
+    select: { id: true, inhabitantType: true, departedAt: true },
+    orderBy: { departedAt: 'desc' },
+  })
 
-    const activeMissions = await prisma.mission.findMany({
-      where: {
-        villageId,
-        inhabitantType: key,
-        completedAt: null,
-      },
-      orderBy: { departedAt: 'desc' },
-    })
+  if (activeMissions.length === 0) return
 
-    const excess = activeMissions.length - surviving
-    if (excess <= 0) continue
-
-    const toCancel = activeMissions.slice(0, excess)
-    await prisma.mission.updateMany({
-      where: {
-        id: { in: toCancel.map((m) => m.id) },
-      },
-      data: { completedAt: now },
-    })
+  const idsToCancel: string[] = []
+  const byType = new Map<string, { id: string }[]>()
+  for (const m of activeMissions) {
+    const list = byType.get(m.inhabitantType) ?? []
+    list.push({ id: m.id })
+    byType.set(m.inhabitantType, list)
   }
+
+  for (const key of INHABITANT_TYPES) {
+    const list = byType.get(key)
+    if (!list) continue
+    const surviving = survivingInhabitants[key] ?? 0
+    const excess = list.length - surviving
+    if (excess <= 0) continue
+    for (let i = 0; i < excess; i++) idsToCancel.push(list[i].id)
+  }
+
+  if (idsToCancel.length === 0) return
+
+  await prisma.mission.updateMany({
+    where: { id: { in: idsToCancel } },
+    data: { completedAt: now },
+  })
 }
 
 /**
@@ -76,17 +84,12 @@ export async function applyDailyConsumption(
   inhabitantTypes: PrismaInhabitantType[],
   now: Date = new Date(),
 ): Promise<boolean> {
-  const village = await prisma.village.findUnique({
-    where: { id: villageId },
-    include: {
-      resources: true,
-      inhabitants: true,
-    },
-  })
+  const [resources, inhabitants] = await Promise.all([
+    prisma.villageResources.findUnique({ where: { villageId } }),
+    prisma.villageInhabitants.findUnique({ where: { villageId } }),
+  ])
 
-  if (!village?.resources) return false
-
-  const { resources, inhabitants } = village
+  if (!resources) return false
   const daysElapsed = computeFullCyclesElapsed(resources.lastConsumptionAt, now)
 
   if (daysElapsed <= 0) return false

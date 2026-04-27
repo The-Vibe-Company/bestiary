@@ -83,7 +83,11 @@ export default async function PlacePage() {
   const totalInhabitants = villageInhabitants
     ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
     : 0;
-  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
+  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(
+    village.id,
+    totalInhabitants,
+    villageInhabitants,
+  );
 
   // Compute storage capacity from completed buildings (staff-aware: no staff = inactive)
   const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);

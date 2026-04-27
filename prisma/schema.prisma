@@ -171,6 +171,7 @@ model VillageTechnology {
   createdAt           DateTime  @default(now())
 
   @@unique([villageId, technologyKey])
+  @@index([villageId, completedAt])
   @@map("VillageTechnologies")
 }
 
@@ -186,6 +187,7 @@ model VillageBuilding {
   completedAt      DateTime?
   createdAt        DateTime  @default(now())
 
+  @@index([villageId, completedAt])
   @@map("VillageBuildings")
 }
 
@@ -235,6 +237,8 @@ model Mission {
   createdAt      DateTime  @default(now())
   discoveredItems VillageItem[]
 
+  @@index([villageId, completedAt])
+  @@index([villageId, inhabitantType, completedAt])
   @@map("Missions")
 }
 

@@ -138,47 +138,55 @@ export async function completePendingMissions(villageId: string): Promise<void> 
 
   // Auto-restart looped missions if inhabitants are available
   if (loopCandidates.length > 0) {
-    const villageWithInhabitants = await prisma.village.findUnique({
-      where: { id: villageId },
-      include: { inhabitants: true },
-    })
-    if (!villageWithInhabitants || !villageWithInhabitants.inhabitants) return
-
-    // Sum busy workers per type from still-active missions
-    const stillActiveMissions = await prisma.mission.findMany({
-      where: { villageId, completedAt: null },
-      select: { inhabitantType: true, workerCount: true },
-    })
+    const [inhabitants, stillActiveMissions] = await Promise.all([
+      prisma.villageInhabitants.findUnique({ where: { villageId } }),
+      prisma.mission.findMany({
+        where: { villageId, completedAt: null },
+        select: { inhabitantType: true, workerCount: true },
+      }),
+    ])
+    if (!inhabitants) return
 
     const busyByType: Record<string, number> = {}
     for (const m of stillActiveMissions) {
       busyByType[m.inhabitantType] = (busyByType[m.inhabitantType] ?? 0) + m.workerCount
     }
 
-    // Track how many new workers we allocate per type in this batch
     const allocatedByType: Record<string, number> = {}
+    const toCreate: {
+      villageId: string
+      inhabitantType: string
+      workerCount: number
+      targetX: number
+      targetY: number
+      travelSeconds: number
+      workSeconds: number
+      loop: true
+    }[] = []
 
     for (const candidate of loopCandidates) {
-      const totalOfType = (villageWithInhabitants.inhabitants as Record<string, unknown>)[candidate.inhabitantType] as number ?? 0
+      const totalOfType = (inhabitants as unknown as Record<string, number>)[candidate.inhabitantType] ?? 0
       const busyOfType = (busyByType[candidate.inhabitantType] ?? 0)
         + (allocatedByType[candidate.inhabitantType] ?? 0)
 
       if (totalOfType - busyOfType < candidate.workerCount) continue
 
-      await prisma.mission.create({
-        data: {
-          villageId,
-          inhabitantType: candidate.inhabitantType,
-          workerCount: candidate.workerCount,
-          targetX: candidate.targetX,
-          targetY: candidate.targetY,
-          travelSeconds: candidate.travelSeconds,
-          workSeconds: candidate.workSeconds,
-          loop: true,
-        },
+      toCreate.push({
+        villageId,
+        inhabitantType: candidate.inhabitantType,
+        workerCount: candidate.workerCount,
+        targetX: candidate.targetX,
+        targetY: candidate.targetY,
+        travelSeconds: candidate.travelSeconds,
+        workSeconds: candidate.workSeconds,
+        loop: true,
       })
 
       allocatedByType[candidate.inhabitantType] = (allocatedByType[candidate.inhabitantType] ?? 0) + candidate.workerCount
+    }
+
+    if (toCreate.length > 0) {
+      await prisma.mission.createMany({ data: toCreate })
     }
   }
 

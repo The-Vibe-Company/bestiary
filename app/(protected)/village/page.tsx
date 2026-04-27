@@ -73,7 +73,11 @@ export default async function VillagePage() {
     : 0;
 
   const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
-  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(village.id, totalInhabitants);
+  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(
+    village.id,
+    totalInhabitants,
+    villageInhabitants,
+  );
 
   // Compute storage capacity from completed buildings (staff-aware: no staff = inactive)
   const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
@@ -108,22 +112,32 @@ export default async function VillagePage() {
     entrepot_viande: villageInhabitants?.butcher ?? 0,
   };
 
+  // Group buildings by type once (avoids O(n*m) re-filtering inside .map below)
+  const buildingsByType = new Map<string, typeof villageBuildings>();
+  for (const vb of villageBuildings) {
+    const list = buildingsByType.get(vb.buildingType);
+    if (list) list.push(vb);
+    else buildingsByType.set(vb.buildingType, [vb]);
+  }
+
   // Aggregate building data per type
   const buildingTypeData = buildingTypes.map((bt) => {
-    const buildings = villageBuildings.filter((vb) => vb.buildingType === bt.key);
-    const completedCount = buildings.filter((vb) => vb.completedAt !== null).length;
-    const activeConstructions = buildings
-      .filter((vb) => vb.completedAt === null)
-      .map((vb) => ({
-        startedAt: vb.startedAt.toISOString(),
-        buildSeconds: vb.buildSeconds,
-        assignedBuilders: vb.assignedBuilders,
-      }));
-
-    // For unique buildings: find the current level from the highest-level completed building
-    const currentLevel = buildings
-      .filter((vb) => vb.completedAt !== null)
-      .reduce((max, vb) => Math.max(max, vb.level), 0)
+    const buildings = buildingsByType.get(bt.key) ?? [];
+    let completedCount = 0;
+    let currentLevel = 0;
+    const activeConstructions: { startedAt: string; buildSeconds: number; assignedBuilders: number }[] = [];
+    for (const vb of buildings) {
+      if (vb.completedAt !== null) {
+        completedCount++;
+        if (vb.level > currentLevel) currentLevel = vb.level;
+      } else {
+        activeConstructions.push({
+          startedAt: vb.startedAt.toISOString(),
+          buildSeconds: vb.buildSeconds,
+          assignedBuilders: vb.assignedBuilders,
+        });
+      }
+    }
 
     return {
       key: bt.key,
