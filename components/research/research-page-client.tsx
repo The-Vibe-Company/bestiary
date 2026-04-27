@@ -45,10 +45,10 @@ interface ResearchPageClientProps {
 }
 
 const RESOURCE_CONFIG = [
-  { key: 'costBois' as const, resKey: 'bois' as const, icon: GiWoodPile, color: '#8B4513', label: 'Bois' },
-  { key: 'costPierre' as const, resKey: 'pierre' as const, icon: GiStonePile, color: '#708090', label: 'Pierre' },
-  { key: 'costCereales' as const, resKey: 'cereales' as const, icon: GiWheat, color: '#DAA520', label: 'Céréales' },
-  { key: 'costViande' as const, resKey: 'viande' as const, icon: GiMeat, color: '#CD5C5C', label: 'Viande' },
+  { key: 'costBois' as const, resKey: 'bois' as const, icon: GiWoodPile, color: 'var(--color-bois)', label: 'Bois' },
+  { key: 'costPierre' as const, resKey: 'pierre' as const, icon: GiStonePile, color: 'var(--color-pierre)', label: 'Pierre' },
+  { key: 'costCereales' as const, resKey: 'cereales' as const, icon: GiWheat, color: 'var(--color-cereales)', label: 'Céréales' },
+  { key: 'costViande' as const, resKey: 'viande' as const, icon: GiMeat, color: 'var(--color-danger)', label: 'Viande' },
 ]
 
 function ResearchStatus({
@@ -271,7 +271,7 @@ export function ResearchPageClient({ technologies, villageResources, availableRe
                             <r.icon size={16} style={{ color: r.color }} />
                             <span
                               className="text-sm font-bold"
-                              style={{ color: hasEnough ? r.color : '#CD5C5C' }}
+                              style={{ color: hasEnough ? r.color : 'var(--color-danger)' }}
                             >
                               {cost}
                             </span>

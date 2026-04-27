@@ -136,7 +136,7 @@ export function SendMissionModal({
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={() => { if (!pending) onClose() }}
       />
 
       {/* Modal */}
@@ -295,7 +295,7 @@ export function SendMissionModal({
                 <span className="text-xs text-[var(--ivory)]/50 uppercase tracking-wider font-[family-name:var(--font-title)]">
                   Savoir estimé
                 </span>
-                <span className="text-sm font-[family-name:var(--font-title)] tracking-wider" style={{ color: '#9370DB' }}>
+                <span className="text-sm font-[family-name:var(--font-title)] tracking-wider" style={{ color: 'var(--color-savoir)' }}>
                   +{projectedSavoir}
                 </span>
               </div>

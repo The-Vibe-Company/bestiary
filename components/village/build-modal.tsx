@@ -53,7 +53,7 @@ export function BuildModal({
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-md"
-        onClick={onClose}
+        onClick={() => { if (!pending) onClose() }}
       />
 
       {/* Modal */}

@@ -11,6 +11,37 @@
   --burnt-amber: #b37b34;
   --burnt-amber-light: #c9915d;
 
+  /* Village resources */
+  --color-bois: #8B4513;
+  --color-pierre: #708090;
+  --color-cereales: #DAA520;
+  --color-viande: #CD5C5C;
+
+  /* User resources */
+  --color-or: #FFD700;
+  --color-savoir: #9370DB;
+
+  /* UI accents */
+  --color-population: #228B22;
+  --color-inhabitants: #C19A6B;
+  --color-consumption: #EAD9BF;
+  --color-timer: #F4E1C1;
+  --color-warning: #CC7722;
+  --color-danger: #CD5C5C;
+  --color-tooltip-bg: #f5f5dc;
+  --color-surface-dark: #1a1a1a;
+
+  /* Item rarity */
+  --color-rarity-commun: #9ca3af;
+  --color-rarity-rare: #3b82f6;
+  --color-rarity-epique: #a855f7;
+  --color-rarity-legendaire: #f59e0b;
+  --color-rarity-mythique: #ef4444;
+
+  /* Map tile glows */
+  --color-tile-glow-forest: #5D9656;
+  --color-tile-glow-mountain: #303342;
+
   /* Fonts */
   --font-title: var(--font-cinzel);
   --font-body: var(--font-eb-garamond);

@@ -242,13 +242,21 @@ model Mission {
   @@map("Missions")
 }
 
+enum Rarity {
+  commun
+  rare
+  epique
+  legendaire
+  mythique
+}
+
 model VillageItem {
   id           String   @id @default(cuid())
   villageId    String
   village      Village  @relation(fields: [villageId], references: [id], onDelete: Cascade)
   missionId    String?
   mission      Mission? @relation(fields: [missionId], references: [id], onDelete: SetNull)
-  rarity       String   // "commun", "rare", "epique", "legendaire", "mythique"
+  rarity       Rarity
   discoveredAt DateTime @default(now())
 
   @@index([villageId])

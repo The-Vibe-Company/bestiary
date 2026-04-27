@@ -1,82 +1,34 @@
 import { HabitantsPageClient } from "@/components/habitants/habitants-page-client";
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
-import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
-import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
-import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
-import { computeStorageCapacity, getStorageStaffCounts } from "@/lib/game/buildings/storage-capacity";
 import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
-import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
-import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
-import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
-import { INHABITANT_TYPES, type InhabitantType } from "@/lib/game/inhabitants/types";
+import { type InhabitantType } from "@/lib/game/inhabitants/types";
 import { generateWorldMap } from "@/lib/game/map/generator";
-import { completePendingMissions } from "@/lib/game/missions/complete-missions";
 import { MISSION_CAPABLE_TYPES } from "@/lib/game/missions/mission-config";
-import { getUserResources } from "@/lib/game/resources/get-user-resources";
-import { applyDailyConsumption } from "@/lib/game/resources/apply-daily-consumption";
-import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
-import { getVillageResources } from "@/lib/game/resources/get-village-resources";
-import { getUser } from "@/lib/game/user/get-user";
-import { getVillage } from "@/lib/game/village/get-village";
+import { loadVillageContext } from "@/lib/game/page/load-village-context";
 import { getAllVillagePositions } from "@/lib/game/village/get-all-villages";
 import { prisma } from "@/lib/prisma";
-import { neonAuth } from "@neondatabase/auth/next/server";
-import { redirect } from "next/navigation";
 
 export default async function HabitantsPage() {
-  const { session } = await neonAuth();
+  const ctx = await loadVillageContext({ completeResearch: false });
 
-  if (!session) {
-    redirect("/sign-in");
-  }
-
-  const [village, userResources, userData, inhabitantTypes, inhabitantStats] =
-    await Promise.all([
-      getVillage(session.userId),
-      getUserResources(session.userId),
-      getUser(session.userId),
-      getInhabitantTypes(),
-      getInhabitantStats(),
-    ]);
-
-  if (!userData || !village) {
-    redirect("/sign-in");
-  }
-
-  // Complete finished jobs and apply pending consumption before computing availability
-  await Promise.all([
-    completePendingMissions(village.id),
-    completePendingBuildings(village.id),
-    applyDailyConsumption(village.id, inhabitantTypes),
+  const [inhabitantStats, allVillagePositions, activeMissions] = await Promise.all([
+    getInhabitantStats(),
+    getAllVillagePositions(),
+    prisma.mission.findMany({
+      where: { villageId: ctx.village.id, completedAt: null },
+      select: {
+        inhabitantType: true,
+        workerCount: true,
+        targetX: true,
+        targetY: true,
+        departedAt: true,
+        travelSeconds: true,
+        workSeconds: true,
+        recalledAt: true,
+      },
+    }),
   ]);
-
-  // Fetch mutable data + active missions + village positions in one round-trip
-  const [villageResources, villageInhabitants, buildingTypes, villageBuildings, activeMissions, allVillagePositions] =
-    await Promise.all([
-      getVillageResources(session.userId),
-      getVillageInhabitants(session.userId),
-      getBuildingTypes(),
-      getVillageBuildings(session.userId),
-      prisma.mission.findMany({
-        where: { villageId: village.id, completedAt: null },
-        select: {
-          inhabitantType: true,
-          workerCount: true,
-          targetX: true,
-          targetY: true,
-          departedAt: true,
-          travelSeconds: true,
-          workSeconds: true,
-          recalledAt: true,
-        },
-      }),
-      getAllVillagePositions(),
-    ]);
-
-  if (!villageResources) {
-    redirect("/sign-in");
-  }
 
   // Aggregate busy workers per inhabitant type in JS (no DB groupBy needed)
   const missionCountMap: Record<string, number> = {};
@@ -84,27 +36,11 @@ export default async function HabitantsPage() {
     missionCountMap[m.inhabitantType] = (missionCountMap[m.inhabitantType] ?? 0) + m.workerCount;
   }
 
-  const totalInhabitants = villageInhabitants
-    ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
-    : 0;
-
-  const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
-  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(
-    village.id,
-    totalInhabitants,
-    villageInhabitants,
-  );
-
-  // Compute storage capacity from completed buildings (staff-aware: no staff = inactive)
-  const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
-  const storageStaffCounts = getStorageStaffCounts(villageInhabitants);
-  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings, storageStaffCounts);
-
   // Compute worker availability and stats for all mission-capable types
   const workerAvailability: Record<string, number> = {};
   const workerStats: Record<string, { speed: number; gatherRate: number; maxCapacity: number }> = {};
   for (const type of MISSION_CAPABLE_TYPES) {
-    const total = villageInhabitants?.[type as InhabitantType] ?? 0;
+    const total = ctx.villageInhabitants?.[type as InhabitantType] ?? 0;
     workerAvailability[type] = total - (missionCountMap[type] ?? 0);
     const stats = inhabitantStats[type];
     if (stats) {
@@ -113,10 +49,10 @@ export default async function HabitantsPage() {
   }
 
   // Build ordered list for display using DB metadata
-  const inhabitantsList = inhabitantTypes.map((type) => ({
+  const inhabitantsList = ctx.inhabitantTypes.map((type) => ({
     ...type,
     id: type.key,
-    count: villageInhabitants?.[type.key as InhabitantType] ?? 0,
+    count: ctx.villageInhabitants?.[type.key as InhabitantType] ?? 0,
     inMission: missionCountMap[type.key] ?? 0,
   }));
 
@@ -146,17 +82,17 @@ export default async function HabitantsPage() {
       {/* Resource bars container */}
       <div className="flex-shrink-0 relative z-10 flex justify-center gap-2 mt-[32px]">
         <UserResourceBar
-          username={userData.username}
-          userResources={userResources}
+          username={ctx.userData.username}
+          userResources={ctx.userResources}
         />
         <ResourceBar
-          villageName={village?.name ?? null}
-          villageResources={villageResources}
-          storageCapacity={storageCapacity}
-          population={totalInhabitants}
-          maxPopulation={village.capacity}
-          unoccupiedInhabitants={unoccupiedInhabitants}
-          dailyConsumption={dailyConsumption}
+          villageName={ctx.village.name}
+          villageResources={ctx.villageResources}
+          storageCapacity={ctx.storageCapacity}
+          population={ctx.totalInhabitants}
+          maxPopulation={ctx.village.capacity}
+          unoccupiedInhabitants={ctx.unoccupiedInhabitants}
+          dailyConsumption={ctx.dailyConsumption}
         />
       </div>
 
@@ -165,8 +101,8 @@ export default async function HabitantsPage() {
         <HabitantsPageClient
           inhabitantsList={inhabitantsList}
           map={worldMap}
-          villageX={village.x}
-          villageY={village.y}
+          villageX={ctx.village.x}
+          villageY={ctx.village.y}
           workerAvailability={workerAvailability}
           workerStats={workerStats}
           missionTiles={missionTiles}

@@ -28,8 +28,8 @@ export function UserResourceBar({ username, userResources }: UserResourceBarProp
         {/* Gold */}
         <Tooltip label="Or">
           <div className="flex items-center gap-1.5">
-            <GiTwoCoins size={20} style={{ color: '#FFD700' }} />
-            <span className="text-sm font-bold" style={{ color: '#FFD700' }}>
+            <GiTwoCoins size={20} style={{ color: 'var(--color-or)' }} />
+            <span className="text-sm font-bold" style={{ color: 'var(--color-or)' }}>
               {userResources.or}
             </span>
           </div>
@@ -38,8 +38,8 @@ export function UserResourceBar({ username, userResources }: UserResourceBarProp
         {/* Knowledge */}
         <Tooltip label="Savoir">
           <div className="flex items-center gap-1.5">
-            <GiSpellBook size={20} style={{ color: '#9370DB' }} />
-            <span className="text-sm font-bold" style={{ color: '#9370DB' }}>
+            <GiSpellBook size={20} style={{ color: 'var(--color-savoir)' }} />
+            <span className="text-sm font-bold" style={{ color: 'var(--color-savoir)' }}>
               {userResources.savoir}
             </span>
           </div>

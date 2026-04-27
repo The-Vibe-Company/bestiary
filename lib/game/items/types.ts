@@ -20,10 +20,10 @@ export const RARITY_LABELS: Record<ItemRarity, string> = {
 }
 
 export const RARITY_COLORS: Record<ItemRarity, string> = {
-  commun: '#9ca3af',      // gray
-  rare: '#3b82f6',        // blue
-  epique: '#a855f7',      // purple
-  legendaire: '#f59e0b',  // amber/gold
-  mythique: '#ef4444',    // red
+  commun: 'var(--color-rarity-commun)',
+  rare: 'var(--color-rarity-rare)',
+  epique: 'var(--color-rarity-epique)',
+  legendaire: 'var(--color-rarity-legendaire)',
+  mythique: 'var(--color-rarity-mythique)',
 }
 

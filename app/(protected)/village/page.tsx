@@ -1,92 +1,21 @@
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
 import { VillagePageClient } from "@/components/village/village-page-client";
-import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
-import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
-import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
-import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
-import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
-import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
-import { completePendingMissions } from "@/lib/game/missions/complete-missions";
-import { INHABITANT_TYPES } from "@/lib/game/inhabitants/types";
-import { applyDailyConsumption } from "@/lib/game/resources/apply-daily-consumption";
-import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
-import { getUserResources } from "@/lib/game/resources/get-user-resources";
-import { getVillageResources } from "@/lib/game/resources/get-village-resources";
-import { computeStorageCapacity, getStorageStaffCounts } from "@/lib/game/buildings/storage-capacity";
+import { loadVillageContext } from "@/lib/game/page/load-village-context";
 import { getTechnologies } from "@/lib/game/research/get-technologies";
 import { getVillageTechnologies } from "@/lib/game/research/get-village-technologies";
-import { completePendingResearch } from "@/lib/game/research/complete-pending-research";
-import { getUser } from "@/lib/game/user/get-user";
-import { assignVillageToUser } from "@/lib/game/village/assign-village";
-import { getVillage } from "@/lib/game/village/get-village";
-import { neonAuth } from "@neondatabase/auth/next/server";
-import { redirect } from "next/navigation";
 
 export default async function VillagePage() {
-  const { session, user } = await neonAuth();
+  const ctx = await loadVillageContext({ ensureVillage: true });
 
-  if (!session || !user) {
-    redirect("/sign-in");
-  }
-
-  // S'assurer que l'utilisateur a un village (créé au signup ou ici en fallback)
-  await assignVillageToUser(session.userId);
-
-  const [village, userResources, userData, inhabitantTypes] =
-    await Promise.all([
-      getVillage(session.userId),
-      getUserResources(session.userId),
-      getUser(session.userId),
-      getInhabitantTypes(),
-    ]);
-
-  if (!userData || !village) {
-    redirect("/sign-in");
-  }
-
-  // Complete finished jobs and apply pending consumption before computing availability
-  await Promise.all([
-    completePendingMissions(village.id),
-    completePendingBuildings(village.id),
-    completePendingResearch(village.id),
-    applyDailyConsumption(village.id, inhabitantTypes),
+  const [allTechnologies, villageTechnologies] = await Promise.all([
+    getTechnologies(),
+    getVillageTechnologies(ctx.village.id),
   ]);
 
-  // Fetch all mutable data AFTER catch-up for fresh state
-  const [buildingTypes, villageBuildings, villageResources, villageInhabitants, villageTechnologies, allTechnologies] =
-    await Promise.all([
-      getBuildingTypes(),
-      getVillageBuildings(session.userId),
-      getVillageResources(session.userId),
-      getVillageInhabitants(session.userId),
-      getVillageTechnologies(village.id),
-      getTechnologies(),
-    ]);
-
-  if (!villageResources) {
-    redirect("/sign-in");
-  }
-
-  const totalInhabitants = villageInhabitants
-    ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
-    : 0;
-
-  const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
-  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(
-    village.id,
-    totalInhabitants,
-    villageInhabitants,
-  );
-
-  // Compute storage capacity from completed buildings (staff-aware: no staff = inactive)
-  const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
-  const storageStaffCounts = getStorageStaffCounts(villageInhabitants);
-  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings, storageStaffCounts);
-
   // Calculate available builders (total - busy on active constructions)
-  const totalBuilders = villageInhabitants?.builder ?? 0;
-  const busyBuilders = villageBuildings
+  const totalBuilders = ctx.villageInhabitants?.builder ?? 0;
+  const busyBuilders = ctx.villageBuildings
     .filter((vb) => vb.completedAt === null)
     .reduce((sum, vb) => sum + vb.assignedBuilders, 0);
   const availableBuilders = totalBuilders - busyBuilders;
@@ -102,26 +31,26 @@ export default async function VillagePage() {
   const techTitleMap = new Map(allTechnologies.map((t) => [t.key, t.title]));
 
   const buildingStaffCounts: Record<string, number> = {
-    laboratoire: villageInhabitants?.researcher ?? 0,
-    tour_de_guet: villageInhabitants?.watchman ?? 0,
-    taverne: villageInhabitants?.tavernkeeper ?? 0,
-    hotel_de_ville: villageInhabitants?.mayor ?? 0,
-    entrepot_bois: villageInhabitants?.splitter ?? 0,
-    entrepot_pierre: villageInhabitants?.stonecutter ?? 0,
-    entrepot_cereales: villageInhabitants?.victualer ?? 0,
-    entrepot_viande: villageInhabitants?.butcher ?? 0,
+    laboratoire: ctx.villageInhabitants?.researcher ?? 0,
+    tour_de_guet: ctx.villageInhabitants?.watchman ?? 0,
+    taverne: ctx.villageInhabitants?.tavernkeeper ?? 0,
+    hotel_de_ville: ctx.villageInhabitants?.mayor ?? 0,
+    entrepot_bois: ctx.villageInhabitants?.splitter ?? 0,
+    entrepot_pierre: ctx.villageInhabitants?.stonecutter ?? 0,
+    entrepot_cereales: ctx.villageInhabitants?.victualer ?? 0,
+    entrepot_viande: ctx.villageInhabitants?.butcher ?? 0,
   };
 
   // Group buildings by type once (avoids O(n*m) re-filtering inside .map below)
-  const buildingsByType = new Map<string, typeof villageBuildings>();
-  for (const vb of villageBuildings) {
+  const buildingsByType = new Map<string, typeof ctx.villageBuildings>();
+  for (const vb of ctx.villageBuildings) {
     const list = buildingsByType.get(vb.buildingType);
     if (list) list.push(vb);
     else buildingsByType.set(vb.buildingType, [vb]);
   }
 
   // Aggregate building data per type
-  const buildingTypeData = buildingTypes.map((bt) => {
+  const buildingTypeData = ctx.buildingTypes.map((bt) => {
     const buildings = buildingsByType.get(bt.key) ?? [];
     let completedCount = 0;
     let currentLevel = 0;
@@ -180,17 +109,17 @@ export default async function VillagePage() {
       {/* Resource bars container */}
       <div className="flex-shrink-0 relative z-10 flex justify-center gap-2 mt-[32px]">
         <UserResourceBar
-          username={userData.username}
-          userResources={userResources}
+          username={ctx.userData.username}
+          userResources={ctx.userResources}
         />
         <ResourceBar
-          villageName={village?.name ?? null}
-          villageResources={villageResources}
-          storageCapacity={storageCapacity}
-          population={totalInhabitants}
-          maxPopulation={village.capacity}
-          unoccupiedInhabitants={unoccupiedInhabitants}
-          dailyConsumption={dailyConsumption}
+          villageName={ctx.village.name}
+          villageResources={ctx.villageResources}
+          storageCapacity={ctx.storageCapacity}
+          population={ctx.totalInhabitants}
+          maxPopulation={ctx.village.capacity}
+          unoccupiedInhabitants={ctx.unoccupiedInhabitants}
+          dailyConsumption={ctx.dailyConsumption}
         />
       </div>
 
@@ -199,12 +128,12 @@ export default async function VillagePage() {
         <VillagePageClient
           buildingTypes={buildingTypeData}
           villageResources={{
-            bois: villageResources.bois,
-            pierre: villageResources.pierre,
-            cereales: villageResources.cereales,
-            viande: villageResources.viande,
+            bois: ctx.villageResources.bois,
+            pierre: ctx.villageResources.pierre,
+            cereales: ctx.villageResources.cereales,
+            viande: ctx.villageResources.viande,
           }}
-          storageCapacity={storageCapacity}
+          storageCapacity={ctx.storageCapacity}
           availableBuilders={availableBuilders}
         />
       </div>

@@ -17,10 +17,10 @@ interface ResourceBarProps {
 }
 
 const villageResourceConfig = [
-  { key: 'bois' as const, icon: GiWoodPile, color: '#8B4513', label: 'Bois' },
-  { key: 'pierre' as const, icon: GiStonePile, color: '#708090', label: 'Pierre' },
-  { key: 'cereales' as const, icon: GiWheat, color: '#DAA520', label: 'Céréales' },
-  { key: 'viande' as const, icon: GiMeat, color: '#CD5C5C', label: 'Viande' },
+  { key: 'bois' as const, icon: GiWoodPile, color: 'var(--color-bois)', label: 'Bois' },
+  { key: 'pierre' as const, icon: GiStonePile, color: 'var(--color-pierre)', label: 'Pierre' },
+  { key: 'cereales' as const, icon: GiWheat, color: 'var(--color-cereales)', label: 'Céréales' },
+  { key: 'viande' as const, icon: GiMeat, color: 'var(--color-viande)', label: 'Viande' },
 ]
 
 export function ResourceBar({
@@ -39,8 +39,8 @@ export function ResourceBar({
         {villageName && (
           <>
             <div className="flex items-center gap-1.5">
-              <GiVillage size={18} style={{ color: '#228B22' }} />
-              <span className="text-sm font-bold font-[family-name:var(--font-title)] tracking-wider" style={{ color: '#228B22' }}>
+              <GiVillage size={18} style={{ color: 'var(--color-population)' }} />
+              <span className="text-sm font-bold font-[family-name:var(--font-title)] tracking-wider" style={{ color: 'var(--color-population)' }}>
                 {villageName}
               </span>
             </div>
@@ -73,7 +73,7 @@ export function ResourceBar({
             <Tooltip key={key} label={tooltipLabel}>
               <div className="relative flex items-center gap-1.5">
                 <Icon size={20} style={{ color }} />
-                <span className="text-sm font-bold" style={{ color: isFull ? '#CD5C5C' : color }}>
+                <span className="text-sm font-bold" style={{ color: isFull ? 'var(--color-danger)' : color }}>
                   {Number(villageResources[key].toFixed(1))}
                 </span>
                 {consumption > 0 && (
@@ -100,8 +100,8 @@ export function ResourceBar({
               unoccupiedInhabitants !== undefined ? "Population et habitants inoccupés" : "Population"
             }>
               <div className="flex items-center gap-1.5">
-                <GiThreeFriends size={20} style={{ color: '#C19A6B' }} />
-                <span className="text-sm font-bold" style={{ color: '#C19A6B' }}>
+                <GiThreeFriends size={20} style={{ color: 'var(--color-inhabitants)' }} />
+                <span className="text-sm font-bold" style={{ color: 'var(--color-inhabitants)' }}>
                   {population} / {maxPopulation}
                 </span>
                 {unoccupiedInhabitants !== undefined && (
@@ -112,7 +112,7 @@ export function ResourceBar({
                     </span>
                     <span
                       className="text-sm font-bold"
-                      style={{ color: unoccupiedInhabitants === 0 ? '#CC7722' : '#EAD9BF' }}
+                      style={{ color: unoccupiedInhabitants === 0 ? 'var(--color-warning)' : 'var(--color-consumption)' }}
                     >
                       {unoccupiedInhabitants}
                     </span>
@@ -131,7 +131,7 @@ export function ResourceBar({
                 <span className="text-xs font-[family-name:var(--font-title)] tracking-wider uppercase text-[var(--ivory)]/60">
                   Inoccupés
                 </span>
-                <span className="text-sm font-bold" style={{ color: '#F4E1C1' }}>
+                <span className="text-sm font-bold" style={{ color: 'var(--color-timer)' }}>
                   {unoccupiedInhabitants}
                 </span>
               </div>

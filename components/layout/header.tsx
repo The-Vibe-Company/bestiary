@@ -43,7 +43,7 @@ export function Header() {
                 href={href}
                 className={`flex items-center justify-center w-12 h-12 border-2 rounded-full transition-all duration-300 ${
                   pathname === href
-                    ? 'bg-[#CC7722] border-[#CC7722] text-white shadow-lg shadow-[#CC7722]/50'
+                    ? 'bg-[var(--color-warning)] border-[var(--color-warning)] text-white shadow-lg shadow-[var(--color-warning)]/50'
                     : 'border-[var(--ivory)] text-[var(--ivory)] hover:bg-[var(--burnt-amber)]/20 hover:text-[var(--burnt-amber)] hover:border-[var(--burnt-amber)] hover:scale-105 hover:shadow-md hover:shadow-[var(--burnt-amber)]/30'
                 }`}
               >

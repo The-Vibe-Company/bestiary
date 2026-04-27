@@ -19,7 +19,7 @@ export function Tooltip({ label, children, position = 'top' }: TooltipProps) {
         style={{
           [isTop ? 'bottom' : 'top']: 'calc(100% + 6px)',
           backgroundColor: 'rgba(26, 26, 26, 0.95)',
-          color: '#f5f5dc',
+          color: 'var(--color-tooltip-bg)',
           border: '1px solid rgba(245, 245, 220, 0.3)',
         }}
       >

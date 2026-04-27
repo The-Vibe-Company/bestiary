@@ -278,7 +278,7 @@ export function MapPageClient({
                   className="px-3 py-1 rounded text-sm pointer-events-none"
                   style={{
                     backgroundColor: "rgba(26, 26, 26, 0.95)",
-                    color: "#f5f5dc",
+                    color: "var(--color-tooltip-bg)",
                     border: "1px solid rgba(245, 245, 220, 0.3)",
                   }}
                 >

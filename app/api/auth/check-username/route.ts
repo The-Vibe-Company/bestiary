@@ -1,16 +1,20 @@
 import { prisma } from '@/lib/prisma'
+import { checkUsernameSchema, firstZodError } from '@/lib/validation/schemas'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const username = searchParams.get('username')
+  const parsed = checkUsernameSchema.safeParse({ username: searchParams.get('username') })
 
-  if (!username) {
-    return Response.json({ error: 'Username required' }, { status: 400 })
+  if (!parsed.success) {
+    return Response.json(
+      { error: firstZodError(parsed) ?? 'Paramètre username invalide' },
+      { status: 400 },
+    )
   }
 
   try {
     const existingUser = await prisma.user.findFirst({
-      where: { username },
+      where: { username: parsed.data.username },
     })
 
     return Response.json({ exists: !!existingUser })

@@ -1,103 +1,30 @@
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
 import { ResearchPageClient } from "@/components/research/research-page-client";
-import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
-import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
-import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
-import { computeStorageCapacity, getStorageStaffCounts } from "@/lib/game/buildings/storage-capacity";
-import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
-import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
-import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
-import { completePendingMissions } from "@/lib/game/missions/complete-missions";
-import { INHABITANT_TYPES } from "@/lib/game/inhabitants/types";
-import { applyDailyConsumption } from "@/lib/game/resources/apply-daily-consumption";
-import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
-import { getUserResources } from "@/lib/game/resources/get-user-resources";
-import { getVillageResources } from "@/lib/game/resources/get-village-resources";
+import { loadVillageContext } from "@/lib/game/page/load-village-context";
 import { getTechnologies } from "@/lib/game/research/get-technologies";
 import { getVillageTechnologies } from "@/lib/game/research/get-village-technologies";
-import { completePendingResearch } from "@/lib/game/research/complete-pending-research";
-import { getUser } from "@/lib/game/user/get-user";
-import { getVillage } from "@/lib/game/village/get-village";
-import { neonAuth } from "@neondatabase/auth/next/server";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { GiScrollUnfurled } from "react-icons/gi";
 
 export default async function ResearchPage({ searchParams }: { searchParams: Promise<{ focus?: string }> }) {
   const { focus } = await searchParams;
-  const { session } = await neonAuth();
+  const ctx = await loadVillageContext();
 
-  if (!session) {
-    redirect("/sign-in");
-  }
-
-  const [village, userResources, userData, inhabitantTypes] =
-    await Promise.all([
-      getVillage(session.userId),
-      getUserResources(session.userId),
-      getUser(session.userId),
-      getInhabitantTypes(),
-    ]);
-
-  if (!userData || !village) {
-    redirect("/sign-in");
-  }
-
-  // Complete finished jobs and apply pending consumption before computing state
-  await Promise.all([
-    completePendingMissions(village.id),
-    completePendingBuildings(village.id),
-    completePendingResearch(village.id),
-    applyDailyConsumption(village.id, inhabitantTypes),
+  const [technologies, villageTechnologies] = await Promise.all([
+    getTechnologies(),
+    getVillageTechnologies(ctx.village.id),
   ]);
 
-  // Fetch mutable data AFTER catch-up for fresh values
-  const [villageResources, villageInhabitants, villageBuildings, buildingTypes, technologies, villageTechnologies] =
-    await Promise.all([
-      getVillageResources(session.userId),
-      getVillageInhabitants(session.userId),
-      getVillageBuildings(session.userId),
-      getBuildingTypes(),
-      getTechnologies(),
-      getVillageTechnologies(village.id),
-    ]);
-
-  if (!villageResources) {
-    redirect("/sign-in");
-  }
-
-  const totalInhabitants = villageInhabitants
-    ? INHABITANT_TYPES.reduce(
-        (sum, type) => sum + (villageInhabitants[type] ?? 0),
-        0
-      )
-    : 0;
-
-  const dailyConsumption = computeDailyConsumption(
-    villageInhabitants,
-    inhabitantTypes
-  );
-  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(
-    village.id,
-    totalInhabitants,
-    villageInhabitants,
-  );
-
-  // Compute storage capacity from completed buildings (staff-aware: no staff = inactive)
-  const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
-  const storageStaffCounts = getStorageStaffCounts(villageInhabitants);
-  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings, storageStaffCounts);
-
   // Check if the player has a completed laboratory building and its level
-  const laboratory = completedBuildings
+  const laboratory = ctx.completedBuildings
     .filter((b) => b.buildingType === "laboratoire")
     .sort((a, b) => b.level - a.level)[0];
   const hasLaboratory = Boolean(laboratory);
   const labLevel = laboratory?.level ?? 0;
 
   // Calculate available researchers
-  const totalResearchers = villageInhabitants?.researcher ?? 0;
+  const totalResearchers = ctx.villageInhabitants?.researcher ?? 0;
   const busyResearchers = villageTechnologies
     .filter((vt) => vt.completedAt === null)
     .reduce((sum, vt) => sum + vt.assignedResearchers, 0);
@@ -154,17 +81,17 @@ export default async function ResearchPage({ searchParams }: { searchParams: Pro
       {/* Resource bars container */}
       <div className="flex-shrink-0 relative z-10 flex justify-center gap-2 mt-[32px]">
         <UserResourceBar
-          username={userData.username}
-          userResources={userResources}
+          username={ctx.userData.username}
+          userResources={ctx.userResources}
         />
         <ResourceBar
-          villageName={village?.name ?? null}
-          villageResources={villageResources}
-          storageCapacity={storageCapacity}
-          population={totalInhabitants}
-          maxPopulation={village.capacity}
-          unoccupiedInhabitants={unoccupiedInhabitants}
-          dailyConsumption={dailyConsumption}
+          villageName={ctx.village.name}
+          villageResources={ctx.villageResources}
+          storageCapacity={ctx.storageCapacity}
+          population={ctx.totalInhabitants}
+          maxPopulation={ctx.village.capacity}
+          unoccupiedInhabitants={ctx.unoccupiedInhabitants}
+          dailyConsumption={ctx.dailyConsumption}
         />
       </div>
 
@@ -194,10 +121,10 @@ export default async function ResearchPage({ searchParams }: { searchParams: Pro
           <ResearchPageClient
             technologies={technologyData}
             villageResources={{
-              bois: villageResources.bois,
-              pierre: villageResources.pierre,
-              cereales: villageResources.cereales,
-              viande: villageResources.viande,
+              bois: ctx.villageResources.bois,
+              pierre: ctx.villageResources.pierre,
+              cereales: ctx.villageResources.cereales,
+              viande: ctx.villageResources.viande,
             }}
             availableResearchers={availableResearchers}
             focusKey={focus}

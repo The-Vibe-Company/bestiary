@@ -195,7 +195,7 @@ export function SendFromHabitantsModal({
                         width: 40,
                         height: 40,
                         backgroundColor: isOutOfBounds
-                          ? '#1a1a1a'
+                          ? 'var(--color-surface-dark)'
                           : isAnyVillage
                             ? 'rgba(179, 123, 52, 0.3)'
                             : isTargetFeature

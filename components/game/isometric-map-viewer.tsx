@@ -65,7 +65,7 @@ export function IsometricMapViewer({
           left: actualCellSize / 2,
           transform: "translateX(-50%)",
           fontSize: "12px",
-          color: "#f5f5dc",
+          color: "var(--color-tooltip-bg)",
           textShadow: "1px 1px 2px rgba(0,0,0,0.8)",
         }}
       >
@@ -78,7 +78,7 @@ export function IsometricMapViewer({
           left: containerSize - actualCellSize / 2,
           transform: "translateX(-50%)",
           fontSize: "12px",
-          color: "#f5f5dc",
+          color: "var(--color-tooltip-bg)",
           textShadow: "1px 1px 2px rgba(0,0,0,0.8)",
         }}
       >
@@ -93,7 +93,7 @@ export function IsometricMapViewer({
           left: -22,
           transform: "translateY(-50%)",
           fontSize: "12px",
-          color: "#f5f5dc",
+          color: "var(--color-tooltip-bg)",
           textShadow: "1px 1px 2px rgba(0,0,0,0.8)",
         }}
       >
@@ -106,7 +106,7 @@ export function IsometricMapViewer({
           left: -22,
           transform: "translateY(-50%)",
           fontSize: "12px",
-          color: "#f5f5dc",
+          color: "var(--color-tooltip-bg)",
           textShadow: "1px 1px 2px rgba(0,0,0,0.8)",
         }}
       >
@@ -138,7 +138,7 @@ export function IsometricMapViewer({
                   style={{
                     width: `${actualCellSize}px`,
                     height: `${actualCellSize}px`,
-                    backgroundColor: "#1a1a1a",
+                    backgroundColor: "var(--color-surface-dark)",
                   }}
                 />
               );
@@ -188,8 +188,8 @@ export function IsometricMapViewer({
                         style={{
                           filter:
                             cell.feature === "foret"
-                              ? "drop-shadow(1px 2px 10px #5D9656)"
-                              : "drop-shadow(1px 2px 10px #303342)",
+                              ? "drop-shadow(1px 2px 10px var(--color-tile-glow-forest))"
+                              : "drop-shadow(1px 2px 10px var(--color-tile-glow-mountain))",
                           objectFit: "contain",
                           position: "relative",
                           zIndex: 1,

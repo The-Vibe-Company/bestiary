@@ -1,74 +1,21 @@
 import { ResourceBar } from "@/components/layout/resource-bar";
 import { UserResourceBar } from "@/components/layout/user-resource-bar";
 import { PlacePageClient } from "@/components/place/place-page-client";
-import { getBuildingTypes } from "@/lib/game/buildings/get-building-types";
-import { getVillageBuildings } from "@/lib/game/buildings/get-village-buildings";
-import { completePendingBuildings } from "@/lib/game/buildings/complete-pending-buildings";
-import { computeStorageCapacity, getStorageStaffCounts } from "@/lib/game/buildings/storage-capacity";
-import { completePendingResearch } from "@/lib/game/research/complete-pending-research";
+import { computeEffectiveLevel } from "@/lib/game/buildings/compute-effective-level";
 import { getInhabitantStats } from "@/lib/game/inhabitants/get-inhabitant-stats";
-import { getInhabitantTypes } from "@/lib/game/inhabitants/get-inhabitant-types";
-import { getUnoccupiedInhabitantsCount } from "@/lib/game/inhabitants/get-unoccupied-inhabitants-count";
-import { getVillageInhabitants } from "@/lib/game/inhabitants/get-village-inhabitants";
-import { completePendingMissions } from "@/lib/game/missions/complete-missions";
+import { INHABITANT_TYPES, BUILDING_STAFF_TYPES } from "@/lib/game/inhabitants/types";
 import { getActiveMissions } from "@/lib/game/missions/get-active-missions";
-import { applyDailyConsumption } from "@/lib/game/resources/apply-daily-consumption";
-import { computeDailyConsumption } from "@/lib/game/resources/compute-daily-consumption";
-import { getUserResources } from "@/lib/game/resources/get-user-resources";
-import { getVillageResources } from "@/lib/game/resources/get-village-resources";
+import { loadVillageContext } from "@/lib/game/page/load-village-context";
 import { resolveTraveler } from "@/lib/game/travelers/resolve-traveler";
 import { detectTraveler } from "@/lib/game/travelers/detect-traveler";
-import { getUser } from "@/lib/game/user/get-user";
-import { assignVillageToUser } from "@/lib/game/village/assign-village";
-import { getVillage } from "@/lib/game/village/get-village";
-import { INHABITANT_TYPES, BUILDING_STAFF_TYPES } from "@/lib/game/inhabitants/types";
-import { computeEffectiveLevel } from "@/lib/game/buildings/compute-effective-level";
-import { neonAuth } from "@neondatabase/auth/next/server";
-import { redirect } from "next/navigation";
 
 export default async function PlacePage() {
-  const { session, user } = await neonAuth();
+  const ctx = await loadVillageContext({ ensureVillage: true });
 
-  if (!session || !user) {
-    redirect("/sign-in");
-  }
-
-  await assignVillageToUser(session.userId);
-
-  const [village, userResources, userData, inhabitantTypes, inhabitantStats] =
-    await Promise.all([
-      getVillage(session.userId),
-      getUserResources(session.userId),
-      getUser(session.userId),
-      getInhabitantTypes(),
-      getInhabitantStats(),
-    ]);
-
-  if (!userData || !village) {
-    redirect("/sign-in");
-  }
-
-  // Complete finished jobs and apply pending consumption before computing availability
-  await Promise.all([
-    completePendingMissions(village.id),
-    completePendingBuildings(village.id),
-    completePendingResearch(village.id),
-    applyDailyConsumption(village.id, inhabitantTypes),
+  const [inhabitantStats, missions] = await Promise.all([
+    getInhabitantStats(),
+    getActiveMissions(ctx.village.id),
   ]);
-
-  // Fetch mutable data AFTER catch-up for fresh values
-  const [villageResources, villageInhabitants, buildingTypes, villageBuildings] = await Promise.all([
-    getVillageResources(session.userId),
-    getVillageInhabitants(session.userId),
-    getBuildingTypes(),
-    getVillageBuildings(session.userId),
-  ]);
-
-  if (!villageResources) {
-    redirect("/sign-in");
-  }
-
-  const missions = await getActiveMissions(village.id);
 
   // Build statsByType for all mission-capable types (including exploration)
   const statsByType: Record<string, { gatherRate: number; maxCapacity: number }> = {};
@@ -78,35 +25,19 @@ export default async function PlacePage() {
     }
   }
 
-  const dailyConsumption = computeDailyConsumption(villageInhabitants, inhabitantTypes);
-
-  const totalInhabitants = villageInhabitants
-    ? INHABITANT_TYPES.reduce((sum, type) => sum + (villageInhabitants[type] ?? 0), 0)
-    : 0;
-  const unoccupiedInhabitants = await getUnoccupiedInhabitantsCount(
-    village.id,
-    totalInhabitants,
-    villageInhabitants,
-  );
-
-  // Compute storage capacity from completed buildings (staff-aware: no staff = inactive)
-  const completedBuildings = villageBuildings.filter((vb) => vb.completedAt !== null);
-  const storageStaffCounts = getStorageStaffCounts(villageInhabitants);
-  const storageCapacity = computeStorageCapacity(buildingTypes, completedBuildings, storageStaffCounts);
-
   // Résoudre l'état du voyageur (lazy completion) + détection tour de guet + taverne
   // Effective level = building level + assigned staff (0 staff → building doesn't function)
-  const tavern = completedBuildings.find((b) => b.buildingType === "taverne");
+  const tavern = ctx.completedBuildings.find((b) => b.buildingType === "taverne");
   const tavernLevel = tavern?.level ?? 0;
-  const effectiveTavernLevel = computeEffectiveLevel(tavernLevel, villageInhabitants?.tavernkeeper ?? 0);
-  const rawTravelerStatus = await resolveTraveler(village.id, effectiveTavernLevel);
-  const watchtower = completedBuildings.find((b) => b.buildingType === "tour_de_guet");
+  const effectiveTavernLevel = computeEffectiveLevel(tavernLevel, ctx.villageInhabitants?.tavernkeeper ?? 0);
+  const rawTravelerStatus = await resolveTraveler(ctx.village.id, effectiveTavernLevel);
+  const watchtower = ctx.completedBuildings.find((b) => b.buildingType === "tour_de_guet");
   const towerLevel = watchtower?.level ?? 0;
-  const effectiveTowerLevel = computeEffectiveLevel(towerLevel, villageInhabitants?.watchman ?? 0);
-  const travelerStatus = await detectTraveler(village.id, rawTravelerStatus, effectiveTowerLevel);
-  const isVillageFull = totalInhabitants >= village.capacity;
+  const effectiveTowerLevel = computeEffectiveLevel(towerLevel, ctx.villageInhabitants?.watchman ?? 0);
+  const travelerStatus = await detectTraveler(ctx.village.id, rawTravelerStatus, effectiveTowerLevel);
+  const isVillageFull = ctx.totalInhabitants >= ctx.village.capacity;
 
-  const inhabitantTypesData = inhabitantTypes.map((t) => ({
+  const inhabitantTypesData = ctx.inhabitantTypes.map((t) => ({
     key: t.key,
     title: t.title,
     image: t.image,
@@ -115,7 +46,7 @@ export default async function PlacePage() {
   // Build inhabitant counts per type for the overview panel
   const inhabitantCounts: Record<string, number> = {};
   for (const type of INHABITANT_TYPES) {
-    inhabitantCounts[type] = villageInhabitants?.[type] ?? 0;
+    inhabitantCounts[type] = ctx.villageInhabitants?.[type] ?? 0;
   }
 
   // Compute per-job capacity info for the assign modal
@@ -124,11 +55,11 @@ export default async function PlacePage() {
   for (const type of INHABITANT_TYPES) {
     if (type === "mayor") continue;
 
-    const current = villageInhabitants?.[type] ?? 0;
+    const current = ctx.villageInhabitants?.[type] ?? 0;
     const requiredBuilding = BUILDING_STAFF_TYPES[type];
 
     if (requiredBuilding) {
-      const building = completedBuildings.find((b) => b.buildingType === requiredBuilding);
+      const building = ctx.completedBuildings.find((b) => b.buildingType === requiredBuilding);
       if (!building) continue; // building not built → hide from modal
       jobCapacities[type] = { current, max: building.level, available: current < building.level };
     } else {
@@ -149,17 +80,17 @@ export default async function PlacePage() {
       {/* Resource bars container */}
       <div className="flex-shrink-0 relative z-10 flex justify-center gap-2 mt-[32px]">
         <UserResourceBar
-          username={userData.username}
-          userResources={userResources}
+          username={ctx.userData.username}
+          userResources={ctx.userResources}
         />
         <ResourceBar
-          villageName={village?.name ?? null}
-          villageResources={villageResources}
-          storageCapacity={storageCapacity}
-          population={totalInhabitants}
-          maxPopulation={village.capacity}
-          unoccupiedInhabitants={unoccupiedInhabitants}
-          dailyConsumption={dailyConsumption}
+          villageName={ctx.village.name}
+          villageResources={ctx.villageResources}
+          storageCapacity={ctx.storageCapacity}
+          population={ctx.totalInhabitants}
+          maxPopulation={ctx.village.capacity}
+          unoccupiedInhabitants={ctx.unoccupiedInhabitants}
+          dailyConsumption={ctx.dailyConsumption}
         />
       </div>
 
@@ -173,8 +104,8 @@ export default async function PlacePage() {
           missions={missions}
           statsByType={statsByType}
           inhabitantCounts={inhabitantCounts}
-          totalInhabitants={totalInhabitants}
-          maxPopulation={village.capacity}
+          totalInhabitants={ctx.totalInhabitants}
+          maxPopulation={ctx.village.capacity}
           jobCapacities={jobCapacities}
         />
       </div>

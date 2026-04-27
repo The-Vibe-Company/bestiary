@@ -73,17 +73,17 @@ const BUILDING_CATEGORIES = [
 ] as const
 
 const RESOURCE_CONFIG = [
-  { key: 'costBois' as const, resKey: 'bois' as const, icon: GiWoodPile, color: '#8B4513', label: 'Bois' },
-  { key: 'costPierre' as const, resKey: 'pierre' as const, icon: GiStonePile, color: '#708090', label: 'Pierre' },
-  { key: 'costCereales' as const, resKey: 'cereales' as const, icon: GiWheat, color: '#DAA520', label: 'Céréales' },
-  { key: 'costViande' as const, resKey: 'viande' as const, icon: GiMeat, color: '#CD5C5C', label: 'Viande' },
+  { key: 'costBois' as const, resKey: 'bois' as const, icon: GiWoodPile, color: 'var(--color-bois)', label: 'Bois' },
+  { key: 'costPierre' as const, resKey: 'pierre' as const, icon: GiStonePile, color: 'var(--color-pierre)', label: 'Pierre' },
+  { key: 'costCereales' as const, resKey: 'cereales' as const, icon: GiWheat, color: 'var(--color-cereales)', label: 'Céréales' },
+  { key: 'costViande' as const, resKey: 'viande' as const, icon: GiMeat, color: 'var(--color-viande)', label: 'Viande' },
 ]
 
 const STORAGE_BONUS_CONFIG = [
-  { key: 'storageBonusBois' as const, capacityKey: 'bois' as const, icon: GiWoodPile, color: '#8B4513', label: 'stockage bois' },
-  { key: 'storageBonusPierre' as const, capacityKey: 'pierre' as const, icon: GiStonePile, color: '#708090', label: 'stockage pierre' },
-  { key: 'storageBonusCereales' as const, capacityKey: 'cereales' as const, icon: GiWheat, color: '#DAA520', label: 'stockage céréales' },
-  { key: 'storageBonusViande' as const, capacityKey: 'viande' as const, icon: GiMeat, color: '#CD5C5C', label: 'stockage viande' },
+  { key: 'storageBonusBois' as const, capacityKey: 'bois' as const, icon: GiWoodPile, color: 'var(--color-bois)', label: 'stockage bois' },
+  { key: 'storageBonusPierre' as const, capacityKey: 'pierre' as const, icon: GiStonePile, color: 'var(--color-pierre)', label: 'stockage pierre' },
+  { key: 'storageBonusCereales' as const, capacityKey: 'cereales' as const, icon: GiWheat, color: 'var(--color-cereales)', label: 'stockage céréales' },
+  { key: 'storageBonusViande' as const, capacityKey: 'viande' as const, icon: GiMeat, color: 'var(--color-viande)', label: 'stockage viande' },
 ]
 
 const BUILDINGS_WITH_STAFF = new Set([
@@ -343,7 +343,7 @@ export function VillagePageClient({ buildingTypes, villageResources, storageCapa
                     <div className="flex-1" />
                     {building.capacityBonus > 0 && building.key !== 'cabane_en_bois' && (
                       <div className="flex items-center gap-1">
-                        <GiThreeFriends size={14} style={{ color: '#C19A6B' }} />
+                        <GiThreeFriends size={14} style={{ color: 'var(--color-inhabitants)' }} />
                         <span className="text-xs font-bold text-[var(--ivory)]/60">
                           +{building.capacityBonus}
                         </span>
@@ -469,7 +469,7 @@ export function VillagePageClient({ buildingTypes, villageResources, storageCapa
                           <r.icon size={16} style={{ color: r.color }} />
                           <span
                             className="text-sm font-bold"
-                            style={{ color: hasEnough ? r.color : '#CD5C5C' }}
+                            style={{ color: hasEnough ? r.color : 'var(--color-viande)' }}
                           >
                             {cost}
                           </span>
@@ -491,7 +491,7 @@ export function VillagePageClient({ buildingTypes, villageResources, storageCapa
             {/* Badges: bottom-right of the card */}
             <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
               {BUILDINGS_WITH_STAFF.has(building.key) && building.completedCount > 0 && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-full bg-[#C19A6B]/15 text-[#C19A6B] border border-[#C19A6B]/30">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-full bg-[var(--color-inhabitants)]/15 text-[var(--color-inhabitants)] border border-[var(--color-inhabitants)]/30">
                   <GiThreeFriends size={11} />
                   {building.staffCount}{' '}
                   {(building.staffCount > 1
