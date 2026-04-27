@@ -127,7 +127,6 @@ export async function assignTraveler(type: InhabitantType): Promise<AssignTravel
           await tx.villageInhabitants.create({
             data: {
               village: { connect: { id: village.id } },
-              mayor: 1,
               [type]: 1,
             },
           })
