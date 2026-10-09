@@ -1,0 +1,29 @@
+src/app/jeu/page.module.css
+  s_7c7d151152e4a5::t_26ad65d47bd49e 165,226,274,284,291
+src/app/page.module.css
+  s_7c7d151152e4a5::t_cd292ce59e89c4 96
+src/components/BarreHaut.module.css
+  s_7c7d151152e4a5::t_3e8dfc269ccae4 115,407
+src/components/Bloc.module.css
+  s_7c7d151152e4a5::t_f61fe40ad43096 2-3,12-13,83
+src/components/PageEntree.module.css
+  s_7c7d151152e4a5::t_a2ad1db8ad5c74 57-58
+src/styles/palette.css
+  s_7c7d151152e4a5::t_77780b82f45022 21,120-122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "85004af8969c7db335c5a2a66f9db3959492319e",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
