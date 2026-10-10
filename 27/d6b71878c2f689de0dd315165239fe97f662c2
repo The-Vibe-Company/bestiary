@@ -1,0 +1,87 @@
+armada.toml
+  s_7c7d151152e4a5::t_1c2302268f759c 56-67
+docs/stories/09-explorer-et-apprivoiser.md
+  s_7c7d151152e4a5::t_c345a976be799f 444,466,471
+docs/stories/README.md
+  s_7c7d151152e4a5::t_fafcdc2171e688 7,22,31
+docs/stories/a-decider.md
+  s_7c7d151152e4a5::t_f375bef96e6ddd 5
+drizzle/0060_recit_des_rencontres.sql
+  s_7c7d151152e4a5::t_09b8c22be8055c 1-3
+drizzle/meta/0060_snapshot.json
+  s_7c7d151152e4a5::t_5d5343b7bbaea6 1-3255
+drizzle/meta/0061_snapshot.json
+  s_7c7d151152e4a5::t_ea5e77e531fe7b 3,2457-2462
+drizzle/meta/_journal.json
+  s_9f13ff8a0fe04c::t_79fa2450e8f351 411-417
+src/app/jeu/recits/ListeDesRecits.test.tsx
+  s_7c7d151152e4a5::t_0fbf580adb5285 68-122
+src/app/jeu/recits/ListeDesRecits.tsx
+  s_7c7d151152e4a5::t_c57df62da8048b 6,8-12,44-45,48-54,69
+src/app/jeu/recits/RencontresDuRecit.css.test.ts
+  s_7c7d151152e4a5::t_9996aca249d2f2 1-38
+src/app/jeu/recits/RencontresDuRecit.module.css
+  s_7c7d151152e4a5::t_8a78b6923c9aa8 1-104
+src/app/jeu/recits/RencontresDuRecit.test.tsx
+  s_7c7d151152e4a5::t_1d23b9ba593fb6 1-94
+src/app/jeu/recits/RencontresDuRecit.tsx
+  s_7c7d151152e4a5::t_b3797d3fc31a27 1-67
+src/app/jeu/recits/page.test.tsx
+  s_7c7d151152e4a5::t_ab7fb25ed66797 98-163
+src/app/jeu/recits/page.tsx
+  s_7c7d151152e4a5::t_c25b73f83838e2 9,18-28,54-67
+src/db/schema.ts
+  s_7c7d151152e4a5::t_3a11d99d0f736d 553-558
+src/expeditions/apprivoisement.test.ts
+  s_7c7d151152e4a5::t_8a506304efd472 2,92-109
+src/expeditions/apprivoisement.ts
+  s_7c7d151152e4a5::t_99c09dc2ca09cb 31-38
+src/expeditions/recit-de-rencontre.db.test.ts
+  s_7c7d151152e4a5::t_0ac9a353ca59a4 1-254
+src/expeditions/recit-de-rencontre.test.ts
+  s_7c7d151152e4a5::t_0c1242aa57cd1d 1-47
+src/expeditions/recit-de-rencontre.ts
+  s_7c7d151152e4a5::t_ca6b71aafd4ff6 1-101
+src/expeditions/recit-de-retour.db.test.ts
+  s_7c7d151152e4a5::t_c19a6ea8f9ccb3 15,17,34-38,90-99,105-107,110-124,143-146,148,158-166,249,256-276,279-296
+src/expeditions/recit-de-retour.test.ts
+  s_7c7d151152e4a5::t_5265137d2efff5 2,149-201
+src/expeditions/recit-de-retour.ts
+  s_7c7d151152e4a5::t_29fe5d1c677268 3-6,13,17-18,23-25,52-56,63-65,148-189,197-199,201,210-213,247-248,252-253,265,270,290-310
+src/expeditions/rencontres.ts
+  s_7c7d151152e4a5::t_ca1e42f8de0e51 60,72
+src/expeditions/trop-forte.db.test.ts
+  s_7c7d151152e4a5::t_7ae681ce1a6a0a 1-197
+src/monde/recits.db.test.ts
+  s_7c7d151152e4a5::t_f36c931575cb25 103-142
+src/monde/recits.ts
+  s_7c7d151152e4a5::t_1d7a02b8dbd336 5,7-27,35-36,38,40-41,46-50,52-59,62
+src/temps/affichage.test.ts
+  s_7c7d151152e4a5::t_2cc7ccebf0a72e 2,31-37
+src/temps/affichage.ts
+  s_7c7d151152e4a5::t_78d700bec5c339 45-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "27d6b71878c2f689de0dd315165239fe97f662c2",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_9f13ff8a0fe04c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f6f8144-2e0f-4365-a2df-7a153cae490d",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
