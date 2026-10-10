@@ -1,0 +1,71 @@
+src/app/jeu/carte/Attente.tsx
+  s_7c7d151152e4a5::t_b653d20738998f 17-18,25
+src/app/jeu/carte/BoutonsDeLaCarte.module.css
+  s_7c7d151152e4a5::t_451a8168e1f143 17-20,24,26,34-38,40,44
+src/app/jeu/carte/BoutonsDeLaCarte.tsx
+  s_7c7d151152e4a5::t_711a34d8b7be89 13,19,22
+src/app/jeu/carte/CarteDuJeu.test.tsx
+  s_7c7d151152e4a5::t_e5c8a2e38fa706 209-222,832-843,847-848,870-871
+src/app/jeu/carte/CarteDuJeu.tsx
+  s_7c7d151152e4a5::t_e96b5b8ee74e60 13,62-63,158-160,162-165,180,314-338
+src/app/jeu/carte/CasesDecouvertes.module.css
+  s_7c7d151152e4a5::t_af7cb9bfec0d20 4-5,15-16,18
+src/app/jeu/carte/CasesDecouvertes.tsx
+  s_7c7d151152e4a5::t_3d63680b19fb94 24
+src/app/jeu/carte/ChoixDeLaDestination.module.css
+  s_7c7d151152e4a5::t_3ff4a3126d1532 1-54
+src/app/jeu/carte/ChoixDeLaDestination.tsx
+  s_7c7d151152e4a5::t_ae10f12e894c02 1-32
+src/app/jeu/carte/ExpeditionsSurLaCarte.module.css
+  s_7c7d151152e4a5::t_f6f59b36059d3a 61,63,65-67
+src/app/jeu/carte/FicheDeLaCase.css.test.ts
+  s_7c7d151152e4a5::t_60320e51cdf70d 17,19-20
+src/app/jeu/carte/FicheDeLaCase.module.css
+  s_7c7d151152e4a5::t_675aac0d34a829 2-4,16,22,24,26,28-30,73,111-113,197
+src/app/jeu/carte/FicheDeLaCase.tsx
+  s_7c7d151152e4a5::t_d7f0f08cb2c724 229,233,266
+src/app/jeu/carte/FlecheDuFoyer.module.css
+  s_7c7d151152e4a5::t_219fc3984b4971 27-40
+src/app/jeu/carte/Legende.css.test.ts
+  s_7c7d151152e4a5::t_edf92bb0ffbb44 13,16-19
+src/app/jeu/carte/Legende.module.css
+  s_7c7d151152e4a5::t_e5fd3f87b3d9fb 2-4,8-9,16,20,23,26,34-40,90-94,96-97
+src/app/jeu/carte/Legende.tsx
+  s_7c7d151152e4a5::t_5d8a92b40b3bb1 4,121,173-179,183-204,206-208,210-223
+src/app/jeu/carte/dessin.test.ts
+  s_7c7d151152e4a5::t_8b01a35093ab01 889-960
+src/app/jeu/carte/dessin.ts
+  s_7c7d151152e4a5::t_32387cd1b0cc74 47-61,79-80,82,497-617,689-691,743,763-764
+src/app/jeu/carte/error.tsx
+  s_7c7d151152e4a5::t_93aacfe1366dfe 9-10,16,21
+src/app/jeu/carte/page.module.css
+  s_7c7d151152e4a5::t_ac7d5ba4a61fe2 1-6,8-12,15-21,24,28,56-58,61-65
+src/app/jeu/carte/ChoixDeLaDestination.test.tsx
+  s_5550d2bb7948e4::t_86a04d7e5e5863 1-31
+src/app/jeu/carte/etats.module.css
+  s_5550d2bb7948e4::t_63d09ea8d76e56 1-4,12-23,29-31,39,41-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "685e3ec27627d3020f67b58a94ec93ae3046ae9f",
+  "prompts": {},
+  "sessions": {
+    "s_5550d2bb7948e4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a00be676abe9cf3e1",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
