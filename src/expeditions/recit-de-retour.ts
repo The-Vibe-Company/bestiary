@@ -16,6 +16,7 @@ import { casesDuFoyer } from "./choix-de-destination";
 import { demiTourDUneExpedition, type HorairesDUneExpedition, sejourDUneExpedition } from "./phase";
 import { rencontresARaconter } from "./recit-de-rencontre";
 import { forcesDesEscortes, forcesDesEspeces, type Rencontre, rencontresDUneExpedition } from "./rencontres";
+import { RETOUR_D_EXPEDITION } from "./resume-du-retour";
 import { betesQuiSuivent } from "./sexe";
 
 const MINUTE_MS = 60_000;
@@ -201,7 +202,7 @@ function resteesSurLeurCase(tropFortes: TropForte[]): string {
 export function recitDeRetour({ destination, durees, casesLevees, rencontres, vuesSansSuite, tropFortes, rentreeLe, rappel, ramenees }: RetourARaconter): NouveauRecit {
   const sejour = durees.sejour === 0 ? "sans séjour" : `séjour ${formaterMinutes(durees.sejour)}`;
   return {
-    titre: "Retour d'Expédition",
+    titre: RETOUR_D_EXPEDITION,
     texte: [
       `Destination : ${destination.biome}, à ${casesDuFoyer(destination.distance)}.`,
       ...(rappel ? [rappelee(rappel)] : []),

@@ -7,9 +7,18 @@ import { type RencontreAffichee, RencontresDuRecit } from "./RencontresDuRecit";
 
 /**
  * Un Récit tel que la liste le montre : sa date déjà écrite par le serveur, dans le fuseau du joueur. US-0940 : et les
- * Rencontres d'un retour d'Expédition, le cas échéant.
+ * Rencontres d'un retour d'Expédition, le cas échéant. US-0941 : et les faits de son résumé, pour un retour d'Expédition.
  */
-export type RecitAffiche = { id: number; titre: string; texte: string; instant: string; quand: string; lu: boolean; rencontres?: RencontreAffichee[] };
+export type RecitAffiche = {
+  id: number;
+  titre: string;
+  texte: string;
+  instant: string;
+  quand: string;
+  lu: boolean;
+  resume?: string[];
+  rencontres?: RencontreAffichee[];
+};
 
 /**
  * US-0324 : une ligne par Récit, son titre et sa date ; un Récit non lu porte la marque « nouveau ».
@@ -59,6 +68,17 @@ export function ListeDesRecits({ recits }: { recits: RecitAffiche[] }) {
               <time className={styles.quand} dateTime={recit.instant}>
                 {recit.quand}
               </time>
+              {/* US-0941 : le résumé, en tête du récit, se lit sans l'ouvrir ; le détail se déplie dessous. Chaque fait d'un
+                  bloc, « 2 Bêtes ramenées · », pour qu'un téléphone ne passe à la ligne qu'entre deux. */}
+              {recit.resume ? (
+                <span className={styles.resume}>
+                  {recit.resume.map((fait, i, faits) => (
+                    <span key={fait} className={styles.fait}>
+                      {i < faits.length - 1 ? `${fait} · ` : fait}
+                    </span>
+                  ))}
+                </span>
+              ) : null}
               <svg viewBox="0 0 12 12" className={styles.fleche} aria-hidden="true">
                 <path d="M2.5 4.5 6 8l3.5-3.5" />
               </svg>

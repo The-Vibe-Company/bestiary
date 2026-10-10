@@ -161,6 +161,42 @@ describe("page Récits (US-0324)", () => {
     expect(html).toContain("Trop forte, restée sur sa Case : il manquait 37 340 de force");
   });
 
+  it("résume un retour d'Expédition en une ligne en tête de son récit : Bêtes ramenées, nouvelles Espèces au Bestiaire (US-0941)", async () => {
+    const rencontre = (issue: "apprivoisee" | "restee" | "repartie", nouvelleEspece: boolean) => ({
+      especeId: "souris_grise",
+      vueLe: new Date("2026-10-09T12:05:00Z"),
+      issue,
+      sexe: issue === "apprivoisee" ? ("male" as const) : null,
+      nouvelleEspece,
+      nom: "Souris grise",
+      illustration: null,
+      rarete: { id: "commune", nom: "Commune" },
+    });
+    const retour = (id: number, rencontres?: ReturnType<typeof rencontre>[]) =>
+      ({ id, titre: "Retour d'Expédition", texte: "…", survenuLe: new Date("2026-10-09T16:05:00Z"), luLe: null, ...(rencontres && { rencontres }) }) as Recit;
+    connecte([
+      retour(61, [rencontre("apprivoisee", true), rencontre("restee", true), rencontre("apprivoisee", false), rencontre("repartie", false)]),
+      retour(62, [rencontre("restee", true)]),
+      retour(63),
+      TROIS_RECITS[1],
+    ]);
+    const html = renderToStaticMarkup(await Recits());
+    const entetes = [...html.matchAll(/<button[^>]*>(.*?)<\/button>/g)].map(([, entete]) => entete);
+    const morceaux = (entete: string) => entete.replace(/&#x27;/g, "'").replace(/<[^>]+>/g, "|").split("|").filter(Boolean);
+    // Le titre et la date, puis le résumé.
+    expect(entetes.map((entete) => morceaux(entete.split("</time>")[0]))).toEqual([
+      ...Array(3).fill(["Retour d'Expédition", "nouveau", "9 octobre 2026 à 18:05"]),
+      ["Retour de Récolte", "7 octobre 2026 à 00:30"],
+    ]);
+    expect(entetes.map((entete) => morceaux(entete.split("</time>")[1]).join(""))).toEqual([
+      "2 Bêtes ramenées · 2 nouvelles Espèces au Bestiaire",
+      "Aucune Bête ramenée · 1 nouvelle Espèce au Bestiaire",
+      "Aucune Bête ramenée",
+      // Les autres Récits n'ont pas de résumé : leur titre et leur date.
+      "",
+    ]);
+  });
+
   it("montre d'abord le récit d'arrivée s'il ne l'a pas été (US-0160)", async () => {
     connecte();
     chefs.chefDuCompte.mockResolvedValueOnce({ nom: "Ourse", territoireId: 12, recitLu: false });

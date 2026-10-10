@@ -120,3 +120,63 @@ describe("le récit de Rencontre dans la liste des Récits (US-0940)", () => {
     expect(ligne("Retour de Récolte").getAttribute("aria-controls")).toBe(screen.getByText("Du Bois.").id);
   });
 });
+
+describe("le résumé en tête du récit d'un retour d'Expédition (US-0941)", () => {
+  afterEach(() => {
+    cleanup();
+    actions.lireUnRecit.mockClear();
+  });
+
+  const RESUME = ["1 Bête ramenée", "1 nouvelle Espèce au Bestiaire"];
+  /** Un retour d'Expédition résumé, où une Bête s'est montrée. */
+  const RETOUR: RecitAffiche = {
+    id: 51,
+    titre: "Retour d'Expédition",
+    texte: "Une Bête s'est montrée.",
+    instant: "2026-10-09T16:05:00.000Z",
+    quand: "9 octobre 2026 à 18:05",
+    lu: false,
+    resume: RESUME,
+    rencontres: [
+      {
+        instant: "2026-10-09T12:05:00.000Z",
+        heure: "14:05",
+        nom: "Souris grise",
+        illustration: null,
+        rarete: { id: "commune", nom: "Commune" },
+        issue: "apprivoisee",
+        sexe: "male",
+        nouvelleEspece: true,
+      },
+    ],
+  };
+  const ligne = () => screen.getByRole("button", { name: /^Retour d'Expédition/ });
+  const rencontres = () => screen.queryAllByRole("list", { hidden: true }).find((liste) => liste.getAttribute("aria-label") === "Rencontres")!;
+
+  /** Le résumé : ses faits, chacun d'un bloc, pour qu'un téléphone ne passe à la ligne qu'entre deux. */
+  const resume = () => within(ligne()).getByText(RESUME[1]).parentElement!;
+
+  it("montre le résumé sur la ligne du récit, sans qu'il faille l'ouvrir", () => {
+    render(<ListeDesRecits recits={[RETOUR, RECITS[1]]} />);
+    expect(ligne().getAttribute("aria-expanded")).toBe("false");
+    expect(resume().textContent).toBe("1 Bête ramenée · 1 nouvelle Espèce au Bestiaire");
+    expect([...resume().children].map((fait) => fait.textContent)).toEqual(["1 Bête ramenée · ", "1 nouvelle Espèce au Bestiaire"]);
+    expect(resume().closest("[hidden]")).toBeNull();
+    expect(rencontres().hidden).toBe(true);
+    // Les autres Récits n'ont que leur titre et leur date.
+    expect(screen.getByRole("button", { name: /^Retour de Récolte/ }).textContent).toBe("Retour de Récolte7 octobre 2026 à 00:30");
+  });
+
+  it("déplie sous le résumé le détail, heure par heure, et le replie sans toucher au résumé", async () => {
+    render(<ListeDesRecits recits={[RETOUR]} />);
+    const utilisateur = userEvent.setup();
+    await utilisateur.click(ligne());
+    expect(rencontres().hidden).toBe(false);
+    expect(within(rencontres()).getByText("14:05")).toBeTruthy();
+    for (const detail of [screen.getByText("Une Bête s'est montrée."), rencontres()])
+      expect(resume().compareDocumentPosition(detail) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await utilisateur.click(ligne());
+    expect(rencontres().hidden).toBe(true);
+    expect(resume().closest("[hidden]")).toBeNull();
+  });
+});

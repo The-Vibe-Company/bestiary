@@ -109,6 +109,27 @@
   transform: rotate(180deg);
 }
 
+/* US-0941 : le résumé d'un retour d'Expédition, sous son titre et sa date, se lit replié ; la flèche reste à côté. */
+.entete:has(.resume) {
+  grid-template-areas: "titre quand fleche" "resume resume fleche";
+}
+
+.resume {
+  grid-area: resume;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.3em;
+  min-width: 0;
+  color: var(--encre);
+  font-size: 14px;
+}
+
+/* Un fait du résumé passe à la ligne d'un bloc, et ne se coupe que s'il ne tient pas seul. */
+.fait {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 /* Le texte du Récit, ses retours à la ligne gardés. */
 .texte {
   max-width: 70ch;
@@ -140,6 +161,9 @@
   .entete {
     grid-template-areas: "titre fleche" "quand fleche";
     grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .entete:has(.resume) {
+    grid-template-areas: "titre fleche" "quand fleche" "resume fleche";
   }
   .quand {
     white-space: normal;
