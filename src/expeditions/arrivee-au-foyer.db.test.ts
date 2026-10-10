@@ -232,6 +232,8 @@ describe.skipIf(!URL_TEST)("la Bête apprivoisée arrive au Foyer (US-0938, sur 
       const t = await naitre();
       const { bete, sexe, retour } = await allerChercherSaBete(t);
       await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, $2, 'male', 2), ($1, $2, 'femelle', 1)", [t.territoireId, bete.especeId]);
+      // Son Couple déjà réuni (US-0956) : sinon, un mâle et une femelle au Foyer partiraient en Réserve à ce retour.
+      await pool.query("insert into couple (territoire_id, espece_id, reuni_le) values ($1, $2, $3)", [t.territoireId, bete.especeId, t.ne]);
 
       await aLHeure(t.territoireId, retour);
       expect(await effectifDe(t.territoireId, bete.especeId)).toEqual([

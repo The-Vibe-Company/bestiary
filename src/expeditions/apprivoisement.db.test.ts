@@ -158,7 +158,8 @@ describe.skipIf(!URL_TEST)("la Bête à portée suit l'Expédition (US-0934, sur
 
   it("à portée, la Bête suit l'Expédition dès qu'elle la voit, sans combat : aucune Bête de l'escorte n'est blessée ni tuée", async () => {
     const { territoireId, ne, foyer } = await naitre();
-    await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, $2, 'male', 2), ($1, $2, 'femelle', 1)", [territoireId, forte.id]);
+    // Trois mâles : un mâle et une femelle au Foyer réuniraient leur Couple au retour (US-0956).
+    await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, $2, 'male', 3)", [territoireId, forte.id]);
     // Une Bête d'une autre Espèce que l'escorte, pour la distinguer d'elle dans l'effectif à son arrivée au Foyer (US-0938).
     const { place, caseId, bete } = await uneBeteSeule(territoireId, apres(ne, 3 * JOUR), (b) => rare(b) && b.especeId !== forte.id);
     expect(forte.force).toBeGreaterThanOrEqual(especes.get(bete.especeId)!.force);

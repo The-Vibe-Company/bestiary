@@ -48,7 +48,7 @@ export const entier = (n: number) => new Intl.NumberFormat("fr-FR").format(n).re
  * US-0905 : sous les Espèces, la force de l'escorte choisie, la simple somme des forces de ses Bêtes, recomptée à chaque
  * Bête ajoutée ou retirée, comme au rechargement ; zéro tant qu'aucune Bête n'est choisie.
  * US-0937 : sous les disponibles de chaque Espèce, combien de mâles et de femelles le joueur en possède, Bêtes sorties
- * comprises, pour savoir lequel lui manque pour réunir son Couple.
+ * comprises, pour savoir lequel lui manque pour réunir son Couple. US-0956 : plus rien une fois son Couple réuni.
  */
 export function Escorte({ especes }: { especes: EspeceDisponible[] }) {
   const recherche = useSearchParams();
@@ -81,7 +81,7 @@ export function Escorte({ especes }: { especes: EspeceDisponible[] }) {
               <p className={styles.nom}>
                 <span id={idNom}>{e.nom}</span>
                 <span className={styles.disponibles}>{disponibles(e.disponibles)}</span>
-                <span className={styles.disponibles}>{sexes(e)}</span>
+                {!e.coupleReuni && <span className={styles.disponibles}>{sexes(e)}</span>}
               </p>
               <div role="group" aria-labelledby={idNom} className={styles.choix}>
                 <span className={styles.paire}>

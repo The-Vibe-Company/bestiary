@@ -4,6 +4,7 @@
 // à l'ouverture d'une page ou par la tâche planifiée, toujours avec le même résultat. Côté serveur uniquement.
 import "server-only";
 import type { PoolClient } from "pg";
+import { reunirLesCouples } from "@/monde/couple";
 import { type Evenement, programmerEvenement } from "@/temps/avancer";
 import { accueillirLesBetesQuiSuivent } from "./arrivee-au-foyer";
 import { type HorairesDUneExpedition, retourDUneExpedition } from "./phase";
@@ -47,7 +48,8 @@ export async function deplacerLeRetour(client: PoolClient, territoireId: number,
  * Expédition déjà rentrée, ou d'un autre Territoire, n'est jamais touchée. US-0917 : un Récit raconte son retour, daté de
  * cet instant (src/expeditions/recit-de-retour.ts) ; une seule fois, comme le retour. US-0938 : les Bêtes apprivoisées qui
  * la suivent arrivent au Foyer avec elle et entrent dans l'effectif (src/expeditions/arrivee-au-foyer.ts) ; une seule
- * fois aussi.
+ * fois aussi. US-0956 : puis, au même instant, chaque Espèce sans Couple dont l'effectif compte désormais un mâle et une
+ * femelle au Foyer réunit le sien (src/monde/couple.ts), avant que le Récit ne raconte le retour.
  */
 export async function rentrerAuFoyer(client: PoolClient, territoireId: number, evenement: Evenement): Promise<void> {
   const expeditionId = evenement.donnees.expedition;
@@ -62,5 +64,6 @@ export async function rentrerAuFoyer(client: PoolClient, territoireId: number, e
   if (rowCount === 0) return;
   await client.query("update habitant set expedition_id = null where territoire_id = $1 and expedition_id = $2", [territoireId, expeditionId]);
   await accueillirLesBetesQuiSuivent(client, territoireId, expeditionId, evenement.survientLe);
+  await reunirLesCouples(client, territoireId, evenement.survientLe);
   await raconterLeRetour(client, territoireId, expeditionId, evenement.survientLe);
 }

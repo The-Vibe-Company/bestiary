@@ -32,10 +32,10 @@ import { type DestinationChoisie, Recapitulatif } from "./Recapitulatif";
 import { Sejour } from "./Sejour";
 
 /** Deux Espèces de l'effectif, rangées comme la base les rend, avec la force d'une de leurs Bêtes et leur vitesse en km/h. */
-const POULE: EspeceDisponible = { id: "poule", nom: "Poule", illustration: "especes/poule.webp", disponibles: 1, force: 9457, vitesse: 14, males: 0, femelles: 1 };
-const SOURIS: EspeceDisponible = { id: "souris", nom: "Souris grise", illustration: "especes/souris.webp", disponibles: 3, force: 473, vitesse: 13, males: 2, femelles: 1 };
+const POULE: EspeceDisponible = { id: "poule", nom: "Poule", illustration: "especes/poule.webp", disponibles: 1, force: 9457, vitesse: 14, males: 0, femelles: 1, coupleReuni: false };
+const SOURIS: EspeceDisponible = { id: "souris", nom: "Souris grise", illustration: "especes/souris.webp", disponibles: 3, force: 473, vitesse: 13, males: 2, femelles: 1, coupleReuni: false };
 /** Une Espèce plus lente que la marche des explorateurs, pour l'essai. */
-const TORTUE: EspeceDisponible = { id: "tortue", nom: "Tortue", illustration: null, disponibles: 2, force: 120, vitesse: 3, males: 1, femelles: 1 };
+const TORTUE: EspeceDisponible = { id: "tortue", nom: "Tortue", illustration: null, disponibles: 2, force: 120, vitesse: 3, males: 1, femelles: 1, coupleReuni: false };
 /** Une forêt à 7 Cases du Foyer, et une Case encore sous le brouillard, à 12. */
 const FORET = { q: 3, r: -5, biome: "Forêt", distance: 7 };
 const BROUILLARD = { q: -9, r: 2, biome: null, distance: 12 };

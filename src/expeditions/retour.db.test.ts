@@ -57,10 +57,13 @@ describe.skipIf(!URL_TEST)("le retour au Foyer (US-0916, sur base)", () => {
     );
     return { territoireId, ne: await lireMarquePage(pool, "territoire", territoireId) };
   };
-  /** Trois explorateurs, Joran, Ilda et Ines, et trois souris dans l'effectif. */
+  /**
+   * Trois explorateurs, Joran, Ilda et Ines, et trois souris dans l'effectif, toutes mâles : un mâle et une femelle au
+   * Foyer réuniraient leur Couple au retour (US-0956), et quitteraient l'effectif.
+   */
   const naitreAvecTroisExplorateurs = async () => {
     const t = await naitre(["Joran", "Ilda", "Ines"].map((prenom) => ({ prenom, metier: "explorateur" })));
-    await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, 'souris', 'male', 2), ($1, 'souris', 'femelle', 1)", [
+    await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, 'souris', 'male', 3)", [
       t.territoireId,
     ]);
     return t;

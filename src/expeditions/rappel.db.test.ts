@@ -42,7 +42,10 @@ describe.skipIf(!URL_TEST)("rappeler une Expédition (US-0920, sur base)", () =>
   const nes: string[] = [];
   const apres = (instant: Date, ms: number) => new Date(instant.getTime() + ms);
 
-  /** Un chef qui vient de naître dans le Monde d'essai, avec deux explorateurs et trois souris : son Territoire et sa naissance. */
+  /**
+   * Un chef qui vient de naître dans le Monde d'essai, avec deux explorateurs et trois souris, toutes mâles (aucun Couple
+   * à réunir au retour, US-0956) : son Territoire et sa naissance.
+   */
   const naitre = async () => {
     const n = ++numero;
     nes.push(`${lancement}-${n}@essai.test`);
@@ -51,7 +54,7 @@ describe.skipIf(!URL_TEST)("rappeler une Expédition (US-0920, sur base)", () =>
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await territoireDuCompte(pool, compte.id))!;
     await pool.query("insert into habitant (territoire_id, prenom, metier) values ($1, 'Joran', 'explorateur'), ($1, 'Ilda', 'explorateur')", [territoireId]);
-    await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, 'souris', 'male', 2), ($1, 'souris', 'femelle', 1)", [territoireId]);
+    await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, 'souris', 'male', 3)", [territoireId]);
     return { territoireId, ne: await lireMarquePage(pool, "territoire", territoireId) };
   };
   /** Les Cases libres à ECART Cases du Foyer du Territoire, hors de celles de ses Bêtes de naissance (US-0975). */

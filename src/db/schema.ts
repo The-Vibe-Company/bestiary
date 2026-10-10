@@ -645,8 +645,9 @@ export const sexe = pgEnum("sexe", ["male", "femelle"]);
  * L'effectif d'un Territoire (US-0904) : ses Bêtes apprivoisées, comptées et non désignées, puisque toutes les Bêtes
  * d'une Espèce sont identiques (ADR 0002) : une ligne par Espèce et par sexe, avec leur nombre, jamais négatif. Elle part
  * avec le Territoire. Personne n'a de Bête à sa naissance (ADR 0008) : la Bête apprivoisée y entre à son arrivée au Foyer
- * (US-0938), et la Réserve des Couples (jalon 8) la remplira aussi ; l'écran d'Expédition y lit les Bêtes disponibles
- * (src/monde/effectif.ts).
+ * (US-0938), et l'Élevage des Couples réunis (jalon 8) la remplira aussi ; l'écran d'Expédition y lit les Bêtes
+ * disponibles (src/monde/effectif.ts). US-0956 : le mâle et la femelle d'un Couple réuni la quittent pour la Réserve
+ * (couple), d'où ils ne sortent plus.
  */
 export const effectif = pgTable(
   "effectif",
@@ -819,4 +820,24 @@ export const bestiaire = pgTable(
     rencontreId: integer("rencontre_id").references(() => rencontre.id, { onDelete: "set null" }),
   },
   (t) => [primaryKey({ columns: [t.territoireId, t.especeId] }), unique("bestiaire_une_espece_par_rencontre").on(t.rencontreId)],
+);
+
+/**
+ * Le Couple d'une Espèce (US-0956) : un mâle et une femelle du Territoire, réunis à `reuni_le`, un instant du jeu : celui
+ * où l'effectif de l'Espèce les a comptés tous deux au Foyer (src/monde/couple.ts). Ils ont quitté l'effectif pour la
+ * Réserve, à l'abri : ils ne combattent plus et ne sortent plus. Un seul Couple par Espèce, qui ne se défait pas ; la page
+ * de la Réserve arrive à l'étape 33. Il part avec le Territoire.
+ */
+export const couple = pgTable(
+  "couple",
+  {
+    territoireId: integer("territoire_id")
+      .notNull()
+      .references(() => territoire.id, { onDelete: "cascade" }),
+    especeId: text("espece_id")
+      .notNull()
+      .references(() => espece.id),
+    reuniLe: timestamp("reuni_le", { withTimezone: true }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.territoireId, t.especeId] })],
 );

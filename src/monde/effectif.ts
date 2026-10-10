@@ -9,6 +9,7 @@ import type { Sexe } from "./betes-sauvages";
  * US-0904 : une Espèce de l'effectif, avec son illustration (null : aucune) et ses Bêtes disponibles pour l'escorte.
  * US-0905 : avec la force d'une de ses Bêtes, la même pour toutes. US-0912 : et leur vitesse réelle, en km/h, qui règle
  * l'allure d'une escorte. US-0937 : et combien de mâles et de femelles le joueur en possède, Bêtes sorties comprises.
+ * US-0956 : et si son Couple est réuni : le sexe ne compte plus.
  */
 export type EspeceDisponible = {
   id: string;
@@ -19,38 +20,35 @@ export type EspeceDisponible = {
   vitesse: number;
   males: number;
   femelles: number;
+  coupleReuni: boolean;
 };
 
 /**
- * US-0904 : les Bêtes d'un Couple en Réserve, qui ne sortent jamais : combien l'Espèce en a (expression sur `e`, les
- * lignes de l'effectif regroupées par Territoire et Espèce). Aucun Couple n'est encore réuni : aucune. La Réserve des
- * Couples (jalon 8) écrira ici combien de Bêtes de l'Espèce y vivent, et les disponibles suivront.
+ * US-0904 : les Bêtes déjà sorties : combien l'Espèce en a hors du Foyer (expression sur `e`, les lignes de l'effectif
+ * regroupées par Territoire et Espèce). US-0911 : celles des escortes de ses Expéditions en cours, jusqu'à leur retour.
+ * US-0916 : rentrées, elles n'en sont plus. US-0956 : sorties, elles ne sont pas au Foyer pour réunir un Couple
+ * (src/monde/couple.ts).
  */
-const BETES_EN_RESERVE = "0";
-
-/**
- * US-0904 : les Bêtes déjà sorties : combien l'Espèce en a hors du Foyer (expression sur `e`, comme BETES_EN_RESERVE).
- * US-0911 : celles des escortes de ses Expéditions en cours, jusqu'à leur retour. US-0916 : rentrées, elles n'en sont
- * plus.
- */
-const BETES_SORTIES = `select coalesce(sum(s.nombre), 0)::int from expedition_escorte s join expedition x on x.id = s.expedition_id
+export const BETES_SORTIES = `select coalesce(sum(s.nombre), 0)::int from expedition_escorte s join expedition x on x.id = s.expedition_id
   where x.territoire_id = e.territoire_id and s.espece_id = e.espece_id and x.rentree_le is null`;
 
 /**
  * US-0904 : les Bêtes que le joueur peut emmener en escorte, Espèce par Espèce, lues à chaque affichage de l'écran
  * d'Expédition : l'effectif du Territoire, mâles et femelles ensemble (l'escorte ne choisit pas le sexe), moins les Bêtes
- * d'un Couple en Réserve et les Bêtes déjà sorties. Seules les Espèces qui en ont au moins une, de la plus commune à la
- * plus rare, puis par nom ; aucune pour un Territoire sans Bête. Lire ne retient rien : rien ne change avant le départ.
+ * déjà sorties. Seules les Espèces qui en ont au moins une, de la plus commune à la plus rare, puis par nom ; aucune pour
+ * un Territoire sans Bête. Lire ne retient rien : rien ne change avant le départ.
  * US-0905 : la force d'une Bête vient de l'attaque et de la vie de son Espèce, rien du Territoire : aucune Recherche.
- * US-0937 : tant que le Couple de l'Espèce n'est pas réuni, combien de mâles et de femelles le joueur en possède, au
- * Foyer comme en escorte, pour savoir lequel lui manque. Aucun Couple n'est encore réuni (BETES_EN_RESERVE) : US-0956
- * dira quand le sexe ne compte plus.
+ * US-0937 : combien de mâles et de femelles le joueur en possède, au Foyer comme en escorte, pour savoir lequel lui manque
+ * tant que le Couple de l'Espèce n'est pas réuni. US-0956 : les Bêtes d'un Couple réuni ont quitté l'effectif pour la
+ * Réserve, d'où elles ne sortent jamais (src/monde/couple.ts) : elles ne sont ni disponibles ni comptées ; et le
+ * Couple réuni se dit, le sexe ne comptant plus.
  */
 export async function betesDisponibles(base: Pool | PoolClient, territoireId: number): Promise<EspeceDisponible[]> {
   const { rows } = await base.query<Omit<EspeceDisponible, "force"> & { attaque: number; vie: number }>(
-    `select es.id, es.nom, es.illustration, x.disponibles, es.attaque, es.vie, es.vitesse, x.males, x.femelles
+    `select es.id, es.nom, es.illustration, x.disponibles, es.attaque, es.vie, es.vitesse, x.males, x.femelles,
+       exists (select 1 from couple c where c.territoire_id = $1 and c.espece_id = es.id) as "coupleReuni"
      from (
-       select e.espece_id, sum(e.nombre)::int - (${BETES_EN_RESERVE}) - (${BETES_SORTIES}) as disponibles,
+       select e.espece_id, sum(e.nombre)::int - (${BETES_SORTIES}) as disponibles,
          coalesce(sum(e.nombre) filter (where e.sexe = 'male'), 0)::int as males,
          coalesce(sum(e.nombre) filter (where e.sexe = 'femelle'), 0)::int as femelles
        from effectif e
@@ -70,6 +68,7 @@ export async function betesDisponibles(base: Pool | PoolClient, territoireId: nu
  * US-0938 : fait entrer les Bêtes `betes` dans l'effectif du Territoire, chacune à la ligne de son Espèce et de son sexe,
  * créée au besoin : elles s'ajoutent à celles qui y sont déjà, et sont disponibles pour l'escorte dès lors. Aucune limite
  * de Places : les Places arrivent au jalon 8, avec la Bête apprivoisée sans Place libre (US-0939). Rien sans Bête.
+ * US-0956 : sauf celle qui réunit un Couple au même instant (src/monde/couple.ts), partie aussitôt en Réserve.
  */
 export async function faireEntrerDansLEffectif(base: Pool | PoolClient, territoireId: number, betes: readonly { especeId: string; sexe: Sexe }[]): Promise<void> {
   if (betes.length === 0) return;

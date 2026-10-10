@@ -4,8 +4,8 @@
 // « croisée », une seule fois, qu'elle suive l'Expédition ou non : à la première Rencontre, retenue par le mécanisme du
 // temps (src/expeditions/rencontres.ts), qui la signale « Nouvelle Espèce au Bestiaire » aux récits (US-0917, US-0940).
 // L'arrivée au Foyer d'une Bête apprivoisée (US-0938, src/expeditions/arrivee-au-foyer.ts) la fait avancer par
-// inscrireAuBestiaire, comme le fera le Couple réuni (US-0956). La page Bestiaire arrive au jalon 10. Côté serveur
-// uniquement.
+// inscrireAuBestiaire, comme le Couple réuni (US-0956, src/monde/couple.ts). La page Bestiaire arrive au jalon 10. Côté
+// serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
 
