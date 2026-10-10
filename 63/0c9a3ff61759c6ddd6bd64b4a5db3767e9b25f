@@ -1,0 +1,63 @@
+src/app/jeu/expeditions/nouvelle/AucunExplorateurLibre.css.test.ts
+  s_7c7d151152e4a5::t_c440b9c8a52965 5-7,15-16
+src/app/jeu/expeditions/nouvelle/AucunExplorateurLibre.module.css
+  s_7c7d151152e4a5::t_80d347b1f9c653 1,3,6,8
+src/app/jeu/expeditions/nouvelle/AucunExplorateurLibre.tsx
+  s_7c7d151152e4a5::t_8156e10de0a9ef 5,22,30
+src/app/jeu/expeditions/nouvelle/Escorte.css.test.ts
+  s_7c7d151152e4a5::t_3ac08e24efcf42 5-9,17-20,31-32,37,39-41
+src/app/jeu/expeditions/nouvelle/Escorte.module.css
+  s_7c7d151152e4a5::t_88a9896cd6c1f1 1,8,31,67,69-70
+src/app/jeu/expeditions/nouvelle/Escorte.tsx
+  s_7c7d151152e4a5::t_36eae5e5d680a5 9,74,89,92-93,98,101,110-120
+src/app/jeu/expeditions/nouvelle/Explorateurs.css.test.ts
+  s_7c7d151152e4a5::t_868f853ee58e32 5,9,17-20,23-25,30-32
+src/app/jeu/expeditions/nouvelle/Explorateurs.module.css
+  s_7c7d151152e4a5::t_85b9cef3f12f87 1,5
+src/app/jeu/expeditions/nouvelle/Explorateurs.tsx
+  s_7c7d151152e4a5::t_5c9e38df1327e2 6,43-44,46-47,50,52,55-56
+src/app/jeu/expeditions/nouvelle/Partir.module.css
+  s_7c7d151152e4a5::t_6733968c9c8751 1,3,7,10,12,16,22,32-33,35-38,40,43-47
+src/app/jeu/expeditions/nouvelle/Partir.tsx
+  s_7c7d151152e4a5::t_edd9b7be038949 45
+src/app/jeu/expeditions/nouvelle/Recapitulatif.css.test.ts
+  s_7c7d151152e4a5::t_5ffe79bd5881dc 5-8,13-26,28-30,32-34,37-38,41-42,45-52,57-58
+src/app/jeu/expeditions/nouvelle/Recapitulatif.module.css
+  s_7c7d151152e4a5::t_b149c2ff18f07a 1-4,6,9,32-45,49,51,59-76,78-81,86,88-95,97-98,102-127,129,134-137,140,143,145-157,162,186,199,207-212
+src/app/jeu/expeditions/nouvelle/SansEscorte.css.test.ts
+  s_7c7d151152e4a5::t_5aa0ba854da679 5-7,10-11
+src/app/jeu/expeditions/nouvelle/SansEscorte.module.css
+  s_7c7d151152e4a5::t_5eeb741f96a1b4 1-4
+src/app/jeu/expeditions/nouvelle/SansEscorte.tsx
+  s_7c7d151152e4a5::t_22ee02d8c91161 2,12-13
+src/app/jeu/expeditions/nouvelle/Sejour.css.test.ts
+  s_7c7d151152e4a5::t_80216cc859c667 12-13,15
+src/app/jeu/expeditions/nouvelle/Sejour.module.css
+  s_7c7d151152e4a5::t_3cdefc29bd26e7 1-4,7-13,16,18-19,22,24,28,30,38-90,94,100,103,105-106,116,119-120
+src/app/jeu/expeditions/nouvelle/Sejour.tsx
+  s_7c7d151152e4a5::t_899e89218dd9a0 10,96,99,124
+src/app/jeu/expeditions/nouvelle/etape.module.css
+  s_7c7d151152e4a5::t_4ad91cebeb10c6 1-171
+src/app/jeu/expeditions/nouvelle/page.css.test.ts
+  s_7c7d151152e4a5::t_822726b443aa0b 5-9,17-19,22-23,32-54
+src/app/jeu/expeditions/nouvelle/page.module.css
+  s_7c7d151152e4a5::t_2ddf0312530493 1-4,6-8,14-16,19-23,26-28,31-33,42-50,53-55,58-64,66-70,74,81,83,86,89-100
+src/app/jeu/expeditions/nouvelle/page.tsx
+  s_7c7d151152e4a5::t_e48b0d1c936fe3 17,46,48-49,52-53,92,101,103-104,108,112-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "630c9a3ff61759c6ddd6bd64b4a5db3767e9b25f",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
