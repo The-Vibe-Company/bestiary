@@ -1,0 +1,65 @@
+armada.toml
+  s_7c7d151152e4a5::t_db98b40cc35dcf 56-67
+docs/stories/09-explorer-et-apprivoiser.md
+  s_7c7d151152e4a5::t_73fe48f2fb1934 444
+docs/stories/README.md
+  s_7c7d151152e4a5::t_ca1d0c521ce3a8 7
+drizzle/0060_recit_des_rencontres.sql
+  s_7c7d151152e4a5::t_6c2c8f236ca90f 1-3
+drizzle/meta/0060_snapshot.json
+  s_7c7d151152e4a5::t_568f829434a6e4 1-3255
+drizzle/meta/0062_snapshot.json
+  s_7c7d151152e4a5::t_97b73ade7aecca 3,2391-2396
+drizzle/meta/_journal.json
+  s_7c7d151152e4a5::t_6274443eb32d15 411-417
+src/app/jeu/recits/ListeDesRecits.test.tsx
+  s_7c7d151152e4a5::t_0c44c249254e77 68-122
+src/app/jeu/recits/ListeDesRecits.tsx
+  s_7c7d151152e4a5::t_bc290c21d48db5 6,8-12,44-45,48-54,69
+src/app/jeu/recits/RencontresDuRecit.css.test.ts
+  s_7c7d151152e4a5::t_98acf45b237020 1-38
+src/app/jeu/recits/RencontresDuRecit.module.css
+  s_7c7d151152e4a5::t_ecc1da37d01985 1-104
+src/app/jeu/recits/RencontresDuRecit.test.tsx
+  s_7c7d151152e4a5::t_598d326c249120 1-94
+src/app/jeu/recits/RencontresDuRecit.tsx
+  s_7c7d151152e4a5::t_80bb9b5eeb9f71 1-67
+src/app/jeu/recits/page.test.tsx
+  s_7c7d151152e4a5::t_f242216a5661e1 98-163
+src/app/jeu/recits/page.tsx
+  s_7c7d151152e4a5::t_d837098f512540 9,18-28,54-67
+src/db/schema.ts
+  s_7c7d151152e4a5::t_b35550b432a5ed 553-558
+src/expeditions/recit-de-rencontre.db.test.ts
+  s_7c7d151152e4a5::t_3171097d808d3a 1-254
+src/expeditions/recit-de-rencontre.test.ts
+  s_7c7d151152e4a5::t_883012e6eb4315 1-47
+src/expeditions/recit-de-rencontre.ts
+  s_7c7d151152e4a5::t_5fa3f6bf15031f 1-101
+src/expeditions/recit-de-retour.ts
+  s_7c7d151152e4a5::t_90b4a7b5bf5527 3-4,17,210,247-248,270
+src/monde/recits.db.test.ts
+  s_7c7d151152e4a5::t_5782c771cf7a65 103-142
+src/monde/recits.ts
+  s_7c7d151152e4a5::t_d8707d0a0a2a73 5,7-27,35-36,38,40-41,46-50,52-59,62
+src/temps/affichage.test.ts
+  s_7c7d151152e4a5::t_45294e1983042b 2,31-37
+src/temps/affichage.ts
+  s_7c7d151152e4a5::t_6085b231a5173e 45-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7296402562dd0ea0c4bd7bf2858184fb9d67de6c",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
