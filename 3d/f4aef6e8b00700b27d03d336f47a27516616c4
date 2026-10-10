@@ -1,0 +1,43 @@
+src/app/jeu/habitants/AuxPortes.css.test.ts
+  s_7c7d151152e4a5::t_4922a6f1c34317 37-40,65-68,104-105
+src/app/jeu/habitants/AuxPortes.test.tsx
+  s_7c7d151152e4a5::t_57768bb0b66146 125-127
+src/app/jeu/habitants/AuxPortes.tsx
+  s_7c7d151152e4a5::t_798ae5458ad2b8 262,271
+src/app/jeu/habitants/RepartitionDesMetiers.test.tsx
+  s_7c7d151152e4a5::t_2fc0d81d6d1441 109-122
+src/app/jeu/habitants/RepartitionDesMetiers.tsx
+  s_7c7d151152e4a5::t_c60473039e1a46 4,42-44,51,63-68,94
+src/app/jeu/habitants/page.module.css
+  s_7c7d151152e4a5::t_22486e9e8fb3f3 1-6,10,14,16-18,39,47-48,76-79,83-85,99-100,103-104,108-109,112,115-135,139-142,145-146,148,153-156,161,163,165,168-172,174-176,181-182,186-188,198,204,215,218,223-226,230,239-241,245-249,253-263,265,267,274,276-282,285-296,317-319,333-336,350,360,365-367,377,400-402,420,434-435,452-453,466,474-475,479,481-484,489-497,502-505,507-509,511-548,551-552,561,563-564,581-583,585-586,590-596,612,621,645-646,658-666,670,673,682,694-699,701,706-714,730-732,738,747-750,757-764
+src/app/jeu/habitants/page.test.tsx
+  s_7c7d151152e4a5::t_5cca471846180d 236-237,575,579-580,694,696-698,711,713-714
+src/app/jeu/habitants/page.tsx
+  s_7c7d151152e4a5::t_1fb061b924c4d4 64,66,70-77,85-86,114,137,143-144
+src/app/jeu/habitants/AuxPortes.module.css
+  s_82d366742736db::t_fd70c80a6d67a1 6,10,22-23,29-30,32,49-51,84,100,106,116-119,122-128,130,132,135-136,144,146,152
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3df4aef6e8b00700b27d03d336f47a27516616c4",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_82d366742736db": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-acd715e7154def393",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
