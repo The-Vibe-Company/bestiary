@@ -600,6 +600,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0956 · Réunir le Couple
 **En tant que** joueur, **je veux** que mon mâle et ma femelle d'une même Espèce forment un Couple, **afin de** pouvoir enfin élever cette Espèce.
 
+- **Statut** : Livrée le 2026-10-10 (autopilot, THE-1469, Zewed/bestia-2#38). Dès que l'effectif d'une Espèce sans Couple compte un mâle et une femelle sûrement au Foyer, ils forment son Couple, à l'heure exacte où cela devient vrai (en direct, au rattrapage ou par la tâche planifiée), sans action du joueur. Les deux Bêtes quittent l'effectif pour la Réserve : elles ne sortent plus en escorte et ne combattent plus ; les autres Bêtes de l'Espèce restent dans l'effectif. L'Espèce passe « Couple réuni » au Bestiaire (migration 0061). L'escorte ne disant pas le sexe de ses Bêtes, une Bête sortie ne compte qu'à son retour ; le cas d'une Bête absente ou Blessée revient à US-0960. Vérifié en vrai sur un retour d'Expédition.
 - **Débloquée par** : US-0937, US-0938
 - **Critères d'acceptation** :
   - Dès que l'effectif d'une Espèce sans Couple compte un mâle et une femelle au Foyer, ils forment son Couple, sans action du joueur.
