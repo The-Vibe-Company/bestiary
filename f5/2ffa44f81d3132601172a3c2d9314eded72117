@@ -1,0 +1,155 @@
+src/app/globals.css
+  s_7c7d151152e4a5::t_ba5d3381b8e2ea 1,7-10,13,15,20
+src/app/jeu/expeditions/nouvelle/AucunExplorateurLibre.module.css
+  s_75e9a780874bbd::t_9853f193d20389 1-39,42-48,52,58-65,73,77-81,85
+src/app/jeu/expeditions/nouvelle/AucunExplorateurLibre.tsx
+  s_7c7d151152e4a5::t_69dd0afa8ffa89 20
+src/app/jeu/expeditions/nouvelle/Escorte.css.test.ts
+  s_7c7d151152e4a5::t_850bddb645afa2 21,23-25,27,31-32,37-40
+src/app/jeu/expeditions/nouvelle/Escorte.module.css
+  s_7c7d151152e4a5::t_0d5d4d65a147fc 1-5,7-9,12,14-16,22,25-34,38-41,46-47,49-66,70,72,76-80,86-88,97,106-109,112-113,118-122,128-133,138-139,146-150,162-163,168,170-171,173-179,183-185,193-195,200-208,211,216
+src/app/jeu/expeditions/nouvelle/Escorte.tsx
+  s_7c7d151152e4a5::t_22dfb3b72501a6 42-43,73
+src/app/jeu/expeditions/nouvelle/Explorateurs.css.test.ts
+  s_7c7d151152e4a5::t_465bf16950b759 23,32-33
+src/app/jeu/expeditions/nouvelle/Explorateurs.module.css
+  s_7c7d151152e4a5::t_86878029f766d5 1-4,6-27,33,45-46,54-55,59,74-77,80-81,86-94,97-98,105-109,121-122,126-141
+src/app/jeu/expeditions/nouvelle/Explorateurs.tsx
+  s_7c7d151152e4a5::t_f6de18d77d6008 3,44-47
+src/app/jeu/expeditions/nouvelle/Partir.module.css
+  s_7c7d151152e4a5::t_e5d934c572f4c2 1,6-9,11-12,15-18,20-22,24,27,30,37-38,42-46,49,53,55-57,62,65,71-82
+src/app/jeu/expeditions/nouvelle/Recapitulatif.css.test.ts
+  s_7c7d151152e4a5::t_322e74dda46122 22-24,44-45
+src/app/jeu/expeditions/nouvelle/Recapitulatif.module.css
+  s_7c7d151152e4a5::t_4c46a586f00aaf 1-5,7-12,15,18,30-31,40-54,59,61,70,76-77,84-85,104-107,120,126,137-138,141
+src/app/jeu/expeditions/nouvelle/SansEscorte.css.test.ts
+  s_7c7d151152e4a5::t_e51bf5ec271593 12-14
+src/app/jeu/expeditions/nouvelle/SansEscorte.tsx
+  s_7c7d151152e4a5::t_5c1dbb4364dafb 11
+src/app/jeu/expeditions/nouvelle/Sejour.module.css
+  s_75e9a780874bbd::t_af5e2452349836 1-4,6-8,13-15,18,20-24,27,32-34,38-70,80,83,86,88,91-92,98-102,104-105,107,112-113,118-119,123-126,129,132,135-153
+src/app/jeu/expeditions/nouvelle/page.css.test.ts
+  s_7c7d151152e4a5::t_e53b163e34dfca 25
+src/app/jeu/expeditions/nouvelle/page.module.css
+  s_7c7d151152e4a5::t_50d3b84b6f0824 1-6,8-12,15,19-35,38-84,99-100,105-121,125-128,137,143-150,158,162-166,172-177,179,181,191-195,198-199,204-226
+src/app/jeu/expeditions/nouvelle/page.tsx
+  s_7c7d151152e4a5::t_55fcdaf8b016f5 2,43-54,91-94,108,119,122
+src/app/jeu/habitants/AuxPortes.css.test.ts
+  s_7c7d151152e4a5::t_516e245520672e 18,37-39,84,88,116-118
+src/app/jeu/habitants/AuxPortes.module.css
+  s_4ce34ec42d9105::t_71da5876499d7d 2-6,10,18,22-49,53-57,62-63,69-70,74-78,80-81,87-88,93-97,99-100,107-116,125-126,131-132,136,146-148,154,164,166-167,172-174,178-179,183-188,191,199,205,213,226,234,240,242-249,253-254,257-258,262,267,269,278,280,305,312,314-315,317,320,325-326,331,336-337
+src/app/jeu/habitants/AuxPortes.tsx
+  s_7c7d151152e4a5::t_6c73a21a1fa9ad 3,14-16,41-42,206,234-236
+src/app/jeu/habitants/ListeDesHabitants.tsx
+  s_7c7d151152e4a5::t_c47b2daaa98bb3 24-26,47-48,208-209,211-219
+src/app/jeu/habitants/RepartitionDesMetiers.tsx
+  s_7c7d151152e4a5::t_ca03effd67d57a 28-29,59,65
+src/app/jeu/habitants/page.module.css
+  s_7c7d151152e4a5::t_b8e408b9296605 1-5,9,13-15,25-51,58-64,69-72,79-82,84-85,87,89,94,98-102,105,109-111,121-125,129-131,145-147,152-153,162-166,170,172,177,183-184,189-190,200-202,216,218-225,228,231-233,238-241,243,245-247,249-286,290-303,307-308,310,317,319-325,328,330,341-343,347-349,351-357,360-362,366-374,376,381,392-430,436-438,448-451,454-457,459,463-465,473,488,503-504,506,516,521-533,535-536,553-554,563,567-571,578-579,581-583,598-601,605-606,613-630,634-641,645,649-651,655-660,664-665,669,672,680-683,686-687,692-700,702-703,705,711-715,720,726-728,735-746,752,755-759,764,766-781,783-784,786-787,791,804,809-818,823-824,828,831-834,839-841,844-851,858-861,868-880
+src/app/jeu/habitants/page.test.tsx
+  s_7c7d151152e4a5::t_1f68616256f7fa 573,577-578,591,593,610,615,617-624,639-640,655,715-719,724,746-747,750,902-904
+src/app/jeu/habitants/page.tsx
+  s_7c7d151152e4a5::t_58873d48cf90e6 64-65,70-73,106-107,131,137-138
+src/app/jeu/page.module.css
+  s_7c7d151152e4a5::t_c07365411acddb 1-5,9,12,16,18-48,52-53,57,60-68,73,78-81,89-92,94-97,102,106-110,113,116-124,126-139,142-180,185-188,193-207,210-211,214-215,218-219,222-238,240-247,250-256,259-275,278,281,283,285-287,289-293,295,297-301,303-350,354,357,359,362,364,368,372-375
+src/app/layout.tsx
+  s_7c7d151152e4a5::t_4428e0c1926d51 3,7,20,24,27
+src/components/BarreHaut.module.css
+  s_7c7d151152e4a5::t_be469f5b96c3b2 2-9,16,21,24,28,31-32,35,40-42,45-48,50,54-58,62-63,71,101-102,112,115,120-122,124,127,130-132,145,152,156-159,166-168,171-182,187-188,190-222,225-273,275-277,279,281-284,288-289,292-295,299-314,317,321,324,326-330,334,336-338,340,344,346-348,353,357-358,361-364,366-379,383-384,388-390,398,401,403-406,408-412,414-416,419-427,431-436,439-443,449-454,460-462,466-467,469,482,484-486,490,492,499-500,503-505,507,512,530,533-535,538-543,550,564-566,575,578-580,586-587,599,629,646,652,657-659,664,669-671,673,677-681,686,690-691,693,696,754-761,763-792,803-805,812-814,820-823,826-860,862,866-870,874-877,879-880,884-885,887,889-891,895-904,907-911,915,919,922-932,935-937,940-942,945-946,955-961,963-965,967,977,979-980,998,1015,1020-1023,1026-1027,1031-1033
+src/components/BarreHaut.test.tsx
+  s_7c7d151152e4a5::t_a17f09e1680c33 31,33-35,37-40,59-61,64,67,69-72,87-88,94-96,113
+src/components/Bloc.module.css
+  s_c03ab4863ebb5d::t_b62dfd5f191ca6 1-5,8-13,24,26-72,110-128
+src/components/Bloc.tsx
+  s_c03ab4863ebb5d::t_de3980bc322418 9-14,16,22,24-25,30-32
+src/components/CompteurHabitants.test.tsx
+  s_7c7d151152e4a5::t_5c2e85d22cada9 16
+src/components/CompteurHabitants.tsx
+  s_7c7d151152e4a5::t_aeb1718218a378 21
+src/components/Ressources.tsx
+  s_7c7d151152e4a5::t_45b1f2ee443122 139
+src/styles/cartes.css
+  s_7c7d151152e4a5::t_d99a85493bd4fc 1-109
+src/styles/fonts.ts
+  s_c03ab4863ebb5d::t_3b8cfd7cac3d37 1,3,11-19
+src/styles/formes.css
+  s_c03ab4863ebb5d::t_6a26d9b65845cf 1-5,10-13,17-18,23-24,29,31,39,42,46-51,54,56-57,61-62,64,68,70,76
+src/styles/palette.css
+  s_c03ab4863ebb5d::t_9530e270ec9a3c 99-133
+src/styles/typographie.css
+  s_c03ab4863ebb5d::t_c483b3c0adb883 1-4,7
+src/app/jeu/BlocProduction.tsx
+  s_a1abddc77e3f87::t_df84f0e07312c4 7-10,14-15,19-21,25-27,32
+src/app/jeu/expeditions/nouvelle/SansEscorte.module.css
+  s_6a76a047daf4ca::t_ab52eee83f8558 1,3-23
+src/components/Logo.module.css
+  s_a1abddc77e3f87::t_3deddceb3c0b23 1-4,12,14-15,23-40,42-43,60,67-70
+src/components/Logo.tsx
+  s_a1abddc77e3f87::t_868e6691446652 5-8,12-17
+src/components/Navigation.tsx
+  s_8438bc0f72a3b7::t_89104e1b349936 3,17,19-24,46-53,64,66-67,71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f52ffa44f81d3132601172a3c2d9314eded72117",
+  "prompts": {},
+  "sessions": {
+    "s_4ce34ec42d9105": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "986afa6c-8f0b-494f-9694-d93f52c5ef9e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_6a76a047daf4ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a838a60c676d2f48f",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_75e9a780874bbd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e8a22366-3524-4157-8983-f900d79a348a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_8438bc0f72a3b7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-abd2222d07184ace1",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_a1abddc77e3f87": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aef80202b3df4d7df",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_c03ab4863ebb5d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1d8a31cd-1943-4a45-8e2a-a7b47de3df29",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
