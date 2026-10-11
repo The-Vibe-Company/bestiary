@@ -1,0 +1,31 @@
+.aeom/config.json
+  s_7c7d151152e4a5::t_00aa9d77edbed1 1-57
+.aeom/demarrer.mjs
+  s_7c7d151152e4a5::t_eb6c0070091560 1-56
+.aeom/journeys/accueillir-un-voyageur.json
+  s_7c7d151152e4a5::t_2bff412e0c56e1 1-9
+.aeom/journeys/envoyer-une-expedition.json
+  s_7c7d151152e4a5::t_df80384363f0f3 1-10
+.aeom/journeys/revenir-dans-le-jeu.json
+  s_7c7d151152e4a5::t_775dae397891c8 1-12
+.aeom/journeys/suivre-ses-expeditions-en-cours.json
+  s_7c7d151152e4a5::t_8a36bd18220353 1-8
+.aeom/journeys/voir-ce-qu-une-expedition-a-ramene.json
+  s_7c7d151152e4a5::t_0f28415216dd40 1-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "755c465e8b6b42e49229d026514e0bb613e653f4",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
