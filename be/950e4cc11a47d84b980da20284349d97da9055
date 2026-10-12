@@ -1,0 +1,73 @@
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_c43c6f69b2d239 96
+docs/stories/09-explorer-et-apprivoiser.md
+  s_7c7d151152e4a5::t_bd52310538c7b9 518
+docs/stories/README.md
+  s_7c7d151152e4a5::t_431ddae0b84029 7
+src/app/jeu/betes/page.css.test.ts
+  s_7c7d151152e4a5::t_64400fe4a7cf10 1-32
+src/app/jeu/betes/page.db.test.tsx
+  s_7c7d151152e4a5::t_24931982cae217 1-116
+src/app/jeu/betes/page.module.css
+  s_7c7d151152e4a5::t_f32cb3e01dc4a5 1-112
+src/app/jeu/betes/page.test.tsx
+  s_7c7d151152e4a5::t_47ff224748cc2d 1-123
+src/app/jeu/betes/page.tsx
+  s_7c7d151152e4a5::t_89c14659e43ada 1-61
+src/app/jeu/page.css.test.ts
+  s_7c7d151152e4a5::t_e09d3edcc27d02 1-23
+src/app/jeu/page.module.css
+  s_7c7d151152e4a5::t_2af8d0aa1301be 82-127,237-240
+src/app/jeu/page.test.tsx
+  s_7c7d151152e4a5::t_e8005a7370aad2 31-33,77,80-98
+src/app/jeu/page.tsx
+  s_7c7d151152e4a5::t_0b0d718bb85327 7,11,34-36,46,68-77
+src/app/jeu/recits/page.test.tsx
+  s_7c7d151152e4a5::t_df42c0e477b7bd 298-317
+src/app/jeu/recits/page.tsx
+  s_7c7d151152e4a5::t_31a626b7c14c99 81-82
+src/app/jeu/reserve/[espece]/page.db.test.tsx
+  s_7c7d151152e4a5::t_d4fdbb71d3ce4d 51-54,57,62,85-86,99,107-120
+src/app/jeu/reserve/[espece]/page.module.css
+  s_7c7d151152e4a5::t_082670005ffd37 45-59
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_c18d4cb73ba85e 4,16-19,26,28-30,37,40,43,49,62-78,86,92
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_ad3b57e2c4bc57 10,22-26,28-34,40-43,47,49-53,55
+src/expeditions/combat.db.test.ts
+  s_7c7d151152e4a5::t_7133d12fb808cd 15,18,32-33,379-403,597-638
+src/expeditions/pertes.ts
+  s_7c7d151152e4a5::t_c07e4f026d4e04 20-22,24,27,31-39,41
+src/expeditions/recit-de-retour.test.ts
+  s_7c7d151152e4a5::t_26f61395fdc86d 2-10,279,287,300-354
+src/expeditions/recit-de-retour.ts
+  s_7c7d151152e4a5::t_3637a704234201 9-10,24,78-79,85-90,241-263,273-275,290,307,335-337,359-363,381,383
+src/expeditions/recit-du-combat.test.ts
+  s_7c7d151152e4a5::t_a45a7257340368 1-48
+src/expeditions/recit-du-combat.ts
+  s_7c7d151152e4a5::t_7633cd6d46f71c 1-65
+src/monde/couple.ts
+  s_7c7d151152e4a5::t_8db96034a3b415 87-88,94-95
+src/monde/effectif.db.test.ts
+  s_7c7d151152e4a5::t_521471cd00f361 7-8,202-305
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_f9a18a539d4289 2-3,85-136
+src/monde/recits.ts
+  s_7c7d151152e4a5::t_6a8440293d72d7 39-41,53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "be950e4cc11a47d84b980da20284349d97da9055",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
