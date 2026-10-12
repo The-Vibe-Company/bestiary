@@ -225,10 +225,10 @@ describe.skipIf(!URL_TEST)("la Bête à portée suit l'Expédition (US-0934, sur
 
   /**
    * Trois Territoires sur la Case d'une Bête rare : avant l'Apprivoisement, une escorte trop faible et une Expédition sans
-   * escorte la voient ; l'escorte forte de B arrive une heure après elle et l'emmène ; celle de C, arrivée au même instant
-   * mais partie plus tard, la voit aussi sans l'emmener (US-0962) ; ensuite, ni une autre de B, ni une escorte forte de A,
-   * ne la voient. `rattrapages` met les Territoires à l'heure ; rend ce que chaque Expédition a vu et l'instant où la Bête
-   * est partie (vues), à côté de ce qu'on en attend (attendues).
+   * escorte la voient ; l'escorte forte de B arrive une heure après elle et l'emmène ; celle de C, trop faible, arrivée au
+   * même instant, la voit aussi (US-0962), sans prendre part au tirage (US-0963) ; ensuite, ni une autre de B, ni une
+   * escorte forte de A, ne la voient. `rattrapages` met les Territoires à l'heure ; rend ce que chaque Expédition a vu et
+   * l'instant où la Bête est partie (vues), à côté de ce qu'on en attend (attendues).
    */
   const troisTerritoires = async (rattrapages: (a: number, b: number, c: number, debut: Date, fin: Date) => Promise<void>) => {
     const [a, b, c] = [await naitre(), await naitre(), await naitre()];
@@ -237,7 +237,7 @@ describe.skipIf(!URL_TEST)("la Bête à portée suit l'Expédition (US-0934, sur
     const faibleDeA = await poser(a.territoireId, caseId, apres(bete.arrivee, -2 * HEURE), 6 * HEURE, [[faible, 1]]);
     const sansEscorteDeC = await poser(c.territoireId, caseId, apres(bete.arrivee, 30), 4 * HEURE);
     const forteDeB = await poser(b.territoireId, caseId, apres(bete.arrivee, HEURE), 4 * HEURE, [[forte, 1]]);
-    const forteDeCEnMemeTemps = await poser(c.territoireId, caseId, apres(bete.arrivee, HEURE), 4 * HEURE, [[forte, 1]]);
+    const faibleDeCEnMemeTemps = await poser(c.territoireId, caseId, apres(bete.arrivee, HEURE), 4 * HEURE, [[faible, 1]]);
     const autreDeB = await poser(b.territoireId, caseId, apres(bete.arrivee, 90), 4 * HEURE, [[forte, 2]]);
     const forteDeA = await poser(a.territoireId, caseId, apres(bete.arrivee, 2 * HEURE), 4 * HEURE, [[forte, 5]]);
     await rattrapages(a.territoireId, b.territoireId, c.territoireId, debut, fin);
@@ -248,7 +248,7 @@ describe.skipIf(!URL_TEST)("la Bête à portée suit l'Expédition (US-0934, sur
         faibleDeA: [{ ...sans, depuisLApparition: 0, apprivoisee: false }],
         sansEscorteDeC: [{ ...sans, depuisLApparition: 30 * MINUTE_MS, apprivoisee: false }],
         forteDeB: [{ ...sans, depuisLApparition: HEURE * MINUTE_MS, apprivoisee: true }],
-        forteDeCEnMemeTemps: [{ ...sans, depuisLApparition: HEURE * MINUTE_MS, apprivoisee: false }],
+        faibleDeCEnMemeTemps: [{ ...sans, depuisLApparition: HEURE * MINUTE_MS, apprivoisee: false }],
         autreDeB: [],
         forteDeA: [],
         partie: apres(bete.arrivee, HEURE),
@@ -257,7 +257,7 @@ describe.skipIf(!URL_TEST)("la Bête à portée suit l'Expédition (US-0934, sur
         faibleDeA: await vues(faibleDeA),
         sansEscorteDeC: await vues(sansEscorteDeC),
         forteDeB: await vues(forteDeB),
-        forteDeCEnMemeTemps: await vues(forteDeCEnMemeTemps),
+        faibleDeCEnMemeTemps: await vues(faibleDeCEnMemeTemps),
         autreDeB: await vues(autreDeB),
         forteDeA: await vues(forteDeA),
         partie: await partieLe(caseId, bete.numero),

@@ -3,8 +3,8 @@ import { departDUneBete, issueDUneRencontre } from "./recit-de-rencontre";
 
 describe("le départ d'une Bête vue sans qu'elle suive (US-0940)", () => {
   const h = (heure: number) => new Date(Date.UTC(2026, 9, 9, heure));
-  /** Une Bête peu commune, de force 1 000, sur sa Case de 10 h à 16 h. */
-  const bete = { arrivee: h(10), depart: h(16), force: 1_000, rareteId: "peu_commune" };
+  /** Une Bête peu commune, de force 1 000, sur sa Case de 10 h à 16 h : la Bête 1 de la Case 1. */
+  const bete = { arrivee: h(10), depart: h(16), force: 1_000, rareteId: "peu_commune", caseId: 1, numero: 1, beteDeNaissanceId: null };
   /** L'Expédition sans escorte qui l'a vue, de 9 h à 13 h. */
   const sansEscorte = { id: 7, arrivee: h(9), depart: h(13), escorte: null };
 

@@ -1,6 +1,6 @@
 // US-0962 : chaque Expédition présente voit la Bête. Quand une Bête sauvage se montre sur une Case où séjournent les
-// Expéditions de plusieurs joueurs, toutes la voient, et son Espèce entre au Bestiaire de chacun ; une seule l'emmène
-// (US-0934, en attendant les chances proportionnelles à la force de US-0963). Les Expéditions de joueurs différents ne se
+// Expéditions de plusieurs joueurs, toutes la voient, et son Espèce entre au Bestiaire de chacun ; une seule l'emmène,
+// tirée au sort à chances proportionnelles à la force de son escorte (US-0963). Les Expéditions de joueurs différents ne se
 // combattent jamais, et chaque joueur n'apprend la présence des autres que par son récit de retour (décidé le
 // 2026-10-10). Comme US-0922, les mêmes Expéditions sont vécues page ouverte, d'un bloc au retour des joueurs, dans un
 // ordre puis dans l'autre, ou par la seule tâche planifiée, et tout ce qu'elles laissent se compare.
@@ -16,6 +16,7 @@ import { rattraperLesAbsents } from "@/temps/absents";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
 import { mondeDEssai, nomDEssai, poolDansLaTransaction, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
+import { lExpeditionSuivie } from "./apprivoisement";
 import { expeditionsEnCours } from "./en-cours";
 import { forceDUneBete } from "./force";
 import { type HorairesDUneExpedition, retourDUneExpedition, sejourDUneExpedition } from "./phase";
@@ -205,7 +206,13 @@ describe.skipIf(!URL_TEST)("chaque Expédition présente voit la Bête (US-0962,
             x.arrivee >= apres(de, CALME) &&
             x.arrivee <= apres(a30, -CALME) &&
             (i === 0 || betes[i - 1].arrivee <= apres(x.arrivee, -CALME)) &&
-            (i === betes.length - 1 || betes[i + 1].arrivee >= apres(x.arrivee, CALME)),
+            (i === betes.length - 1 || betes[i + 1].arrivee >= apres(x.arrivee, CALME)) &&
+            // Que le tirage donne à A, posée la première, face à B (US-0963) : il range les Expéditions par identifiant.
+            // Commune, la Bête est à portée des deux, quelle que soit sa force.
+            lExpeditionSuivie({ ...x, force: 0, caseId: id, beteDeNaissanceId: null }, [
+              { id: 1, arrivee: apres(x.arrivee, -HEURE), depart: apres(x.arrivee, 3 * HEURE), escorte: forte.force },
+              { id: 2, arrivee: apres(x.arrivee, -2 * HEURE), depart: apres(x.arrivee, 4 * HEURE), escorte: faible.force },
+            ])?.expeditionId === 1,
         )
         .map((x) => ({ id, x })),
     )[0];
@@ -249,7 +256,7 @@ describe.skipIf(!URL_TEST)("chaque Expédition présente voit la Bête (US-0962,
     expect(A.recits).toHaveLength(1);
     expect(B.recits).toHaveLength(1);
     expect(A.recits[0].rencontres).toEqual([expect.objectContaining({ ...vue, issue: "apprivoisee" })]);
-    // Une seule l'emmène : A, posée la première, à égalité d'instant (US-0934) ; ce que le récit de B en dit est US-0964.
+    // Une seule l'emmène : A, que désigne le tirage (US-0963) ; ce que le récit de B en dit est US-0964.
     expect(B.recits[0].rencontres).toEqual([expect.objectContaining({ ...vue, sexe: null })]);
     expect(B.recits[0].rencontres![0].issue).not.toBe("apprivoisee");
     // Le texte de chaque retour le dit : A la ramène au Foyer ; B l'a vue, et rien ne lui manquait pour l'emmener.
@@ -334,10 +341,12 @@ describe.skipIf(!URL_TEST)("chaque Expédition présente voit la Bête (US-0962,
       return { vues: lues, recits: (await recitsDeRetour(jeu, territoires.A)).reverse() };
     });
     expect(vues.every((i) => i >= 0)).toBe(true);
-    const [premiere, seconde] = vues.map((i, k) => recits[k].rencontres![i]);
-    expect(premiere).toMatchObject({ especeId: bn.especeId, vueLe: arrivee, issue: "apprivoisee" });
-    // La seconde la voit au même instant ; partie avec l'autre, elle n'est pas « restée sur sa Case ». US-0950 : repartie à
-    // cet instant même.
-    expect(seconde).toMatchObject({ especeId: bn.especeId, vueLe: arrivee, issue: "repartie", repartieLe: arrivee, sexe: null });
+    // Toutes deux la voient au même instant ; sans escorte, chacune avait la même chance (US-0963) : l'une la ramène, et
+    // l'autre, qu'elle a quittée pour la première, ne la dit pas « restée sur sa Case ». US-0950 : repartie à cet instant
+    // même.
+    const deux = vues.map((i, k) => recits[k].rencontres![i]);
+    for (const r of deux) expect(r).toMatchObject({ especeId: bn.especeId, vueLe: arrivee });
+    expect(deux.map((r) => r.issue).sort()).toEqual(["apprivoisee", "repartie"]);
+    expect(deux.find((r) => r.issue === "repartie")).toMatchObject({ repartieLe: arrivee, sexe: null });
   });
 });

@@ -2,13 +2,17 @@
 // suit, sans combat, depuis l'instant où elle la voit : aucune Bête de l'escorte n'y est blessée ni tuée. Passé cet
 // instant, la Bête a quitté sa Case : personne d'autre ne peut plus la rencontrer ; à cet instant même, toutes les
 // Expéditions présentes la voient encore (US-0962). Elle suit la première Expédition qui la voit et l'a à portée, tous
-// Territoires confondus, à égalité d'instant celle de plus petit identifiant (décidé le 2026-10-09) : des données toutes
-// fixées au départ (horaires, escorte, force), d'où le même choix quel que soit le Territoire rattrapé en premier. US-0963
-// partagera les Bêtes entre plusieurs Expéditions, à chances proportionnelles à leur force. Les Rencontres
-// (src/expeditions/rencontres.ts) l'appliquent. Côté serveur comme dans le navigateur.
+// Territoires confondus ; US-0963 : quand plusieurs l'ont à portée dès ce même instant, une seule l'emporte, tirée au
+// sort à chances proportionnelles à la force de chaque escorte. Le tirage ne dépend que de la Bête et de données fixées
+// au départ (horaires, escorte, force) : il a lieu une fois pour toutes, le même quel que soit le Territoire rattrapé en
+// premier. Les Rencontres (src/expeditions/rencontres.ts) l'appliquent. Côté serveur comme dans le navigateur.
+import { hacher } from "@/monde/couronne";
 
 /** US-0934 : la Rareté des Bêtes toujours à portée. */
 export const COMMUNE = "commune";
+
+/** US-0963 : le tirage propre au choix de l'Expédition que suit une Bête disputée, à part de ceux de ses apparitions. */
+const TIRAGE_DE_LA_SUITE = 9;
 
 /** US-0934 : une Bête sur sa Case, de son arrivée à son départ (exclu), avec la force de son Espèce (US-0905) et sa Rareté. */
 export type BeteSurLaCase = { arrivee: Date; depart: Date; force: number; rareteId: string };
@@ -47,19 +51,51 @@ export function vueLe(bete: Pick<BeteSurLaCase, "arrivee" | "depart">, x: Pick<E
 }
 
 /**
- * US-0934 : l'Expédition que la Bête suit, parmi `expeditions`, celles de sa Case, et l'instant où elle la suit : la
- * première qui la voit et l'a à portée, à cet instant ; à égalité, celle de plus petit identifiant. null : aucune, la Bête
- * reste sur sa Case jusqu'à son départ. US-0936 : une Bête à la fois : chaque Bête est jugée à part, à sa Rencontre, et un
- * Apprivoisement n'amène qu'elle ; l'Expédition suivie poursuit son séjour jusqu'à son terme, où d'autres Bêtes peuvent
- * encore la suivre, une par Rencontre (décidé le 2026-10-09). Ses Rencontres se lisent dans l'ordre des apparitions
- * (rencontresDUneExpedition).
+ * US-0963 : une Bête sur sa Case telle que se tire au sort l'Expédition qu'elle suit : sa Case, et son numéro sur la Case
+ * (une Bête sauvage ordinaire) ou sa ligne (une Bête de naissance), l'autre restant null.
  */
-export function lExpeditionSuivie(bete: BeteSurLaCase, expeditions: readonly ExpeditionSurLaCase[]): { expeditionId: number; le: Date } | null {
-  let suivie: { expeditionId: number; le: Date } | null = null;
-  for (const x of expeditions) {
-    const le = vueLe(bete, x);
-    if (!le || !aPortee(x.escorte, bete)) continue;
-    if (!suivie || le < suivie.le || (le.getTime() === suivie.le.getTime() && x.id < suivie.expeditionId)) suivie = { expeditionId: x.id, le };
+export type BeteDisputee = BeteSurLaCase & { caseId: number; numero: number | null; beteDeNaissanceId: number | null };
+
+/**
+ * US-0963 : le rang, parmi les escortes `escortes` (null : sans escorte), de celle que désigne le hasard `hasard`, de 0 à
+ * 1 : chacune avec une chance proportionnelle à sa force ; sans escorte, ou faite d'Espèces sans arme, une Expédition n'a
+ * aucune chance face à une escorte qui a de la force ; quand aucune n'en a, toutes ont la même chance.
+ */
+export function tirerAuSort(escortes: readonly (number | null)[], hasard: number): number {
+  const forces = escortes.map((f) => f ?? 0);
+  const total = forces.reduce((somme, f) => somme + f, 0);
+  if (total === 0) return Math.min(Math.floor(hasard * escortes.length), escortes.length - 1);
+  let cumul = 0;
+  for (const [rang, force] of forces.entries()) {
+    cumul += force;
+    if (hasard * total < cumul) return rang;
   }
-  return suivie;
+  // Une erreur d'arrondi au bout du cumul : la dernière qui a de la force.
+  return forces.findLastIndex((f) => f > 0);
+}
+
+/**
+ * US-0934 : l'Expédition que la Bête suit, parmi `expeditions`, celles de sa Case, et l'instant où elle la suit : la
+ * première qui la voit et l'a à portée, à cet instant. US-0963 : quand plusieurs la voient et l'ont à portée dès ce même
+ * instant, une seule l'emporte, tirée au sort à chances proportionnelles à la force de chaque escorte (tirerAuSort) ; une
+ * Expédition pour qui la Bête est trop forte n'y participe pas (décidé le 2026-10-12). Le hasard du tirage vient de la Bête
+ * seule (sa Case et son numéro, ou sa ligne de Bête de naissance), et les Expéditions s'y rangent par identifiant : le
+ * même résultat à chaque calcul, dans quelque ordre qu'elles viennent. null : aucune, la Bête reste sur sa Case jusqu'à
+ * son départ. US-0936 : une Bête à la fois : chaque Bête est jugée à part, à sa Rencontre, et un Apprivoisement n'amène
+ * qu'elle ; l'Expédition suivie poursuit son séjour jusqu'à son terme, où d'autres Bêtes peuvent encore la suivre, une
+ * par Rencontre (décidé le 2026-10-09). Ses Rencontres se lisent dans l'ordre des apparitions (rencontresDUneExpedition).
+ */
+export function lExpeditionSuivie(bete: BeteDisputee, expeditions: readonly ExpeditionSurLaCase[]): { expeditionId: number; le: Date } | null {
+  const aPorteeLe = expeditions.flatMap((x) => {
+    const le = vueLe(bete, x);
+    return le && aPortee(x.escorte, bete) ? [{ x, le }] : [];
+  });
+  if (aPorteeLe.length === 0) return null;
+  const le = new Date(Math.min(...aPorteeLe.map((v) => v.le.getTime())));
+  const enLice = aPorteeLe
+    .filter((v) => v.le.getTime() === le.getTime())
+    .map((v) => v.x)
+    .sort((x, y) => x.id - y.id);
+  const hasard = hacher(bete.caseId, bete.numero ?? 0, bete.beteDeNaissanceId ?? 0, TIRAGE_DE_LA_SUITE);
+  return { expeditionId: enLice[tirerAuSort(enLice.map((x) => x.escorte), hasard)].id, le };
 }
