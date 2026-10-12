@@ -17,6 +17,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0802 · Voir ses Couples réunis
 **En tant que** joueur, **je veux** voir dans la Réserve chaque Couple que j'ai réuni, **afin de** retrouver les Espèces que je peux élever.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#48). Dans la Réserve, sous le nombre de Couples, chaque Couple réuni a sa carte : ses deux Bêtes côte à côte, peintes de l'illustration de leur Espèce, puis le nom de l'Espèce et sa Rareté ; aucune étiquette de sexe. Chaque joueur ne voit que sa Réserve. Tranché : la même illustration deux fois (toutes les Bêtes d'une Espèce sont identiques) ; du premier Couple réuni au dernier ; cartes non cliquables (la fiche de l'Espèce est US-0803). Vérifié en vrai avec trois Couples (pigeon, poule, souris), téléphone couché compris.
 - **Débloquée par** : US-0801
 - **Critères d'acceptation** :
   - Chaque Couple réuni (US-0956) apparaît avec l'illustration de son Espèce, son nom et sa Rareté.
