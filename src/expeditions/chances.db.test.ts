@@ -303,4 +303,58 @@ describe.skipIf(!URL_TEST)("des chances proportionnelles à la force (US-0963, s
       expect(bilansDuBloc["B d'abord"]).toEqual(bilansDuBloc["A d'abord"]);
     });
   });
+
+  describe("un tirage déjà retenu ne change plus, même si la force d'une escorte change entre deux rattrapages", () => {
+    let bete: BeteSauvage;
+    let lus: {
+      rencontres: Record<"A" | "B", { apprivoisee: boolean; sexe: string | null }[]>;
+      effectifs: Record<"A" | "B", number>;
+      bestiaireDeB: EspeceAuBestiaire[];
+      recitDeB: RencontreDuRecit[];
+    };
+
+    beforeAll(async () => {
+      // Une Bête commune, d'une autre Espèce que les escortes, que le tirage donne à A face à B d'escortes égales, mais à B
+      // si son escorte était cent fois plus forte.
+      let caseId: number;
+      ({ caseId, bete } = await uneBeteSeule(
+        (x, ici) =>
+          x.rareteId === "commune" &&
+          x.especeId !== faible.id &&
+          rangSuivi(x, ici, [faible.force, faible.force], forceDe(x.especeId)) === 0 &&
+          rangSuivi(x, ici, [faible.force, 100 * faible.force], forceDe(x.especeId)) === 1,
+      ));
+      const horaires = arriveeA(apres(bete.arrivee, -HEURE), 4 * HEURE);
+      const fin = apres(retourDUneExpedition(horaires)!, HEURE);
+      lus = await enEssai(async (client, jeu) => {
+        const ids = { A: await poser(client, territoires.A, caseId, horaires, [faible, 1]), B: await poser(client, territoires.B, caseId, horaires, [faible, 1]) };
+        // A est mis à l'heure le premier : la Bête le suit, et son départ est retenu.
+        await rattraper("territoire", territoires.A, { pool: jeu, jusqua: fin });
+        // Puis la force de l'escorte de B change, comme à une mise en ligne qui rechargerait les caractéristiques des
+        // Espèces (l'essai ne les change pas : les autres fichiers les lisent) : recalculé, le tirage désignerait B.
+        await client.query("update expedition_escorte set nombre = 100 where expedition_id = $1", [ids.B]);
+        await rattraper("territoire", territoires.B, { pool: jeu, jusqua: fin });
+        const rencontres = async (id: number) =>
+          (await client.query<{ apprivoisee: boolean; sexe: string | null }>("select apprivoisee, sexe from rencontre where expedition_id = $1 and numero = $2", [id, bete.numero]))
+            .rows;
+        const effectif = async (territoireId: number) =>
+          (await client.query<{ n: number }>("select coalesce(sum(nombre), 0)::int as n from effectif where territoire_id = $1 and espece_id = $2", [territoireId, bete.especeId]))
+            .rows[0].n;
+        return {
+          rencontres: { A: await rencontres(ids.A), B: await rencontres(ids.B) },
+          effectifs: { A: await effectif(territoires.A), B: await effectif(territoires.B) },
+          bestiaireDeB: await bestiaireDuTerritoire(jeu, territoires.B),
+          recitDeB: (await bilan(jeu, territoires.B)).rencontres,
+        };
+      });
+    }, 120_000);
+
+    it("la Bête qu'une autre Expédition a déjà emmenée ne suit pas celle-ci : elle ne rejoint jamais deux Foyers", () => {
+      expect(lus.rencontres).toEqual({ A: [{ apprivoisee: true, sexe: expect.any(String) }], B: [{ apprivoisee: false, sexe: null }] });
+      expect(lus.effectifs).toEqual({ A: 1, B: 0 });
+      // B l'a vue : son Espèce reste croisée à son Bestiaire, et son récit la dit partie à l'instant où A l'a emmenée.
+      expect(lus.bestiaireDeB).toEqual([{ especeId: bete.especeId, etat: "croisee", croiseeLe: bete.arrivee }]);
+      expect(lus.recitDeB).toEqual([expect.objectContaining({ especeId: bete.especeId, issue: "repartie", repartieLe: bete.arrivee, sexe: null })]);
+    });
+  });
 });

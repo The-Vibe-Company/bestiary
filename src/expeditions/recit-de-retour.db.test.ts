@@ -186,6 +186,9 @@ describe.skipIf(!URL_TEST)("le récit de retour d'une Expédition (US-0917, sur 
     pool = poolDeTest();
     await preparerMondeDeTest(pool);
     mondeId = await mondeDEssai(pool, MONDE_D_ESSAI);
+    // Les Bêtes que ce fichier a fait partir lors d'un lancement précédent sont revenues sur leur Case : un départ resté
+    // en base empêcherait de les apprivoiser de nouveau.
+    await pool.query("delete from bete_partie p using case_du_monde c where c.id = p.case_id and c.monde_id = $1", [mondeId]);
   });
   afterEach(async () => {
     // Chaque essai rend ses Foyers à la Couronne du Monde d'essai.

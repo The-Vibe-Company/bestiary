@@ -132,7 +132,7 @@ export async function retenirLesRencontres(base: Pool | PoolClient, territoireId
   const escortes = await forcesDesEscortes(base, [...new Set([...presentes.values()].flat().map((x) => x.id))]);
   const forces = await forcesDesEspeces(base, [...new Set(betes.map((b) => b.especeId))]);
   const aVoir: AVoir[] = [];
-  const emmenees: { caseId: number; numero: number; le: Date }[] = [];
+  const emmenees: Emmenee[] = [];
   const ensembles: Ensemble[] = [];
   for (const b of betes) {
     // Une Bête de naissance ne se montre qu'aux Expéditions de son Territoire (US-0975).
@@ -157,8 +157,9 @@ export async function retenirLesRencontres(base: Pool | PoolClient, territoireId
         ensembles.push({ expeditionId: x.id, caseId: b.caseId, numero: b.numero, beteDeNaissanceId: b.beteDeNaissanceId, especeId: b.especeId, debut: vue, fin });
       }
       if (vue < de || vue >= a) continue;
-      aVoir.push({ expeditionId: x.id, caseId: b.caseId, numero: b.numero, beteDeNaissanceId: b.beteDeNaissanceId, especeId: b.especeId, apparueLe: b.arrivee, vueLe: vue, apprivoisee });
-      if (apprivoisee && b.numero !== null) emmenees.push({ caseId: b.caseId, numero: b.numero, le: vue });
+      const rencontre = { expeditionId: x.id, caseId: b.caseId, numero: b.numero, beteDeNaissanceId: b.beteDeNaissanceId, especeId: b.especeId, apparueLe: b.arrivee, vueLe: vue, apprivoisee };
+      aVoir.push(rencontre);
+      if (apprivoisee && b.numero !== null) emmenees.push({ caseId: b.caseId, numero: b.numero, le: vue, rencontre });
     }
   }
   if (aVoir.length > 0) await retenirLesVues(base, territoireId, aVoir, emmenees);
@@ -167,13 +168,21 @@ export async function retenirLesRencontres(base: Pool | PoolClient, territoireId
 }
 
 /**
+ * US-0934 : une Bête sauvage ordinaire qui suit une Expédition : sa Case, son numéro, l'instant où elle la suit, et sa
+ * Rencontre à retenir.
+ */
+type Emmenee = { caseId: number; numero: number; le: Date; rencontre: AVoir };
+
+/**
  * US-0932 : retient les Rencontres `aVoir` du Territoire `territoireId`, et (US-0934) le départ des Bêtes sauvages
  * `emmenees` avec l'Expédition qu'elles suivent ; dans la transaction de retenirLesRencontres.
  */
-async function retenirLesVues(base: Pool | PoolClient, territoireId: number, aVoir: AVoir[], emmenees: { caseId: number; numero: number; le: Date }[]): Promise<void> {
+async function retenirLesVues(base: Pool | PoolClient, territoireId: number, aVoir: AVoir[], emmenees: Emmenee[]): Promise<void> {
   // US-0934 : la Bête sauvage ordinaire qui suit une Expédition quitte sa Case (bete_partie) ; une Bête de naissance, par
-  // sa seule Rencontre apprivoisée.
-  for (const { caseId, numero, le } of emmenees) await emmenerUneBete(base, caseId, numero, le);
+  // sa seule Rencontre apprivoisée. Une Bête dont un autre Territoire a déjà retenu le départ à cet instant ne suit pas
+  // celle-ci, même si le tirage, recalculé sur des forces qui ont changé depuis (US-0963), la désignait : vue, elle n'est
+  // pas apprivoisée, et ne rejoint jamais deux Foyers.
+  for (const { caseId, numero, le, rencontre } of emmenees) if (!(await emmenerUneBete(base, caseId, numero, le))) rencontre.apprivoisee = false;
   // US-0937 : la Bête qui suit l'Expédition est mâle ou femelle, tiré à son Apprivoisement ; celle qui reste n'en a pas.
   const apprivoisees = aVoir.filter((r) => r.apprivoisee);
   const sexes = new Map((await sexesALApprivoisement(base, apprivoisees)).map((sexe, i) => [apprivoisees[i], sexe]));
