@@ -93,6 +93,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0810 · Voir l'effectif par Espèce
 **En tant que** joueur, **je veux** voir combien de Bêtes j'ai de chaque Espèce, **afin de** connaître la taille de mon armée.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#60). Une page Bêtes (/jeu/betes) donne le total en haut, puis une ligne par Espèce, de la plus commune à la plus rare : vignette, nom, Rareté et effectif. Les Bêtes d'un Couple ne comptent pas ; celles en escorte et les Blessés comptent ; les mortes au combat non. Toucher une Espèce ouvre sa fiche, qui rappelle « Effectif N » ; la fiche s'ouvre désormais pour toute Espèce dont le joueur a des Bêtes. Tranché : on y entre par un bloc « Bêtes » sur le Foyer, sous la production (pas de septième onglet) ; la fiche garde son adresse /jeu/reserve/<Espèce> et « Fermer » ramène d'où l'on vient ; la page ne dit jamais « armée ». Vérifié en vrai, téléphone couché compris.
 - **Débloquée par** : US-0803, US-0938
 - **Critères d'acceptation** :
   - Une page Bêtes liste chaque Espèce dont le joueur a des Bêtes, avec son illustration et son effectif.
