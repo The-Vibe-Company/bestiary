@@ -1,0 +1,43 @@
+docs/stories/09-explorer-et-apprivoiser.md
+  s_7c7d151152e4a5::t_2baf86ecd0cdc4 661
+docs/stories/README.md
+  s_7c7d151152e4a5::t_46daff3c722401 7
+src/app/jeu/carte/expeditions.db.test.tsx
+  s_7c7d151152e4a5::t_5a9251c89c3d4e 80-101
+src/expeditions/apprivoisement.db.test.ts
+  s_7c7d151152e4a5::t_aefd527c374ac0 226-229,249
+src/expeditions/apprivoisement.ts
+  s_7c7d151152e4a5::t_07c8f1304b6de8 2-8
+src/expeditions/attaque.db.test.ts
+  s_7c7d151152e4a5::t_a315eb49c4abfc 303,317-319,324-325
+src/expeditions/case-partagee.db.test.ts
+  s_7c7d151152e4a5::t_473833ba7ae891 1-340
+src/expeditions/recit-de-rencontre.ts
+  s_7c7d151152e4a5::t_ecc14bcc5583c0 6-7,80-82,85,89,97-99,103
+src/expeditions/recit-de-retour.test.ts
+  s_7c7d151152e4a5::t_f97591834c313e 228-247
+src/expeditions/recit-de-retour.ts
+  s_7c7d151152e4a5::t_2b4f438ce4798d 6-8,19,65-66,115-117,159-161,210,212,221,238-239,250,267,282,288-298
+src/expeditions/rencontres.db.test.ts
+  s_7c7d151152e4a5::t_f7c6e09e7dad4d 270-272
+src/expeditions/rencontres.ts
+  s_7c7d151152e4a5::t_a863190de45e2f 14-15,108-112,120,147-149,152-153
+src/monde/betes-sauvages.ts
+  s_7c7d151152e4a5::t_44468b4aa86c6d 222-224,226-232,250
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9748ae77b4f38bc8b06691dab363f597117379bf",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
