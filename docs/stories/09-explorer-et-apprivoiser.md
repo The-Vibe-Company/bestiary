@@ -515,6 +515,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0947 · Le récit du combat
 **En tant que** joueur, **je veux** un récit précis du combat, **afin de** savoir quelle force il m'aurait fallu.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#63). Au retour d'une Expédition attaquée, le récit finit par le combat, sans migration : une ligne par combat dans l'ordre du temps (« Combat le 14 octobre à 09:59 : Loup gris, de force 173 205, contre votre escorte, de force 170 280. », ou « Attaque … contre vos explorateurs, sans escorte. »), puis les pertes Espèce par Espèce telles qu'elles ont été retenues (US-0951), puis « Vos explorateurs ont fui et sont tous rentrés au Foyer. ». Le résumé en tête compte les Bêtes perdues. Tranché : la force exacte de la Bête est affichée (celle qu'il aurait fallu) ; le combat vient en fin de récit ; le résumé ne compte que les mortes (les Blessés rentrent), à reprendre avec US-0952 à US-0955. Vérifié en vrai avec 360 Souris grises contre un Loup gris.
 - **Débloquée par** : US-0944, US-0940
 - **Critères d'acceptation** :
   - Le récit donne l'heure du combat, l'Espèce de la Bête et la force de l'escorte ; afficher aussi la force exacte de la Bête (à décider).
