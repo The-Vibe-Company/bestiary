@@ -2,6 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { BeteReperee } from "@/expeditions/betes-reperees";
 import type { ExpeditionEnCours } from "@/expeditions/en-cours";
 import { casesDesAnneaux } from "@/monde/hex";
 import type { CarteDuJoueur } from "@/monde/carte";
@@ -1217,5 +1218,159 @@ describe("suivre une Expédition sur la carte (US-0913)", () => {
     toucher(ici);
     expect(ficheDeLExpedition()).toBeNull();
     expect(fiches).toHaveLength(1);
+  });
+});
+
+describe("repérer la Bête restée sur la carte (US-0948)", () => {
+  const MINUTE_MS = 60_000;
+  /** L'heure du jeu à l'affichage de la page : 9 h 42 à Paris. */
+  const MAINTENANT = new Date("2026-10-09T07:42:13.250Z");
+  const apres = (minutes: number) => new Date(MAINTENANT.getTime() + minutes * MINUTE_MS);
+  /** Une carte de 5 Cases autour du Foyer. */
+  const autour = casesDesAnneaux(0, 5).map((c) => ({ q: c.q + FOYER.q, r: c.r + FOYER.r }));
+  const GRANDE: CarteDuJoueur = { ...CARTE, cases: { q: autour.map((c) => c.q), r: autour.map((c) => c.r), teinte: autour.map(() => 0), zone: autour.map(() => 0) } };
+  /** La prairie à 3 Cases à l'est du Foyer, où un Renard roux est resté jusqu'à 13 h 42, et une Loutre à 2 Cases au nord-ouest. */
+  const PRAIRIE = { q: FOYER.q + 3, r: FOYER.r };
+  const RENARD: BeteReperee = { id: 41, laCase: PRAIRIE, especeId: "renard_roux", espece: "Renard roux", force: 37_340, jusquA: apres(4 * 60) };
+  const LOUTRE: BeteReperee = { id: 42, laCase: { q: FOYER.q, r: FOYER.r - 2 }, especeId: "loutre_d_europe", espece: "Loutre d'Europe", force: 42_295, jusquA: apres(30) };
+  /** Une Expédition en séjour sur la prairie depuis une demi-heure. */
+  const ENSEJOUR: ExpeditionEnCours = {
+    id: 7,
+    destination: { ...PRAIRIE, biome: "Prairie", chef: null, aVous: false, zone: 0, distance: 3, anneau: 2 },
+    phase: "sejour",
+    partLe: apres(-90),
+    trajetMinutes: 60,
+    sejourMinutes: 240,
+    explorateurs: ["Joran"],
+    escorte: [],
+  };
+  const carte = (betes: BeteReperee[], { expeditions = [], vitesse }: { expeditions?: ExpeditionEnCours[]; vitesse?: number } = {}) => (
+    <CarteDuJeu carte={GRANDE} fonds={FONDS} expeditions={expeditions} betes={betes} maintenant={MAINTENANT} vitesse={vitesse} />
+  );
+  /** Le repère d'une Bête, par ce qu'il dit aux lecteurs d'écran. */
+  const repere = (nom = "Bête repérée : Renard roux, jusqu'à 14 h environ") => document.querySelector<HTMLButtonElement>(`button[aria-label="${nom}"]`);
+  const place = ({ x, y }: { x: number; y: number }) => `translate(${x}px, ${y}px)`;
+  const ficheDeLaBete = () => screen.queryByRole("region", { name: "Fiche de la Bête repérée" });
+  const ficheDeLExpedition = () => screen.queryByRole("region", { name: "Fiche de l'Expédition" });
+  /** Un toucher du doigt sur la carte, au point (x, y) de la carte. */
+  const toucher = ({ x, y }: { x: number; y: number }) => {
+    pointeur("pointerdown", x, y + 64, { pointerType: "touch", pointerId: 3 });
+    pointeur("pointerup", x, y + 64, { pointerType: "touch", pointerId: 3 });
+  };
+  /** Le temps du jeu qui passe dans le navigateur, en millisecondes. */
+  const attendre = (ms: number) => act(async () => void vi.advanceTimersByTime(ms));
+
+  afterEach(() => vi.useRealTimers());
+
+  it("pose sur la Case de chaque Bête un repère « Bête repérée », avec son Espèce et jusqu'à quand elle devrait rester, à l'heure près", () => {
+    render(carte([RENARD, LOUTRE]));
+    expect(repere()!.hidden).toBe(false);
+    expect(repere()!.style.transform).toBe(place(aLEcran(PRAIRIE, ouverte())));
+    expect(repere("Bête repérée : Loutre d'Europe, jusqu'à 10 h environ")!.style.transform).toBe(place(aLEcran(LOUTRE.laCase, ouverte())));
+    // Rien n'est dessiné de plus sur la carte : le repère est un bouton posé par-dessus.
+    expect(toile.gestes).not.toContain("remplir var(--peche)");
+  });
+
+  it("suit la carte quand elle glisse, et se cache quand sa Case sort de l'écran", () => {
+    render(carte([RENARD]));
+    const limite = limiteDeLaCarte(GRANDE);
+    pointeur("pointerdown", 400, 300);
+    pointeur("pointermove", 300, 250);
+    pointeur("pointerup", 300, 250);
+    prochaineImage();
+    const glissee = deplacer(ouverte(), -100, -50, limite);
+    expect(repere()!.style.transform).toBe(place(aLEcran(PRAIRIE, glissee)));
+    pointeur("pointerdown", 700, 300);
+    pointeur("pointermove", 100, 300);
+    pointeur("pointerup", 100, 300);
+    prochaineImage();
+    expect(aLEcran(PRAIRIE, deplacer(glissee, -600, 0, limite)).x).toBeLessThan(0);
+    expect(repere()!.hidden).toBe(true);
+  });
+
+  it("ouvre au toucher sa fiche : « Bête repérée », son Espèce, et jusqu'à quand elle devrait rester", () => {
+    render(carte([RENARD]));
+    const ici = aLEcran(PRAIRIE, ouverte());
+    toucher({ x: ici.x + 6, y: ici.y - 5 });
+    const fiche = ficheDeLaBete()!;
+    expect(within(fiche).getByRole("heading", { name: "Bête repérée" })).toBeTruthy();
+    expect(within(fiche).getByText("Renard roux")).toBeTruthy();
+    expect(within(fiche).getByText("Jusqu'à 14 h environ")).toBeTruthy();
+    expect(repere()!.getAttribute("aria-expanded")).toBe("true");
+    // Le repère touché, et non la Case dessous : aucune fiche de Case demandée.
+    expect(fiches).toEqual([]);
+  });
+
+  it("se prend aussi au clavier, et se ferme comme la fiche d'une Case", async () => {
+    render(carte([RENARD]));
+    const user = userEvent.setup();
+    repere()!.focus();
+    await user.keyboard("{Enter}");
+    expect(ficheDeLaBete()).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Fermer la fiche" }));
+    expect(ficheDeLaBete()).toBeNull();
+    toucher(aLEcran(PRAIRIE, ouverte()));
+    await user.keyboard("{Escape}");
+    expect(ficheDeLaBete()).toBeNull();
+  });
+
+  it("ne garde qu'une fiche à la fois : touché encore, passe à l'Expédition posée sur sa Case, puis à la Case, puis revient à lui", () => {
+    render(carte([RENARD], { expeditions: [ENSEJOUR] }));
+    const ici = aLEcran(PRAIRIE, ouverte());
+    toucher(ici);
+    expect(ficheDeLExpedition()).not.toBeNull();
+    expect(ficheDeLaBete()).toBeNull();
+    toucher(ici);
+    expect(ficheDeLaBete()).not.toBeNull();
+    expect(ficheDeLExpedition()).toBeNull();
+    toucher(ici);
+    expect(ficheDeLaBete()).toBeNull();
+    expect(fiches.map(({ q, r }) => ({ q, r }))).toEqual([PRAIRIE]);
+    toucher(ici);
+    expect(fiche()).toBeNull();
+    expect(ficheDeLExpedition()).not.toBeNull();
+    // Une Case touchée ailleurs remplace sa fiche.
+    toucher(ici);
+    cliquer({ q: FOYER.q - 1, r: FOYER.r });
+    expect(ficheDeLaBete()).toBeNull();
+    expect(fiche()).not.toBeNull();
+  });
+
+  it("disparaît à la fin de sa durée, sans recharger la page ni redessiner la carte, et sa fiche avec lui", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval", "performance"] });
+    // À × 2 : la Loutre part dans 15 minutes.
+    render(carte([RENARD, LOUTRE], { vitesse: 2 }));
+    fireEvent.click(repere("Bête repérée : Loutre d'Europe, jusqu'à 10 h environ")!);
+    expect(ficheDeLaBete()).not.toBeNull();
+    const effacements = toile.effacements;
+    await attendre(15 * MINUTE_MS - 1000);
+    expect(repere("Bête repérée : Loutre d'Europe, jusqu'à 10 h environ")).not.toBeNull();
+    await attendre(1000);
+    expect(repere("Bête repérée : Loutre d'Europe, jusqu'à 10 h environ")).toBeNull();
+    expect(ficheDeLaBete()).toBeNull();
+    expect(repere()).not.toBeNull();
+    expect(toile.effacements).toBe(effacements);
+    // Plus rien à toucher là où elle était : la Case dessous.
+    toucher(aLEcran(LOUTRE.laCase, ouverte()));
+    expect(fiches.map(({ q, r }) => ({ q, r }))).toEqual([LOUTRE.laCase]);
+  });
+
+  it("montre la main au survol de son repère à la souris", () => {
+    const { container } = render(carte([RENARD]));
+    const canvas = container.querySelector("canvas")!;
+    const ici = aLEcran(PRAIRIE, ouverte());
+    pointeur("pointermove", ici.x + 3, ici.y + 64);
+    expect(canvas.style.cursor).toBe("pointer");
+    pointeur("pointermove", ici.x + 60, ici.y + 64);
+    expect(canvas.style.cursor).toBe("");
+  });
+
+  it("ne pose aucun repère sans Bête repérée, et choisit toujours la Case pendant le choix d'une destination", () => {
+    const { rerender } = render(carte([]));
+    expect(screen.queryAllByRole("button", { name: /^Bête repérée/ })).toEqual([]);
+    rerender(<CarteDuJeu carte={GRANDE} fonds={FONDS} destination="choix=destination" betes={[RENARD]} maintenant={MAINTENANT} />);
+    toucher(aLEcran(PRAIRIE, ouverte()));
+    expect(ficheDeLaBete()).toBeNull();
+    expect(fiches.map(({ q, r }) => ({ q, r }))).toEqual([PRAIRIE]);
   });
 });

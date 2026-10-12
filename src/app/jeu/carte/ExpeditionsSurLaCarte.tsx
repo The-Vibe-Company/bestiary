@@ -43,22 +43,34 @@ export function pointDuChemin(foyer: Coordonnees, chemin: readonly Coordonnees[]
  * suivent la vue à chaque image, sans que la carte se redessine quand ils avancent.
  */
 export function placerLesReperes(reperes: readonly Repere[], foyer: Coordonnees, vue: Vue): void {
-  for (const repere of reperes) {
-    const { x, y } = pointDuChemin(foyer, repere.chemin, repere.avancee, vue);
-    const visible = x >= 0 && x <= vue.largeur && y >= 0 && y <= vue.hauteur;
-    repere.ici = visible ? { x, y } : null;
-    if (!repere.bouton) continue;
-    repere.bouton.hidden = !visible;
-    if (visible) repere.bouton.style.transform = `translate(${x}px, ${y}px)`;
-  }
+  for (const repere of reperes) poserUnRepere(repere, pointDuChemin(foyer, repere.chemin, repere.avancee, vue), vue);
+}
+
+/**
+ * Un repère posé par-dessus la carte (US-0913), celui d'une Expédition ou, avec US-0948, d'une Bête repérée : son
+ * identifiant, son bouton, et là où la carte l'a posé, en pixels de la carte (`ici`), null s'il est caché.
+ */
+export type RepereSurLaCarte<T> = { id: T; bouton: HTMLButtonElement | null; ici: { x: number; y: number } | null };
+
+/**
+ * US-0913 : pose le repère `repere` au point (x, y) de la carte montrée par `vue` : son bouton déplacé là, caché quand ce
+ * point sort de l'écran. US-0948 : de même pour celui d'une Bête repérée.
+ */
+export function poserUnRepere(repere: RepereSurLaCarte<unknown>, { x, y }: { x: number; y: number }, vue: Vue): void {
+  const visible = x >= 0 && x <= vue.largeur && y >= 0 && y <= vue.hauteur;
+  repere.ici = visible ? { x, y } : null;
+  if (!repere.bouton) return;
+  repere.bouton.hidden = !visible;
+  if (visible) repere.bouton.style.transform = `translate(${x}px, ${y}px)`;
 }
 
 /**
  * US-0913 : les repères sous le point (x, y) de la carte : le plus proche, à moins de DEMI_PLACE pixels, et ceux posés au
- * même point que lui (deux Expéditions sur la même Case, ou parties ensemble), dans leur ordre ; aucun sinon.
+ * même point que lui (deux Expéditions sur la même Case, ou parties ensemble), dans leur ordre ; aucun sinon. US-0948 :
+ * quelle que soit leur sorte, d'où un identifiant de toute sorte : une Bête repérée sur la Case où séjourne une Expédition.
  */
-export function reperesSous(reperes: readonly Repere[], x: number, y: number): number[] {
-  let plusProche: Repere | null = null;
+export function reperesSous<T>(reperes: readonly Pick<RepereSurLaCarte<T>, "id" | "ici">[], x: number, y: number): T[] {
+  let plusProche: Pick<RepereSurLaCarte<T>, "id" | "ici"> | null = null;
   let ecartMin = DEMI_PLACE;
   for (const repere of reperes) {
     const ecart = repere.ici ? Math.hypot(repere.ici.x - x, repere.ici.y - y) : Infinity;
@@ -72,9 +84,10 @@ export function reperesSous(reperes: readonly Repere[], x: number, y: number): n
  * US-0913 : ce que touche un toucher en (x, y), l'Expédition `suivie` ayant sa fiche ouverte : le premier des repères
  * sous le doigt (reperesSous) ; s'il est déjà suivi, le suivant, puis la Case dessous (null), puis de nouveau le premier :
  * toucher encore au même endroit passe d'une Expédition à l'autre, puis à la Case qu'elles cachent, comme le Foyer d'où
- * elles viennent de partir. Sans repère sous le doigt, la Case (null).
+ * elles viennent de partir. Sans repère sous le doigt, la Case (null). US-0948 : de même entre une Expédition et la Bête
+ * repérée sur sa Case, l'ouvert (`suivie`) étant l'un ou l'autre.
  */
-export function repereTouche(reperes: readonly Repere[], x: number, y: number, suivie: number | null): number | null {
+export function repereTouche<T>(reperes: readonly Pick<RepereSurLaCarte<T>, "id" | "ici">[], x: number, y: number, suivie: T | null): T | null {
   const sous = reperesSous(reperes, x, y);
   const rang = suivie === null ? -1 : sous.indexOf(suivie);
   return rang < 0 ? (sous[0] ?? null) : (sous[rang + 1] ?? null);

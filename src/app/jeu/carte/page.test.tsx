@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { BeteReperee } from "@/expeditions/betes-reperees";
 import type { ExpeditionEnCours } from "@/expeditions/en-cours";
 import type { CarteDuJoueur } from "@/monde/carte";
 
@@ -37,6 +38,9 @@ vi.mock("@/donnees/en-base", () => donnees);
 // US-0913 : les Expéditions en cours du Territoire, et l'heure du jeu, à × 3 en développement.
 const enCours = vi.hoisted(() => ({ expeditionsEnCours: vi.fn(async (): Promise<ExpeditionEnCours[]> => []) }));
 vi.mock("@/expeditions/en-cours", () => enCours);
+// US-0948 : les Bêtes repérées du Territoire.
+const reperees = vi.hoisted(() => ({ betesReperees: vi.fn(async (): Promise<BeteReperee[]> => []) }));
+vi.mock("@/expeditions/betes-reperees", () => reperees);
 const MAINTENANT = vi.hoisted(() => new Date("2026-10-09T07:42:13.250Z"));
 vi.mock("@/temps/horloge", async (original) => ({ ...(await original<object>()), maintenant: () => MAINTENANT, vitesse: () => 3 }));
 vi.mock("@/temps/rattraper", () => ({ rattraper: vi.fn(async () => new Date()) }));
@@ -142,6 +146,22 @@ describe("page Carte (US-0417)", () => {
     expect(enCours.expeditionsEnCours).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, MAINTENANT);
     expect(expeditions).toEqual([{ ...expedition, partLe: expedition.partLe.toISOString() }]);
     expect([maintenant, vitesse]).toEqual([MAINTENANT.toISOString(), 3]);
+  });
+
+  it("donne à la carte les Bêtes repérées du joueur, lues pour son Territoire à l'heure du jeu (US-0948)", async () => {
+    connecte();
+    const bete: BeteReperee = {
+      id: 41,
+      laCase: { q: 34, r: -57 },
+      especeId: "renard_roux",
+      espece: "Renard roux",
+      force: 37_340,
+      jusquA: new Date("2026-10-09T11:42:13.250Z"),
+    };
+    reperees.betesReperees.mockClear().mockResolvedValueOnce([bete]);
+    const { betes } = proprietes(renderToStaticMarkup(await Carte(ouverte())));
+    expect(reperees.betesReperees).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, MAINTENANT);
+    expect(betes).toEqual([{ ...bete, jusquA: bete.jusquA.toISOString() }]);
   });
 
   it("prend toute la place sous la barre du haut, sans défiler", () => {

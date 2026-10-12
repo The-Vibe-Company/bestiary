@@ -2,7 +2,8 @@
 // Bête par apparition, que les joueurs soient là ou non ; plusieurs peuvent s'y trouver en même temps. Rien n'en est
 // écrit en base : les apparitions d'une Case sont une fonction de la graine de son Monde, de sa place et du temps du
 // jeu, calculée à la demande, pour une Case et une période. Aucune ne se voit sur la carte : seules les Expéditions
-// présentes sur sa Case la verront (étape 40). US-0926 : chacune reste un temps sur sa Case, puis s'en va pour toujours ;
+// présentes sur sa Case la verront (étape 40) ; US-0948 : celle qu'une Expédition a vue sans qu'elle la suive y est
+// ensuite repérée, pour son seul joueur (src/expeditions/betes-reperees.ts). US-0926 : chacune reste un temps sur sa Case, puis s'en va pour toujours ;
 // seule une Bête partie plus tôt, en suivant une Expédition, laisse une trace en base (bete_partie). US-0927 : sa Rareté
 // se tire selon l'Anneau de sa Case ; US-0928 : son Espèce, parmi celles de cette Rareté qui vivent dans le Biome de sa
 // Case. US-0930 : tout se compte en temps du jeu, par tranches fixes : pour une Case et une période, les mêmes Bêtes,

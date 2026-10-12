@@ -2,12 +2,14 @@
 
 import { getImageProps } from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { BeteReperee } from "@/expeditions/betes-reperees";
 import { cheminDUneExpedition } from "@/expeditions/chemin";
 import type { ExpeditionEnCours } from "@/expeditions/en-cours";
 import type { CarteDuJoueur } from "@/monde/carte";
 import { couleur } from "@/monde/couleurs-de-la-carte";
 import type { Coordonnees } from "@/monde/hex";
 import { PORTEE_D_EXPLORATION_CASES } from "@/reglages";
+import { BetesRepereesSurLaCarte, placerLesBetes, type RepereDeBete } from "./BetesRepereesSurLaCarte";
 import { BoutonsDeLaCarte } from "./BoutonsDeLaCarte";
 import { CasesDecouvertes } from "./CasesDecouvertes";
 import { nombreDeDecouvertes, useDecouvertes } from "./decouvertes";
@@ -30,6 +32,8 @@ const HUTTE = getImageProps({ src: "/illustrations/foyer/prairie.webp", alt: "",
 
 /** US-0913 : une carte sans Expédition en cours. */
 const AUCUNE_EXPEDITION: ExpeditionEnCours[] = [];
+/** US-0948 : une carte sans Bête repérée. */
+const AUCUNE_BETE: BeteReperee[] = [];
 
 /** La couleur que donne une expression CSS sur la page (« var(--trait) »), telle que le <canvas> la comprend. */
 function couleurCalculee(element: HTMLElement, expression: string): string {
@@ -65,13 +69,16 @@ function couleurCalculee(element: HTMLElement, expression: string): string {
  * chaque dessin là où elle en est sur son chemin (ExpeditionsSurLaCarte). Le toucher d'un repère, à moins de 22 px de son
  * centre, ouvre la fiche de son Expédition à la place de celle d'une Case : une seule fiche à la fois ; touché encore, il
  * passe à l'Expédition posée au même point, puis à la Case dessous. Pendant le choix d'une destination, le toucher choisit
- * toujours la Case.
+ * toujours la Case. US-0948 : les Bêtes repérées du joueur (`betes`) : le repère de chacune posé à chaque dessin au centre
+ * de sa Case, jusqu'à la fin de sa durée (BetesRepereesSurLaCarte) ; son toucher ouvre sa fiche, toujours une seule à la
+ * fois, et touché encore, passe à l'Expédition posée au même point, puis à la Case, comme entre deux Expéditions.
  */
 export function CarteDuJeu({
   carte,
   fonds,
   destination = null,
   expeditions = AUCUNE_EXPEDITION,
+  betes = AUCUNE_BETE,
   maintenant = null,
   vitesse = 1,
 }: {
@@ -79,6 +86,7 @@ export function CarteDuJeu({
   fonds: string[];
   destination?: string | null;
   expeditions?: ExpeditionEnCours[];
+  betes?: BeteReperee[];
   maintenant?: Date | null;
   vitesse?: number;
 }) {
@@ -96,11 +104,14 @@ export function CarteDuJeu({
   // US-0908 : si la carte est ouverte pour choisir la destination d'une Expédition, où elle grise ce qui est hors de portée.
   const enChoix = useRef(destination !== null);
   const pourLaFiche = useRef<{ redessiner: () => void; montrer: (c: Coordonnees, cache: Cadre) => void }>({ redessiner: () => {}, montrer: () => {} });
-  // US-0913 : l'Expédition dont la fiche est ouverte : une seule fiche à la fois, d'une Case ou d'une Expédition.
+  // US-0913 : l'Expédition dont la fiche est ouverte : une seule fiche à la fois, d'une Case ou d'une Expédition. US-0948 :
+  // ou d'une Bête repérée, la Bête regardée.
   const [suivie, setSuivie] = useState<number | null>(null);
+  const [regardee, setRegardee] = useState<number | null>(null);
   const choisirUneCase = useCallback(
     (c: Coordonnees | null) => {
       setSuivie(null);
+      setRegardee(null);
       choisir(c);
     },
     [choisir],
@@ -108,16 +119,28 @@ export function CarteDuJeu({
   const suivre = useCallback(
     (id: number) => {
       fermer();
+      setRegardee(null);
       setSuivie(id);
     },
     [fermer],
   );
   const nePlusSuivre = useCallback(() => setSuivie(null), []);
-  // L'Expédition suivie, pour le toucher de la carte, qui passe d'un repère à l'autre.
-  const suivieActuelle = useRef(suivie);
+  const regarder = useCallback(
+    (id: number) => {
+      fermer();
+      setSuivie(null);
+      setRegardee(id);
+    },
+    [fermer],
+  );
+  const nePlusRegarder = useCallback(() => setRegardee(null), []);
+  // Le repère dont la fiche est ouverte, d'une Expédition ou d'une Bête, pour le toucher de la carte, qui passe d'un
+  // repère à l'autre.
+  const ouvert = suivie !== null ? `expedition-${suivie}` : regardee !== null ? `bete-${regardee}` : null;
+  const ouvertActuel = useRef(ouvert);
   useEffect(() => {
-    suivieActuelle.current = suivie;
-  }, [suivie]);
+    ouvertActuel.current = ouvert;
+  }, [ouvert]);
   // US-0913 : les Expéditions en cours et leur chemin. Les repères de celles encore dehors, posés à chaque dessin ; leurs
   // chemins, dessinés avec la carte, qui ne se redessine que quand l'une rentre ou qu'une autre apparaît.
   const suivies = useMemo(() => expeditions.map((expedition) => ({ expedition, chemin: cheminDUneExpedition(carte.foyer, expedition.destination) })), [expeditions, carte.foyer]);
@@ -132,6 +155,14 @@ export function CarteDuJeu({
       cheminsADessiner.current = { ids, chemins: liste.map((r) => r.chemin) };
       pourLaFiche.current.redessiner();
     }
+  }, []);
+  // US-0948 : les repères des Bêtes encore sur leur Case, posés à chaque dessin et chaque fois que l'une s'en va, sans
+  // redessiner la carte : rien n'en est dessiné dessus.
+  const reperesDeBetes = useRef<RepereDeBete[]>([]);
+  const pourLesBetes = useRef(() => {});
+  const poserLesBetes = useCallback((liste: RepereDeBete[]) => {
+    reperesDeBetes.current = liste;
+    pourLesBetes.current();
   }, []);
   // US-0442 : la carte à jour des Cases découvertes depuis sa lecture, redessinée dès qu'il y en a ; avant le dessin
   // ci-dessous, qu'une nouvelle lecture de la page remet en place avec elle.
@@ -163,7 +194,7 @@ export function CarteDuJeu({
     let vue: Vue | null = null;
     const limite = limiteDeLaCarte(carte);
     // US-0426 : la flèche du Foyer suit chaque dessin. US-0427 : la vue retenue à chaque dessin, au plus un par image.
-    // US-0913 : les repères des Expéditions aussi.
+    // US-0913 : les repères des Expéditions aussi. US-0948 : et ceux des Bêtes repérées.
     const dessiner = () => {
       if (!vue) return;
       // US-0442 : une teinte découverte depuis la lecture de la page, de la couleur que la page lui aurait donnée.
@@ -174,10 +205,18 @@ export function CarteDuJeu({
       dessinerLaCarte(pinceau, aDessiner.current, vue, peinture, hutte, choisie.current, portee, chemins.length > 0 ? { chemins, fanion } : null);
       placerLaFleche(fleche.current, canvas, vue, carte.foyer);
       placerLesReperes(reperes.current, carte.foyer, vue);
+      placerLesBetes(reperesDeBetes.current, vue);
       retenirLaVue(carte, vue);
     };
-    // US-0913 : les repères reposés quand leurs Expéditions avancent, sans redessiner la carte.
+    // US-0913 : les repères reposés quand leurs Expéditions avancent, sans redessiner la carte. US-0948 : de même quand
+    // une Bête s'en va.
     pourLesReperes.current = () => vue && placerLesReperes(reperes.current, carte.foyer, vue);
+    pourLesBetes.current = () => vue && placerLesBetes(reperesDeBetes.current, vue);
+    // US-0948 : tous les repères à toucher, ceux des Expéditions puis ceux des Bêtes, chacun avec ce qu'ouvre son toucher.
+    const reperesAToucher = () => [
+      ...reperes.current.map(({ id, ici }) => ({ id: `expedition-${id}`, ici, ouvrir: () => suivre(id) })),
+      ...reperesDeBetes.current.map(({ id, ici }) => ({ id: `bete-${id}`, ici, ouvrir: () => regarder(id) })),
+    ];
     // US-0425 : les boutons de zoom grisés ou non selon la vue, sans rien redessiner s'ils ne changent pas.
     const griser = () => {
       if (!vue) return;
@@ -223,12 +262,14 @@ export function CarteDuJeu({
       zoomer: (facteur, x, y) => vue && changer(zoomer(vue, facteur, x, y, limite)),
       // US-0913 : le repère d'une Expédition sous le doigt ouvre sa fiche ; touché encore, l'Expédition posée au même
       // point, puis la Case dessous (repereTouche) ; sinon, la Case dessous. Pendant le choix d'une destination, toujours
-      // la Case : une Expédition qui y séjourne ne l'empêche pas d'être choisie.
+      // la Case : une Expédition qui y séjourne ne l'empêche pas d'être choisie. US-0948 : de même du repère d'une Bête.
       toucher: (x, y) => {
         if (!vue) return;
-        const touchee = enChoix.current ? null : repereTouche(reperes.current, x, y, suivieActuelle.current);
-        if (touchee === null) choisirUneCase(caseSous(carte, vue, x, y));
-        else suivre(touchee);
+        const touchables = reperesAToucher();
+        const touche = enChoix.current ? null : repereTouche(touchables, x, y, ouvertActuel.current);
+        const repere = touchables.find((r) => r.id === touche);
+        if (repere) repere.ouvrir();
+        else choisirUneCase(caseSous(carte, vue, x, y));
       },
     });
     // US-0913 : la main au survol d'un repère, à la souris : un clic l'ouvre.
@@ -238,7 +279,7 @@ export function CarteDuJeu({
         return;
       }
       const { left, top } = canvas.getBoundingClientRect();
-      const dessus = !enChoix.current && reperesSous(reperes.current, evenement.clientX - left, evenement.clientY - top).length > 0;
+      const dessus = !enChoix.current && reperesSous(reperesAToucher(), evenement.clientX - left, evenement.clientY - top).length > 0;
       canvas.style.cursor = dessus ? "pointer" : "";
     };
     canvas.addEventListener("pointermove", survoler);
@@ -280,6 +321,7 @@ export function CarteDuJeu({
       arreter();
       canvas.removeEventListener("pointermove", survoler);
       pourLesReperes.current = () => {};
+      pourLesBetes.current = () => {};
       cancelAnimationFrame(image);
       cancelAnimationFrame(pose);
       panneaux.disconnect();
@@ -289,7 +331,7 @@ export function CarteDuJeu({
       revenirAuFoyer.current = () => {};
       pourLaFiche.current = { redessiner: () => {}, montrer: () => {} };
     };
-  }, [carte, fonds, choisirUneCase, suivre]);
+  }, [carte, fonds, choisirUneCase, suivre, regarder]);
   // US-0428 : la Case choisie surlignée aussitôt, et plus du tout une fois la fiche fermée.
   const laCase = choix?.case ?? null;
   useEffect(() => {
@@ -307,6 +349,20 @@ export function CarteDuJeu({
     <div className={styles.cadre}>
       {/* US-0422 : une carte qu'on manie, au clavier aussi : elle se sélectionne, et les flèches lui reviennent. */}
       <canvas ref={toile} className={styles.carte} tabIndex={0} role="application" aria-roledescription="carte" aria-label="Carte du Monde" />
+      {/* US-0948 : sous les repères des Expéditions, qui peuvent séjourner sur la même Case. */}
+      {betes.length > 0 && maintenant ? (
+        <BetesRepereesSurLaCarte
+          betes={betes}
+          maintenant={maintenant}
+          vitesse={vitesse}
+          poser={poserLesBetes}
+          regardee={regardee}
+          regarder={regarder}
+          fermer={nePlusRegarder}
+          carte={toile}
+          montrer={montrer}
+        />
+      ) : null}
       {suivies.length > 0 && maintenant ? (
         <ExpeditionsSurLaCarte
           expeditions={suivies}

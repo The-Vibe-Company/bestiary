@@ -5,6 +5,7 @@ import { exigerCompte } from "@/comptes/garde";
 import { entreeDuJeuOuverte } from "@/comptes/ouverture";
 import { getPool } from "@/db";
 import { biomesEnBase } from "@/donnees/en-base";
+import { betesReperees } from "@/expeditions/betes-reperees";
 import { choixDeDestination, versLaCarte } from "@/expeditions/choix-de-destination";
 import { expeditionsEnCours } from "@/expeditions/en-cours";
 import { carteDuJoueur } from "@/monde/carte";
@@ -26,7 +27,8 @@ export const metadata: Metadata = { title: "Carte" };
  * ouverte depuis l'écran d'Expédition pour en choisir la destination (« ?choix=destination »), elle le dit à la carte,
  * avec son adresse, qui garde les autres choix de l'écran ; la connexion y ramène de même. US-0913 : les Expéditions en
  * cours du joueur, les siennes seulement, lues pour son Territoire à l'heure du jeu, avec cette heure et le rythme du jeu :
- * la carte les suit en direct.
+ * la carte les suit en direct. US-0948 : les Bêtes que ses Expéditions rentrées ont vues sans qu'elles les suivent, encore
+ * sur leur Case à cette heure, à lui seul aussi.
  */
 export default async function Carte({ searchParams }: PageProps<"/jeu/carte">) {
   await connection();
@@ -34,15 +36,28 @@ export default async function Carte({ searchParams }: PageProps<"/jeu/carte">) {
   const destination = choixDeDestination(await searchParams);
   const { territoireId } = await exigerCompte(destination === null ? "/jeu/carte" : versLaCarte(destination));
   const instant = maintenant();
-  const [carte, biomes, expeditions] =
+  const [carte, biomes, expeditions, betes] =
     territoireId === null
-      ? [null, [], []]
-      : await Promise.all([carteDuJoueur(getPool(), territoireId), biomesEnBase(getPool()), expeditionsEnCours(getPool(), territoireId, instant)]);
+      ? [null, [], [], []]
+      : await Promise.all([
+          carteDuJoueur(getPool(), territoireId),
+          biomesEnBase(getPool()),
+          expeditionsEnCours(getPool(), territoireId, instant),
+          betesReperees(getPool(), territoireId, instant),
+        ]);
   return (
     <main className={styles.page}>
       <h1 className={styles.annonce}>Carte</h1>
       {carte ? (
-        <CarteDuJeu carte={carte} fonds={carte.teintes.map(couleur)} destination={destination} expeditions={expeditions} maintenant={instant} vitesse={vitesse()} />
+        <CarteDuJeu
+          carte={carte}
+          fonds={carte.teintes.map(couleur)}
+          destination={destination}
+          expeditions={expeditions}
+          betes={betes}
+          maintenant={instant}
+          vitesse={vitesse()}
+        />
       ) : null}
       {carte ? <Attente /> : null}
       {carte ? (

@@ -1,0 +1,76 @@
+/*
+ * US-0948 : le repère d'une Bête repérée, par-dessus la carte, son centre au centre de sa Case (au coin en haut à gauche,
+ * déplacé par la carte) ; 44 px à toucher du doigt, comme celui d'une Expédition. Il laisse passer les gestes : la carte
+ * le reconnaît sous le doigt, et glisser ou pincer depuis lui la fait toujours glisser ou zoomer.
+ */
+.repere {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  pointer-events: none;
+}
+
+.repere[hidden] {
+  display: none;
+}
+
+.repere svg {
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 1px 2px color-mix(in oklch, var(--encre) 35%, transparent));
+}
+
+/* Une pastille pêche cernée d'Encre, distincte du ciel des Expéditions, et l'empreinte d'une patte d'Encre au milieu. */
+.pastille {
+  fill: var(--peche);
+  stroke: var(--encre);
+  stroke-width: 2;
+}
+
+.empreinte {
+  fill: var(--encre);
+}
+
+/* Sa fiche ouverte, il est cerné de citron bordé d'Encre, comme la Case choisie. */
+.halo {
+  fill: var(--citron);
+  stroke: var(--encre);
+  stroke-width: 1.5;
+  visibility: hidden;
+}
+
+.repere[aria-expanded="true"] .halo {
+  visibility: visible;
+}
+
+.repere:focus-visible {
+  outline: 2px solid var(--encre);
+  outline-offset: -2px;
+}
+
+/* Le titre de sa fiche, à côté de la croix, comme le Biome de la fiche d'une Case. */
+.titre {
+  margin-bottom: 10px;
+  padding-right: 32px;
+  font-size: 18px;
+  font-weight: var(--graisse-titre);
+}
+
+/* Son Espèce, puis jusqu'à quand elle devrait rester. */
+.espece {
+  font-weight: var(--graisse-titre);
+}
+
+.jusqua {
+  margin-top: 6px;
+  color: var(--texte-2);
+}
