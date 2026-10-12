@@ -474,6 +474,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0943 · La Bête trop forte peut attaquer
 **En tant que** joueur, **je veux** qu'une Bête trop forte puisse s'en prendre à mon Expédition, **afin de** sentir le risque d'aller chercher plus fort que soi.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, THE-1461, Zewed/bestia-2#39). Une Bête trop forte pour l'escorte d'une Expédition qui la voit peut l'attaquer pendant son séjour, à un instant tiré selon son régime (migration 0062, colonne `attaque_le`) ; seule l'Expédition désignée par les tirages est attaquée, les autres non, et toutes rentrent à l'heure prévue. Le récit ne dit encore rien de l'attaque (la fuite et les pertes viennent avec US-0945 et l'étape 42). Tranché : chaque Bête attaque au plus une fois chaque Expédition qu'elle voit, et plusieurs Bêtes trop fortes peuvent attaquer la même. Une Expédition qui voit la Bête à l'instant où elle en suit une autre (US-0962) n'a plus le temps d'être attaquée. Vérifié en vrai avec trois Expéditions vers un Loup gris rare.
 - **Débloquée par** : US-0942
 - **Critères d'acceptation** :
   - Tant que la Bête et l'Expédition sont sur la même Case, la Bête peut attaquer, avec une chance par heure passée ensemble (chiffre à régler).
