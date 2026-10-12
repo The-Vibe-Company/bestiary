@@ -34,4 +34,20 @@ describe("la fiche d'une Espèce (US-0803)", () => {
     expect(regle(".fiche", etroit)).toContain("grid-template-columns: minmax(0, 1fr);");
     expect(regle(".fiche", mobile)).toBe("");
   });
+
+  it("range les caractéristiques en deux colonnes, nom et valeur, les valeurs en chiffres de même largeur (US-0804)", () => {
+    expect(regle(".caracteristiques")).toContain("grid-template-columns: max-content minmax(0, 1fr);");
+    expect(regle(".caracteristiques dd")).toContain("font-variant-numeric: tabular-nums;");
+  });
+
+  it("sur un téléphone couché, range les caractéristiques sur deux lignes, pour garder « Fermer » à vue (US-0804)", () => {
+    const couche = CSS.match(/@media \(max-height: 500px\) and \(orientation: landscape\) \{([\s\S]*?)\n\}/)?.[1] ?? "";
+    expect(regle(".caracteristiques", couche)).toContain("grid-template-columns: max-content max-content max-content minmax(0, 1fr);");
+  });
+
+  it("sur un téléphone couché, met « Fermer » en haut à droite, toujours à vue (US-0804)", () => {
+    const couche = CSS.match(/@media \(max-height: 500px\) and \(orientation: landscape\) \{([\s\S]*?)\n\}/)?.[1] ?? "";
+    expect(regle(".fiche", couche)).toContain('grid-template-areas: "illustration fermer" "illustration entete";');
+    expect(regle(".fermer", couche)).toContain("justify-self: end;");
+  });
 });

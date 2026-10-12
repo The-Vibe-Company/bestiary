@@ -48,6 +48,14 @@ describe.skipIf(!URL_TEST)("ouvrir la fiche d'une Espèce, sur base (US-0803)", 
       client.release();
     }
   };
+  /** US-0804 : les caractéristiques de la fiche de l'Espèce `espece` que voit le joueur du Territoire, nom et valeur. */
+  const caracteristiques = async (territoireId: number, espece: string) => {
+    garde.exigerCompte.mockResolvedValue({ id: 1, email: "nom@exemple.fr", nomDeChef: "Ourse", territoireId, recitLu: true });
+    const html = renderToStaticMarkup(await FicheDeLEspece({ params: Promise.resolve({ espece }), searchParams: Promise.resolve({}) }));
+    return [...(html.match(/<dl[^>]*>(.*?)<\/dl>/)?.[1] ?? "").matchAll(/<dt[^>]*>(.*?)<\/dt><dd[^>]*>(.*?)<\/dd>/g)].map(
+      ([, nom, valeur]) => `${nom} ${valeur.replace(/<[^>]+>/g, "").replace(/[\u00a0\u202f]/g, " ")}`,
+    );
+  };
   /**
    * La fiche de l'Espèce `espece` telle que la page la montre au joueur du Territoire : son titre, sa Rareté et son image ;
    * US-0810 : et l'effectif qu'elle rappelle.
@@ -117,6 +125,21 @@ describe.skipIf(!URL_TEST)("ouvrir la fiche d'une Espèce, sur base (US-0803)", 
     expect((await fiche(t.territoireId, "souris")).effectif).toBe("2");
     // Les poules d'un joueur n'ouvrent pas la fiche chez un autre.
     await expect(fiche(voisin.territoireId, "poule")).rejects.toMatchObject({ digest: expect.stringContaining("404") });
+  });
+
+  it("affiche l'attaque, la vie, la vitesse et la charge enregistrées pour l'Espèce, les mêmes pour tous les joueurs (US-0804)", async () => {
+    const [a, b] = [await naitre(), await naitre()];
+    await reunir(a, "pigeon");
+    await reunir(b, "pigeon");
+    const { rows } = await pool.query<{ attaque: number; vie: number; vitesse: number; charge: number }>(
+      "select attaque, vie, vitesse, charge from espece where id = 'pigeon'",
+    );
+    const nombre = (n: number) => n.toLocaleString("fr-FR").replace(/[\u00a0\u202f]/g, " ");
+    const attendues = [`Attaque ${nombre(rows[0].attaque)}`, `Vie ${nombre(rows[0].vie)}`, `Vitesse ${nombre(rows[0].vitesse)} km/h`, `Charge ${nombre(rows[0].charge)}`];
+
+    expect(await caracteristiques(a.territoireId, "pigeon")).toEqual(attendues);
+    // Rien du Territoire n'y entre : un autre joueur lit les mêmes valeurs pour la même Espèce.
+    expect(await caracteristiques(b.territoireId, "pigeon")).toEqual(attendues);
   });
 
   it("ne propose le bloc « Élever » que sur la fiche d'une Espèce dont le joueur a réuni le Couple (US-0812)", async () => {

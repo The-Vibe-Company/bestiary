@@ -57,6 +57,31 @@
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * US-0804 : les caractéristiques, un nom et sa valeur par ligne, en deux colonnes ; les valeurs en chiffres de même
+ * largeur, comme le récapitulatif d'une Expédition.
+ */
+.caracteristiques {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 24px;
+  margin-top: 8px;
+}
+
+.caracteristiques > div {
+  display: contents;
+}
+
+.caracteristiques dt {
+  color: var(--texte-discret);
+}
+
+.caracteristiques dd {
+  color: var(--encre);
+  font-weight: var(--graisse-titre);
+  font-variant-numeric: tabular-nums;
+}
+
 /* « Fermer », au pouce : 44 px de haut, discret, comme une action secondaire. */
 .fermer {
   grid-area: fermer;
@@ -100,12 +125,25 @@
  * le nom juste à côté d'elle.
  */
 @media (max-height: 500px) and (orientation: landscape) {
+  /* US-0804 : « Fermer » passe en haut à droite, toujours à vue sous l'effectif et les caractéristiques qui s'allongent. */
   .fiche {
     grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "illustration fermer" "illustration entete";
+    grid-template-rows: auto 1fr;
+  }
+
+  .fermer {
+    justify-self: end;
   }
 
   .illustration {
     width: min(480px, calc(var(--hauteur-utile) - 48px));
+  }
+
+  /* US-0804 : les caractéristiques sur deux paires de colonnes, deux lignes au lieu de quatre, pour garder « Fermer » à vue. */
+  .caracteristiques {
+    grid-template-columns: max-content max-content max-content minmax(0, 1fr);
+    gap: 4px 16px;
   }
 }
 

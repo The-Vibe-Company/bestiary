@@ -28,6 +28,8 @@ describe("fiche d'Espèce", () => {
     ["sans régime", { regime: undefined }, /régime/],
     ["avec un régime inconnu", { regime: "frugivore" }, /régime/],
     ["sans masse", { masse_g: undefined }, /masse_g/],
+    // US-0804 : la vitesse, que la fiche d'une Espèce affiche, ne manque jamais.
+    ["sans vitesse", { vitesse: undefined }, /vitesse/],
     ["avec une arme négative", { arme: -1 }, /arme ne peut pas être négatif/],
   ])("refuse une Espèce %s", (_, changement, message) => {
     expect(() => valider(ESPECES, [{ ...essai, ...changement }])).toThrow(message);

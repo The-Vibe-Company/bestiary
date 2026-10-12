@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FORMATS_ESPECE } from "@/components/IllustrationEspece";
-import type { EspeceDeLEffectif } from "@/monde/effectif";
+import type { FicheDEspece } from "@/monde/effectif";
 
 // La vraie garde, branchée sur une session simulée.
 const cookie = vi.hoisted(() => ({ jetonDeSession: vi.fn() }));
@@ -15,7 +15,7 @@ const chefs = vi.hoisted(() => ({
 vi.mock("@/chefs/chef", () => chefs);
 // L'Espèce de la fiche, avec son effectif, lue sur base (page.db.test.tsx) : ici, ce que la fiche en montre. US-0810 :
 // une Espèce dont le joueur a des Bêtes, ou dont il a réuni le Couple.
-const effectif = vi.hoisted(() => ({ especeDuTerritoire: vi.fn(async (): Promise<EspeceDeLEffectif | null> => null) }));
+const effectif = vi.hoisted(() => ({ especeDuTerritoire: vi.fn(async (): Promise<FicheDEspece | null> => null) }));
 vi.mock("@/monde/effectif", () => effectif);
 // US-0812 : l'Élevage de l'Espèce, acquis ou non, lu sur base (page.db.test.tsx).
 const elevage = vi.hoisted(() => ({ elevageAcquis: vi.fn(async () => false) }));
@@ -29,7 +29,25 @@ vi.mock("next/server", async (original) => ({ ...(await original<object>()), con
 
 import FicheDeLEspece, { metadata } from "./page";
 
-const POULE: EspeceDeLEffectif = { especeId: "poule", nom: "Poule", illustration: "especes/poule.webp", rarete: { id: "commune", nom: "Commune" }, effectif: 12 };
+/** La fiche de la poule, son effectif, et les caractéristiques que donne pour elle la base (donnees/especes.yaml, par le barème). */
+const POULE: FicheDEspece = {
+  especeId: "poule",
+  nom: "Poule",
+  illustration: "especes/poule.webp",
+  rarete: { id: "commune", nom: "Commune" },
+  effectif: 12,
+  attaque: 5981,
+  vie: 14953,
+  vitesse: 14,
+  charge: 500,
+};
+
+/** US-0804 : les caractéristiques de la fiche, nom et valeur, les espaces des milliers lues comme des espaces. */
+const caracteristiques = (html: string) =>
+  [...(html.match(/<dl[^>]*>(.*?)<\/dl>/)?.[1] ?? "").matchAll(/<dt[^>]*>(.*?)<\/dt><dd[^>]*>(.*?)<\/dd>/g)].map(([, nom, valeur]) => [
+    nom,
+    valeur.replace(/<[^>]+>/g, "").replace(/[\u00a0\u202f]/g, " "),
+  ]);
 
 /** La fiche de l'Espèce `espece`, telle que la page l'envoie, ouverte depuis la Réserve ou, US-0810, `depuis` la page Bêtes. */
 const ouvrir = async (espece: string, recherche: { depuis?: string } = {}) =>
@@ -43,7 +61,7 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
     effectif.especeDuTerritoire.mockReset();
   });
 
-  const connecte = (trouve: EspeceDeLEffectif | null = POULE) => {
+  const connecte = (trouve: FicheDEspece | null = POULE) => {
     cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
     session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
     effectif.especeDuTerritoire.mockResolvedValue(trouve);
@@ -122,5 +140,47 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
     vi.stubEnv("VERCEL_ENV", "production");
     await expect(ouvrir("poule")).rejects.toMatchObject({ digest: expect.stringContaining("404") });
     expect(cookie.jetonDeSession).not.toHaveBeenCalled();
+  });
+});
+
+describe("lire l'attaque, la vie, la vitesse et la charge (US-0804)", () => {
+  afterEach(() => {
+    session.compteDeLaSession.mockReset();
+    cookie.jetonDeSession.mockReset();
+    effectif.especeDuTerritoire.mockReset();
+  });
+
+  const connecte = (fiche: FicheDEspece) => {
+    cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
+    session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
+    effectif.especeDuTerritoire.mockResolvedValue(fiche);
+  };
+
+  it("affiche l'attaque, la vie, la vitesse et la charge de l'Espèce, avec ses valeurs enregistrées, sans phrase", async () => {
+    connecte(POULE);
+    expect(caracteristiques(await ouvrir("poule"))).toEqual([
+      ["Attaque", "5 981"],
+      ["Vie", "14 953"],
+      ["Vitesse", "14 km/h"],
+      ["Charge", "500"],
+    ]);
+  });
+
+  it("écrit une valeur décimale à la française : « 87,5 »", async () => {
+    connecte({ ...POULE, especeId: "pigeon", nom: "Pigeon biset", attaque: 1214, vie: 4046, vitesse: 80, charge: 87.5 });
+    expect(caracteristiques(await ouvrir("pigeon"))).toEqual([
+      ["Attaque", "1 214"],
+      ["Vie", "4 046"],
+      ["Vitesse", "80 km/h"],
+      ["Charge", "87,5"],
+    ]);
+  });
+
+  it("sépare les milliers, et la valeur de son unité, d'une espace insécable : rien ne se coupe ni ne disparaît", async () => {
+    connecte(POULE);
+    const html = await ouvrir("poule");
+    expect(html).toContain("<dd>5\u00a0981</dd>");
+    expect(html).toContain("<dd>14\u00a0953</dd>");
+    expect(html).toContain("<dd>14\u00a0km/h</dd>");
   });
 });

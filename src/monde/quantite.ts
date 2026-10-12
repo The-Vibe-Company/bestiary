@@ -66,3 +66,13 @@ const centiemes = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 });
 export function quantiteDetaillee(quantite: string | number): string {
   return insecable(centiemes.format(Math.floor(Number(quantite) * 100) / 100));
 }
+
+const caracteristiques = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 3 });
+
+/**
+ * US-0804 : une caractéristique d'une Espèce telle que sa fiche l'écrit : la valeur enregistrée, sans arrondi vers le
+ * bas ni abréviation, à la française (14 953, 87,5), les milliers séparés d'une espace insécable.
+ */
+export function caracteristiqueAffichee(valeur: number): string {
+  return insecable(caracteristiques.format(valeur));
+}
