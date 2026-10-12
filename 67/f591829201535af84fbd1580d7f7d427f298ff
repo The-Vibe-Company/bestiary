@@ -1,0 +1,51 @@
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_4675d5d2e87154 235
+docs/stories/README.md
+  s_7c7d151152e4a5::t_89ded0cda82a83 7
+src/app/jeu/betes/page.db.test.tsx
+  s_7c7d151152e4a5::t_ca27c9c5294085 9,21-23,103-104,117-118,122,131
+src/app/jeu/betes/page.module.css
+  s_7c7d151152e4a5::t_7a65adc9a7a7c7 15,17
+src/app/jeu/betes/page.test.tsx
+  s_7c7d151152e4a5::t_9e798c3cd92829 18-20,90,92,106,157,161-189
+src/app/jeu/betes/page.tsx
+  s_7c7d151152e4a5::t_0f12bc28359e86 11,13,30-32,40,56
+src/app/jeu/reserve/[espece]/BlocElever.module.css
+  s_7c7d151152e4a5::t_98e7688e1554cc 7-11
+src/app/jeu/reserve/[espece]/BlocElever.test.tsx
+  s_7c7d151152e4a5::t_0a1f6fdb5735e5 11-13,24,29,36-45,50
+src/app/jeu/reserve/[espece]/BlocElever.tsx
+  s_7c7d151152e4a5::t_bf5399120b5c41 5,16,18,24-25
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_39619510fa9428 23-25,85-87
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_0c881d665b619f 12,62
+src/components/PlacesDeLHabitat.module.css
+  s_7c7d151152e4a5::t_a6db4b58ad7092 1-11
+src/components/PlacesDeLHabitat.test.tsx
+  s_7c7d151152e4a5::t_1b9557bebc0ce0 1-27
+src/components/PlacesDeLHabitat.tsx
+  s_7c7d151152e4a5::t_24b563b8995aaf 1-17
+src/monde/habitat.db.test.ts
+  s_7c7d151152e4a5::t_b7fd39e53b853d 1-98
+src/monde/habitat.ts
+  s_7c7d151152e4a5::t_0bb5d16d097833 1-27
+src/reglages.ts
+  s_7c7d151152e4a5::t_73084394cf0ac6 361-367
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "67f591829201535af84fbd1580d7f7d427f298ff",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
