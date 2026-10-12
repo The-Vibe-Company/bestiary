@@ -1,0 +1,63 @@
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_1f4cf6531e5a39 30
+docs/stories/09-explorer-et-apprivoiser.md
+  s_7c7d151152e4a5::t_828a80b3d8bd84 678
+docs/stories/README.md
+  s_7c7d151152e4a5::t_ff78a996b217cf 7
+src/app/jeu/reserve/[espece]/page.css.test.ts
+  s_7c7d151152e4a5::t_0f72240850b3ad 1-37
+src/app/jeu/reserve/[espece]/page.db.test.tsx
+  s_7c7d151152e4a5::t_adc56d791c3a7c 1-102
+src/app/jeu/reserve/[espece]/page.module.css
+  s_7c7d151152e4a5::t_945ac450831fec 1-108
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_5281dd2b58b160 1-82
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_07056318ce0b29 1-47
+src/app/jeu/reserve/page.module.css
+  s_7c7d151152e4a5::t_2575871ab923f6 81-100
+src/app/jeu/reserve/page.test.tsx
+  s_7c7d151152e4a5::t_aeb396e7a4937c 154-164
+src/app/jeu/reserve/page.tsx
+  s_7c7d151152e4a5::t_40cd02c52cd860 24,57-68
+src/components/IllustrationEspece.tsx
+  s_7c7d151152e4a5::t_26be0721d09522 4-6,13
+src/components/PastilleRarete.test.tsx
+  s_7c7d151152e4a5::t_8295df20d620c9 1-30
+src/expeditions/apprivoisement.db.test.ts
+  s_7c7d151152e4a5::t_9d1d559653cc1f 228-231,240,251,260
+src/expeditions/apprivoisement.test.ts
+  s_7c7d151152e4a5::t_b1d8e225055bba 2,8-9,14-16,87-89,114-183
+src/expeditions/apprivoisement.ts
+  s_7c7d151152e4a5::t_fee25775f95508 5-9,14-16,53-76,79-86,88-89,91-100
+src/expeditions/betes-reperees.ts
+  s_7c7d151152e4a5::t_faa93ec2c4a4d5 84
+src/expeditions/case-partagee.db.test.ts
+  s_7c7d151152e4a5::t_157d78c580a2ff 2-3,19,209-215,259,344-350
+src/expeditions/chances.db.test.ts
+  s_7c7d151152e4a5::t_9fba6c24cf708b 1-306
+src/expeditions/recit-de-rencontre.test.ts
+  s_7c7d151152e4a5::t_e917f9bc9bf300 6-7
+src/expeditions/recit-de-rencontre.ts
+  s_7c7d151152e4a5::t_4f1cda824271c8 15,38,108
+src/expeditions/rencontres.db.test.ts
+  s_7c7d151152e4a5::t_1008d0820345e4 13,273-279,327-328,341-343,345-349,352-356
+src/monde/couple.ts
+  s_7c7d151152e4a5::t_6ba9e5749a9a6b 90-102,106-107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3bbcf4f22f5de609955a38373d9d0046d2d7f642",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
