@@ -1,0 +1,43 @@
+src/app/jeu/carte/BetesRepereesSurLaCarte.tsx
+  s_c03ab4863ebb5d::t_78c0c9a8267522 3,6,14,38-39,115-117
+src/app/jeu/carte/CarteDuJeu.test.tsx
+  s_7c7d151152e4a5::t_084dd5df46fd80 1234-1244,1313-1319
+src/app/jeu/carte/page.test.tsx
+  s_7c7d151152e4a5::t_b13cda5fa8eec9 156,159
+src/app/jeu/expeditions/nouvelle/Recapitulatif.test.tsx
+  s_7c7d151152e4a5::t_689323da71ec58 31-32,46,48,50,325-382
+src/app/jeu/expeditions/nouvelle/Recapitulatif.tsx
+  s_7c7d151152e4a5::t_5fe409f6b0a913 4,7,37-42,54-56,62,69,89,94-95,122,125,138-159
+src/app/jeu/expeditions/nouvelle/page.test.tsx
+  s_7c7d151152e4a5::t_260467ec1842f7 3,44-46,426,447-473
+src/app/jeu/expeditions/nouvelle/page.tsx
+  s_7c7d151152e4a5::t_7e064970264c5b 8,20,70-80,89-90,112-115,137
+src/expeditions/betes-reperees.db.test.tsx
+  s_7c7d151152e4a5::t_f4b064b9ac5149 182-186,189,192
+src/expeditions/betes-reperees.ts
+  s_7c7d151152e4a5::t_577930a645eda5 20-21,23-32,87-96
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e3567338983a55c91f1da6190683cb3022105fbb",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_c03ab4863ebb5d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1d8a31cd-1943-4a45-8e2a-a7b47de3df29",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
