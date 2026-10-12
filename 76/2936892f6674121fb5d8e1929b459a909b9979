@@ -1,0 +1,35 @@
+src/app/jeu/recits/page.test.tsx
+  s_7c7d151152e4a5::t_92e0379bdc4be4 298-317
+src/app/jeu/recits/page.tsx
+  s_7c7d151152e4a5::t_9b62ec5d6c7c8a 81-82
+src/expeditions/combat.db.test.ts
+  s_7c7d151152e4a5::t_1e41dd1911814b 14,17,280-302
+src/expeditions/pertes.ts
+  s_7c7d151152e4a5::t_6994c688cd4eb9 18-20,22,25,29-37,39
+src/expeditions/recit-de-retour.test.ts
+  s_7c7d151152e4a5::t_aabb1f598d818f 2-10,275-326
+src/expeditions/recit-de-retour.ts
+  s_7c7d151152e4a5::t_2bd07e73c526a4 8-9,23,75-76,79-84,223-238,248-249,263,280,324-326,343,345
+src/expeditions/recit-du-combat.test.ts
+  s_7c7d151152e4a5::t_f15b8299fa37e0 1-52
+src/expeditions/recit-du-combat.ts
+  s_7c7d151152e4a5::t_bf53131e9ee864 1-70
+src/monde/recits.ts
+  s_7c7d151152e4a5::t_1484214639aced 39-40,52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "762936892f6674121fb5d8e1929b459a909b9979",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
