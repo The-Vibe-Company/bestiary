@@ -533,6 +533,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0949 · Revenir la chercher
 **En tant que** joueur, **je veux** renvoyer une escorte plus forte vers une Bête repérée, **afin de** l'apprivoiser tant qu'elle est là.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#52). « Revenir la chercher », au pied de la fiche du repère sur la carte et sous une Rencontre « restée » du récit (tant que la Bête est repérée), ouvre l'écran d'Expédition avec sa Case pour destination, sans perdre les choix déjà faits. Le récapitulatif nomme la Bête repérée et sa force, dit si l'escorte est « Assez forte » ou « Trop faible : il manque N de force », et prévient « À l'arrivée : X ne sera plus là » sans empêcher de partir. Revenue à temps et assez forte, l'Expédition la ramène (la règle d'Apprivoisement s'applique) ; sinon le récit dit « X n'était plus sur la Case à votre arrivée. », sans dire pourquoi. Tranché : le récit retient la Case et la Bête dans ses Rencontres, sans migration ; les Récits d'avant n'ont pas le lien. Vérifié en vrai, des Souris (trop faibles) à un Mammouth.
 - **Débloquée par** : US-0948, US-0932
 - **Critères d'acceptation** :
   - Depuis le repère ou le récit, « Revenir la chercher » ouvre l'écran d'Expédition avec cette Case comme destination.
