@@ -1,0 +1,41 @@
+drizzle/0064_pertes_de_l_escorte.sql
+  s_7c7d151152e4a5::t_b7bcb759e2b5dd 1-5
+drizzle/meta/0064_snapshot.json
+  s_7c7d151152e4a5::t_3933265c20b552 1-3342
+drizzle/meta/_journal.json
+  s_7c7d151152e4a5::t_5ad147bfabb90b 431-437
+src/db/schema.ts
+  s_7c7d151152e4a5::t_ecaabfd79016a0 737-739,751,753-757
+src/expeditions/combat.db.test.ts
+  s_7c7d151152e4a5::t_c6fe8a979ad02a 1-340
+src/expeditions/combat.test.ts
+  s_7c7d151152e4a5::t_aa080657c8c8b3 1-85
+src/expeditions/combat.ts
+  s_7c7d151152e4a5::t_67b286b3d4e667 1-64
+src/expeditions/en-cours.ts
+  s_7c7d151152e4a5::t_e56e98ef508db2 30-31,39,41
+src/expeditions/pertes.ts
+  s_7c7d151152e4a5::t_864932c88dafb0 1-71
+src/expeditions/rencontres.ts
+  s_7c7d151152e4a5::t_785e95571c7698 24,206,230,234-235,238-239
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_3c4b5b0e4dc14c 31,33
+src/reglages.ts
+  s_7c7d151152e4a5::t_156e1092f19955 347-353
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "828769152da8ee064f7ea4b3f35662b10a18748b",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
