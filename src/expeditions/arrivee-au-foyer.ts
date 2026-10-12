@@ -4,7 +4,8 @@
 // dont la force ne change pas, et elle n'est pas dans l'effectif ; aucun combat ne peut donc la perdre. Au retour, elle
 // entre dans l'effectif de son Espèce avec son sexe (US-0937), et peut partir en escorte dès l'Expédition suivante ;
 // US-0956 : sauf si elle réunit, au même instant, le Couple de son Espèce (src/monde/couple.ts) : elle part alors en
-// Réserve. Côté serveur uniquement.
+// Réserve. US-0959 : une fois ce Couple réuni, toute Bête de l'Espèce qui arrive ensuite, mâle ou femelle, reste dans
+// l'effectif : aucun second Couple ne se forme. Côté serveur uniquement.
 import "server-only";
 import type { PoolClient } from "pg";
 import { inscrireAuBestiaire } from "@/bestiaire/bestiaire";
