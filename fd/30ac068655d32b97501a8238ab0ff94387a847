@@ -1,0 +1,37 @@
+src/app/jeu/reserve/page.css.test.ts
+  s_7c7d151152e4a5::t_598474fa657005 1-23
+src/app/jeu/reserve/page.module.css
+  s_7c7d151152e4a5::t_4847f010e287c5 1-44
+src/app/jeu/reserve/page.test.tsx
+  s_7c7d151152e4a5::t_f063745c7f8d8c 1-87
+src/app/jeu/reserve/page.tsx
+  s_7c7d151152e4a5::t_525d8a8c6b68fe 1-34
+src/components/ActionsDuJeu.test.tsx
+  s_7c7d151152e4a5::t_0d3d7dacffc233 123
+src/components/BarreHaut.module.css
+  s_7c7d151152e4a5::t_cd99ff0f4945f1 605-606,608,633,652,658-660,666-667,674,676-678
+src/components/BarreHaut.test.tsx
+  s_7c7d151152e4a5::t_aa0c91d3dc63c5 31,33,35,41,45-49
+src/components/Navigation.test.tsx
+  s_7c7d151152e4a5::t_8b3fd72572fe50 19,26-27,40,86,106,135-138
+src/components/Navigation.tsx
+  s_7c7d151152e4a5::t_54d17c52db3b9a 15-16,22
+src/styles/formes.css
+  s_7c7d151152e4a5::t_b8363c59ea5b82 38-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fd30ac068655d32b97501a8238ab0ff94387a847",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
