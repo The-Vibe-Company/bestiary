@@ -1,0 +1,113 @@
+src/app/jeu/carte/actions.db.test.ts
+  s_7c7d151152e4a5::t_c0eb399678bbb0 10,28-29,31
+src/app/jeu/carte/expeditions.db.test.tsx
+  s_7c7d151152e4a5::t_d46a812acf4eb6 9,28-29,35
+src/app/jeu/carte/page.db.test.tsx
+  s_7c7d151152e4a5::t_09bdb4cbac5600 12,35-36,38
+src/app/jeu/habitants/actions-aux-portes.db.test.ts
+  s_7c7d151152e4a5::t_e1fcc9afaec559 10,28-29,31
+src/app/jeu/habitants/actions.db.test.ts
+  s_7c7d151152e4a5::t_9d788116704d78 7,25-26,28
+src/app/jeu/recits/actions.db.test.ts
+  s_7c7d151152e4a5::t_a911df3c40e736 6,24-25,27
+src/expeditions/apprivoisement.db.test.ts
+  s_7c7d151152e4a5::t_960c9f7c5040d7 12,38-39,53
+src/expeditions/arrivee-au-foyer.db.test.ts
+  s_7c7d151152e4a5::t_440aafd96a8ef5 16,51-52,63
+src/expeditions/attaque.db.test.ts
+  s_7c7d151152e4a5::t_061c7c74b95b6e 16,56-57,71
+src/expeditions/brouillard.db.test.ts
+  s_7c7d151152e4a5::t_ba0cd1f53b7ce7 15,35-36,46
+src/expeditions/case-partagee.db.test.ts
+  s_7c7d151152e4a5::t_1ec06ea0bca029 64
+src/expeditions/depart.db.test.ts
+  s_7c7d151152e4a5::t_a9b2d134375755 12,26-27,35
+src/expeditions/destination.db.test.ts
+  s_7c7d151152e4a5::t_516145e1e9243b 10,22-23,26
+src/expeditions/en-cours.db.test.ts
+  s_7c7d151152e4a5::t_10aac586ca56c0 7,16-17,25
+src/expeditions/en-mon-absence.db.test.ts
+  s_7c7d151152e4a5::t_07da9b5e932140 23,92-93,219
+src/expeditions/plusieurs.db.test.ts
+  s_7c7d151152e4a5::t_fff34f0d8be7db 9,22-23,35
+src/expeditions/presence.db.test.ts
+  s_7c7d151152e4a5::t_1fe7fdfae7ad71 9,29-30,47
+src/expeditions/recit-de-rencontre.db.test.ts
+  s_7c7d151152e4a5::t_f02b47dd791abe 11,38-39,53
+src/expeditions/recit-de-retour.db.test.ts
+  s_7c7d151152e4a5::t_b35ec7f827df21 14,46-47,64
+src/expeditions/rencontres.db.test.ts
+  s_7c7d151152e4a5::t_69dd6df71de2b2 12,35-36,55
+src/expeditions/retour.db.test.ts
+  s_7c7d151152e4a5::t_9be03b7bb65d49 17,38-39,52
+src/expeditions/sexe.db.test.ts
+  s_7c7d151152e4a5::t_cfb5a922477a8c 11,34-35,46
+src/expeditions/trajet.db.test.ts
+  s_7c7d151152e4a5::t_00096327865189 8,22-23,33
+src/expeditions/trop-forte.db.test.ts
+  s_7c7d151152e4a5::t_5f5f0c775c1d9d 11,38-39,53
+src/expeditions/une-bete-a-la-fois.db.test.ts
+  s_7c7d151152e4a5::t_15cb627f86f7c8 9,33-34,50
+src/monde/betes-de-naissance.db.test.ts
+  s_7c7d151152e4a5::t_01a42bea893e4c 6,36-37,40
+src/monde/brouillard.db.test.ts
+  s_7c7d151152e4a5::t_d511bdffac2fb0 11,39-40,43
+src/monde/carte.db.test.ts
+  s_7c7d151152e4a5::t_8e0690a1e51ee1 7,23-24,27
+src/monde/couple.db.test.ts
+  s_7c7d151152e4a5::t_653980ff32fa55 14,48-49,60
+src/monde/effectif.db.test.ts
+  s_7c7d151152e4a5::t_32eb0fd73e05ca 6,16-17,23
+src/monde/elevage.db.test.ts
+  s_7c7d151152e4a5::t_0d57ab0e6f4446 11,34-35,46
+src/monde/entretien-absence.db.test.ts
+  s_7c7d151152e4a5::t_b0930ec111e8ce 9,195-196,204
+src/monde/entretien.db.test.ts
+  s_7c7d151152e4a5::t_53d8bbea3d656a 8,73-74,82
+src/monde/explorateurs.db.test.ts
+  s_7c7d151152e4a5::t_d6ebbffac09453 5,15-16,22
+src/monde/famine-en-expedition.db.test.ts
+  s_7c7d151152e4a5::t_62d6eafb0d1bfc 9,31-32,45
+src/monde/famine-imminente.db.test.ts
+  s_7c7d151152e4a5::t_ae4bc2d210ace2 10,26-27,38
+src/monde/famine.db.test.ts
+  s_7c7d151152e4a5::t_a1449db19f92aa 9,27-28,41
+src/monde/fiche.db.test.ts
+  s_7c7d151152e4a5::t_177370f9ca7ec2 5,20-21,24
+src/monde/habitants-deux-appareils.db.test.ts
+  s_7c7d151152e4a5::t_442353a1163c26 5,18-19,21
+src/monde/habitants.db.test.ts
+  s_7c7d151152e4a5::t_fd22a044fc2247 14,48-49,52
+src/monde/metiers.db.test.ts
+  s_7c7d151152e4a5::t_e0ed23ba521a46 7,17-18,50
+src/monde/nourriture.db.test.ts
+  s_7c7d151152e4a5::t_83673f9f8e5074 5,18-19,31
+src/monde/production.db.test.ts
+  s_7c7d151152e4a5::t_f3149bbfe12c00 7,18-19,26
+src/monde/recits.db.test.ts
+  s_7c7d151152e4a5::t_4cf64502710a70 5,15-16,19
+src/monde/reprise.db.test.ts
+  s_7c7d151152e4a5::t_49dc50a7b0ee21 8,18-19,26
+src/monde/surplus.db.test.ts
+  s_7c7d151152e4a5::t_3ef50a2c3a57fe 7,17-18,25
+src/monde/voyageurs.db.test.ts
+  s_7c7d151152e4a5::t_8a3cf1a6f7d951 16,106-107,110
+src/temps/synchroniser-horloge.db.test.ts
+  s_7c7d151152e4a5::t_0d121c00f85098 9,91-92,99,249-250,271,352-353,361
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d1c972d86a9c4087bfd70e44b72cc1317b30415e",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
