@@ -1,0 +1,75 @@
+src/app/globals.css
+  s_7c7d151152e4a5::t_5ce35c7834e1e6 2,4-6,8-9,11-21,40,42,51-52,54-63,66-68,73-76,83-84,97,106-107,110,113
+src/app/icones.test.ts
+  s_7c7d151152e4a5::t_a74584025dab55 11
+src/app/jeu/BlocProduction.tsx
+  s_7c7d151152e4a5::t_7d3871b6f4ab94 18,24
+src/app/jeu/carte/BoutonsDeLaCarte.module.css
+  s_7c7d151152e4a5::t_613ccba627e9fa 6,18,26,28-30,32-33,41,46
+src/app/jeu/carte/CasesDecouvertes.module.css
+  s_7c7d151152e4a5::t_38cb8b261d6683 16-17
+src/app/jeu/carte/FicheDeLaCase.css.test.ts
+  s_7c7d151152e4a5::t_619577c777e490 17,19
+src/app/jeu/carte/FicheDeLaCase.module.css
+  s_7c7d151152e4a5::t_4588a5dbf46a23 2,18-19,23,25,27-28,129-133
+src/app/jeu/carte/Legende.module.css
+  s_7c7d151152e4a5::t_9a4359bf1ee0d6 2-3,18-22,24,29,34,43,51,54,61,64-65,114,116
+src/app/jeu/expeditions/nouvelle/AucunExplorateurLibre.module.css
+  s_7c7d151152e4a5::t_69df86d9bbc4ac 15-18,26
+src/app/jeu/expeditions/nouvelle/Escorte.module.css
+  s_7c7d151152e4a5::t_518c7e26a00f7a 21-26,37-38,72,74-75,77-78,87-89,94,97,102,114-115
+src/app/jeu/expeditions/nouvelle/Explorateurs.module.css
+  s_7c7d151152e4a5::t_b83a06188fff94 28-29,48,50-51,53-54,61,64,69,81-82
+src/app/jeu/expeditions/nouvelle/Partir.module.css
+  s_7c7d151152e4a5::t_d35ad68861af0f 6,10,13-14,17-18,56
+src/app/jeu/expeditions/nouvelle/Recapitulatif.module.css
+  s_7c7d151152e4a5::t_02f8c99056a531 1,8-9,66,71-72
+src/app/jeu/expeditions/nouvelle/Sejour.module.css
+  s_7c7d151152e4a5::t_fccc66421f0951 15-17,55-57,60,72-73
+src/app/jeu/expeditions/nouvelle/page.module.css
+  s_7c7d151152e4a5::t_2000490770a1e7 3-4,15-16,67-68,81,87-93,101,110
+src/app/jeu/habitants/AuxPortes.css.test.ts
+  s_7c7d151152e4a5::t_652cfab5e25631 37-38
+src/app/jeu/habitants/AuxPortes.module.css
+  s_7c7d151152e4a5::t_bc6b9c3832a956 8,19,22,25-32,36-37,118,120,125-126,155
+src/app/jeu/habitants/ListeDesHabitants.tsx
+  s_7c7d151152e4a5::t_b924edbabb7779 210
+src/app/jeu/habitants/page.module.css
+  s_7c7d151152e4a5::t_c8bc2a7ec01b2e 2-4,11,15-16,27-28,36-38,52-53,56,73-75,85-88,90,94-95,109-112,118,123-126,131-132,137,142,149-150,166,175,182-184,189-191,195-196,207-211,213,220-221,223-227,229,235-236,265-267,274-277,289,300-301,307-309,317-319,335,337,354,371,373,414-415,436,441,451-453,457,465,467-468,472-473,482,487,490,502,504-505,507-508,514,517,522,534-535,549,552-553,572,578-590,597,606,625-627,645-646,673,676-683
+src/app/jeu/habitants/page.test.tsx
+  s_7c7d151152e4a5::t_aec823968ccc49 597-599
+src/app/jeu/page.module.css
+  s_7c7d151152e4a5::t_bbd23dbb4b81d6 3-4,10,13,16,38,42,46,48,52-54,61-64,66,73-74,82,95-99,106,115,120-125,134,148,159,162,164-168,172-173,183-184,201,213,217-218
+src/app/layout.tsx
+  s_7c7d151152e4a5::t_f3d4dc06611a29 3,27
+src/app/page.module.css
+  s_7c7d151152e4a5::t_2346b299637be1 2-3,33,35,54,60-64,70-71,79-81,85,90,108,128-130,135-136
+src/components/BarreHaut.module.css
+  s_7c7d151152e4a5::t_33e7d2baf1b509 3,28-29,70,112,116-121,126,160,162-164,174-177,185,188,197,207-210,225,227-228,237,245,247-251,259-260,268,277-282,284-286,290-291,297,301,306,310,312,317-318,323,333-334,338,340-341,343,351,356,360-362,370,376,381,398,400-405,412,417,433,437,441-442,447-448,450,481,490,507,509-514,523-524,526-527,554-555,564,567,574-575,671,683,769,783,793-795,805,815-816,867,870-871,875-876,880,917,958-961,963
+src/components/Bloc.module.css
+  s_7c7d151152e4a5::t_2b778054bdfcf5 2-3,7-8,11,22,24,26-28,31,44,47,69
+src/components/Logo.module.css
+  s_7c7d151152e4a5::t_a26a47d26f8b64 34-35,41-42,46-48,50-51,55-56,66
+src/styles/fonts.ts
+  s_7c7d151152e4a5::t_070eaa0080c19b 1,3-4,6
+src/styles/palette.css
+  s_7c7d151152e4a5::t_073181738dafe6 2-3,32,38,42-50,52,54,56,59-61,121-123
+src/styles/typographie.css
+  s_7c7d151152e4a5::t_042a686b438c47 2-3,7,11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "61d6e6e64782048c0b27b37cab147d2e09a059b7",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
