@@ -623,6 +623,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0958 · Annoncer le Couple réuni
 **En tant que** joueur, **je veux** que la réunion d'un Couple soit fêtée, **afin de** savourer le moment le plus important du jeu.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#45). Le Récit « Retour d'Expédition » qui réunit un Couple l'annonce en tête, sans le déplier : l'illustration de l'Espèce en grand, une pastille « Couple réuni » et son nom, sans autre phrase ni « mâle et femelle ». Le menu du chef montre « Couples réunis » et leur nombre (0 dès l'entrée au Foyer). Tranché : sans migration, chaque Couple est rapproché du Retour d'Expédition de son instant ; les Couples réunis avant la story s'annoncent aussi ; un retour qui ramène ensuite une Bête de l'Espèce (US-0959) ne l'annonce pas de nouveau. Vérifié en vrai avec un Couple de poules, de 320×568 à 1 440×900, téléphone couché compris.
 - **Débloquée par** : US-0956
 - **Critères d'acceptation** :
   - Le récit du retour qui réunit le Couple l'annonce en tête, avec l'illustration de l'Espèce ; un bouton vers son Élevage s'y ajoutera à l'étape 34.
