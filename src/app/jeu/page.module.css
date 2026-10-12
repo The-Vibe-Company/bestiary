@@ -79,6 +79,52 @@
   align-items: start;
 }
 
+/* US-0810 : à droite de l'illustration, la production, puis le bloc « Bêtes », l'un sous l'autre. */
+.cote {
+  display: grid;
+  gap: var(--ecart);
+  min-width: 0;
+}
+
+/* Le bloc « Bêtes » ouvre la page Bêtes : tout le bloc se touche ; sur une ligne, « Bêtes » puis le total en grand. */
+.lienBetes {
+  display: block;
+  border-radius: var(--arrondi);
+  color: var(--encre);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.lienBetes > section {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lienBetes h2 {
+  margin-bottom: 0;
+}
+
+@media (hover: hover) {
+  .lienBetes:hover > section {
+    background: var(--bloc-2);
+  }
+}
+
+.lienBetes:focus-visible {
+  outline: 2px solid var(--encre);
+  outline-offset: 2px;
+}
+
+.nombreDeBetes {
+  display: block;
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
 .ligneProduction {
   display: flex;
   gap: 10px;
@@ -187,6 +233,10 @@
   }
   .foyer img {
     object-position: 50% 25%;
+  }
+  /* US-0810 : la production se resserre, pour que le bloc « Bêtes » tienne dessous sans faire défiler le Foyer. */
+  .ligneProduction {
+    min-height: 28px;
   }
   .legende {
     padding: 56px 20px 20px;

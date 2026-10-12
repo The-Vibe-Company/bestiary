@@ -1,0 +1,112 @@
+/* US-0810 : la page Bêtes : un titre, le total dans un bloc Bento, puis une ligne par Espèce, dans la largeur du Foyer. */
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.titre {
+  margin-bottom: 16px;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* Le total des Bêtes, en grand, son nom à côté, comme le nombre de Couples de la Réserve. */
+.total {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-weight: var(--graisse-titre);
+}
+
+.nombre {
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* Une ligne par Espèce, qui ouvre sa fiche d'un toucher. */
+.especes {
+  display: grid;
+  gap: 6px;
+  margin-top: var(--ecart);
+  padding: 0;
+  list-style: none;
+}
+
+/* La vignette, le nom et la Rareté, puis l'effectif en grand, à droite. */
+.espece {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+  padding: 8px 18px 8px 8px;
+  border-radius: var(--arrondi);
+  background: var(--bloc);
+  color: var(--encre);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .espece:hover {
+    background: var(--bloc-2);
+  }
+}
+
+.espece:focus-visible {
+  outline: 2px solid var(--encre);
+  outline-offset: 2px;
+}
+
+.vignette {
+  width: 56px;
+  border-radius: var(--arrondi-petit);
+}
+
+/* Le nom, puis la Rareté, qui passe à la ligne si le nom est long. */
+.identite {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.nom {
+  min-width: 0;
+  font-weight: var(--graisse-titre);
+  overflow-wrap: anywhere;
+}
+
+.effectif {
+  font-size: 22px;
+  font-weight: var(--graisse-titre);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Sur mobile, la page touche presque les bords et la vignette se réduit, sans que le texte déborde. */
+@media (max-width: 820px), (max-height: 500px) {
+  .page {
+    padding: 12px;
+  }
+
+  .titre {
+    margin: 8px 0 12px;
+    font-size: 24px;
+  }
+
+  .espece {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 6px 14px 6px 6px;
+  }
+
+  .vignette {
+    width: 44px;
+  }
+}

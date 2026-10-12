@@ -4,9 +4,11 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { exigerCompte } from "@/comptes/garde";
 import { entreeDuJeuOuverte } from "@/comptes/ouverture";
+import { Bloc } from "@/components/Bloc";
 import { Illustration } from "@/components/Illustration";
 import { getPool } from "@/db";
 import { recapitulatifDAbsence } from "@/monde/absence";
+import { nombreDeBetes } from "@/monde/effectif";
 import { departsNonLus, departsPendantLAbsence } from "@/monde/famine";
 import { stocksDuTerritoire } from "@/monde/stocks";
 import { foyerDuTerritoire } from "@/monde/territoire";
@@ -29,6 +31,9 @@ const ILLUSTRATION_DU_FOYER = { chemin: "foyer/prairie.webp", alt: "La hutte du 
  *
  * US-0327 : en haut, tant que le joueur n'a pas lu le Récit des départs de Famine, une ligne le signale, « 3 Habitants
  * sont partis pendant votre absence », et « Lire » mène aux Récits.
+ *
+ * US-0810 : sous la production, le bloc « Bêtes » dit le total des Bêtes du Territoire et ouvre la page Bêtes : l'entrée
+ * de son effectif, sans septième onglet dans la navigation.
  */
 export default async function Foyer() {
   await connection();
@@ -38,6 +43,7 @@ export default async function Foyer() {
   const recap = territoireId === null ? { gains: [], pleins: [] } : await recapitulatifDAbsence(getPool(), territoireId, maintenant());
   const stocks = territoireId === null ? [] : await stocksDuTerritoire(getPool(), territoireId);
   const departs = territoireId === null ? null : await departsNonLus(getPool(), territoireId);
+  const betes = territoireId === null ? 0 : await nombreDeBetes(getPool(), territoireId);
   return (
     <main className={`${styles.page} ${foyer ? styles.avecProduction : ""}`}>
       {departs ? (
@@ -59,7 +65,16 @@ export default async function Foyer() {
         <RecapAbsence recap={recap} />
         <h1 className={styles.legende}>{foyer ? `Foyer · ${foyer.biome.nom.toLocaleLowerCase("fr")}` : "Foyer"}</h1>
       </section>
-      {foyer ? <BlocProduction biome={foyer.biome.nom} productions={stocks} /> : null}
+      {foyer ? (
+        <div className={styles.cote}>
+          <BlocProduction biome={foyer.biome.nom} productions={stocks} />
+          <Link href="/jeu/betes" className={styles.lienBetes}>
+            <Bloc titre="Bêtes">
+              <strong className={styles.nombreDeBetes}>{betes}</strong>
+            </Bloc>
+          </Link>
+        </div>
+      ) : null}
     </main>
   );
 }

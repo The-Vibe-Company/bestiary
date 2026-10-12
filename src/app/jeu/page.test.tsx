@@ -28,6 +28,9 @@ const stocks = vi.hoisted(() => ({
 vi.mock("@/monde/stocks", () => stocks);
 const famine = vi.hoisted(() => ({ departsNonLus: vi.fn(async (): Promise<{ recitId: number; habitants: number } | null> => null) }));
 vi.mock("@/monde/famine", async (original) => ({ ...(await original<object>()), departsNonLus: famine.departsNonLus }));
+// US-0810 : le total des Bêtes du Territoire, lu sur base (src/monde/effectif.db.test.ts).
+const effectif = vi.hoisted(() => ({ nombreDeBetes: vi.fn(async () => 16) }));
+vi.mock("@/monde/effectif", () => effectif);
 vi.mock("@/temps/rattraper", () => ({ rattraper: vi.fn(async () => new Date()) }));
 vi.mock("@/db", () => ({ getPool: () => ({}) }));
 vi.mock("next/server", async (original) => ({ ...(await original<object>()), connection: async () => {} }));
@@ -71,12 +74,28 @@ describe("écran du Foyer (US-0157)", () => {
     expect(lignes).toEqual(["Viande +8/h", "Végétaux +14,5/h", "Bois +4/h", "Ce Biome ne donne pas de Pierre."]);
   });
 
-  it("ne mène à aucune fonction qui n'existe pas encore : ni lien, ni bouton, ni menu (US-0163)", async () => {
+  it("ne mène à aucune fonction qui n'existe pas encore : ni bouton, ni menu, et pour seul lien la page Bêtes (US-0163, US-0810)", async () => {
     connecte();
     const html = renderToStaticMarkup(await Foyer());
-    expect(html).not.toMatch(/<(a|button|form|nav|input|select)[ >]/);
-    // L'illustration, son titre, et le bloc Production (US-0217) avec l'icône de chaque Ressource.
-    expect(html.match(/<(img|h1|h2)[ >]/g)).toEqual(["<img ", "<h1 ", "<h2 ", "<img ", "<img ", "<img ", "<img "]);
+    expect(html).not.toMatch(/<(button|form|nav|input|select)[ >]/);
+    expect([...html.matchAll(/<a [^>]*href="([^"]*)"/g)].map((m) => m[1])).toEqual(["/jeu/betes"]);
+    // L'illustration, son titre, le bloc Production (US-0217) avec l'icône de chaque Ressource, puis le bloc Bêtes.
+    expect(html.match(/<(img|h1|h2)[ >]/g)).toEqual(["<img ", "<h1 ", "<h2 ", "<img ", "<img ", "<img ", "<img ", "<h2 "]);
+  });
+
+  it("ouvre la page Bêtes d'un bloc « Bêtes » qui en dit le total, sous la production (US-0810)", async () => {
+    connecte();
+    const html = renderToStaticMarkup(await Foyer());
+    expect(effectif.nombreDeBetes).toHaveBeenCalledWith(expect.anything(), 12);
+    const bloc = html.match(/<a [^>]*href="\/jeu\/betes"[^>]*>(.*?)<\/a>/)?.[1] ?? "";
+    expect(bloc.replace(/<[^>]+>/g, "|").split("|").filter(Boolean)).toEqual(["Bêtes", "16"]);
+    expect(html.indexOf("Production · prairie")).toBeLessThan(html.indexOf('href="/jeu/betes"'));
+  });
+
+  it("n'a pas de bloc « Bêtes » sans Foyer (Monde complet)", async () => {
+    connecte();
+    chefs.chefDuCompte.mockResolvedValueOnce({ nom: "Ourse", territoireId: null, recitLu: false });
+    expect(renderToStaticMarkup(await Foyer())).not.toContain("/jeu/betes");
   });
 
   it("pose sur l'illustration ce que le Foyer a produit pendant l'absence (US-0216)", async () => {

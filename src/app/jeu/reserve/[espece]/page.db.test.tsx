@@ -48,14 +48,18 @@ describe.skipIf(!URL_TEST)("ouvrir la fiche d'une Espèce, sur base (US-0803)", 
       client.release();
     }
   };
-  /** La fiche de l'Espèce `espece` telle que la page la montre au joueur du Territoire : son titre, sa Rareté et son image. */
+  /**
+   * La fiche de l'Espèce `espece` telle que la page la montre au joueur du Territoire : son titre, sa Rareté et son image ;
+   * US-0810 : et l'effectif qu'elle rappelle.
+   */
   const fiche = async (territoireId: number, espece: string) => {
     garde.exigerCompte.mockResolvedValue({ id: 1, email: "nom@exemple.fr", nomDeChef: "Ourse", territoireId, recitLu: true });
-    const html = renderToStaticMarkup(await FicheDeLEspece({ params: Promise.resolve({ espece }) }));
+    const html = renderToStaticMarkup(await FicheDeLEspece({ params: Promise.resolve({ espece }), searchParams: Promise.resolve({}) }));
     return {
       titre: html.match(/<h1[^>]*>(.*?)<\/h1>/)?.[1],
       rarete: html.match(/data-rarete="([^"]*)"[^>]*>(.*?)</)?.slice(1).join(" "),
       image: decodeURIComponent(html.match(/<img[^>]*src="([^"]*)"/)?.[1] ?? "").match(/especes\/[a-z_]+\.webp/)?.[0],
+      effectif: html.match(/<span>Effectif<\/span> <strong[^>]*>(\d+)<\/strong>/)?.[1],
     };
   };
 
@@ -78,7 +82,8 @@ describe.skipIf(!URL_TEST)("ouvrir la fiche d'une Espèce, sur base (US-0803)", 
     const t = await naitre();
     await reunir(t, "pigeon");
 
-    expect(await fiche(t.territoireId, "pigeon")).toEqual({ titre: "Pigeon biset", rarete: "commune Commune", image: "especes/pigeon.webp" });
+    // US-0810 : ses deux Bêtes sont le Couple, en Réserve : son effectif est vide.
+    expect(await fiche(t.territoireId, "pigeon")).toEqual({ titre: "Pigeon biset", rarete: "commune Commune", image: "especes/pigeon.webp", effectif: "0" });
   });
 
   it("ouvre, parmi les Couples du joueur, la fiche de l'Espèce demandée, et seulement elle", async () => {
@@ -91,12 +96,26 @@ describe.skipIf(!URL_TEST)("ouvrir la fiche d'une Espèce, sur base (US-0803)", 
     await expect(fiche(t.territoireId, "pigeon")).rejects.toMatchObject({ digest: expect.stringContaining("404") });
   });
 
-  it("n'ouvre ni la fiche d'une Espèce sans Couple, ni celle du Couple d'un autre joueur", async () => {
+  it("n'ouvre ni la fiche d'une Espèce sans Couple ni Bête, ni celle du Couple d'un autre joueur", async () => {
     const [a, b] = [await naitre(), await naitre()];
     await reunir(b, "souris");
 
     await expect(fiche(a.territoireId, "souris")).rejects.toMatchObject({ digest: expect.stringContaining("404") });
     await expect(fiche(a.territoireId, "espece_inconnue")).rejects.toMatchObject({ digest: expect.stringContaining("404") });
     expect((await fiche(b.territoireId, "souris")).titre).toBe("Souris grise");
+  });
+
+  it("ouvre aussi la fiche d'une Espèce dont le joueur a des Bêtes sans en avoir réuni le Couple, et rappelle son effectif (US-0810)", async () => {
+    const [t, voisin] = [await naitre(), await naitre()];
+    await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, 'poule', 'femelle', 3)", [t.territoireId]);
+    await reunir(t, "souris");
+    // Deux souris de plus, après le Couple (US-0959).
+    await pool.query("update effectif set nombre = 2 where territoire_id = $1 and espece_id = 'souris' and sexe = 'male'", [t.territoireId]);
+
+    expect(await fiche(t.territoireId, "poule")).toEqual({ titre: "Poule", rarete: "commune Commune", image: "especes/poule.webp", effectif: "3" });
+    // Avec son Couple en Réserve, l'Espèce rappelle les seules Bêtes de son effectif.
+    expect((await fiche(t.territoireId, "souris")).effectif).toBe("2");
+    // Les poules d'un joueur n'ouvrent pas la fiche chez un autre.
+    await expect(fiche(voisin.territoireId, "poule")).rejects.toMatchObject({ digest: expect.stringContaining("404") });
   });
 });

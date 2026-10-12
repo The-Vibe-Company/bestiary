@@ -1,5 +1,6 @@
 // Les Bêtes d'un Territoire telles que l'écran d'Expédition les propose pour l'escorte. US-0938 : et l'entrée d'une Bête
-// apprivoisée dans l'effectif, à son arrivée au Foyer. Côté serveur uniquement.
+// apprivoisée dans l'effectif, à son arrivée au Foyer. US-0810 : et l'effectif tel que la page Bêtes et la fiche d'une
+// Espèce le montrent. Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
 import { forceDUneBete } from "@/expeditions/force";
@@ -80,4 +81,56 @@ export async function faireEntrerDansLEffectif(base: Pool | PoolClient, territoi
      on conflict (territoire_id, espece_id, sexe) do update set nombre = effectif.nombre + excluded.nombre`,
     [territoireId, betes.map((b) => b.especeId), betes.map((b) => b.sexe)],
   );
+}
+
+/**
+ * US-0810 : une Espèce de l'effectif telle que la page Bêtes et sa fiche la montrent : son nom, son illustration (null :
+ * aucune), sa Rareté, et combien le joueur en a de Bêtes.
+ */
+export type EspeceDeLEffectif = { especeId: string; nom: string; illustration: string | null; rarete: { id: string; nom: string }; effectif: number };
+
+/**
+ * US-0810 : l'effectif du Territoire, Espèce par Espèce, pour la page Bêtes : toutes les Bêtes que le joueur possède,
+ * mâles et femelles ensemble, celles sorties en escorte comprises (elles sont toujours à lui, US-0937) ; jamais celles d'un
+ * Couple, parties en Réserve hors de l'effectif (US-0956), ni les Bêtes mortes au combat, qui l'ont quitté (US-0944) ;
+ * les Blessés, eux, y restent et comptent (US-0951).
+ * Seules les Espèces qui en ont au moins une, de la plus commune à la plus rare, puis par nom, comme l'escorte.
+ */
+export async function effectifParEspece(base: Pool | PoolClient, territoireId: number): Promise<EspeceDeLEffectif[]> {
+  const { rows } = await base.query<EspeceDeLEffectif>(
+    `select es.id as "especeId", es.nom, es.illustration, json_build_object('id', r.id, 'nom', r.nom) as rarete, x.effectif
+     from (select espece_id, sum(nombre)::int as effectif from effectif where territoire_id = $1 group by espece_id) x
+     join espece es on es.id = x.espece_id
+     join rarete r on r.id = es.rarete_id
+     where x.effectif > 0
+     order by r.rang, es.nom`,
+    [territoireId],
+  );
+  return rows;
+}
+
+/** US-0810 : le total des Bêtes de l'effectif du Territoire, en haut de la page Bêtes et sur le Foyer (effectifParEspece). */
+export async function nombreDeBetes(base: Pool | PoolClient, territoireId: number): Promise<number> {
+  const { rows } = await base.query<{ nombre: number }>("select coalesce(sum(nombre), 0)::int as nombre from effectif where territoire_id = $1", [
+    territoireId,
+  ]);
+  return rows[0].nombre;
+}
+
+/**
+ * US-0810 : l'Espèce `especeId` telle que sa fiche la montre au joueur, avec son effectif sur le Territoire : quand il en a
+ * des Bêtes, ou quand il a réuni son Couple (US-0803), son effectif fût-il vide ; null sinon, sans dire si un autre joueur
+ * en a.
+ */
+export async function especeDuTerritoire(base: Pool | PoolClient, territoireId: number, especeId: string): Promise<EspeceDeLEffectif | null> {
+  const { rows } = await base.query<EspeceDeLEffectif>(
+    `select es.id as "especeId", es.nom, es.illustration, json_build_object('id', r.id, 'nom', r.nom) as rarete, x.effectif
+     from espece es
+     join rarete r on r.id = es.rarete_id
+     cross join lateral (select coalesce(sum(e.nombre), 0)::int as effectif from effectif e where e.territoire_id = $1 and e.espece_id = es.id) x
+     where es.id = $2
+       and (x.effectif > 0 or exists (select 1 from couple c where c.territoire_id = $1 and c.espece_id = es.id))`,
+    [territoireId, especeId],
+  );
+  return rows[0] ?? null;
 }

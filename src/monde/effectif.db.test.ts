@@ -4,7 +4,8 @@ import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { forceDUneBete } from "@/expeditions/force";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
-import { betesDisponibles, faireEntrerDansLEffectif } from "./effectif";
+import { reunirLesCouples } from "./couple";
+import { betesDisponibles, effectifParEspece, especeDuTerritoire, faireEntrerDansLEffectif, nombreDeBetes } from "./effectif";
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
 const MONDE_D_ESSAI = "Essai de l'escorte (US-0904)";
@@ -197,5 +198,109 @@ describe.skipIf(!URL_TEST)("les Bêtes disponibles pour l'escorte (US-0904, sur 
       { espece_id: "poule", sexe: "femelle", nombre: 1 },
       { espece_id: "souris", sexe: "male", nombre: 4 },
     ]);
+  });
+
+  describe("l'effectif de la page Bêtes, Espèce par Espèce (US-0810)", () => {
+    const POULE = { especeId: "poule", nom: "Poule", illustration: "especes/poule.webp", rarete: { id: "commune", nom: "Commune" } };
+    const SOURIS = { especeId: "souris", nom: "Souris grise", illustration: "especes/souris.webp", rarete: { id: "commune", nom: "Commune" } };
+    /** Réunit au Territoire le Couple de chaque Espèce dont l'effectif compte un mâle et une femelle, comme au retour d'une Expédition (US-0956). */
+    const reunir = async (territoireId: number) => {
+      const client = await pool.connect();
+      try {
+        return await reunirLesCouples(client, territoireId, new Date());
+      } finally {
+        client.release();
+      }
+    };
+
+    it("n'a ni Espèce ni Bête pour un joueur qui vient de naître", async () => {
+      const t = (await nouveauTerritoire()).territoireId;
+      expect(await effectifParEspece(pool, t)).toEqual([]);
+      expect(await nombreDeBetes(pool, t)).toBe(0);
+    });
+
+    it("compte chaque Espèce dont le joueur a des Bêtes, mâles et femelles ensemble, avec son nom, son illustration et sa Rareté, et leur total", async () => {
+      const [t, voisin] = [(await nouveauTerritoire()).territoireId, (await nouveauTerritoire()).territoireId];
+      await ajouter(t, [
+        ["souris", "male", 2],
+        ["souris", "femelle", 1],
+        ["poule", "femelle", 1],
+      ]);
+      await ajouter(voisin, [
+        ["pigeon", "male", 5],
+        ["souris", "male", 7],
+      ]);
+      // Ni le pigeon ni les souris d'un autre Territoire ; de la plus commune à la plus rare, puis par nom.
+      expect(await effectifParEspece(pool, t)).toEqual([
+        { ...POULE, effectif: 1 },
+        { ...SOURIS, effectif: 3 },
+      ]);
+      expect(await nombreDeBetes(pool, t)).toBe(4);
+      expect(await nombreDeBetes(pool, voisin)).toBe(12);
+    });
+
+    it("ne compte pas les Bêtes du Couple, en Réserve : seulement les autres Bêtes de l'Espèce", async () => {
+      const t = (await nouveauTerritoire()).territoireId;
+      await ajouter(t, [
+        ["souris", "male", 2],
+        ["souris", "femelle", 1],
+        ["poule", "male", 1],
+        ["poule", "femelle", 1],
+      ]);
+      expect(await reunir(t)).toEqual(["poule", "souris"]);
+      // Le Couple de poules parti en Réserve, il ne reste aucune poule ; une souris reste dans l'effectif.
+      expect(await effectifParEspece(pool, t)).toEqual([{ ...SOURIS, effectif: 1 }]);
+      expect(await nombreDeBetes(pool, t)).toBe(1);
+    });
+
+    it("compte les Bêtes sorties en escorte : le joueur les possède toujours", async () => {
+      const t = (await nouveauTerritoire()).territoireId;
+      await ajouter(t, [["souris", "male", 3]]);
+      const { rows } = await pool.query<{ id: number }>(
+        `insert into expedition (territoire_id, case_id, part_le, trajet_minutes, sejour_minutes)
+         select $1, c.id, now(), 30, 60 from case_du_monde c where c.monde_id = $2 and c.chef_id is null order by c.id limit 1 returning id`,
+        [t, mondeId],
+      );
+      await pool.query("insert into expedition_escorte (expedition_id, espece_id, nombre) values ($1, 'souris', 2)", [rows[0].id]);
+      expect(await effectifParEspece(pool, t)).toEqual([{ ...SOURIS, effectif: 3 }]);
+      expect(await nombreDeBetes(pool, t)).toBe(3);
+    });
+
+    it("range une Espèce plus rare après les communes, même sans illustration", async () => {
+      const t = (await nouveauTerritoire()).territoireId;
+      // La plus rare des Espèces chargées, sans illustration : l'une des Espèces d'essai (US-0924), jamais nommée ici.
+      const { rows } = await pool.query<{ id: string; nom: string; rareteId: string; rarete: string }>(
+        `select e.id, e.nom, r.id as "rareteId", r.nom as rarete from espece e join rarete r on r.id = e.rarete_id
+         where e.illustration is null order by r.rang desc, e.id limit 1`,
+      );
+      const [rare] = rows;
+      await ajouter(t, [
+        [rare.id, "femelle", 1],
+        ["souris", "male", 4],
+      ]);
+      expect(await effectifParEspece(pool, t)).toEqual([
+        { ...SOURIS, effectif: 4 },
+        { especeId: rare.id, nom: rare.nom, illustration: null, rarete: { id: rare.rareteId, nom: rare.rarete }, effectif: 1 },
+      ]);
+    });
+
+    it("donne à la fiche l'Espèce dont le joueur a des Bêtes, avec son effectif, ou dont il a réuni le Couple ; aucune autre", async () => {
+      const [t, voisin] = [(await nouveauTerritoire()).territoireId, (await nouveauTerritoire()).territoireId];
+      await ajouter(t, [
+        ["poule", "femelle", 2],
+        ["souris", "male", 1],
+        ["souris", "femelle", 1],
+      ]);
+      await ajouter(voisin, [["pigeon", "male", 3]]);
+      expect(await reunir(t)).toEqual(["souris"]);
+
+      expect(await especeDuTerritoire(pool, t, "poule")).toEqual({ ...POULE, effectif: 2 });
+      // Son Couple en Réserve, l'effectif de l'Espèce est vide : la fiche le rappelle.
+      expect(await especeDuTerritoire(pool, t, "souris")).toEqual({ ...SOURIS, effectif: 0 });
+      // Ni une Espèce sans Bête ni Couple, ni celle d'un autre joueur, ni une Espèce inconnue.
+      expect(await especeDuTerritoire(pool, t, "pigeon")).toBeNull();
+      expect(await especeDuTerritoire(pool, t, "espece_inconnue")).toBeNull();
+      expect((await especeDuTerritoire(pool, voisin, "pigeon"))?.effectif).toBe(3);
+    });
   });
 });

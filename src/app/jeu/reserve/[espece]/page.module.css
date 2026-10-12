@@ -42,6 +42,21 @@
   overflow-wrap: anywhere;
 }
 
+/* US-0810 : l'effectif de l'Espèce, sous sa Rareté : le mot, puis le nombre en grand. */
+.effectif {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin-top: 4px;
+  color: var(--texte-2);
+}
+
+.nombre {
+  color: var(--encre);
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
 /* « Fermer », au pouce : 44 px de haut, discret, comme une action secondaire. */
 .fermer {
   grid-area: fermer;
