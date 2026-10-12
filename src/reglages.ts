@@ -357,3 +357,10 @@ export const PERTES_PAR_ECART_DES_FORCES = 1;
  * régler en jouant), arrondie au plus proche, la demie aux Blessés ; les autres meurent (src/expeditions/combat.ts).
  */
 export const PART_DES_BLESSES = 0.5;
+
+/**
+ * US-0822 : les Places qu'offre l'Habitat du Foyer (valeur provisoire, à régler en jouant), où logent les Bêtes de
+ * l'effectif, chacune selon la taille de son Espèce : une souris en prend 1, un pigeon près de 9, une poule 32
+ * (docs/adr/0007) ; src/monde/habitat.ts. Rien à voir avec PLACES_DU_FOYER, les places d'Habitant (US-0305).
+ */
+export const PLACES_DE_L_HABITAT_DU_FOYER = 500;

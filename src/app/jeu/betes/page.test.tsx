@@ -15,6 +15,9 @@ vi.mock("@/chefs/chef", () => chefs);
 // L'effectif du Territoire, lu sur base (src/monde/effectif.db.test.ts, page.db.test.tsx) : ici, ce que la page en montre.
 const effectif = vi.hoisted(() => ({ effectifParEspece: vi.fn(async (): Promise<EspeceDeLEffectif[]> => []) }));
 vi.mock("@/monde/effectif", () => effectif);
+// US-0822 : les Places de l'Habitat du Foyer, lues sur base (src/monde/habitat.db.test.ts).
+const habitat = vi.hoisted(() => ({ placesDeLHabitat: vi.fn(async () => ({ occupees: 21, total: 500 })) }));
+vi.mock("@/monde/habitat", () => habitat);
 vi.mock("@/temps/rattraper", () => ({ rattraper: vi.fn(async () => new Date()) }));
 vi.mock("@/db", () => ({ getPool: () => ({}) }));
 vi.mock("next/server", async (original) => ({ ...(await original<object>()), connection: async () => {} }));
@@ -84,9 +87,9 @@ describe("voir l'effectif par Espèce (US-0810)", () => {
   it("affiche en haut de la page le total des Bêtes, avant la liste", async () => {
     connecte();
     const html = renderToStaticMarkup(await Betes());
-    expect(texte(html).startsWith("Bêtes · 16 · Bêtes · Poule")).toBe(true);
+    expect(texte(html).startsWith("Bêtes · 16 · Bêtes · Places : · 21 / 500 · Poule")).toBe(true);
     connecte(EFFECTIF.slice(0, 1));
-    expect(texte(renderToStaticMarkup(await Betes())).startsWith("Bêtes · 1 · Bête · Poule")).toBe(true);
+    expect(texte(renderToStaticMarkup(await Betes())).startsWith("Bêtes · 1 · Bête · Places : · 21 / 500 · Poule")).toBe(true);
   });
 
   it("ouvre d'un toucher la fiche de chaque Espèce, qui se refermera sur la page Bêtes", async () => {
@@ -100,7 +103,7 @@ describe("voir l'effectif par Espèce (US-0810)", () => {
 
   it("n'ajoute aucune phrase d'explication : le titre, le total, puis les Espèces", async () => {
     connecte(EFFECTIF.slice(1, 2));
-    expect(texte(renderToStaticMarkup(await Betes()))).toBe("Bêtes · 12 · Bêtes · Souris grise · Commune · 12");
+    expect(texte(renderToStaticMarkup(await Betes()))).toBe("Bêtes · 12 · Bêtes · Places : · 21 / 500 · Souris grise · Commune · 12");
   });
 
   it("renvoie vers la connexion sans session, qui ramènera ensuite ici", async () => {
@@ -151,7 +154,36 @@ describe("voir un effectif vide (US-0811)", () => {
   it("dès la première Bête ramenée, le message et son bouton laissent place au total et à la liste", async () => {
     connecte(EFFECTIF.slice(0, 1));
     const html = renderToStaticMarkup(await Betes());
-    expect(texte(html)).toBe("Bêtes · 1 · Bête · Poule · Commune · 1");
+    expect(texte(html)).toBe("Bêtes · 1 · Bête · Places : · 21 / 500 · Poule · Commune · 1");
     expect(html).not.toContain("Envoyer une Expédition");
+  });
+});
+
+describe("voir les Places de l'Habitat du Foyer (US-0822)", () => {
+  afterEach(() => {
+    session.compteDeLaSession.mockReset();
+    cookie.jetonDeSession.mockReset();
+    effectif.effectifParEspece.mockReset();
+    habitat.placesDeLHabitat.mockClear();
+  });
+
+  const connecte = (especes: EspeceDeLEffectif[]) => {
+    cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
+    session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
+    effectif.effectifParEspece.mockResolvedValue(especes);
+  };
+
+  it("affiche « Places : occupées / total » pour l'Habitat du Foyer, sous le total des Bêtes", async () => {
+    connecte(EFFECTIF);
+    const html = renderToStaticMarkup(await Betes());
+    expect(habitat.placesDeLHabitat).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12);
+    const total = html.match(/<section[^>]*>(.*?)<\/section>/)?.[1] ?? "";
+    expect(texte(total)).toBe("16 · Bêtes · Places : · 21 / 500");
+  });
+
+  it("ne l'ajoute pas à la page vide, qui ne dit que « Aucune Bête pour l'instant » (US-0811)", async () => {
+    connecte([]);
+    expect(texte(renderToStaticMarkup(await Betes()))).toBe("Bêtes · Aucune Bête pour l'instant · Envoyer une Expédition");
+    expect(habitat.placesDeLHabitat).not.toHaveBeenCalled();
   });
 });

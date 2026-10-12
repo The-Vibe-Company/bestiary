@@ -6,6 +6,7 @@ import { creerCompte } from "@/comptes/compte";
 import { reunirLesCouples } from "@/monde/couple";
 import { faireEntrerDansLEffectif } from "@/monde/effectif";
 import { lireMarquePage } from "@/temps/marque-page";
+import { PLACES_DE_L_HABITAT_DU_FOYER } from "@/reglages";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 
 // La garde dit qui est connecté ; la page lit pour de bon la base de test.
@@ -16,6 +17,9 @@ vi.mock("@/db", async (original) => ({ ...(await original<object>()), getPool: (
 vi.mock("next/server", async (original) => ({ ...(await original<object>()), connection: async () => {} }));
 
 import Betes from "./page";
+
+/** US-0822 : le total des Places de l'Habitat du Foyer, un réglage provisoire, écrit comme la page l'écrit (« 1 500 »). */
+const TOTAL = new Intl.NumberFormat("fr-FR").format(PLACES_DE_L_HABITAT_DU_FOYER).replace(/\s/g, "\u00a0");
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
 const MONDE_D_ESSAI = "Essai de la page Bêtes (US-0810)";
@@ -96,7 +100,8 @@ describe.skipIf(!URL_TEST)("voir l'effectif par Espèce, sur base (US-0810)", ()
     await ajouter(voisin.territoireId, [["poule", "femelle", 5]]);
 
     expect(await page(t.territoireId)).toEqual({
-      texte: "Bêtes · 9 · Bêtes · Pigeon biset · Commune · 2 · Souris grise · Commune · 7",
+      // US-0822 : 7 souris (1 Place chacune) et 2 pigeons (8,556 chacun) prennent 25 Places de l'Habitat du Foyer.
+      texte: `Bêtes · 9 · Bêtes · Places : · 25 / ${TOTAL} · Pigeon biset · Commune · 2 · Souris grise · Commune · 7`,
       liens: ["/jeu/reserve/pigeon?depuis=betes", "/jeu/reserve/souris?depuis=betes"],
     });
   });
@@ -109,11 +114,12 @@ describe.skipIf(!URL_TEST)("voir l'effectif par Espèce, sur base (US-0810)", ()
       ["poule", "male", 1],
       ["poule", "femelle", 1],
     ]);
-    expect((await page(t.territoireId)).texte).toBe("Bêtes · 5 · Bêtes · Poule · Commune · 2 · Souris grise · Commune · 3");
+    // US-0822 : 3 souris et 2 poules (31,623 Places chacune) : 67 Places.
+    expect((await page(t.territoireId)).texte).toBe(`Bêtes · 5 · Bêtes · Places : · 67 / ${TOTAL} · Poule · Commune · 2 · Souris grise · Commune · 3`);
 
     expect(await reunir(t)).toEqual(["poule", "souris"]);
     // Les deux poules du Couple sont en Réserve : la poule quitte la liste, une souris reste.
-    expect((await page(t.territoireId)).texte).toBe("Bêtes · 1 · Bête · Souris grise · Commune · 1");
+    expect((await page(t.territoireId)).texte).toBe(`Bêtes · 1 · Bête · Places : · 1 / ${TOTAL} · Souris grise · Commune · 1`);
   });
 
   it("sans aucune Bête, ne dit que « Aucune Bête pour l'instant » et mène à l'Expédition ; la première Bête ramenée y met la liste (US-0811)", async () => {
@@ -122,6 +128,6 @@ describe.skipIf(!URL_TEST)("voir l'effectif par Espèce, sur base (US-0810)", ()
 
     // La première Bête ramenée au Foyer entre dans l'effectif (US-0938).
     await faireEntrerDansLEffectif(pool, t.territoireId, [{ especeId: "souris", sexe: "femelle" }]);
-    expect(await page(t.territoireId)).toEqual({ texte: "Bêtes · 1 · Bête · Souris grise · Commune · 1", liens: ["/jeu/reserve/souris?depuis=betes"] });
+    expect(await page(t.territoireId)).toEqual({ texte: `Bêtes · 1 · Bête · Places : · 1 / ${TOTAL} · Souris grise · Commune · 1`, liens: ["/jeu/reserve/souris?depuis=betes"] });
   });
 });

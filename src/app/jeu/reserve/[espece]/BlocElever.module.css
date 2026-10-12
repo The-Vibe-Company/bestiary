@@ -4,6 +4,11 @@
   scroll-margin-top: calc(var(--hauteur-barre) + var(--ecart));
 }
 
+/* US-0822 : le bouton sous le compteur des Places de l'Habitat du Foyer. */
+.formulaire {
+  margin-top: 10px;
+}
+
 /* Le bouton « Élever », au pouce, sur l'Encre ; grisé tant que l'Élevage ne se lance pas. */
 .bouton {
   min-height: 44px;

@@ -12,8 +12,9 @@
   line-height: 1.15;
 }
 
-/* Le total des Bêtes, en grand, son nom à côté, comme le nombre de Couples de la Réserve. */
+/* Le total des Bêtes, en grand, son nom à côté, comme le nombre de Couples de la Réserve ; US-0822 : les Places dessous. */
 .total {
+  margin-bottom: 6px;
   display: flex;
   gap: 8px;
   align-items: baseline;

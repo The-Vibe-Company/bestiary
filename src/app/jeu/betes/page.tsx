@@ -8,7 +8,9 @@ import { Bloc } from "@/components/Bloc";
 import { IllustrationEspece } from "@/components/IllustrationEspece";
 import { PastilleRarete } from "@/components/PastilleRarete";
 import { getPool } from "@/db";
+import { PlacesDeLHabitat } from "@/components/PlacesDeLHabitat";
 import { effectifParEspece } from "@/monde/effectif";
+import { placesDeLHabitat } from "@/monde/habitat";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = { title: "Bêtes" };
@@ -25,6 +27,9 @@ const betes = (nombre: number) => (nombre > 1 ? "Bêtes" : "Bête");
  * US-0811 : tant que le joueur n'a aucune Bête, la page, sobre, dit seulement « Aucune Bête pour l'instant », sans autre
  * phrase, avec un bouton « Envoyer une Expédition » vers l'écran d'Expédition (US-0901), comme la Réserve vide (US-0809) ;
  * dès la première Bête ramenée, le total et la liste prennent leur place.
+ *
+ * US-0822 : sous le total, « Places : occupées / total » pour l'Habitat du Foyer (placesDeLHabitat) ; pas sur la page
+ * vide, qui n'a pas d'autre phrase.
  */
 export default async function Betes() {
   await connection();
@@ -32,6 +37,7 @@ export default async function Betes() {
   const { territoireId } = await exigerCompte("/jeu/betes");
   const especes = territoireId === null ? [] : await effectifParEspece(getPool(), territoireId);
   const total = especes.reduce((somme, espece) => somme + espece.effectif, 0);
+  const places = territoireId === null || especes.length === 0 ? null : await placesDeLHabitat(getPool(), territoireId);
   return (
     <main className={styles.page}>
       <h1 className={styles.titre}>Bêtes</h1>
@@ -47,6 +53,7 @@ export default async function Betes() {
           <p className={styles.total}>
             <strong className={styles.nombre}>{total}</strong> {betes(total)}
           </p>
+          {places ? <PlacesDeLHabitat {...places} /> : null}
         </Bloc>
       )}
       {especes.length > 0 ? (

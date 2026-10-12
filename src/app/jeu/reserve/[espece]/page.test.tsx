@@ -20,6 +20,9 @@ vi.mock("@/monde/effectif", () => effectif);
 // US-0812 : l'Élevage de l'Espèce, acquis ou non, lu sur base (page.db.test.tsx).
 const elevage = vi.hoisted(() => ({ elevageAcquis: vi.fn(async () => false) }));
 vi.mock("@/monde/elevage", async (original) => ({ ...(await original<object>()), elevageAcquis: elevage.elevageAcquis }));
+// US-0822 : les Places de l'Habitat du Foyer, lues sur base (src/monde/habitat.db.test.ts).
+const habitat = vi.hoisted(() => ({ placesDeLHabitat: vi.fn(async () => ({ occupees: 21, total: 500 })) }));
+vi.mock("@/monde/habitat", () => habitat);
 vi.mock("@/temps/rattraper", () => ({ rattraper: vi.fn(async () => new Date()) }));
 vi.mock("@/db", () => ({ getPool: () => ({}) }));
 vi.mock("next/server", async (original) => ({ ...(await original<object>()), connection: async () => {} }));
@@ -79,6 +82,9 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
     expect(elevage.elevageAcquis).toHaveBeenLastCalledWith(expect.anything(), 12, "poule");
     expect(html).toMatch(/<div id="elever"[^>]*><section[^>]*><h2[^>]*>Élever<\/h2>/);
     expect(html.indexOf("Fermer")).toBeLessThan(html.indexOf('id="elever"'));
+    // US-0822 : avec les Places de l'Habitat du Foyer, comme la page Bêtes.
+    expect(habitat.placesDeLHabitat).toHaveBeenLastCalledWith(expect.anything(), 12);
+    expect(html.slice(html.indexOf('id="elever"')).replace(/<[^>]+>/g, "")).toContain("Places : 21 / 500");
   });
 
   it("ne le propose pas pour une Espèce sans Couple, même avec des Bêtes (US-0812)", async () => {

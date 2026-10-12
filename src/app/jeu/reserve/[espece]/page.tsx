@@ -9,6 +9,7 @@ import { PastilleRarete } from "@/components/PastilleRarete";
 import { getPool } from "@/db";
 import { especeDuTerritoire } from "@/monde/effectif";
 import { elevageAcquis } from "@/monde/elevage";
+import { placesDeLHabitat } from "@/monde/habitat";
 import { BlocElever } from "./BlocElever";
 import styles from "./page.module.css";
 
@@ -58,7 +59,7 @@ export default async function FicheDeLEspece({
           Fermer
         </Link>
       </article>
-      {territoireId !== null && (await elevageAcquis(getPool(), territoireId, espece)) ? <BlocElever especeId={espece} /> : null}
+      {territoireId !== null && (await elevageAcquis(getPool(), territoireId, espece)) ? <BlocElever especeId={espece} places={await placesDeLHabitat(getPool(), territoireId)} /> : null}
     </main>
   );
 }
