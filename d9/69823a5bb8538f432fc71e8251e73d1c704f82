@@ -1,0 +1,93 @@
+docs/stories/09-explorer-et-apprivoiser.md
+  s_7c7d151152e4a5::t_ce47825291edcd 518
+docs/stories/README.md
+  s_7c7d151152e4a5::t_d06471754faf78 7
+src/app/jeu/betes/page.css.test.ts
+  s_7c7d151152e4a5::t_87f1335bff9b1c 38-48
+src/app/jeu/betes/page.db.test.tsx
+  s_7c7d151152e4a5::t_3a24699ee99fa5 7,65,118-126
+src/app/jeu/betes/page.module.css
+  s_7c7d151152e4a5::t_35584f1cc6ec14 30-64,156-160
+src/app/jeu/betes/page.test.tsx
+  s_7c7d151152e4a5::t_c4dc30eab226b9 152-185
+src/app/jeu/betes/page.tsx
+  s_7c7d151152e4a5::t_ab46175587ae2e 29-32,46-59
+src/app/jeu/recits/AnnonceDuCouple.css.test.ts
+  s_7c7d151152e4a5::t_07596f19927f84 15-16,37-41
+src/app/jeu/recits/AnnonceDuCouple.module.css
+  s_7c7d151152e4a5::t_6210eb93f35a45 65-83,116-118,127
+src/app/jeu/recits/AnnonceDuCouple.tsx
+  s_7c7d151152e4a5::t_52abc5696161c3 1,5-9,14-15,21,24-27
+src/app/jeu/recits/ListeDesRecits.test.tsx
+  s_7c7d151152e4a5::t_17d7c6ad884f74 199,202-205,208,235-246
+src/app/jeu/recits/page.test.tsx
+  s_7c7d151152e4a5::t_15f4e663f1eaf6 298-317,341-345
+src/app/jeu/recits/page.tsx
+  s_7c7d151152e4a5::t_1d7bc462239f20 81-82,84
+src/app/jeu/reserve/[espece]/BlocElever.module.css
+  s_7c7d151152e4a5::t_5626d55e9a1359 1-41
+src/app/jeu/reserve/[espece]/BlocElever.test.tsx
+  s_7c7d151152e4a5::t_1e24366c98135b 1-48
+src/app/jeu/reserve/[espece]/BlocElever.tsx
+  s_7c7d151152e4a5::t_29dee6d6f429bf 1-36
+src/app/jeu/reserve/[espece]/actions.db.test.ts
+  s_7c7d151152e4a5::t_a1b90e499e3fb9 1-85
+src/app/jeu/reserve/[espece]/actions.test.ts
+  s_7c7d151152e4a5::t_ba48c34a440dda 1-93
+src/app/jeu/reserve/[espece]/actions.ts
+  s_7c7d151152e4a5::t_b3ef041e2506f2 1-28
+src/app/jeu/reserve/[espece]/page.db.test.tsx
+  s_7c7d151152e4a5::t_94966f3394604c 121-136
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_eb608135ba8718 25-27,91-107
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_c2b9079d37cc28 13,15,75
+src/expeditions/brouillard.db.test.ts
+  s_7c7d151152e4a5::t_cabb6168dad008 115-117
+src/expeditions/chances.db.test.ts
+  s_7c7d151152e4a5::t_11ae702db2369d 306-359
+src/expeditions/combat.db.test.ts
+  s_7c7d151152e4a5::t_04324d8d0bdbbb 14,17,29-30,305-329,505-546
+src/expeditions/pertes.ts
+  s_7c7d151152e4a5::t_5f845362e6eb6d 20-22,24,27,31-39,41
+src/expeditions/rappel.db.test.ts
+  s_7c7d151152e4a5::t_78937518a36b4a 140-142
+src/expeditions/recit-de-rencontre.db.test.ts
+  s_7c7d151152e4a5::t_97e7c0dc691a74 130-132
+src/expeditions/recit-de-retour.db.test.ts
+  s_7c7d151152e4a5::t_cf8172a906af8e 189-191
+src/expeditions/recit-de-retour.test.ts
+  s_7c7d151152e4a5::t_d02defd4d0740e 2-10,279,287,300-354
+src/expeditions/recit-de-retour.ts
+  s_7c7d151152e4a5::t_617b45cbb36ce6 9-10,24,78-79,85-90,241-263,273-275,290,307,353-357,375,377
+src/expeditions/recit-du-combat.test.ts
+  s_7c7d151152e4a5::t_9b7574c7b30434 1-48
+src/expeditions/recit-du-combat.ts
+  s_7c7d151152e4a5::t_8a97df4e8a7de1 1-65
+src/expeditions/rencontres.ts
+  s_7c7d151152e4a5::t_3529dc05ae62a4 135,160-162,170-175,180,182-185
+src/expeditions/retour.db.test.ts
+  s_7c7d151152e4a5::t_9a6bcc37d89c5c 132-134
+src/monde/elevage.ts
+  s_7c7d151152e4a5::t_53e5a173d88db4 23-28
+src/monde/famine-en-expedition.db.test.ts
+  s_7c7d151152e4a5::t_440b39d17bdfc6 171-173
+src/monde/recits.ts
+  s_7c7d151152e4a5::t_a53544020ce8c9 39-41,53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d969823a5bb8538f432fc71e8251e73d1c704f82",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
