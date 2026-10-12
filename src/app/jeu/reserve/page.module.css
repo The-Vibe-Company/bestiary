@@ -78,6 +78,26 @@
   list-style: none;
 }
 
+/* US-0803 : toute la carte est le lien vers la fiche de l'Espèce, sans soulignement ; au survol, elle se soulève. */
+.lien {
+  display: block;
+  height: 100%;
+  border-radius: var(--arrondi);
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .lien:hover .couple {
+    box-shadow: var(--ombre);
+  }
+}
+
+.lien:focus-visible {
+  outline: 2px solid var(--encre);
+  outline-offset: 2px;
+}
+
 .couple {
   height: 100%;
 }

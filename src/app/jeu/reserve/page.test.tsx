@@ -151,6 +151,17 @@ describe("voir ses Couples réunis (US-0802)", () => {
     expect(Reserve.length).toBe(0);
   });
 
+  it("fait de chaque Couple un lien vers la fiche de son Espèce (US-0803), nommé de l'Espèce et de sa Rareté", async () => {
+    connecte();
+    const html = renderToStaticMarkup(await Reserve());
+    const liens = [...html.matchAll(/<a ([^>]*)>/g)].map(([, a]) => [a.match(/href="([^"]*)"/)?.[1], a.match(/aria-label="([^"]*)"/)?.[1]]);
+    expect(liens.filter(([href]) => href?.startsWith("/jeu/reserve/"))).toEqual([
+      ["/jeu/reserve/souris", "Souris grise, Commune"],
+      ["/jeu/reserve/poule", "Poule, Commune"],
+      ["/jeu/reserve/pigeon", "Pigeon biset, Peu commune"],
+    ]);
+  });
+
   it("sans Couple, n'a pas de liste", async () => {
     connecte([]);
     expect(renderToStaticMarkup(await Reserve())).not.toContain("<ul");

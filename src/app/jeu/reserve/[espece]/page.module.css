@@ -1,0 +1,108 @@
+/* US-0803 : la fiche d'une Espèce de la Réserve, dans la largeur de l'écran du Foyer, comme la Réserve. */
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/*
+ * L'illustration en grand à gauche, 480 px au plus et jamais plus de 55 % de la fiche, pour que le nom garde sa place ;
+ * le nom et la Rareté à droite, « Fermer » dessous. Sur un téléphone tenu droit, l'illustration au-dessus, de toute la
+ * largeur ; couché, il garde les deux colonnes.
+ */
+.fiche {
+  display: grid;
+  grid-template-columns: minmax(0, min(480px, 55%)) minmax(0, 1fr);
+  grid-template-areas: "illustration entete" "illustration fermer";
+  grid-template-rows: auto 1fr;
+  gap: var(--ecart) 24px;
+  padding: var(--marge-bloc);
+  border-radius: var(--arrondi);
+  background: var(--bloc);
+}
+
+.illustration {
+  grid-area: illustration;
+  border-radius: var(--arrondi-petit);
+}
+
+.entete {
+  grid-area: entete;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  justify-items: start;
+  min-width: 0;
+}
+
+.nom {
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+/* « Fermer », au pouce : 44 px de haut, discret, comme une action secondaire. */
+.fermer {
+  grid-area: fermer;
+  align-self: start;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--trait);
+  border-radius: var(--arrondi-moyen);
+  color: var(--encre);
+  font-weight: var(--graisse-titre);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .fermer:hover {
+    background: var(--bloc-2);
+  }
+}
+
+.fermer:focus-visible {
+  outline: 2px solid var(--encre);
+  outline-offset: 2px;
+}
+
+@media (max-width: 820px), (max-height: 500px) {
+  .page {
+    padding: 12px;
+  }
+
+  .nom {
+    font-size: 24px;
+  }
+}
+
+/*
+ * Sur un téléphone couché, l'illustration se voit en entier sans défiler : pas plus haute que la place sous la barre, et
+ * le nom juste à côté d'elle.
+ */
+@media (max-height: 500px) and (orientation: landscape) {
+  .fiche {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .illustration {
+    width: min(480px, calc(var(--hauteur-utile) - 48px));
+  }
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .fiche {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "illustration" "entete" "fermer";
+    grid-template-rows: auto;
+  }
+
+  .fermer {
+    justify-self: stretch;
+    justify-content: center;
+  }
+}

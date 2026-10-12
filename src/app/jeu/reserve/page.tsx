@@ -21,7 +21,7 @@ export const metadata: Metadata = { title: "Réserve" };
  * US-0802 : dessous, chaque Couple réuni, du premier au dernier : ses deux Bêtes, sous l'illustration de leur Espèce,
  * puis son nom et sa Rareté ; le sexe ne s'y dit pas. Un lecteur d'écran lit la paire d'un seul nom, « Poule, deux
  * Bêtes ». Seule la Réserve du joueur connecté : la page ne prend rien de l'adresse, et ne lit que le Territoire de sa
- * session.
+ * session. US-0803 : toucher un Couple ouvre la fiche de son Espèce (/jeu/reserve/<Espèce>).
  *
  * US-0809 : tant qu'aucun Couple n'est réuni, la Réserve, sobre, dit seulement « Aucun Couple pour l'instant », sans autre
  * phrase, avec un bouton « Envoyer une Expédition » vers l'écran d'Expédition (US-0901) ; dès le premier Couple, la
@@ -54,16 +54,18 @@ export default async function Reserve() {
         <ul className={styles.liste} aria-label="Couples">
           {couples.map((couple) => (
             <li key={couple.especeId}>
-              <Bloc className={styles.couple}>
-                <div className={styles.betes} role="img" aria-label={`${couple.nom}, deux Bêtes`}>
-                  <IllustrationEspece espece={couple} format="paire" className={styles.bete} />
-                  <IllustrationEspece espece={couple} format="paire" className={styles.bete} />
-                </div>
-                <p className={styles.espece}>
-                  <span className={styles.nom}>{couple.nom}</span>
-                  <PastilleRarete rarete={couple.rarete} />
-                </p>
-              </Bloc>
+              <Link href={`/jeu/reserve/${couple.especeId}`} className={styles.lien} aria-label={`${couple.nom}, ${couple.rarete.nom}`}>
+                <Bloc className={styles.couple}>
+                  <div className={styles.betes} role="img" aria-label={`${couple.nom}, deux Bêtes`}>
+                    <IllustrationEspece espece={couple} format="paire" className={styles.bete} />
+                    <IllustrationEspece espece={couple} format="paire" className={styles.bete} />
+                  </div>
+                  <p className={styles.espece}>
+                    <span className={styles.nom}>{couple.nom}</span>
+                    <PastilleRarete rarete={couple.rarete} />
+                  </p>
+                </Bloc>
+              </Link>
             </li>
           ))}
         </ul>
