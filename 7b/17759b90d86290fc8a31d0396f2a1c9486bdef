@@ -1,0 +1,27 @@
+src/app/jeu/betes/page.db.test.tsx
+  s_7c7d151152e4a5::t_e9b59b4fb022db 9,21-23,104,118,122,131
+src/components/PlacesDeLHabitat.test.tsx
+  s_7c7d151152e4a5::t_e259bf4a01aeed 15-19
+src/components/PlacesDeLHabitat.tsx
+  s_7c7d151152e4a5::t_78512a2da81ad1 8-9,14
+src/monde/habitat.db.test.ts
+  s_7c7d151152e4a5::t_c9553ffa008fde 53,61-73
+src/monde/habitat.ts
+  s_7c7d151152e4a5::t_0f2a276934ded5 12-16,25-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7b17759b90d86290fc8a31d0396f2a1c9486bdef",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
