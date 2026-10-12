@@ -337,3 +337,10 @@ export const BROUILLARD_LEVE_AUTOUR_DE_LA_DESTINATION_CASES = 2;
  */
 export const SIMULATION_DES_SEXES_APPRIVOISEMENTS = 10_000;
 export const SIMULATION_DES_SEXES_TOLERANCE_POINTS = 2;
+
+/**
+ * US-0943 : tant qu'une Bête trop forte pour l'escorte et l'Expédition qui la voit sont sur la même Case, la Bête a 10 %
+ * de chance (valeur provisoire, à régler en jouant) d'attaquer l'Expédition par heure passée ensemble ; doublée pour un
+ * carnivore, divisée par deux pour un herbivore, telle quelle pour un omnivore (src/expeditions/attaque.ts).
+ */
+export const CHANCE_D_ATTAQUE_PAR_HEURE = 0.1;

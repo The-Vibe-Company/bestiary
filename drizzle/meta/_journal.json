@@ -421,6 +421,13 @@
       "when": 1791574110322,
       "tag": "0061_couple",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1791574927691,
+      "tag": "0062_attaque_des_betes_trop_fortes",
+      "breakpoints": true
     }
   ]
 }

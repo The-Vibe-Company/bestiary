@@ -5,11 +5,12 @@
 // (table bete_de_naissance), pour que l'étape 40 les fasse rencontrer. Comme toute Bête sauvage, elles ne se voient pas
 // sur la carte. Comme elles, aucune ne se trouve sur une Case qui appartient à un Territoire : une Case prise après leur
 // arrivée (un Foyer né tout près) les perd. US-0937 : apprivoisée, chacune est mâle ou femelle, tiré comme les Bêtes
-// sauvages ordinaires. Côté serveur uniquement : l'heure du jeu vient de l'appelant.
+// sauvages ordinaires. US-0943 : de même, si elle était trop forte, ses tirages d'attaque. Côté serveur uniquement :
+// l'heure du jeu vient de l'appelant.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
 import { BETES_DE_NAISSANCE, PORTEE_D_EXPLORATION_CASES, PRESENCE_D_UNE_BETE_DE_NAISSANCE_HEURES } from "@/reglages";
-import { type Sexe, tirerUnSexe } from "./betes-sauvages";
+import { type HasardsDeLAttaque, type Sexe, tirerUnSexe } from "./betes-sauvages";
 import { hacher } from "./couronne";
 import { casesDesAnneaux } from "./hex";
 
@@ -62,6 +63,23 @@ const TIRAGE_DU_SEXE = 6;
  */
 export function sexeDUneBeteDeNaissance(graine: number, id: number): Sexe {
   return tirerUnSexe(hacher(graine, id, TIRAGE_DU_SEXE));
+}
+
+/** US-0943 : les tirages de l'attaque d'une Bête de naissance, et de son moment, à part de celui de son sexe. */
+const TIRAGE_DE_L_ATTAQUE = 7;
+const TIRAGE_DU_MOMENT_DE_L_ATTAQUE = 8;
+
+/**
+ * US-0943 : les hasards de l'heure `heure` passée par la Bête de naissance `id` d'un Monde de graine `graine` avec
+ * l'Expédition `expeditionId`, comptée depuis leur Rencontre, comme ceux d'une Bête sauvage ordinaire (hasardsDeLAttaque) :
+ * une fonction de la graine, de la Bête, de l'Expédition et de l'heure, jamais de l'heure qu'il est. Une Bête de naissance,
+ * toujours commune, est toujours à portée et n'attaque jamais : ils ne servent que si elle cessait de l'être.
+ */
+export function hasardsDeLAttaqueDUneBeteDeNaissance(graine: number, id: number, expeditionId: number, heure: number): HasardsDeLAttaque {
+  return {
+    attaque: hacher(graine, id, expeditionId, heure, TIRAGE_DE_L_ATTAQUE),
+    moment: hacher(graine, id, expeditionId, heure, TIRAGE_DU_MOMENT_DE_L_ATTAQUE),
+  };
 }
 
 /**

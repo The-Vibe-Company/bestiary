@@ -9,7 +9,8 @@
 // Case. US-0930 : tout se compte en temps du jeu, par tranches fixes : pour une Case et une période, les mêmes Bêtes,
 // qu'on les calcule en direct ou au rattrapage, d'un bloc ou par morceaux, seule ou avec tout le Monde ; la vitesse
 // accélérée du temps accélère d'autant leurs apparitions et leurs durées. US-0937 : apprivoisée, une Bête est mâle ou
-// femelle, tiré de même. Côté serveur et scripts uniquement.
+// femelle, tiré de même. US-0943 : trop forte, elle tire de même, heure par heure, si elle attaque l'Expédition qui la
+// voit. Côté serveur et scripts uniquement.
 import type { Pool, PoolClient } from "pg";
 import { type ChancesDeRarete, lireRaretesParAnneau } from "@/donnees/jeux";
 import { APPARITIONS_PAR_CASE_PAR_JOUR, PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
@@ -23,7 +24,7 @@ const JOUR_MS = 86_400_000;
 /** Au plus 100 apparitions par Case et par tranche (en moyenne, bien moins d'une), pour que leurs numéros ne se mêlent jamais. */
 const PAR_TRANCHE = 100;
 /** Ce que chaque tranche, puis chaque apparition, tire de son côté. */
-const TIRAGE = { nombre: 1, moment: 2, rarete: 3, espece: 4, sexe: 5 } as const;
+const TIRAGE = { nombre: 1, moment: 2, rarete: 3, espece: 4, sexe: 5, attaque: 6, momentDeLAttaque: 7 } as const;
 /** US-0926 : combien de temps une Bête reste sur sa Case, en temps du jeu. */
 const PRESENCE_MS = PRESENCE_D_UNE_BETE_HEURES * TRANCHE_MS;
 
@@ -123,6 +124,26 @@ export function tirerUnSexe(hasard: number): Sexe {
  */
 export function sexeTire({ graine, q, r }: Pick<CaseSauvage, "graine" | "q" | "r">, numero: number): Sexe {
   return tirerUnSexe(hacher(graine, q, r, numero, TIRAGE.sexe));
+}
+
+/**
+ * US-0943 : les deux hasards, de 0 à 1, d'une heure passée par une Bête trop forte avec l'Expédition qui la voit : s'il
+ * tombe sous sa chance, `attaque` la fait attaquer pendant cette heure, au `moment` qu'il dit, de son début à sa fin
+ * (src/expeditions/attaque.ts).
+ */
+export type HasardsDeLAttaque = { attaque: number; moment: number };
+
+/**
+ * US-0943 : les hasards de l'heure `heure` passée par l'apparition `numero` de la Case `laCase` avec l'Expédition
+ * `expeditionId`, comptée depuis leur Rencontre (0 pour la première) : comme son sexe, une fonction de la graine de son
+ * Monde, de sa Case, de son numéro, de l'Expédition et de l'heure, par des tirages qui leur sont propres, jamais de
+ * l'heure qu'il est. Les mêmes en direct, au rattrapage ou par la tâche planifiée.
+ */
+export function hasardsDeLAttaque({ graine, q, r }: Pick<CaseSauvage, "graine" | "q" | "r">, numero: number, expeditionId: number, heure: number): HasardsDeLAttaque {
+  return {
+    attaque: hacher(graine, q, r, numero, expeditionId, heure, TIRAGE.attaque),
+    moment: hacher(graine, q, r, numero, expeditionId, heure, TIRAGE.momentDeLAttaque),
+  };
 }
 
 /** Le nombre d'apparitions d'une tranche, de moyenne `moyenne` : une loi de Poisson, celle d'apparitions indépendantes. */
