@@ -1,0 +1,41 @@
+src/app/jeu/recits/LectureDuRecit.tsx
+  s_75e9a780874bbd::t_25e95896544574 1-83
+src/app/jeu/recits/ListeDesRecits.test.tsx
+  s_75e9a780874bbd::t_5bf03e5c6fecaa 24-27,35,48-49,60,65-75,79,115,119,122-123,125,127-128,130,137,182,191,196,200-290
+src/app/jeu/recits/ListeDesRecits.tsx
+  s_75e9a780874bbd::t_e45d380bfbc963 3-5,7-8,10,28-33,36,40-44,47-48,55-102
+src/app/jeu/recits/RencontresDuRecit.css.test.ts
+  s_75e9a780874bbd::t_eb93ed549c258b 9-10,12-13,15-19,28,32-36
+src/app/jeu/recits/RencontresDuRecit.module.css
+  s_75e9a780874bbd::t_5a6a77c5930a2a 1-5,8-12,16-19,22-23,26,28-31,35-50,53-55,59-64,66-67,70-104,108,115-116,120-128,131-132,137,140,143-147,151-152,154,156,158-159,161-172
+src/app/jeu/recits/RencontresDuRecit.tsx
+  s_75e9a780874bbd::t_bd48b1785e1f59 1-3,28,40-57,59-63,65,67,70,72-77,80-82,87-92
+src/app/jeu/recits/lecture-du-recit.test.ts
+  s_75e9a780874bbd::t_8d5e18cc39f7d9 1-59
+src/app/jeu/recits/lecture-du-recit.ts
+  s_75e9a780874bbd::t_50b9b32ad34577 1-72
+src/app/jeu/recits/page.css.test.ts
+  s_75e9a780874bbd::t_35d1670b897722 9-10,13,15,26-53
+src/app/jeu/recits/page.module.css
+  s_75e9a780874bbd::t_599f254e60c155 1-5,7,11-30,34-41,45,52-56,59-62,65-68,72,74-75,79-88,93,98-105,114-117,121-122,127-128,131-138,141-144,147-151,154-201,204-210,212-219,222-254,256-266,270-286,288-292,297-305,309-397,401-402,404,406,408,410-418,420,422-424,426-429
+src/app/jeu/recits/page.test.tsx
+  s_75e9a780874bbd::t_e7ad81c1ae19e2 10-14,47-58,60-66,74,77,108-110,113,119-124,152-155,157-162,222-227
+src/app/jeu/recits/page.tsx
+  s_75e9a780874bbd::t_cfdf2617882172 6-7,12,35-36,45-48,50-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d78e2c24aea5a591996906e3717d1d596327851d",
+  "prompts": {},
+  "sessions": {
+    "s_75e9a780874bbd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e8a22366-3524-4157-8983-f900d79a348a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
