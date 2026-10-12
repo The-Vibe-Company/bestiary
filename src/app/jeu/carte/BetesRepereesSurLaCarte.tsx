@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { type RefObject, useEffect, useRef } from "react";
 import type { BeteReperee } from "@/expeditions/betes-reperees";
+import { versLEcran } from "@/expeditions/choix-de-destination";
 import type { Coordonnees } from "@/monde/hex";
 import { jusquAEnviron } from "@/temps/affichage";
 import { useHeureDuJeu } from "@/temps/heure-du-jeu";
@@ -9,6 +11,7 @@ import styles from "./BetesRepereesSurLaCarte.module.css";
 import { aLEcran, type Cadre, type Vue } from "./dessin";
 import { poserUnRepere, type RepereSurLaCarte } from "./ExpeditionsSurLaCarte";
 import { PanneauSurLaCarte } from "./FicheDeLaCase";
+import ficheStyles from "./FicheDeLaCase.module.css";
 
 /** Le fuseau des joueurs, pour l'heure jusqu'à laquelle une Bête devrait rester. */
 const FUSEAU = "Europe/Paris";
@@ -32,6 +35,9 @@ export function placerLesBetes(reperes: readonly RepereDeBete[], vue: Vue): void
  * regardée (`regardee`). Toucher un repère, ou l'appuyer au clavier, la regarde (`regarder`) ; sa fiche se ferme
  * (`fermer`) comme celle d'une Case, et la carte glisse pour qu'elle ne cache pas sa Case (`montrer`). À la fin de sa
  * durée, le repère s'en va, sa fiche avec lui, sans recharger la page ni rien dire de plus (décidé le 2026-10-09).
+ * US-0949 : sa fiche finit sur « Revenir la chercher », vers l'écran d'Expédition avec sa Case pour destination, comme
+ * « Envoyer une Expédition » au pied de la fiche d'une Case ; sur la carte ouverte pour choisir la destination
+ * (`destination`, son adresse), avec les autres choix que l'écran y a gardés, comme « Choisir cette destination ».
  */
 export function BetesRepereesSurLaCarte({
   betes,
@@ -43,6 +49,7 @@ export function BetesRepereesSurLaCarte({
   fermer,
   carte,
   montrer,
+  destination = null,
 }: {
   betes: readonly BeteReperee[];
   maintenant: Date;
@@ -53,6 +60,7 @@ export function BetesRepereesSurLaCarte({
   fermer: () => void;
   carte: RefObject<HTMLCanvasElement | null>;
   montrer: (c: Coordonnees, cache: Cadre) => void;
+  destination?: string | null;
 }) {
   const instant = useHeureDuJeu(maintenant, vitesse);
   // Celles encore sur leur Case à l'heure du jeu.
@@ -107,6 +115,9 @@ export function BetesRepereesSurLaCarte({
           <h2 className={styles.titre}>Bête repérée</h2>
           <p className={styles.espece}>{ouverte.espece}</p>
           <p className={styles.jusqua}>{jusqua[0].toUpperCase() + jusqua.slice(1)}</p>
+          <Link href={versLEcran(ouverte.laCase, destination ?? "")} className={ficheStyles.envoyer}>
+            Revenir la chercher
+          </Link>
         </PanneauSurLaCarte>
       ) : null}
     </>

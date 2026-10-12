@@ -181,12 +181,17 @@ describe.skipIf(!URL_TEST)("les Bêtes repérées que la carte reçoit, sur base
       horloge.instant = null;
     }
   };
-  /** Le repère qu'attend la Bête `bete` de la Case `place` : son Espèce, sa force et la fin de sa durée. */
-  const repereDe = (place: Coordonnees, bete: { especeId: string; depart: Date }) => ({
+  /**
+   * Le repère qu'attend la Bête `bete` de la Case `place` : son Espèce, sa force et la fin de sa durée. US-0949 : et son
+   * numéro sur sa Case, et la Rareté de son Espèce.
+   */
+  const repereDe = (place: Coordonnees, bete: { numero: number; especeId: string; rareteId: string; depart: Date }) => ({
     id: expect.any(Number),
     laCase: place,
+    numero: bete.numero,
     especeId: bete.especeId,
     espece: especes.get(bete.especeId)!.nom,
+    rareteId: bete.rareteId,
     force: especes.get(bete.especeId)!.force,
     jusquA: bete.depart.toISOString(),
   });

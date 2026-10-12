@@ -108,4 +108,12 @@ describe("le récit de Rencontre (US-0940)", () => {
     render(<RencontresDuRecit rencontres={[RENCONTRES[1]]} />);
     expect(screen.getByRole("list").textContent).toBe("14:40Renard rouxRareTrop forte, restée sur sa Case");
   });
+
+  it("mène une Bête restée sur sa Case, tant qu'elle y est, à « Revenir la chercher », vers l'écran d'Expédition (US-0949)", () => {
+    const revenir = "/jeu/expeditions/nouvelle?q=3&r=-5";
+    render(<RencontresDuRecit rencontres={[{ ...RENCONTRES[1], revenir }, RENCONTRES[1]]} />);
+    const [encoreLa, partie] = lignes();
+    expect(within(encoreLa).getByRole("link", { name: "Revenir la chercher" }).getAttribute("href")).toBe(revenir);
+    expect(within(partie).queryByRole("link")).toBeNull();
+  });
 });

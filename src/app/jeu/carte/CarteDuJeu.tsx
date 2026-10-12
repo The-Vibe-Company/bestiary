@@ -361,6 +361,7 @@ export function CarteDuJeu({
           fermer={nePlusRegarder}
           carte={toile}
           montrer={montrer}
+          destination={destination}
         />
       ) : null}
       {suivies.length > 0 && maintenant ? (

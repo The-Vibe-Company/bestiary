@@ -17,9 +17,19 @@ import { forcesDesEscortes } from "./rencontres";
 /**
  * US-0948 : une Bête repérée : sa première Rencontre avec le joueur (id), sa Case, son Espèce et son nom, la force d'une
  * Bête de cette Espèce (US-0905), et l'instant du jeu jusqu'auquel elle devrait rester sur sa Case (son départ, exclu) :
- * ce qu'il faudra pour revenir la chercher (US-0949).
+ * ce qu'il faudra pour revenir la chercher (US-0949). US-0949 : et son numéro sur sa Case, qui la distingue des autres
+ * Bêtes de sa Case, et la Rareté de son Espèce, pour dire si une escorte l'aura à portée (aPortee).
  */
-export type BeteReperee = { id: number; laCase: Coordonnees; especeId: string; espece: string; force: number; jusquA: Date };
+export type BeteReperee = {
+  id: number;
+  laCase: Coordonnees;
+  numero: number;
+  especeId: string;
+  espece: string;
+  rareteId: string;
+  force: number;
+  jusquA: Date;
+};
 
 /**
  * US-0948 : les Bêtes que les Expéditions du Territoire, rentrées à l'instant du jeu `instant`, ont vues sans qu'elles les
@@ -74,5 +84,14 @@ export async function betesReperees(base: Pool | PoolClient, territoireId: numbe
       return lExpeditionSuivie(b, rivales) === null;
     })
     .sort((a, b) => a.id - b.id)
-    .map((b) => ({ id: b.id, laCase: { q: b.q, r: b.r }, especeId: b.especeId, espece: b.espece, force: b.force, jusquA: b.depart }));
+    .map((b) => ({
+      id: b.id,
+      laCase: { q: b.q, r: b.r },
+      numero: Number(b.numero),
+      especeId: b.especeId,
+      espece: b.espece,
+      rareteId: b.rareteId,
+      force: b.force,
+      jusquA: b.depart,
+    }));
 }

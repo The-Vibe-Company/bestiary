@@ -88,6 +88,23 @@
   overflow-wrap: anywhere;
 }
 
+/* US-0949 : « Revenir la chercher », sous une Bête restée sur sa Case : un lien d'Encre, à toucher du doigt. */
+.revenir {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--encre);
+  font-weight: var(--graisse-titre);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.revenir:focus-visible {
+  outline: 2px solid var(--encre);
+  outline-offset: 2px;
+}
+
 /* Sur mobile, la vignette se réduit et le texte passe à la ligne, sans déborder. */
 @media (max-width: 820px), (max-height: 500px) {
   .rencontres {

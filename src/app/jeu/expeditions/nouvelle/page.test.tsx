@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { BeteReperee } from "@/expeditions/betes-reperees";
 import type { Destination } from "@/expeditions/destination";
 import type { Fiche } from "@/monde/fiche";
 import { SEJOUR_MINUTES } from "@/reglages";
@@ -40,6 +41,9 @@ const effectif = vi.hoisted(() => ({
 }));
 vi.mock("@/monde/effectif", () => effectif);
 vi.mock("./Escorte", () => ({ Escorte: (p: object) => <i data-escorte={JSON.stringify(p)} /> }));
+// US-0949 : les Bêtes repérées du Territoire, lues sur base (betes-reperees.db.test.tsx) : ici, ce que l'écran en fait.
+const reperees = vi.hoisted(() => ({ betesReperees: vi.fn(async (): Promise<BeteReperee[]> => []) }));
+vi.mock("@/expeditions/betes-reperees", () => reperees);
 // US-0909 : l'escorte d'une Expédition sans Bête, réduite à sa place (testée à part).
 vi.mock("./SansEscorte", () => ({ SansEscorte: () => <i data-sans-escorte="" /> }));
 vi.mock("@/temps/rattraper", () => ({ rattraper: vi.fn(async () => new Date()) }));
@@ -419,6 +423,7 @@ describe("le récapitulatif avant le départ (US-0910)", () => {
       libres: 2,
       especes: [SOURIS],
       destination: { q: 3, r: -5, biome: "Forêt", distance: 7 },
+      betes: [],
       maintenant: "2026-10-09T07:42:13.250Z",
       vitesse: 60,
     });
@@ -438,5 +443,32 @@ describe("le récapitulatif avant le départ (US-0910)", () => {
     connecte();
     effectif.betesDisponibles.mockResolvedValueOnce([]);
     expect(confie(await ouvrir(), "recapitulatif").especes).toEqual([]);
+  });
+
+  it("lui donne les Bêtes repérées sur la Case de destination, lues pour le Territoire à l'heure du jeu, et aucune ailleurs (US-0949)", async () => {
+    connecte();
+    const PIGEON: BeteReperee = {
+      id: 41,
+      laCase: { q: 3, r: -5 },
+      numero: 7,
+      especeId: "pigeon",
+      espece: "Pigeon biset",
+      rareteId: "rare",
+      force: 9_000,
+      jusquA: new Date("2026-10-09T11:42:13.250Z"),
+    };
+    const POULE: BeteReperee = { ...PIGEON, id: 42, laCase: { q: 4, r: -5 }, especeId: "poule", espece: "Poule", force: 20_000 };
+    reperees.betesReperees.mockResolvedValue([PIGEON, POULE]);
+    destinations.destinationDUneCase.mockResolvedValue({ fiche: FORET });
+    expect(confie(await ouvrir({ q: "3", r: "-5" }), "recapitulatif").betes).toEqual([
+      { espece: "Pigeon biset", force: 9_000, rareteId: "rare", jusquA: "2026-10-09T11:42:13.250Z" },
+    ]);
+    expect(reperees.betesReperees).toHaveBeenCalledWith(expect.anything(), 12, new Date("2026-10-09T07:42:13.250Z"));
+    // Sans destination, ou pour une Case refusée, aucune.
+    destinations.destinationDUneCase.mockResolvedValue({ refus: "Cette Case appartient à un Territoire." });
+    expect(confie(await ouvrir({ q: "3", r: "-5" }), "recapitulatif").betes).toEqual([]);
+    destinations.destinationDUneCase.mockResolvedValue(null);
+    expect(confie(await ouvrir(), "recapitulatif").betes).toEqual([]);
+    reperees.betesReperees.mockReset().mockResolvedValue([]);
   });
 });

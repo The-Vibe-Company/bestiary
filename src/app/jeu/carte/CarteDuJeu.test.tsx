@@ -1231,8 +1231,17 @@ describe("repérer la Bête restée sur la carte (US-0948)", () => {
   const GRANDE: CarteDuJoueur = { ...CARTE, cases: { q: autour.map((c) => c.q), r: autour.map((c) => c.r), teinte: autour.map(() => 0), zone: autour.map(() => 0) } };
   /** La prairie à 3 Cases à l'est du Foyer, où un Renard roux est resté jusqu'à 13 h 42, et une Loutre à 2 Cases au nord-ouest. */
   const PRAIRIE = { q: FOYER.q + 3, r: FOYER.r };
-  const RENARD: BeteReperee = { id: 41, laCase: PRAIRIE, especeId: "renard_roux", espece: "Renard roux", force: 37_340, jusquA: apres(4 * 60) };
-  const LOUTRE: BeteReperee = { id: 42, laCase: { q: FOYER.q, r: FOYER.r - 2 }, especeId: "loutre_d_europe", espece: "Loutre d'Europe", force: 42_295, jusquA: apres(30) };
+  const RENARD: BeteReperee = {
+    id: 41,
+    laCase: PRAIRIE,
+    numero: 7,
+    especeId: "renard_roux",
+    espece: "Renard roux",
+    rareteId: "peu_commune",
+    force: 37_340,
+    jusquA: apres(4 * 60),
+  };
+  const LOUTRE: BeteReperee = { ...RENARD, id: 42, laCase: { q: FOYER.q, r: FOYER.r - 2 }, numero: 3, especeId: "loutre_d_europe", espece: "Loutre d'Europe", force: 42_295, jusquA: apres(30) };
   /** Une Expédition en séjour sur la prairie depuis une demi-heure. */
   const ENSEJOUR: ExpeditionEnCours = {
     id: 7,
@@ -1299,6 +1308,21 @@ describe("repérer la Bête restée sur la carte (US-0948)", () => {
     expect(repere()!.getAttribute("aria-expanded")).toBe("true");
     // Le repère touché, et non la Case dessous : aucune fiche de Case demandée.
     expect(fiches).toEqual([]);
+  });
+
+  it("finit sa fiche sur « Revenir la chercher », vers l'écran d'Expédition avec sa Case pour destination (US-0949)", () => {
+    render(carte([RENARD]));
+    toucher(aLEcran(PRAIRIE, ouverte()));
+    const revenir = within(ficheDeLaBete()!).getByRole("link", { name: "Revenir la chercher" });
+    expect(revenir.getAttribute("href")).toBe(`/jeu/expeditions/nouvelle?q=${PRAIRIE.q}&r=${PRAIRIE.r}`);
+  });
+
+  it("pendant le choix d'une destination, ouverte au clavier, rend à l'écran d'Expédition les choix qu'il avait (US-0949)", async () => {
+    render(<CarteDuJeu carte={GRANDE} fonds={FONDS} destination="choix=destination&sejour=240" betes={[RENARD]} maintenant={MAINTENANT} />);
+    repere()!.focus();
+    await userEvent.setup().keyboard("{Enter}");
+    const revenir = within(ficheDeLaBete()!).getByRole("link", { name: "Revenir la chercher" });
+    expect(revenir.getAttribute("href")).toBe(`/jeu/expeditions/nouvelle?q=${PRAIRIE.q}&r=${PRAIRIE.r}&sejour=240`);
   });
 
   it("se prend aussi au clavier, et se ferme comme la fiche d'une Case", async () => {

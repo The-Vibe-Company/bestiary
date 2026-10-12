@@ -9,6 +9,7 @@
 import "server-only";
 import type { PoolClient } from "pg";
 import type { Sexe } from "@/monde/betes-sauvages";
+import type { Coordonnees } from "@/monde/hex";
 import type { IssueDUneRencontre, RencontreRacontee } from "@/monde/recits";
 import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { type BeteSurLaCase, type ExpeditionSurLaCase, forceQuiManque, lExpeditionSuivie } from "./apprivoisement";
@@ -45,12 +46,15 @@ export function departDUneBete(bete: BeteSurLaCase, expeditions: readonly Expedi
  * suivie en est repartie avant elle, et (US-0950) à quel instant ; restée, la force qui manquait à son escorte
  * (forceQuiManque). Aucune sans séjour.
  * Appelée au retour, dans sa transaction : le Territoire est calculé jusque-là, ses Rencontres sont toutes retenues.
+ * US-0949 : une Bête sauvage restée, sa Case (`laCase`, celle de l'Expédition) et son numéro sur sa Case, pour que le
+ * récit mène à elle tant qu'elle y est.
  */
 export async function rencontresARaconter(
   client: PoolClient,
   expeditionId: number,
   vues: readonly Rencontre[],
   sejour: { debut: Date; fin: Date } | null,
+  laCase: Coordonnees,
 ): Promise<RencontreRacontee[]> {
   if (vues.length === 0 || !sejour) return [];
   // L'une après l'autre : sur le client d'une transaction, deux requêtes ne partent pas à la fois.
@@ -67,6 +71,7 @@ export async function rencontresARaconter(
       sexe: sexes.get(r.id) ?? null,
       nouvelleEspece: r.nouvelleEspece,
       ...(issue === "restee" && restee?.manque ? { manque: restee.manque } : {}),
+      ...(issue === "restee" && r.numero !== null ? { laCase, numero: r.numero } : {}),
     };
   });
 }

@@ -1,5 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { BeteReperee } from "@/expeditions/betes-reperees";
+import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 
 // La vraie garde, branchée sur une session simulée.
 const cookie = vi.hoisted(() => ({ jetonDeSession: vi.fn() }));
@@ -15,6 +17,11 @@ type Recit = { id: number; titre: string; texte: string; survenuLe: Date; luLe: 
 const recits = vi.hoisted(() => ({ recitsDuTerritoire: vi.fn(async (): Promise<Recit[]> => []), marquerUnRecitLu: vi.fn() }));
 vi.mock("@/monde/recits", () => recits);
 vi.mock("@/temps/rattraper", () => ({ rattraper: vi.fn(async () => new Date()) }));
+// US-0949 : les Bêtes repérées du Territoire, lues sur base (betes-reperees.db.test.tsx), à l'heure du jeu.
+const reperees = vi.hoisted(() => ({ betesReperees: vi.fn(async (): Promise<BeteReperee[]> => []) }));
+vi.mock("@/expeditions/betes-reperees", () => reperees);
+const MAINTENANT = vi.hoisted(() => new Date("2026-10-12T22:00:00Z"));
+vi.mock("@/temps/horloge", async (original) => ({ ...(await original<object>()), maintenant: () => MAINTENANT }));
 vi.mock("@/db", () => ({ getPool: () => ({}) }));
 vi.mock("next/server", async (original) => ({ ...(await original<object>()), connection: async () => {} }));
 
@@ -159,6 +166,64 @@ describe("page Récits (US-0324)", () => {
     ]);
     // Restée sur sa Case, la force qui manquait à l'escorte (US-0942).
     expect(html).toContain("Trop forte, restée sur sa Case : il manquait 37 340 de force");
+  });
+
+  it("mène une Bête restée sur sa Case à « Revenir la chercher » tant qu'elle y est repérée, à l'heure du jeu (US-0949)", async () => {
+    const restee = (laCase?: { q: number; r: number }, numero?: number) => ({
+      especeId: "pigeon",
+      vueLe: new Date("2026-10-12T18:46:00Z"),
+      issue: "restee" as const,
+      sexe: null,
+      nouvelleEspece: false,
+      manque: 8_054,
+      ...(laCase && { laCase, numero }),
+      nom: "Pigeon biset",
+      illustration: null,
+      rarete: { id: "rare", nom: "Rare" },
+    });
+    connecte([
+      {
+        id: 53,
+        titre: "Retour d'Expédition",
+        texte: "3 Bêtes se sont montrées.",
+        survenuLe: new Date("2026-10-12T21:00:00Z"),
+        luLe: null,
+        // Encore là ; déjà partie ; un Récit écrit avant US-0949, sans sa Case.
+        rencontres: [restee({ q: 3, r: -5 }, 7), restee({ q: 3, r: -5 }, 8), restee()],
+      } as Recit,
+    ]);
+    const PIGEON: BeteReperee = {
+      id: 41,
+      laCase: { q: 3, r: -5 },
+      numero: 7,
+      especeId: "pigeon",
+      espece: "Pigeon biset",
+      rareteId: "rare",
+      force: 9_000,
+      jusquA: new Date("2026-10-13T01:00:00Z"),
+    };
+    // Une autre Bête repérée ailleurs, au même numéro : elle ne compte pas.
+    reperees.betesReperees.mockResolvedValueOnce([PIGEON, { ...PIGEON, id: 42, laCase: { q: 4, r: -5 }, numero: 8 }]);
+    const html = renderToStaticMarkup(await Recits());
+    expect(reperees.betesReperees).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, MAINTENANT);
+    const liens = [...html.matchAll(/<a [^>]*href="([^"]*)"[^>]*>Revenir la chercher<\/a>/g)].map(([, href]) => href.replace(/&amp;/g, "&"));
+    expect(liens).toEqual(["/jeu/expeditions/nouvelle?q=3&r=-5"]);
+    // Sous la première Rencontre seulement.
+    const liste = html.match(/<ol [^>]*aria-label="Rencontres"[^>]*>(.*?)<\/ol>/)![1];
+    expect(liste.split("</li>").slice(0, -1).map((ligne) => ligne.includes("Revenir la chercher"))).toEqual([true, false, false]);
+  });
+
+  it("ne lit aucune Bête repérée sans Bête restée qui mène à sa Case, ni pour une vue depuis plus longtemps que sa présence (US-0949)", async () => {
+    reperees.betesReperees.mockClear();
+    connecte();
+    renderToStaticMarkup(await Recits());
+    expect(reperees.betesReperees).not.toHaveBeenCalled();
+    // Vue plus de PRESENCE_D_UNE_BETE_HEURES avant l'heure du jeu : elle est forcément partie depuis.
+    const vueLe = new Date(MAINTENANT.getTime() - PRESENCE_D_UNE_BETE_HEURES * 3_600_000 - 1);
+    const ancienne = { especeId: "pigeon", vueLe, issue: "restee" as const, sexe: null, nouvelleEspece: false, laCase: { q: 3, r: -5 }, numero: 7 };
+    connecte([{ id: 54, titre: "Retour d'Expédition", texte: "…", survenuLe: vueLe, luLe: null, rencontres: [{ ...ancienne, nom: "Pigeon biset", illustration: null, rarete: { id: "rare", nom: "Rare" } }] } as Recit]);
+    expect(renderToStaticMarkup(await Recits())).not.toContain("Revenir la chercher");
+    expect(reperees.betesReperees).not.toHaveBeenCalled();
   });
 
   it("dit l'heure où une Bête est repartie de sa Case, dans le fuseau du joueur, et son jour s'il a changé depuis la Rencontre (US-0950)", async () => {

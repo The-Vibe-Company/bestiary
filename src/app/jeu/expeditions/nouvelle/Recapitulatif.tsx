@@ -1,9 +1,10 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useId, useState } from "react";
+import { Fragment, useEffect, useId, useState } from "react";
 import { Bloc } from "@/components/Bloc";
 import { dureeDuTrajetMinutes, sansEscorte } from "@/expeditions/allure";
+import { forceQuiManque } from "@/expeditions/apprivoisement";
 import { casesDuFoyer } from "@/expeditions/choix-de-destination";
 import { forceDeLEscorte } from "@/expeditions/force";
 import { horaireDuSejour } from "@/expeditions/sejour";
@@ -34,6 +35,12 @@ const uneEspece = (nom: string, nombre: number) => `${nom} × ${nombre}`;
 export type DestinationChoisie = Coordonnees & { biome: string | null; distance: number };
 
 /**
+ * US-0949 : une Bête repérée sur la Case de destination, telle que le récapitulatif la compare à l'escorte : le nom et la
+ * force de son Espèce, sa Rareté, et l'instant du jeu jusqu'auquel elle devrait rester sur sa Case.
+ */
+export type BeteAChercher = { espece: string; force: number; rareteId: string; jusquA: Date };
+
+/**
  * US-0910 : le récapitulatif de l'écran d'Expédition, à son pied, à relire avant de partir. Il relit l'adresse, comme
  * les autres blocs, et suit chaque choix au fil de la composition, le séjour pas à pas au curseur : les explorateurs,
  * l'escorte Espèce par Espèce et sa force, ou « Sans escorte » à la place (US-0909) ; la destination et son Biome, ou
@@ -44,17 +51,22 @@ export type DestinationChoisie = Coordonnees & { biome: string | null; distance:
  * compose, replié sur l'heure de retour prévue (data-essentiel) et le départ ; un bouton le déplie. US-0911 : « Partir »
  * envoie ce qu'il montre : la destination, les explorateurs et l'escorte. US-0912 : l'aller et le retour d'une escorte
  * vont au pas de sa Bête la plus lente, d'après la vitesse de son Espèce, ou des explorateurs s'ils sont plus lents.
+ * US-0949 : pour chaque Bête repérée sur la destination (`betes`), son Espèce et sa force, puis si l'escorte est assez
+ * forte pour elle (aPortee), ou la force qui lui manque (forceQuiManque) ; et, quand elle devrait être partie à
+ * l'arrivée prévue, qui avance avec l'heure du jeu, une ligne le dit en la nommant, gardée en vue même replié.
  */
 export function Recapitulatif({
   libres,
   especes,
   destination,
+  betes = [],
   maintenant,
   vitesse = 1,
 }: {
   libres: number;
   especes: EspeceDisponible[];
   destination: DestinationChoisie | null;
+  betes?: BeteAChercher[];
   maintenant: Date;
   vitesse?: number;
 }) {
@@ -74,11 +86,13 @@ export function Recapitulatif({
   const explorateurs = explorateursChoisis(recherche, libres);
   const choix = escorteChoisie(recherche, especes);
   const escorte = especes.filter((e) => choix.get(e.id)! > 0);
+  const force = sansEscorte(choix) ? null : forceDeLEscorte(escorte.map((e) => ({ force: e.force, nombre: choix.get(e.id)! })));
   const aller = destination ? dureeDuTrajetMinutes(destination.distance, escorte.map((e) => ({ vitesse: e.vitesse, nombre: choix.get(e.id)! }))) : null;
   // Un départ à l'heure du jeu, qui avance au rythme du jeu ; le retour dure autant que l'aller (US-0912), après le
   // séjour, qui ne commence qu'à l'arrivée (US-0906).
   const depart = new Date(base + (ecoule?.base === base ? vitesse * ecoule.ms : 0));
-  const retour = aller === null ? null : new Date(horaireDuSejour(depart, aller * MINUTE_MS, sejour).fin.getTime() + aller * MINUTE_MS);
+  const horaire = aller === null ? null : horaireDuSejour(depart, aller * MINUTE_MS, sejour);
+  const retour = horaire && aller !== null ? new Date(horaire.fin.getTime() + aller * MINUTE_MS) : null;
 
   return (
     <Bloc titre="Récapitulatif" className={deplie ? `${styles.recap} ${styles.deplie}` : styles.recap}>
@@ -105,10 +119,10 @@ export function Recapitulatif({
             <dt>Escorte</dt>
             <dd>{sansEscorte(choix) ? "Sans escorte : Bêtes communes seulement" : escorte.map((e) => uneEspece(e.nom, choix.get(e.id)!)).join(", ")}</dd>
           </div>
-          {sansEscorte(choix) ? null : (
+          {force === null ? null : (
             <div>
               <dt>Force</dt>
-              <dd>{entier(forceDeLEscorte(escorte.map((e) => ({ force: e.force, nombre: choix.get(e.id)! }))))}</dd>
+              <dd>{entier(force)}</dd>
             </div>
           )}
           <div>
@@ -121,6 +135,28 @@ export function Recapitulatif({
               <dd>{destination.biome ?? "inconnu"}</dd>
             </div>
           ) : null}
+          {/* US-0949 : chaque Bête repérée sur la destination, face à l'escorte ; partie avant l'arrivée, elle ne sera plus là. */}
+          {betes.map((bete, i) => {
+            const manque = forceQuiManque(force, bete);
+            return (
+              <Fragment key={i}>
+                <div>
+                  <dt>Bête repérée</dt>
+                  <dd>{`${bete.espece}, force ${entier(bete.force)}`}</dd>
+                </div>
+                <div>
+                  <dt>Votre escorte</dt>
+                  <dd>{manque > 0 ? `Trop faible : il manque ${entier(manque)} de force` : "Assez forte"}</dd>
+                </div>
+                {horaire && bete.jusquA <= horaire.debut ? (
+                  <div data-essentiel="">
+                    <dt>À l&apos;arrivée</dt>
+                    <dd>{`${bete.espece} ne sera plus là`}</dd>
+                  </div>
+                ) : null}
+              </Fragment>
+            );
+          })}
           <div>
             <dt>Aller</dt>
             <dd>{aller === null ? AUCUNE : formaterMinutes(aller)}</dd>

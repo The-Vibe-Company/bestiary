@@ -35,4 +35,9 @@ describe("le récit de Rencontre sur un téléphone (US-0940)", () => {
   it("reste replié avec le texte du Récit", () => {
     expect(regle(".rencontres[hidden]")).toContain("display: none;");
   });
+
+  it("donne à « Revenir la chercher » une cible au doigt de 44 px, et un contour au clavier (US-0949)", () => {
+    expect(regle(".revenir")).toContain("min-height: 44px;");
+    expect(regle(".revenir:focus-visible")).toContain("outline: 2px solid var(--encre);");
+  });
 });

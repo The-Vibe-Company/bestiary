@@ -170,6 +170,9 @@ describe.skipIf(!URL_TEST)("le récit de Rencontre (US-0940, sur base)", () => {
         nouvelleEspece: true,
         // Sans escorte, il manquait toute sa force (US-0942).
         manque: await force(bete.especeId),
+        // US-0949 : sa Case et son numéro sur sa Case, pour revenir la chercher tant qu'elle y est.
+        laCase: destination,
+        numero: bete.numero,
         ...(await espece(bete.especeId)),
       },
     ]);
@@ -246,7 +249,7 @@ describe.skipIf(!URL_TEST)("le récit de Rencontre (US-0940, sur base)", () => {
         sexe: issue === "apprivoisee" ? tirages.shift()!.sexe : null,
         // Une Espèce n'est nouvelle au Bestiaire qu'à sa première Rencontre.
         nouvelleEspece: !especesVues.has(b.especeId),
-        ...(issue === "restee" ? { manque: await force(b.especeId) } : {}),
+        ...(issue === "restee" ? { manque: await force(b.especeId), laCase: destination, numero: b.numero } : {}),
         ...(issue === "repartie" ? { repartieLe: b.depart } : {}),
         ...(await espece(b.especeId)),
       });
