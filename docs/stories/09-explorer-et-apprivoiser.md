@@ -484,6 +484,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0944 · Le combat par la somme des forces
 **En tant que** joueur, **je veux** que le combat se règle par la simple somme des forces, **afin de** comprendre d'avance ce que je risque.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#54). Quand une Bête trop forte attaque (US-0943), le combat se livre à l'instant de l'attaque : la force de la Bête contre la simple somme des forces de l'escorte. La Bête l'emporte toujours et ne perd rien ; l'escorte perd des Bêtes, qui quittent aussitôt l'effectif ; jamais les explorateurs, ni les Bêtes restées au Foyer, ni les Couples. Les pertes sont les mêmes page ouverte, d'un bloc ou par la tâche planifiée. Tranché : part perdue = (force de la Bête − force de l'escorte) / force de la Bête × `PERTES_PAR_ECART_DES_FORCES` (1, provisoire), arrondie au-dessus et plafonnée à toute l'escorte ; répartition au prorata des effectifs, aux plus grands restes (à égalité, l'Espèce la plus faible) ; les pertes vont dans une colonne `perdues` (migration 0064), la force de départ reste celle qui décide qui suit qui jusqu'à la fuite (US-0945). Aucun texte de récit encore (US-0947). Vérifié en vrai : une escorte passe de 38 à 37 Souris grises.
 - **Débloquée par** : US-0943
 - **Critères d'acceptation** :
   - Le combat oppose la force de la Bête à la somme des forces de l'escorte, sans règle de taille.
