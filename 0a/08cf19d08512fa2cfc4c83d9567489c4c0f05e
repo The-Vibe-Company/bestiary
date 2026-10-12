@@ -1,0 +1,35 @@
+src/app/jeu/habitants/AuxPortes.css.test.ts
+  s_7c7d151152e4a5::t_69cc0ef36b4d1d 42-48
+src/app/jeu/habitants/AuxPortes.module.css
+  s_7c7d151152e4a5::t_d0293b7a456914 114,117,262-280,307
+src/app/jeu/habitants/ListeDesHabitants.module.css
+  s_c03ab4863ebb5d::t_bdaf9f4b6492f7 225,552-584,711,713,715,817,819
+src/app/jeu/habitants/page.module.css
+  s_c03ab4863ebb5d::t_e8abd69646fefe 36-44
+src/app/jeu/habitants/page.test.tsx
+  s_7c7d151152e4a5::t_e24e96f6a9c8e5 690-695
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0a08cf19d08512fa2cfc4c83d9567489c4c0f05e",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_c03ab4863ebb5d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1d8a31cd-1943-4a45-8e2a-a7b47de3df29",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
