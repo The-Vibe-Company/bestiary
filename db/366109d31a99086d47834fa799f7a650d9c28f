@@ -1,0 +1,19 @@
+src/expeditions/attaque.db.test.ts
+  s_c03ab4863ebb5d::t_dbebe81db9988e 373
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "db366109d31a99086d47834fa799f7a650d9c28f",
+  "prompts": {},
+  "sessions": {
+    "s_c03ab4863ebb5d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1d8a31cd-1943-4a45-8e2a-a7b47de3df29",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
