@@ -29,4 +29,11 @@ describe("la Réserve sur un téléphone (US-0801)", () => {
   it("montre les deux Bêtes d'un Couple côte à côte, à parts égales (US-0802)", () => {
     expect(regle(".betes")).toContain("grid-template-columns: 1fr 1fr;");
   });
+
+  it("sans Couple, met le bouton « Envoyer une Expédition » au pouce : 44 px de haut, toute la largeur sur mobile (US-0809)", () => {
+    expect(regle(".envoyer")).toContain("min-height: 44px;");
+    expect(regle(".envoyer")).toContain("cursor: pointer;");
+    expect(regle(".envoyer:focus-visible")).toContain("outline: 2px solid var(--encre);");
+    expect(regle(".envoyer", mobile)).toMatch(/display: flex;[^}]*width: 100%;/);
+  });
 });

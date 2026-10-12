@@ -83,11 +83,11 @@ describe("ouvrir la Réserve (US-0801)", () => {
     expect(nombre(html)).toBe("3 Couples");
   });
 
-  it("accorde le nom au nombre : « 1 Couple », « 0 Couple »", async () => {
+  it("accorde le nom au nombre : « 1 Couple », « 2 Couples »", async () => {
     connecte(COUPLES.slice(0, 1));
     expect(nombre(renderToStaticMarkup(await Reserve()))).toBe("1 Couple");
-    connecte([]);
-    expect(nombre(renderToStaticMarkup(await Reserve()))).toBe("0 Couple");
+    connecte(COUPLES.slice(0, 2));
+    expect(nombre(renderToStaticMarkup(await Reserve()))).toBe("2 Couples");
   });
 
   it("renvoie vers la connexion sans session, qui ramènera ensuite ici", async () => {
@@ -154,5 +154,38 @@ describe("voir ses Couples réunis (US-0802)", () => {
   it("sans Couple, n'a pas de liste", async () => {
     connecte([]);
     expect(renderToStaticMarkup(await Reserve())).not.toContain("<ul");
+  });
+});
+
+describe("voir une Réserve vide (US-0809)", () => {
+  afterEach(() => {
+    session.compteDeLaSession.mockReset();
+    cookie.jetonDeSession.mockReset();
+    couple.couplesEnReserve.mockReset();
+  });
+
+  const connecte = (couples: CoupleEnReserve[]) => {
+    cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
+    session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
+    couple.couplesEnReserve.mockResolvedValue(couples);
+  };
+
+  it("sans Couple, affiche « Aucun Couple pour l'instant », sans autre phrase", async () => {
+    connecte([]);
+    // Le titre, le message et le bouton : rien d'autre, ni la présentation de la Réserve, ni « 0 Couple ».
+    expect(texte(renderToStaticMarkup(await Reserve()))).toBe("Réserve · Aucun Couple pour l'instant · Envoyer une Expédition");
+  });
+
+  it("met un bouton « Envoyer une Expédition », qui mène à l'écran d'Expédition (US-0901)", async () => {
+    connecte([]);
+    expect(renderToStaticMarkup(await Reserve())).toMatch(/<a[^>]*href="\/jeu\/expeditions\/nouvelle"[^>]*>Envoyer une Expédition<\/a>/);
+  });
+
+  it("dès le premier Couple réuni, le message et son bouton laissent place à la liste", async () => {
+    connecte(COUPLES.slice(0, 1));
+    const html = renderToStaticMarkup(await Reserve());
+    expect(html).not.toContain("Aucun Couple pour l&#x27;instant");
+    expect(html).not.toContain("Envoyer une Expédition");
+    expect(texte(html)).toBe("Réserve · Le lieu protégé de votre Territoire : vos Couples y vivent à l'abri, loin des combats. · 1 · Couple · Souris grise · Commune");
   });
 });

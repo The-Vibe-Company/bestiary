@@ -55,6 +55,17 @@ describe.skipIf(!URL_TEST)("voir ses Couples réunis, sur base (US-0802)", () =>
       client.release();
     }
   };
+  /** US-0809 : tout le texte de la page de la Réserve que voit le joueur du Territoire, ses morceaux séparés par « · ». */
+  const texteDeLaPage = async (territoireId: number) => {
+    garde.exigerCompte.mockResolvedValue({ id: 1, email: "nom@exemple.fr", nomDeChef: "Ourse", territoireId, recitLu: true });
+    return renderToStaticMarkup(await Reserve())
+      .replace(/<[^>]+>/g, "|")
+      .replace(/&#x27;/g, "'")
+      .split("|")
+      .map((m) => m.trim())
+      .filter(Boolean)
+      .join(" · ");
+  };
   /** La Réserve telle que la page la montre au joueur du Territoire : chaque Couple, ses deux Bêtes et son texte. */
   const montree = async (territoireId: number) => {
     garde.exigerCompte.mockResolvedValue({ id: 1, email: "nom@exemple.fr", nomDeChef: "Ourse", territoireId, recitLu: true });
@@ -102,5 +113,15 @@ describe.skipIf(!URL_TEST)("voir ses Couples réunis, sur base (US-0802)", () =>
     expect((await montree(a.territoireId)).map((c) => c.texte)).toEqual(["Poule · Commune"]);
     expect((await montree(b.territoireId)).map((c) => c.texte)).toEqual(["Pigeon biset · Commune", "Souris grise · Commune"]);
     expect(await montree(sansCouple.territoireId)).toEqual([]);
+  });
+
+  it("vide tant qu'aucun Couple n'est réuni, puis, dès le premier, la liste à la place du message (US-0809)", async () => {
+    const t = await naitre();
+    expect(await texteDeLaPage(t.territoireId)).toBe("Réserve · Aucun Couple pour l'instant · Envoyer une Expédition");
+
+    await reunir(t, ["poule"]);
+    expect(await texteDeLaPage(t.territoireId)).toBe(
+      "Réserve · Le lieu protégé de votre Territoire : vos Couples y vivent à l'abri, loin des combats. · 1 · Couple · Poule · Commune",
+    );
   });
 });
