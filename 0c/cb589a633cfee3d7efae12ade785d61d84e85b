@@ -1,0 +1,35 @@
+src/expeditions/apprivoisement.db.test.ts
+  s_7c7d151152e4a5::t_c9814e785ba134 226-229,238,249,258
+src/expeditions/apprivoisement.test.ts
+  s_7c7d151152e4a5::t_d9ee8d0a75bc06 2,8-9,14-16,87-89,114-183
+src/expeditions/apprivoisement.ts
+  s_7c7d151152e4a5::t_49f14a1c6f1992 5-9,14-16,53-76,79-86,88-89,91-100
+src/expeditions/betes-reperees.ts
+  s_7c7d151152e4a5::t_c052d904f45bbb 74
+src/expeditions/case-partagee.db.test.ts
+  s_7c7d151152e4a5::t_1a4e7c8deaaeca 2-3,19,207-213,257,342,345-347
+src/expeditions/chances.db.test.ts
+  s_7c7d151152e4a5::t_a43374a7fc542a 1-304
+src/expeditions/recit-de-rencontre.test.ts
+  s_7c7d151152e4a5::t_7b9c9743950f28 6-7
+src/expeditions/recit-de-rencontre.ts
+  s_7c7d151152e4a5::t_3ef7bc36903068 14,37,103
+src/expeditions/rencontres.db.test.ts
+  s_7c7d151152e4a5::t_e1d82456d24b2c 270-276
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0ccb589a633cfee3d7efae12ade785d61d84e85b",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
