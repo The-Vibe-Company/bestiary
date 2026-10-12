@@ -32,9 +32,18 @@ export type IssueDUneRencontre = "apprivoisee" | "restee" | "repartie";
 /**
  * US-0940 : une Rencontre telle que le Récit d'un retour d'Expédition la retient : l'Espèce de la Bête, l'instant du jeu
  * où l'Expédition l'a vue, ce qu'il en advint, son sexe si elle l'a suivie (null sinon, US-0937), et si elle a fait
- * entrer son Espèce au Bestiaire (US-0933). Restée sur sa Case, la force qui manquait à l'escorte (US-0942).
+ * entrer son Espèce au Bestiaire (US-0933). Restée sur sa Case, la force qui manquait à l'escorte (US-0942). US-0950 :
+ * repartie, l'instant du jeu où elle a quitté sa Case ; un Récit d'avant cette story ne le retient pas.
  */
-export type RencontreRacontee = { especeId: string; vueLe: Date; issue: IssueDUneRencontre; sexe: Sexe | null; nouvelleEspece: boolean; manque?: number };
+export type RencontreRacontee = {
+  especeId: string;
+  vueLe: Date;
+  issue: IssueDUneRencontre;
+  repartieLe?: Date;
+  sexe: Sexe | null;
+  nouvelleEspece: boolean;
+  manque?: number;
+};
 
 /** US-0940 : une Rencontre racontée telle que la page Récits la montre : avec le nom, l'illustration et la Rareté de son Espèce. */
 export type RencontreDuRecit = RencontreRacontee & { nom: string; illustration: string | null; rarete: { id: string; nom: string } };
@@ -68,7 +77,10 @@ export async function ecrireUnRecit(client: Pool | PoolClient, territoireId: num
  */
 export async function recitsDuTerritoire(base: Pool | PoolClient, territoireId: number): Promise<Recit[]> {
   const { rows } = await base.query<
-    Omit<Recit, "rencontres" | "couples"> & { rencontres: (Omit<RencontreDuRecit, "vueLe"> & { vueLe: string })[] | null; couples: CoupleDuRecit[] | null }
+    Omit<Recit, "rencontres" | "couples"> & {
+      rencontres: (Omit<RencontreDuRecit, "vueLe" | "repartieLe"> & { vueLe: string; repartieLe?: string })[] | null;
+      couples: CoupleDuRecit[] | null;
+    }
   >(
     `select r.id, r.titre, r.texte, r.survenu_le as "survenuLe", r.lu_le as "luLe",
        (select jsonb_agg(v.rencontre || jsonb_build_object('nom', e.nom, 'illustration', e.illustration, 'rarete', jsonb_build_object('id', ra.id, 'nom', ra.nom))
@@ -84,7 +96,9 @@ export async function recitsDuTerritoire(base: Pool | PoolClient, territoireId: 
   );
   return rows.map(({ rencontres, couples, ...recit }) => ({
     ...recit,
-    ...(rencontres && { rencontres: rencontres.map((x) => ({ ...x, vueLe: new Date(x.vueLe) })) }),
+    ...(rencontres && {
+      rencontres: rencontres.map(({ repartieLe, ...x }) => ({ ...x, vueLe: new Date(x.vueLe), ...(repartieLe && { repartieLe: new Date(repartieLe) }) })),
+    }),
     ...(couples && { couples }),
   }));
 }

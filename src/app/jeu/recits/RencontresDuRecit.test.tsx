@@ -69,6 +69,23 @@ describe("le récit de Rencontre (US-0940)", () => {
     expect(screen.getByRole("list").querySelector("[data-issue]")?.textContent).toBe("Trop forte, restée sur sa Case : il manquait 37 340 de force");
   });
 
+  it("dit l'heure où une Bête repartie a quitté sa Case, et son jour s'il a changé depuis la Rencontre (US-0950)", () => {
+    render(
+      <RencontresDuRecit
+        rencontres={[
+          { ...RENCONTRES[2], repartie: { instant: "2026-10-09T15:15:00.000Z", heure: "17:15", autreJour: false } },
+          { ...RENCONTRES[2], repartie: { instant: "2026-10-09T23:10:00.000Z", heure: "10 octobre à 01:10", autreJour: true } },
+        ]}
+      />,
+    );
+    const issues = lignes().map((ligne) => ligne.querySelector("[data-issue]")!);
+    expect(issues.map((issue) => issue.textContent)).toEqual([
+      "Repartie à 17:15, à la fin de sa durée",
+      "Repartie le 10 octobre à 01:10, à la fin de sa durée",
+    ]);
+    expect(issues.map((issue) => issue.querySelector("time")?.getAttribute("datetime"))).toEqual(["2026-10-09T15:15:00.000Z", "2026-10-09T23:10:00.000Z"]);
+  });
+
   it("dit le sexe d'un mâle apprivoisé", () => {
     render(<RencontresDuRecit rencontres={[{ ...RENCONTRES[0], sexe: "male", nouvelleEspece: false }]} />);
     expect(screen.getByText("Apprivoisée, mâle")).toBeTruthy();

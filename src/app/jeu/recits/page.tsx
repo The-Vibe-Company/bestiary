@@ -59,13 +59,17 @@ export default async function Recits() {
               ...(r.couples && { couples: r.couples.map(({ nom, illustration }) => ({ nom, illustration })) }),
               // US-0940 : les Rencontres d'un retour d'Expédition, chacune à son heure.
               ...(r.rencontres && {
-                rencontres: r.rencontres.map(({ vueLe, nom, illustration, rarete, issue, sexe, nouvelleEspece, manque }, i, toutes) => ({
+                rencontres: r.rencontres.map(({ vueLe, nom, illustration, rarete, issue, repartieLe, sexe, nouvelleEspece, manque }, i, toutes) => ({
                   instant: vueLe.toISOString(),
                   heure: heureDUneRencontre(vueLe, i === 0 ? r.survenuLe : toutes[i - 1].vueLe),
                   nom,
                   illustration,
                   rarete,
                   issue,
+                  // US-0950 : repartie, l'heure de son départ, et son jour s'il n'est plus celui de la Rencontre.
+                  ...(repartieLe && {
+                    repartie: { instant: repartieLe.toISOString(), heure: heureDUneRencontre(repartieLe, vueLe), autreJour: jour(repartieLe) !== jour(vueLe) },
+                  }),
                   sexe,
                   nouvelleEspece,
                   ...(manque && { manque }),

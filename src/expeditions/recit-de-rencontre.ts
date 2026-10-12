@@ -1,10 +1,11 @@
 // Le récit de Rencontre (US-0940) : le Récit du retour d'une Expédition (src/expeditions/recit-de-retour.ts) retient, sous
 // son texte, chaque Bête qu'elle a vue sur sa Case (US-0932), à l'heure où elle l'a vue, et ce qu'il en advint :
 // apprivoisée, avec son sexe (US-0934, US-0937) ; trop forte pour son escorte, restée sur sa Case, avec la force qui lui
-// manquait (US-0942) ; ou repartie à la fin de sa durée (US-0926), avant que l'Expédition ne quitte la Case. Une Bête vue
-// qui n'a pas suivi l'Expédition était trop forte pour son escorte : à portée, elle aurait suivi la première Expédition
-// qui la voyait (lExpeditionSuivie) ; ou bien elle en suivait une autre, à l'instant même où elle l'a vue (US-0962), et
-// en est partie. La page Récits les montre avec l'illustration et la Rareté de leur Espèce. Côté serveur uniquement.
+// manquait (US-0942) ; ou repartie à la fin de sa durée (US-0926), avant que l'Expédition ne quitte la Case, à l'heure
+// de son départ (US-0950). Une Bête vue qui n'a pas suivi l'Expédition était trop forte pour son escorte : à portée, elle
+// aurait suivi la première Expédition qui la voyait (lExpeditionSuivie) ; ou bien elle en suivait une autre, à l'instant
+// même où elle l'a vue (US-0962), et en est partie. La page Récits les montre avec l'illustration et la Rareté de leur
+// Espèce. Côté serveur uniquement.
 import "server-only";
 import type { PoolClient } from "pg";
 import type { Sexe } from "@/monde/betes-sauvages";
@@ -41,7 +42,8 @@ export function departDUneBete(bete: BeteSurLaCase, expeditions: readonly Expedi
 /**
  * US-0940 : les Rencontres `vues` de l'Expédition `expeditionId` (rencontresDUneExpedition), telles que son Récit les
  * retient, dans le même ordre, celui des apparitions : son séjour sur sa Case, `sejour`, dit si chaque Bête qui ne l'a pas
- * suivie en est repartie avant elle ; restée, la force qui manquait à son escorte (forceQuiManque). Aucune sans séjour.
+ * suivie en est repartie avant elle, et (US-0950) à quel instant ; restée, la force qui manquait à son escorte
+ * (forceQuiManque). Aucune sans séjour.
  * Appelée au retour, dans sa transaction : le Territoire est calculé jusque-là, ses Rencontres sont toutes retenues.
  */
 export async function rencontresARaconter(
@@ -61,6 +63,7 @@ export async function rencontresARaconter(
       especeId: r.especeId,
       vueLe: r.vueLe,
       issue,
+      ...(issue === "repartie" && restee ? { repartieLe: restee.depart } : {}),
       sexe: sexes.get(r.id) ?? null,
       nouvelleEspece: r.nouvelleEspece,
       ...(issue === "restee" && restee?.manque ? { manque: restee.manque } : {}),

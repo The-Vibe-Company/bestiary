@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { IllustrationEspece } from "@/components/IllustrationEspece";
 import { PastilleRarete } from "@/components/PastilleRarete";
 import type { Sexe } from "@/monde/betes-sauvages";
@@ -7,7 +8,8 @@ import styles from "./RencontresDuRecit.module.css";
 /**
  * US-0940 : une Rencontre telle que le Récit d'un retour la montre : son heure, déjà écrite par le serveur dans le fuseau du
  * joueur, l'Espèce de la Bête avec son illustration et sa Rareté, et ce qu'il en advint ; restée sur sa Case, la force
- * qui manquait à l'escorte (US-0942).
+ * qui manquait à l'escorte (US-0942) ; repartie, l'heure de son départ (US-0950), avec son jour s'il n'est plus celui de
+ * la Rencontre (`autreJour`).
  */
 export type RencontreAffichee = {
   instant: string;
@@ -16,6 +18,7 @@ export type RencontreAffichee = {
   illustration: string | null;
   rarete: { id: string; nom: string };
   issue: IssueDUneRencontre;
+  repartie?: { instant: string; heure: string; autreJour: boolean };
   sexe: Sexe | null;
   nouvelleEspece: boolean;
   manque?: number;
@@ -28,10 +31,17 @@ const entier = (n: number) => new Intl.NumberFormat("fr-FR").format(n).replace(/
 
 /**
  * US-0940 : « Apprivoisée, femelle », « Trop forte, restée sur sa Case : il manquait 37 340 de force », « Repartie à la
- * fin de sa durée ».
+ * fin de sa durée ». US-0950 : « Repartie à 17:15, à la fin de sa durée », « Repartie le 13 octobre à 01:10, … ».
  */
-function ceQuIlAdvint({ issue, sexe, manque }: Pick<RencontreAffichee, "issue" | "sexe" | "manque">): string {
+function ceQuIlAdvint({ issue, repartie, sexe, manque }: Pick<RencontreAffichee, "issue" | "repartie" | "sexe" | "manque">): ReactNode {
   if (issue === "apprivoisee") return sexe ? `Apprivoisée, ${SEXES[sexe]}` : "Apprivoisée";
+  if (issue === "repartie" && repartie) {
+    return (
+      <>
+        Repartie {repartie.autreJour ? "le" : "à"} <time dateTime={repartie.instant}>{repartie.heure}</time>, à la fin de sa durée
+      </>
+    );
+  }
   if (issue === "repartie") return "Repartie à la fin de sa durée";
   return manque ? `Trop forte, restée sur sa Case : il manquait ${entier(manque)} de force` : "Trop forte, restée sur sa Case";
 }

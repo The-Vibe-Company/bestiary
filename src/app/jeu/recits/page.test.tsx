@@ -161,6 +161,39 @@ describe("page Récits (US-0324)", () => {
     expect(html).toContain("Trop forte, restée sur sa Case : il manquait 37 340 de force");
   });
 
+  it("dit l'heure où une Bête est repartie de sa Case, dans le fuseau du joueur, et son jour s'il a changé depuis la Rencontre (US-0950)", async () => {
+    const repartie = (vueLe: string, repartieLe?: string) => ({
+      especeId: "pigeon",
+      vueLe: new Date(vueLe),
+      issue: "repartie" as const,
+      ...(repartieLe && { repartieLe: new Date(repartieLe) }),
+      sexe: null,
+      nouvelleEspece: false,
+      nom: "Pigeon biset",
+      illustration: null,
+      rarete: { id: "commune", nom: "Commune" },
+    });
+    connecte([
+      {
+        id: 53,
+        titre: "Retour d'Expédition",
+        texte: "3 Bêtes se sont montrées.",
+        survenuLe: new Date("2026-10-13T06:00:00Z"),
+        luLe: null,
+        // Un Récit d'avant cette story ne retient pas l'heure du départ.
+        rencontres: [repartie("2026-10-12T13:15:00Z", "2026-10-12T15:15:00Z"), repartie("2026-10-12T20:00:00Z", "2026-10-12T23:10:00Z"), repartie("2026-10-12T21:00:00Z")],
+      } as Recit,
+    ]);
+    const html = renderToStaticMarkup(await Recits());
+    const issues = [...html.matchAll(/<p[^>]*data-issue="repartie"[^>]*>(.*?)<\/p>/g)].map(([, issue]) => issue);
+    expect(issues.map((issue) => issue.replace(/<[^>]+>/g, ""))).toEqual([
+      "Repartie à 17:15, à la fin de sa durée",
+      "Repartie le 13 octobre à 01:10, à la fin de sa durée",
+      "Repartie à la fin de sa durée",
+    ]);
+    expect(issues[0]).toMatch(/<time[^>]* datetime="2026-10-12T15:15:00.000Z"[^>]*>17:15<\/time>/i);
+  });
+
   it("résume un retour d'Expédition en une ligne en tête de son récit : Bêtes ramenées, nouvelles Espèces au Bestiaire (US-0941)", async () => {
     const rencontre = (issue: "apprivoisee" | "restee" | "repartie", nouvelleEspece: boolean) => ({
       especeId: "souris_grise",

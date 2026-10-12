@@ -334,7 +334,8 @@ describe.skipIf(!URL_TEST)("chaque Expédition présente voit la Bête (US-0962,
     expect(vues.every((i) => i >= 0)).toBe(true);
     const [premiere, seconde] = vues.map((i, k) => recits[k].rencontres![i]);
     expect(premiere).toMatchObject({ especeId: bn.especeId, vueLe: arrivee, issue: "apprivoisee" });
-    // La seconde la voit au même instant ; partie avec l'autre, elle n'est pas « restée sur sa Case ».
-    expect(seconde).toMatchObject({ especeId: bn.especeId, vueLe: arrivee, issue: "repartie", sexe: null });
+    // La seconde la voit au même instant ; partie avec l'autre, elle n'est pas « restée sur sa Case ». US-0950 : repartie à
+    // cet instant même.
+    expect(seconde).toMatchObject({ especeId: bn.especeId, vueLe: arrivee, issue: "repartie", repartieLe: arrivee, sexe: null });
   });
 });
