@@ -543,6 +543,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0950 · La Bête s'en va pendant le séjour
 **En tant que** joueur, **je veux** que la menace cesse quand la Bête trop forte s'en va, **afin de** laisser mon Expédition finir son séjour tranquille.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#49). Quand une Bête trop forte quitte sa Case pendant le séjour, elle n'attaque plus et l'Expédition finit son séjour à l'heure prévue (déjà vrai depuis US-0943, désormais vérifié) ; le récit du retour dit l'heure de son départ, dans le fuseau du joueur : « Repartie à 03:13, à la fin de sa durée », avec le jour s'il a changé depuis la Rencontre. Les Récits écrits avant gardent leur texte, sans migration. Vérifié en vrai avec un Renard roux. Reste : « à la fin de sa durée » quand la Bête est partie avec une autre Expédition (US-0966).
 - **Débloquée par** : US-0942
 - **Critères d'acceptation** :
   - Quand la durée d'une Bête trop forte s'achève pendant le séjour, elle quitte la Case et ne peut plus attaquer.

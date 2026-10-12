@@ -4,7 +4,7 @@ Le découpage fin de l'[ordre d'attaque](../ordre-d-attaque.md) : 748 stories en
 
 ## Où on en est
 
-Dernière story livrée : **US-0958** · Annoncer le Couple réuni ; les jalons 0 à 4 sont terminés, le jalon 9 avance (l'étape 38 est faite, la Rencontre et l'Apprivoisement de l'étape 40 aussi). US-0141, livrée le 2026-10-05, est retirée avec le Couple de départ ([ADR 0008](../adr/0008-pas-de-couple-de-depart.md)). Les e-mails ne partent pas encore pour de vrai, voir Zewed/bestia-2#1, et l'entrée reste fermée en production jusqu'à ce qu'Antoine décide de l'ouvrir. Prochaines : la fin du jalon 9 (le combat contre la Bête trop forte, les Blessés, le Couple réuni, plusieurs Expéditions sur une Case, les pigeons éclaireurs), puis le jalon 8.
+Dernière story livrée : **US-0950** · La Bête s'en va pendant le séjour ; les jalons 0 à 4 sont terminés, le jalon 9 avance (l'étape 38 est faite, la Rencontre et l'Apprivoisement de l'étape 40 aussi). US-0141, livrée le 2026-10-05, est retirée avec le Couple de départ ([ADR 0008](../adr/0008-pas-de-couple-de-depart.md)). Les e-mails ne partent pas encore pour de vrai, voir Zewed/bestia-2#1, et l'entrée reste fermée en production jusqu'à ce qu'Antoine décide de l'ouvrir. Prochaines : la fin du jalon 9 (le combat contre la Bête trop forte, les Blessés, le Couple réuni, plusieurs Expéditions sur une Case, les pigeons éclaireurs), puis le jalon 8.
 
 ## Sommaire
 
