@@ -27,6 +27,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0803 · Ouvrir la fiche d'une Espèce
 **En tant que** joueur, **je veux** ouvrir la fiche de l'Espèce d'un Couple, **afin de** tout savoir sur elle.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#55). Dans la Réserve, toute la carte d'un Couple ouvre la fiche de son Espèce (/jeu/reserve/<Espèce>) : l'illustration en grand, le nom et la pastille de Rareté ; « Fermer » ramène à la Réserve. Une fiche n'existe que pour une Espèce dont le joueur a réuni le Couple ; sinon, page introuvable. Tranché : la fiche est une page, pas un panneau ; le repère de chaque Rareté est la pastille existante, sa couleur et son nom écrit (jamais la couleur seule) ; le titre de l'onglet reste « Réserve ». Vérifié en vrai de 320 × 480 à 1 440 px, téléphone couché compris.
 - **Débloquée par** : US-0802
 - **Critères d'acceptation** :
   - Toucher le Couple ouvre la fiche de son Espèce, avec l'illustration en grand, le nom et la Rareté.
