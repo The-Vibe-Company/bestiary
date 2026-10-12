@@ -62,6 +62,25 @@
   overflow-wrap: anywhere;
 }
 
+/* US-0812 : le lien « Élever », vers le bloc « Élever » de la fiche, au pouce, sur la pastille citron de la vitrine. */
+.elever {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: var(--arrondi-moyen);
+  background: var(--citron);
+  color: var(--encre);
+  font-weight: var(--graisse-titre);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.elever:focus-visible {
+  outline: 2px solid var(--citron);
+  outline-offset: 2px;
+}
+
 /*
  * Plusieurs Couples réunis par un même retour : chacun plus petit, l'illustration à gauche de son nom, côte à côte tant
  * qu'il y a la place, l'un sous l'autre sur un téléphone.
@@ -94,8 +113,9 @@
 
 /*
  * Sur un téléphone en portrait, l'illustration au-dessus de son nom, aussi large que l'annonce : un seul écran suffit à
- * tout voir, entre la barre du haut et les onglets, la place de « Couple réuni » et d'un nom sur deux lignes gardée sous
- * elle ; jamais moins de 96 px. Couché, le téléphone garde l'illustration à côté du nom, bornée par la hauteur utile.
+ * tout voir, entre la barre du haut et les onglets, la place de « Couple réuni », d'un nom sur deux lignes et, US-0812,
+ * du lien « Élever » gardée sous elle ; jamais moins de 96 px. Couché, le téléphone garde l'illustration à côté du nom,
+ * bornée par la hauteur utile.
  */
 @media (max-width: 540px) and (orientation: portrait) {
   .annonce {
@@ -104,7 +124,7 @@
   }
 
   .couple {
-    --cote: min(100%, max(96px, calc(var(--hauteur-utile) - 160px)));
+    --cote: min(100%, max(96px, calc(var(--hauteur-utile) - 214px)));
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
     gap: 14px;

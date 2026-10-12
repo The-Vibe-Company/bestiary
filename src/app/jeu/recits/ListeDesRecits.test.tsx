@@ -196,13 +196,16 @@ describe("l'annonce du Couple réuni en tête du récit du retour qui l'a réuni
     quand: "9 octobre 2026 à 18:05",
     lu: false,
     resume: ["1 Bête ramenée"],
-    couples: [{ nom: "Souris grise", illustration: null }],
+    couples: [{ especeId: "souris", nom: "Souris grise", illustration: null }],
   };
   const ligne = () => screen.getByRole("button", { name: /^Retour d'Expédition/ });
-  /** L'annonce du Couple : la seule figure de la liste, « Couple réuni » et le nom de l'Espèce sous son illustration. */
+  /**
+   * L'annonce du Couple : la seule figure de la liste, « Couple réuni » et le nom de l'Espèce sous son illustration ;
+   * US-0812 : puis « Élever ».
+   */
   const annonce = () => {
     const figure = screen.getByRole("figure");
-    expect(figure.textContent).toBe("Couple réuni Souris grise");
+    expect(figure.textContent).toBe("Couple réuni Souris grise Élever");
     return figure;
   };
 
@@ -229,7 +232,17 @@ describe("l'annonce du Couple réuni en tête du récit du retour qui l'a réuni
   });
 
   it("annonce chacun des Couples qu'un même retour a réunis", () => {
-    render(<ListeDesRecits recits={[{ ...RETOUR, couples: [{ nom: "Poule", illustration: null }, ...RETOUR.couples!] }]} />);
-    expect(screen.getAllByRole("figure").map((couple) => couple.textContent)).toEqual(["Couple réuni Poule", "Couple réuni Souris grise"]);
+    render(<ListeDesRecits recits={[{ ...RETOUR, couples: [{ especeId: "poule", nom: "Poule", illustration: null }, ...RETOUR.couples!] }]} />);
+    expect(screen.getAllByRole("figure").map((couple) => couple.textContent)).toEqual(["Couple réuni Poule Élever", "Couple réuni Souris grise Élever"]);
+  });
+
+  it("mène, d'un lien « Élever », au bloc « Élever » de la fiche de l'Espèce (US-0812)", () => {
+    render(<ListeDesRecits recits={[{ ...RETOUR, couples: [{ especeId: "poule", nom: "Poule", illustration: null }, ...RETOUR.couples!] }]} />);
+    expect(screen.getAllByRole("link", { name: /^Élever/ }).map((lien) => [lien.getAttribute("aria-label"), lien.getAttribute("href")])).toEqual([
+      ["Élever : Poule", "/jeu/reserve/poule#elever"],
+      ["Élever : Souris grise", "/jeu/reserve/souris#elever"],
+    ]);
+    // Le lien est dans l'annonce, visible sans déplier le récit.
+    expect(screen.getAllByRole("link", { name: /^Élever/ }).every((lien) => lien.closest("[hidden]") === null)).toBe(true);
   });
 });

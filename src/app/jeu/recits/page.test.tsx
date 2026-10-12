@@ -338,7 +338,11 @@ describe("page Récits (US-0324)", () => {
     expect(annonce).toContain("url=%2Fillustrations%2Fespeces%2Fsouris.webp");
     // Servie à la taille qu'elle affiche, et non à celle de la fiche de l'Espèce.
     expect(annonce).toContain('sizes="(max-width: 540px) and (orientation: portrait) 100vw, 220px"');
-    expect(annonce.replace(/<[^>]+>/g, "|").split("|").filter((morceau) => morceau.trim())).toEqual(["Couple réuni", "Souris grise"]);
+    expect(annonce.replace(/<[^>]+>/g, "|").split("|").filter((morceau) => morceau.trim())).toEqual(["Couple réuni", "Souris grise", "Élever"]);
+    // US-0812 : l'annonce mène au bloc « Élever » de la fiche de l'Espèce.
+    const lien = annonce.match(/<a ([^>]*)>Élever<\/a>/)?.[1] ?? "";
+    expect(lien).toContain('href="/jeu/reserve/souris#elever"');
+    expect(lien).toContain('aria-label="Élever : Souris grise"');
     // Les retours qui n'ont réuni aucun Couple, et les autres Récits, n'annoncent rien.
     for (const ligne of sans) expect(ligne).not.toContain("<figure");
   });

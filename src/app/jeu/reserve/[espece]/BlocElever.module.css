@@ -1,0 +1,41 @@
+/* US-0812 : le bloc « Élever », sous la fiche de l'Espèce, dans sa largeur. */
+.elever {
+  margin-top: var(--ecart);
+  scroll-margin-top: calc(var(--hauteur-barre) + var(--ecart));
+}
+
+/* Le bouton « Élever », au pouce, sur l'Encre ; grisé tant que l'Élevage ne se lance pas. */
+.bouton {
+  min-height: 44px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: var(--arrondi-moyen);
+  background: var(--encre);
+  color: var(--blanc-chaud);
+  font: inherit;
+  font-weight: var(--graisse-titre);
+  cursor: pointer;
+}
+
+.bouton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.bouton:focus-visible {
+  outline: 2px solid var(--encre);
+  outline-offset: 2px;
+}
+
+/* Le refus, juste sous le bouton, dans la couleur d'alerte, son texte en clair : jamais la couleur seule. */
+.refus {
+  margin-top: 8px;
+  color: var(--mauvais);
+  font-weight: var(--graisse-titre);
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .bouton {
+    width: 100%;
+  }
+}

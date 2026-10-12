@@ -20,3 +20,9 @@ export async function elevageAcquis(base: Pool | PoolClient, territoireId: numbe
   );
   return rows[0].acquis;
 }
+
+/**
+ * US-0812 : ce que dit le jeu quand on lui demande l'Élevage d'une Espèce dont le joueur n'a pas réuni le Couple, par le
+ * bouton « Élever » ou par tout autre chemin.
+ */
+export const ELEVAGE_SANS_COUPLE = "Pas d'Élevage sans Couple réuni.";
