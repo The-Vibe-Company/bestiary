@@ -1,0 +1,97 @@
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_0cd6386c08ad4c 96
+docs/stories/09-explorer-et-apprivoiser.md
+  s_7c7d151152e4a5::t_d1ce8e19cf25ae 560,679
+docs/stories/README.md
+  s_7c7d151152e4a5::t_04689c2d2566c9 7
+drizzle/0066_blessees_de_l_escorte.sql
+  s_7c7d151152e4a5::t_482c743574f24c 1-5
+drizzle/meta/0066_snapshot.json
+  s_7c7d151152e4a5::t_ac0e740ab3f583 1-3353
+drizzle/meta/_journal.json
+  s_7c7d151152e4a5::t_8fabe5bb1e9590 438-444
+src/app/jeu/betes/page.css.test.ts
+  s_7c7d151152e4a5::t_e61a39acb14817 1-32
+src/app/jeu/betes/page.db.test.tsx
+  s_7c7d151152e4a5::t_eba831cc1f5fef 1-116
+src/app/jeu/betes/page.module.css
+  s_7c7d151152e4a5::t_aa7b7fe867f6fd 1-112
+src/app/jeu/betes/page.test.tsx
+  s_7c7d151152e4a5::t_dc7647d40552d2 1-123
+src/app/jeu/betes/page.tsx
+  s_7c7d151152e4a5::t_66c40ebf6ebf02 1-61
+src/app/jeu/page.css.test.ts
+  s_7c7d151152e4a5::t_d7c44bb162e3e6 1-23
+src/app/jeu/page.module.css
+  s_7c7d151152e4a5::t_7a733c8599106b 82-127,237-240
+src/app/jeu/page.test.tsx
+  s_7c7d151152e4a5::t_ba751a054c9b7c 31-33,77,80-98
+src/app/jeu/page.tsx
+  s_7c7d151152e4a5::t_0ff93f1c2a2570 7,11,34-36,46,68-77
+src/app/jeu/reserve/[espece]/page.db.test.tsx
+  s_7c7d151152e4a5::t_ada8313c52cd4d 54,59-62,65,70,93-94,107,116-129
+src/app/jeu/reserve/[espece]/page.module.css
+  s_7c7d151152e4a5::t_f8246c2d709b92 45-59
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_b375027c7437b2 4,16-19,26,32,46-48,55,61,67,80-96,104,110,124,130
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_af629755ec309d 10,23-24,26-29,34-40,46-49,53,55-59,63,67,71,75,79
+src/db/schema.ts
+  s_7c7d151152e4a5::t_2d043578b0d2f2 739-741,754,760
+src/expeditions/apprivoisement.db.test.ts
+  s_7c7d151152e4a5::t_30b75e112a0410 228-231,240,251,260
+src/expeditions/apprivoisement.test.ts
+  s_7c7d151152e4a5::t_e845398ec04656 2,8-9,14-16,87-89,114-183
+src/expeditions/apprivoisement.ts
+  s_7c7d151152e4a5::t_9c52a910cf5bd7 5-9,14-16,53-76,79-86,88-89,91-100
+src/expeditions/betes-reperees.ts
+  s_7c7d151152e4a5::t_c60b85287878b2 84
+src/expeditions/case-partagee.db.test.ts
+  s_7c7d151152e4a5::t_b21a554c0fb64d 2-3,19,209-215,259,344-350
+src/expeditions/chances.db.test.ts
+  s_7c7d151152e4a5::t_7ada1650034ba6 1-306
+src/expeditions/combat.db.test.ts
+  s_7c7d151152e4a5::t_9428edaf33841e 11,22,189-193,241-242,244,256-257,263-264,271-287,306,355,359-364,436-442,477-479,481-552
+src/expeditions/combat.test.ts
+  s_7c7d151152e4a5::t_d8acdb868fb83f 2-3,92-109
+src/expeditions/combat.ts
+  s_7c7d151152e4a5::t_8d76be90043c3c 5-7,52-61
+src/expeditions/pertes.ts
+  s_7c7d151152e4a5::t_7943dbc9bc3bfb 5-7,10,40-41,59,61-62,64,66-68,73,76
+src/expeditions/recit-de-rencontre.test.ts
+  s_7c7d151152e4a5::t_83212d2e6bb224 6-7
+src/expeditions/recit-de-rencontre.ts
+  s_7c7d151152e4a5::t_9ecb42b5939736 15,38,108
+src/expeditions/recit-de-retour.test.ts
+  s_7c7d151152e4a5::t_dd295943d98100 267-291
+src/expeditions/recit-de-retour.ts
+  s_7c7d151152e4a5::t_f456605cb092b6 8-9,74-75,78-80,141-152,240-241,255,271,316-317,334,340-355
+src/expeditions/rencontres.db.test.ts
+  s_7c7d151152e4a5::t_21f80c99d7d80a 13,273-279,327-328,341-343,345-349,352-356
+src/expeditions/revenir-la-chercher.db.test.tsx
+  s_7c7d151152e4a5::t_ae1eda4d059d70 64-67,75
+src/monde/couple.ts
+  s_7c7d151152e4a5::t_f99eb36f164743 87-88,91-92,94-95
+src/monde/effectif.db.test.ts
+  s_7c7d151152e4a5::t_c9b0e713059d6c 7-8,202-305
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_9caf6a893c73d2 2-3,32-33,35,85-144
+src/reglages.ts
+  s_7c7d151152e4a5::t_6c533aa7ce7a4f 354-359
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e3ef2a96ce94903887cad8ba9a2e68911988fb40",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
