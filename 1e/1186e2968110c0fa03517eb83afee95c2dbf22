@@ -1,0 +1,109 @@
+src/app/globals.css
+  s_7c7d151152e4a5::t_b8827442529fe6 2-3,5-48,57,67,69-70,73-76,78,80-94,98-99,104-136,147-148,151-153
+src/app/icones.test.ts
+  s_7c7d151152e4a5::t_6be2ddf163ffaf 11,48-49
+src/app/jeu/BlocProduction.tsx
+  s_7c7d151152e4a5::t_8df09ce9e1b61e 3,9-10,14,19,25
+src/app/jeu/RecapAbsence.tsx
+  s_7c7d151152e4a5::t_4b4ec4451c2820 5,10-12,18
+src/app/jeu/carte/CasesDecouvertes.module.css
+  s_7c7d151152e4a5::t_b98d18b1a160e2 18
+src/app/jeu/habitants/page.module.css
+  s_7c7d151152e4a5::t_cd9b44246e75c7 82,84
+src/app/jeu/page.module.css
+  s_7c7d151152e4a5::t_1d8be9b4f510b4 2-6,12-13,15,18,24,26-30,35,38-39,41,43-45,49-50,52-60,64-67,69,77,80-81,84,86,89-98,101-102,105-110,114,116-117,124,129,133-137,139,141-145,154,156-158,160-161,164-165,169-170,174-175,179,181-183,186-187,190-191,194-206,210,213-214,217-221,224-225
+src/app/jeu/page.test.tsx
+  s_7c7d151152e4a5::t_93d4a94b145105 41-43,61-62,109-111,120-121
+src/app/jeu/page.tsx
+  s_7c7d151152e4a5::t_73077409118417 8-9,31-37,39-44,64-67,73,75-83,86-89,95-98
+src/app/jeu/recits/page.module.css
+  s_7c7d151152e4a5::t_13175cfff2a2b0 79-81
+src/app/layout.tsx
+  s_7c7d151152e4a5::t_3e934d0c1ec260 3,23-24,27
+src/components/ActionsDuJeu.test.tsx
+  s_7c7d151152e4a5::t_5520c9cefe8ac1 159,162,164-167
+src/components/BarreHaut.module.css
+  s_7c7d151152e4a5::t_a2ed2c2f5f4dac 2-8,14,28-32,34,39-46,48-66,75-79,114,124,137,139-141,143,145-146,149-156,178-185,190,195,198-211,219,221-224,229,233,236-237,244-245,255-259,268-272,287,293-296,300,303,310-312,315,317-318,321,323-324,327-329,332-333,338,343-344,348,350-360,363-372,375,377-385,389-392,395-396,400-403,407-409,417-424,427-429,432-437,451,458-462,464,466,468,472-481,484,489-490,493-500,503-508,511-515,518-520,522,525-528,531-535,537,540,542,547-554,559-560,564-566,568,573,577,590,595,599-607,617-621,624-628,637-638,644,646-648,654,658,662,674,683,688,694-696,701,725,731-734,737,739,741,744-749,753-762,764-765,769,773,775,779-780,788,792-795,801,809,811,816-819,821,830,833,835-840,844-847,851-855,861,863,865-872,875-877,881-882,884-885,887,889-892,895-899,902-903,906-907,910-911,914-915,918-923,926,928-929,932-933,937-942,944-946,949-951,954-956,959-965,969-971,975-976,990,992,1009,1026,1031-1032,1034-1035,1039-1060
+src/components/BarreHaut.test.tsx
+  s_7c7d151152e4a5::t_1fbf9f962b2ae5 22-29,32-38,41-42,44-63,66-70,73-77,80-88,91-93,97,101,103,105-106,108-109,115-117,121,123-125,129,133-135,142
+src/components/Bloc.test.tsx
+  s_7c7d151152e4a5::t_06639b2a8740b4 5,39-54
+src/components/Etat.module.css
+  s_321470c42830c6::t_6e5ce0a2f1d348 1-35
+src/components/Etat.test.tsx
+  s_7c7d151152e4a5::t_9f92c02a105585 1-15
+src/components/Etat.tsx
+  s_321470c42830c6::t_68c687c2a15cae 1-25
+src/components/Jauge.module.css
+  s_4ce34ec42d9105::t_189c49cfbd3023 1-68
+src/components/Jauge.test.tsx
+  s_7c7d151152e4a5::t_edb51a453cd33b 1-27
+src/components/Jauge.tsx
+  s_4ce34ec42d9105::t_d2c133023bf919 1-45
+src/components/Logo.module.css
+  s_7c7d151152e4a5::t_8feb854fc6a68d 41-43,47-50,52-56,60-62,69-71
+src/components/Medaillon.module.css
+  s_321470c42830c6::t_7319445402947a 1-86
+src/components/Medaillon.test.tsx
+  s_7c7d151152e4a5::t_20e66917bb78cf 1-22
+src/components/Medaillon.tsx
+  s_321470c42830c6::t_69930c5d410099 1-39
+src/components/Navigation.tsx
+  s_7c7d151152e4a5::t_3d99baf92ba9b2 35-39
+src/components/kit.module.css
+  s_7c7d151152e4a5::t_14d869211280d0 1-461
+src/emails/couleurs-emails.json
+  s_7c7d151152e4a5::t_3c4e60db9e4965 5-8
+src/styles/formes.css
+  s_7c7d151152e4a5::t_29386af9b855a2 2-4,10-12,16-52,59-61,67,69,77-78,80,84-89,92,96,100-103,109
+src/styles/palette.css
+  s_7c7d151152e4a5::t_ce6c0b44c736ec 2-5,12-112
+src/components/Bloc.module.css
+  s_76a030ebea584a::t_740965cf9e7d3f 2-5,8,10-11,13-15,20-29,36,38-47,49-59,62-74,85-88,91,111,113-117
+src/components/Bloc.tsx
+  s_76a030ebea584a::t_8e7107e4e6f996 6,10,12-17,22,28-34,36,39-46
+src/styles/fonts.ts
+  s_76a030ebea584a::t_1699a93eefba55 1,3-5,7-8,10-11,14-40
+src/styles/typographie.css
+  s_76a030ebea584a::t_177de38d4581be 2-4,7-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1e1186e2968110c0fa03517eb83afee95c2dbf22",
+  "prompts": {},
+  "sessions": {
+    "s_321470c42830c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a83713d5-b7d2-45a8-9fe7-b08464ea27aa",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_4ce34ec42d9105": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "986afa6c-8f0b-494f-9694-d93f52c5ef9e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_76a030ebea584a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a7501a89a31531489",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
