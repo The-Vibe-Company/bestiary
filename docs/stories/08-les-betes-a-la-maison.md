@@ -7,6 +7,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0801 · Ouvrir la Réserve
 **En tant que** joueur, **je veux** ouvrir la Réserve de mon Territoire, **afin de** voir les Couples que j'ai réunis.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#47). Une entrée « Réserve » de la navigation, entre « Expéditions » et « Habitants », ouvre /jeu/reserve : son titre, une phrase (« Le lieu protégé de votre Territoire : vos Couples y vivent à l'abri, loin des combats. ») et le nombre de Couples en grand. Tranché : sans Couple, la page dit « 0 Couple » en attendant la Réserve vide (US-0809) ; sur mobile, six onglets égaux, noms en 11 px. La refonte AEOM de la navigation devra reprendre cette entrée.
 - **Débloquée par** : Étape 4, US-0956
 - **Critères d'acceptation** :
   - Une entrée « Réserve » de la navigation ouvre la page, sur ordinateur comme sur mobile.
