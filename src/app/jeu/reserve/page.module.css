@@ -1,0 +1,44 @@
+/* US-0801 : la Réserve : un titre, puis un bloc Bento, dans la largeur de l'écran du Foyer, comme les Expéditions en cours. */
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.titre {
+  margin-bottom: 16px;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.lieu {
+  color: var(--texte-discret);
+}
+
+/* Le nombre de Couples qu'elle abrite, en grand, comme la durée d'un séjour (US-0906), son nom à côté. */
+.couples {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin-top: 12px;
+  font-weight: var(--graisse-titre);
+}
+
+.nombre {
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+@media (max-width: 820px), (max-height: 500px) {
+  .page {
+    padding: 12px;
+  }
+
+  .titre {
+    margin: 8px 0 12px;
+    font-size: 24px;
+  }
+}

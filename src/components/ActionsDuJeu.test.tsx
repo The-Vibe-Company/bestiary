@@ -120,6 +120,7 @@ describe("actions du joueur dans la barre, sur les pages du jeu", () => {
       ["Foyer", "/jeu", false],
       ["Carte", "/jeu/carte", false],
       ["Expéditions", "/jeu/expeditions/nouvelle", false],
+      ["Réserve", "/jeu/reserve", false],
       ["Habitants", "/jeu/habitants", true],
       ["Récits", "/jeu/recits", false],
     ]);

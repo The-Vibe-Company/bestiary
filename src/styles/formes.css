@@ -35,9 +35,9 @@
   }
 }
 
-/* Sous 1400 px, les ressources ne tiennent plus à coup sûr sur la ligne avec la navigation (US-0324, US-0901) :
-   elles passent en bande sous la barre, qui grandit d'autant. */
-@media (max-width: 1399px) {
+/* Sous 1490 px, les ressources ne tiennent plus à coup sûr sur la ligne avec la navigation (US-0324, US-0901,
+   US-0801) : elles passent en bande sous la barre, qui grandit d'autant. */
+@media (max-width: 1489px) {
   :root:has([data-bande-ressources]) {
     --hauteur-bande: 44px;
   }

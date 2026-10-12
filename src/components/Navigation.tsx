@@ -12,12 +12,14 @@ const PAGE_RECITS = "/jeu/recits";
 /**
  * Les pages du jeu qu'on ouvre depuis la navigation, dans leur ordre ; la carte du Monde juste après le Foyer (US-0417).
  * US-0901 : puis l'écran d'Expédition, le même que depuis la fiche d'une Case, sans destination choisie. US-0911 : son
- * entrée vaut pour toutes les pages des Expéditions (`section`), la liste des Expéditions en cours comprise.
+ * entrée vaut pour toutes les pages des Expéditions (`section`), la liste des Expéditions en cours comprise. US-0801 :
+ * puis la Réserve, le lieu protégé où vivent les Couples.
  */
 const ENTREES_DU_JEU: readonly { chemin: string; section?: string; libelle: string }[] = [
   { chemin: "/jeu", libelle: "Foyer" },
   { chemin: "/jeu/carte", libelle: "Carte" },
   { chemin: "/jeu/expeditions/nouvelle", section: "/jeu/expeditions", libelle: "Expéditions" },
+  { chemin: "/jeu/reserve", libelle: "Réserve" },
   { chemin: PAGE_HABITANTS, libelle: "Habitants" },
   { chemin: PAGE_RECITS, libelle: "Récits" },
 ];

@@ -602,9 +602,10 @@
  * US-0324 : sous 1280 px, la navigation à trois entrées ne laisse plus la place à coup sûr aux
  * ressources sur la ligne (quatre Stocks pleins, ou de grands nombres avec leur production) : elles passent
  * en bande sous la barre, centrées, toute la largeur sous un filet. US-0901 : sous 1400 px depuis la cinquième
- * entrée, « Expéditions », plus large de 113 px ; au-delà, le nom du chef garde la place qu'il avait.
+ * entrée, « Expéditions », plus large de 113 px ; au-delà, le nom du chef garde la place qu'il avait. US-0801 : sous
+ * 1490 px depuis la sixième, « Réserve », plus large de 85 px.
  */
-@media (min-width: 821px) and (max-width: 1399px) {
+@media (min-width: 821px) and (max-width: 1489px) {
   .ressources {
     grid-column: 1 / -1;
     grid-row: 2;
@@ -629,7 +630,7 @@
   }
 
   /*
-   * La navigation en onglets fixés en bas de l'écran, au pouce : cinq onglets (US-0324, US-0417, US-0901),
+   * La navigation en onglets fixés en bas de l'écran, au pouce : six onglets (US-0324, US-0417, US-0901, US-0801),
    * sur l'Encre de la barre, au-dessus de l'encoche du bas. La page s'arrête au-dessus (--hauteur-onglets,
    * formes.css).
    */
@@ -648,29 +649,33 @@
    */
   .entrees {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 0;
     height: var(--hauteur-onglets);
   }
 
   /*
-   * Cinq onglets de 64 px en moyenne sur 320 px (US-0901) : en 12 px, « Expéditions », « Habitants » et son
-   * point, « Récits » et sa pastille, même à « 99+ », y tiennent ensemble.
+   * Six onglets de 53 px en moyenne sur 320 px (US-0801) : en 11 px, un peu resserrés comme les titres des pages,
+   * « Expéditions », « Réserve », « Habitants » et son point, « Récits » et sa pastille, même à « 99+ », y tiennent
+   * ensemble.
    */
   .entree {
     height: 100%;
     padding: 0 2px;
     border-radius: 0;
-    font-size: 12px;
+    font-size: 11px;
+    letter-spacing: -0.02em;
   }
 
   .entree:focus-visible {
     outline-offset: -4px;
   }
 
+  /* US-0801 : la pastille, serrée au plus près du nom, pour que la sixième entrée tienne. */
   .pastille {
-    margin-left: 3px;
-    padding: 0 5px;
+    margin-left: 2px;
+    padding: 0 4px;
+    font-size: 11px;
   }
 
   /*
