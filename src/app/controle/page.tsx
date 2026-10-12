@@ -232,6 +232,12 @@ export default async function Controle({ searchParams }: PageProps<"/controle">)
             ))}
           </ul>
         </Bloc>
+        {/* US-0968 : les chances des Rencontres disputées, simulées par le vrai tirage du jeu. */}
+        <Bloc titre="Rencontres disputées" largeur={6}>
+          <p className={styles.note}>
+            <Link href="/controle/chances">Simulation des chances</Link>
+          </p>
+        </Bloc>
       </Grille>
     </main>
   );
