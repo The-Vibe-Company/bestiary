@@ -1,0 +1,53 @@
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_e4713d6c6b32eb 96
+docs/stories/README.md
+  s_7c7d151152e4a5::t_f595c1b13ae60e 7
+src/app/jeu/betes/page.css.test.ts
+  s_7c7d151152e4a5::t_7cc9a78bf9637e 1-32
+src/app/jeu/betes/page.db.test.tsx
+  s_7c7d151152e4a5::t_6b6a04c24071dd 1-116
+src/app/jeu/betes/page.module.css
+  s_7c7d151152e4a5::t_2f80d42c9d60e0 1-112
+src/app/jeu/betes/page.test.tsx
+  s_7c7d151152e4a5::t_d242d531a6fdd6 1-123
+src/app/jeu/betes/page.tsx
+  s_7c7d151152e4a5::t_51e0b81d20d7c2 1-61
+src/app/jeu/page.css.test.ts
+  s_7c7d151152e4a5::t_bbb877185a4309 1-23
+src/app/jeu/page.module.css
+  s_7c7d151152e4a5::t_1b362ee01cb515 82-127,237-240
+src/app/jeu/page.test.tsx
+  s_7c7d151152e4a5::t_3108c0604cd62e 31-33,77,80-98
+src/app/jeu/page.tsx
+  s_7c7d151152e4a5::t_1180c8a8160262 7,11,34-36,46,68-77
+src/app/jeu/reserve/[espece]/page.db.test.tsx
+  s_7c7d151152e4a5::t_96d7c27c4f7480 51-54,57,62,85-86,99,107-120
+src/app/jeu/reserve/[espece]/page.module.css
+  s_7c7d151152e4a5::t_79d2d6e2bdd52c 45-59
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_0a7c89c4ab40b1 4,16-19,26,28-30,37,40,43,49,62-78,86,92
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_77447ea9b12914 10,22-26,28-34,40-43,47,49-53,55
+src/monde/couple.ts
+  s_7c7d151152e4a5::t_128e2382b625e0 87-88,94-95
+src/monde/effectif.db.test.ts
+  s_7c7d151152e4a5::t_b86dd511e3c61a 7-8,202-305
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_aa29b32dfb56d3 2-3,85-136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "38ccde1e10cdd5b8478f6d639f52aec51ace33ad",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
