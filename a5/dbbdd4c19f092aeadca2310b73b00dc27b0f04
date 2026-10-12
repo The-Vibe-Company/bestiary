@@ -1,0 +1,113 @@
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_f144d32f36d2d7 40,108,118,236
+docs/stories/09-explorer-et-apprivoiser.md
+  s_7c7d151152e4a5::t_456b54741a14dc 691,710
+docs/stories/README.md
+  s_7c7d151152e4a5::t_a632a01e5796f2 7
+src/app/jeu/betes/page.css.test.ts
+  s_7c7d151152e4a5::t_1357a43e864dd7 33-43
+src/app/jeu/betes/page.db.test.tsx
+  s_7c7d151152e4a5::t_3e16b6ebee20db 7,9,21-23,69,103-104,117-118,122-131
+src/app/jeu/betes/page.module.css
+  s_7c7d151152e4a5::t_76b4fd2549657f 15,17,31-65,148-152
+src/app/jeu/betes/page.test.tsx
+  s_7c7d151152e4a5::t_fffedf1af2505c 18-20,90,92,106,127-189
+src/app/jeu/betes/page.tsx
+  s_7c7d151152e4a5::t_f1ce77dad8511e 11,13,26-32,40,44-58
+src/app/jeu/recits/AnnonceDuCouple.css.test.ts
+  s_7c7d151152e4a5::t_aaf94884fc4a61 15-16,37-41
+src/app/jeu/recits/AnnonceDuCouple.module.css
+  s_7c7d151152e4a5::t_ee46bcd9d5c9d3 65-83,116-118,127
+src/app/jeu/recits/AnnonceDuCouple.tsx
+  s_7c7d151152e4a5::t_664060aeea8588 1,5-9,14-15,21,24-27
+src/app/jeu/recits/ListeDesRecits.test.tsx
+  s_7c7d151152e4a5::t_cd444baecbb3ba 199,202-205,208,235-246
+src/app/jeu/recits/RencontresDuRecit.test.tsx
+  s_7c7d151152e4a5::t_52e919b628c944 89-109
+src/app/jeu/recits/RencontresDuRecit.tsx
+  s_7c7d151152e4a5::t_df6dfc45a6e8b2 12-14,37-38,50-57
+src/app/jeu/recits/page.test.tsx
+  s_7c7d151152e4a5::t_093f00256953f5 341-345
+src/app/jeu/recits/page.tsx
+  s_7c7d151152e4a5::t_22911e0ec99f28 84
+src/app/jeu/reserve/[espece]/BlocElever.module.css
+  s_7c7d151152e4a5::t_8dd06b0a1cbc9f 1-46
+src/app/jeu/reserve/[espece]/BlocElever.test.tsx
+  s_7c7d151152e4a5::t_52a3937bffea19 1-58
+src/app/jeu/reserve/[espece]/BlocElever.tsx
+  s_7c7d151152e4a5::t_c339ee0971fa5a 1-39
+src/app/jeu/reserve/[espece]/actions.db.test.ts
+  s_7c7d151152e4a5::t_aaad5a8459a8e2 1-85
+src/app/jeu/reserve/[espece]/actions.test.ts
+  s_7c7d151152e4a5::t_835c4336d90dc6 1-93
+src/app/jeu/reserve/[espece]/actions.ts
+  s_7c7d151152e4a5::t_bc1a877e195d1c 1-28
+src/app/jeu/reserve/[espece]/page.css.test.ts
+  s_7c7d151152e4a5::t_aec59d92f5b0b6 37-52
+src/app/jeu/reserve/[espece]/page.db.test.tsx
+  s_7c7d151152e4a5::t_def523b6b92f14 51-58,129-159
+src/app/jeu/reserve/[espece]/page.module.css
+  s_7c7d151152e4a5::t_1e87ef797a0a76 60-84,128,131-136,142-147
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_3798c65a77fb1c 4,18,20-25,32-50,64,96-115,145-186
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_4ad2e0983122aa 11-14,27,31-35,63-80,86
+src/components/PlacesDeLHabitat.module.css
+  s_7c7d151152e4a5::t_25b23f67633ebc 1-11
+src/components/PlacesDeLHabitat.test.tsx
+  s_7c7d151152e4a5::t_6c750d6dbe2bb4 1-27
+src/components/PlacesDeLHabitat.tsx
+  s_7c7d151152e4a5::t_d2deab1eb1ce97 1-17
+src/donnees/especes.test.ts
+  s_7c7d151152e4a5::t_cb257a1a319f0a 31-32
+src/expeditions/arrivee-plus-forte.db.test.ts
+  s_7c7d151152e4a5::t_5b1be4f8128f92 1-276
+src/expeditions/case-partagee.db.test.ts
+  s_7c7d151152e4a5::t_b662aec1ac4ca0 259-260,263-264,345,349-350
+src/expeditions/chances.db.test.ts
+  s_7c7d151152e4a5::t_1e6e7abef46a47 355-356,358
+src/expeditions/recit-de-rencontre.db.test.ts
+  s_7c7d151152e4a5::t_b83383c3dcaabf 199,224,228-256
+src/expeditions/recit-de-rencontre.test.ts
+  s_7c7d151152e4a5::t_05b6378f3c68fa 12-13,16-17,21,42-48
+src/expeditions/recit-de-rencontre.ts
+  s_7c7d151152e4a5::t_af30af875bd009 7-8,26-27,29,31-32,40,42,44,69,74,83-88,100-101,103-104,118,120-121
+src/expeditions/recit-de-retour.test.ts
+  s_7c7d151152e4a5::t_b55a04e807415a 276-299
+src/expeditions/recit-de-retour.ts
+  s_7c7d151152e4a5::t_2e2326abb1dd66 71-75,246-253,286-289,303,321,373-375,399
+src/expeditions/recit-du-perdant.db.test.ts
+  s_7c7d151152e4a5::t_e1f62eb581b8b2 1-183
+src/monde/effectif.db.test.ts
+  s_7c7d151152e4a5::t_f2d9d239c7131c 297-298,300
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_7aa6d2af001365 120-126,130,132-135
+src/monde/elevage.ts
+  s_7c7d151152e4a5::t_459876f4609c5b 23-28
+src/monde/habitat.db.test.ts
+  s_7c7d151152e4a5::t_ae7d6653af070f 1-98
+src/monde/habitat.ts
+  s_7c7d151152e4a5::t_d0a7565bbb052b 1-27
+src/monde/quantite.ts
+  s_7c7d151152e4a5::t_2cebca7d82cffa 69-78
+src/monde/recits.ts
+  s_7c7d151152e4a5::t_c14c8702b15c95 30,32
+src/reglages.ts
+  s_7c7d151152e4a5::t_64d40f27bb1dfa 360-366
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a5dbbdd4c19f092aeadca2310b73b00dc27b0f04",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
