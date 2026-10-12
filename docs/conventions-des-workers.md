@@ -22,6 +22,14 @@ Lis d'abord `AGENTS.md` (ce Next.js 16 a des changements cassants ; les guides s
 - `npm run lint`, `npm run typecheck`, puis la suite : `NODE_ENV=production VERCEL_ENV=production npx vitest run --maxWorkers=2`. La CI les repasse sur ta branche, sur son propre Postgres : attends-la verte.
 - Tests sur base : un chef naît dans un Monde d'essai propre à ton fichier (`mondeDEssai(pool, "<nom>")`, `src/test/base.ts`), jamais sur Aube, sauf si l'essai porte vraiment sur le Monde du jeu : sa Couronne n'a de place que pour quelques dizaines de Foyers, partagés par toute la suite.
 - Un critère visible se vérifie en vrai, dans un navigateur, de 320 à 1 440 px, sans défilement de côté ; joins une capture avec `armada attach`.
+- Noms de chef d'essai : `nomDEssai(prefixe, suffixeDEssai(), n)` (`src/test/base.ts`), jamais un suffixe tiré librement : il forme parfois un mot interdit, et le chef est refusé.
+- Un essai à plusieurs chefs les fait tous naître d'abord, puis choisit ses Cases (Bête de naissance, destination), une par essai : un Foyer né après coup peut tomber sur la Case choisie.
+- Un essai qui cherche dans le Monde (une Bête rare, une Case calme) prend 60 s de délai et un plafond prévu pour le régime le plus défavorable.
+- Aucune Espèce d'essai nommée dans le code ni dans les tests : prends souris, poule ou pigeon.
+- Une base de test réutilisée d'une PR à l'autre peut faire sauter une migration à Drizzle : applique ce qui manque sur la base, sans toucher aux fichiers. Si une migration réservée plus tôt fusionne avant la tienne, recoud ton instantané avec `drizzle-kit`, puis remets ta base d'aplomb.
+- La suite complète vide la ligne `horloge` de sa base : après avoir ancré l'horloge du serveur de dev, ne relance pas la suite sur la même base.
+- Avalanche d'`ECONNREFUSED` sur 5433 : `pg_isready`, puis `open -a Docker`, puis relance.
+- Arrête tes serveurs par leurs PID, jamais par leur nom (`pkill -f …` arrête aussi ceux des autres agents). Un critère « sur mobile » se vérifie aussi téléphone couché.
 
 ## La pull request
 - Titre au format Commitizen qu'exige Armada, suivi du titre du ticket : `feat(expeditions): US-0901 · Ouvrir l'écran d'Expédition` (la fusion en squash en fait le commit de la story) ; corps : ce que le joueur vit désormais, comment chaque critère a été vérifié, ce qui reste hors du ticket.
