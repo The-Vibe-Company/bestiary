@@ -675,6 +675,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0963 · Des chances proportionnelles à la force
 **En tant que** joueur, **je veux** que mes chances d'emporter une Bête disputée dépendent de la force de mon escorte, **afin de** tirer profit d'une escorte plus forte.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#51). Une Bête à portée de plusieurs Expéditions au même premier instant suit l'une d'elles, tirée au sort avec des chances proportionnelles à la force de chaque escorte (telle qu'elle est partie) ; le tirage ne dépend que de la Bête, et son résultat est le même quel que soit l'ordre de mise à l'heure des Territoires. Sans escorte, aucune chance face à une Expédition escortée ; entre Expéditions sans escorte, chances égales. Tranché : une Expédition pour qui la Bête est trop forte ne participe pas au tirage (chaque escorte garde sa propre portée, sans coopération entre joueurs, comme US-0962) ; une escorte de force nulle compte comme aucune escorte. Vérifié sur 10 000 tirages et en vrai avec trois comptes sur une même Forêt. Suite : une Bête ne doit jamais finir dans deux Foyers, même si les statistiques d'une Espèce changent entre deux mises à l'heure (correctif à part).
 - **Débloquée par** : US-0962, US-0934
 - **Critères d'acceptation** :
   - Si la Bête est à portée de plusieurs Expéditions, une seule l'emporte, tirée au sort avec des chances proportionnelles à la force de chaque escorte.
