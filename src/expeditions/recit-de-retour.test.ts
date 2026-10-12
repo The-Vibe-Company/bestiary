@@ -264,3 +264,28 @@ describe("la Bête repérée partie avant l'arrivée (US-0949)", () => {
     for (const partiesAvant of [[], undefined]) expect(recitDeRetour(retour({ partiesAvant })).texte.split("\n")).toHaveLength(4);
   });
 });
+
+describe("les morts et les Blessés de l'escorte au combat (US-0951)", () => {
+  const lignes = (autre: Partial<RetourARaconter>) => recitDeRetour(retour({ rencontres: 1, ...autre })).texte.split("\n");
+
+  it("une ligne donne, Espèce par Espèce, le nombre de morts et de Blessés, après les Bêtes et avant celles ramenées au Foyer", () => {
+    const ramenees = [{ nom: "Poule", sexe: "femelle" as const }];
+    expect(lignes({ ramenees, pertes: [{ nom: "Souris grise", mortes: 2, blessees: 1 }, { nom: "Pigeon biset", mortes: 1, blessees: 2 }] })).toEqual([
+      "Destination : Forêt, à 3 Cases de votre Foyer.",
+      "Aller 1 h, séjour 4 h, retour 1 h.",
+      "12 Cases sont sorties du brouillard.",
+      "Une Bête s'est montrée.",
+      "Pertes au combat : Souris grise (2 morts, 1 Blessé) et Pigeon biset (1 mort, 2 Blessés).",
+      "Bête ramenée au Foyer : Poule (femelle).",
+    ]);
+  });
+
+  it("ne dit pas un nombre nul : une Espèce sans mort n'a que ses Blessés, une sans Blessé que ses morts", () => {
+    expect(lignes({ pertes: [{ nom: "Souris grise", mortes: 0, blessees: 1 }] }).at(-1)).toBe("Pertes au combat : Souris grise (1 Blessé).");
+    expect(lignes({ pertes: [{ nom: "Souris grise", mortes: 3, blessees: 0 }] }).at(-1)).toBe("Pertes au combat : Souris grise (3 morts).");
+  });
+
+  it("aucune ligne sans perte", () => {
+    for (const pertes of [[], undefined]) expect(lignes({ pertes })).toHaveLength(4);
+  });
+});

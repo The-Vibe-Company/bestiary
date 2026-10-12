@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { PERTES_PAR_ECART_DES_FORCES } from "@/reglages";
-import { partPerdue, pertesDuCombat, sexesDesPertes } from "./combat";
+import { PART_DES_BLESSES, PERTES_PAR_ECART_DES_FORCES } from "@/reglages";
+import { blessesParmi, partPerdue, pertesDuCombat, sexesDesPertes } from "./combat";
 
 /** Une escorte de l'essai : `nombre` Bêtes de l'Espèce `especeId`, chacune de force `force`. */
 const de = (especeId: string, force: number, nombre: number) => ({ especeId, force, nombre });
@@ -87,5 +87,23 @@ describe("le sexe des Bêtes de l'escorte perdues (US-0944)", () => {
   it("jamais plus de Bêtes que l'effectif n'en compte", () => {
     expect(sexesDesPertes({ males: 1, femelles: 0 }, 3)).toEqual({ males: 1, femelles: 0 });
     expect(sexesDesPertes({ males: 0, femelles: 0 }, 1)).toEqual({ males: 0, femelles: 0 });
+  });
+});
+
+describe("des Blessés parmi les pertes (US-0951)", () => {
+  it("une part des Bêtes qu'une Espèce perd au combat ne sont que blessées, PART_DES_BLESSES, les autres meurent", () => {
+    expect(PART_DES_BLESSES).toBe(0.5);
+    expect([2, 4, 10, 40].map(blessesParmi)).toEqual([1, 2, 5, 20]);
+  });
+
+  it("à l'arrondi le plus proche, la demie revenant aux Blessés : une seule Bête perdue n'est que blessée", () => {
+    expect([0, 1, 3, 5, 7].map(blessesParmi)).toEqual([0, 1, 2, 3, 4]);
+  });
+
+  it("jamais plus de Blessés que de Bêtes perdues, ni moins de zéro", () => {
+    for (let n = 0; n <= 50; n++) {
+      expect(blessesParmi(n)).toBeGreaterThanOrEqual(0);
+      expect(blessesParmi(n)).toBeLessThanOrEqual(n);
+    }
   });
 });

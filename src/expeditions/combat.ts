@@ -2,8 +2,9 @@
 // se règle par la simple somme des forces (US-0905), sans règle de taille ni hasard : la Bête, plus forte que l'escorte,
 // l'emporte toujours, et l'escorte perd une part de ses Bêtes qui grandit avec l'écart des forces. Seules les Bêtes de
 // l'escorte subissent des pertes ; la Bête sauvage n'en subit aucune et reste sur sa Case. Le combat s'applique en base
-// à l'instant de l'attaque (src/expeditions/pertes.ts). Côté serveur comme dans le navigateur.
-import { PERTES_PAR_ECART_DES_FORCES } from "@/reglages";
+// à l'instant de l'attaque (src/expeditions/pertes.ts). US-0951 : parmi les pertes, une part ne sont que des Blessés.
+// Côté serveur comme dans le navigateur.
+import { PART_DES_BLESSES, PERTES_PAR_ECART_DES_FORCES } from "@/reglages";
 import { forceDeLEscorte } from "./force";
 
 /** US-0944 : les Bêtes d'une Espèce de l'escorte au moment du combat : la force d'une d'elles (US-0905) et leur nombre. */
@@ -46,6 +47,16 @@ export function pertesDuCombat(bete: number, escorte: readonly EspeceAuCombat[])
     .filter(([, nombre]) => nombre > 0)
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .map(([especeId, nombre]) => ({ especeId, nombre }));
+}
+
+/**
+ * US-0951 : combien des `nombre` Bêtes qu'une Espèce de l'escorte perd au combat ne sont que blessées : la part
+ * PART_DES_BLESSES, arrondie au plus proche, la demie revenant aux Blessés, sans tirage au sort (décidé pour US-0951) : une
+ * seule Bête perdue n'est que blessée. Les autres meurent.
+ */
+export function blessesParmi(nombre: number): number {
+  // Un millionième de Bête de tolérance, comme pour les pertes : 0,5 × 1 Bête fait bien une demie.
+  return Math.min(nombre, Math.floor(PART_DES_BLESSES * nombre + 0.5 + 1e-6));
 }
 
 /**

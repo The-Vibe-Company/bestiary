@@ -2,10 +2,12 @@
 // livre (src/expeditions/combat.ts) et l'escorte perd ses Bêtes : retenues sur l'escorte (expedition_escorte.perdues), elles
 // quittent aussitôt l'effectif du Territoire. Jamais les explorateurs, ni les Bêtes restées au Foyer, ni les Couples, en
 // Réserve hors de l'effectif (US-0956). Appliquées par le mécanisme du temps, dans la transaction du rattrapage, à
-// l'instant de chaque attaque : les mêmes pertes en direct, au rattrapage ou par la tâche planifiée. Côté serveur uniquement.
+// l'instant de chaque attaque : les mêmes pertes en direct, au rattrapage ou par la tâche planifiée. US-0951 : parmi elles,
+// les Blessés (blessesParmi), retenus aussi sur l'escorte (expedition_escorte.blessees), restent dans l'effectif et
+// rentrent au Foyer avec l'Expédition ; seules les mortes en sortent. Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
-import { pertesDuCombat, sexesDesPertes } from "./combat";
+import { blessesParmi, pertesDuCombat, sexesDesPertes } from "./combat";
 import { forceDUneBete } from "./force";
 
 /**
@@ -35,7 +37,8 @@ export async function subirLesCombats(base: Pool | PoolClient, combats: readonly
 /**
  * US-0944 : le combat de la Bête de l'Espèce `especeId` contre l'escorte de l'Expédition `expeditionId` : ses pertes,
  * Espèce par Espèce (pertesDuCombat), s'ajoutent à celles de l'escorte et quittent l'effectif du Territoire, chacune au
- * sexe que dit sexesDesPertes.
+ * sexe que dit sexesDesPertes. US-0951 : seules les mortes ; les Blessés parmi elles (blessesParmi) s'ajoutent à ceux de
+ * l'escorte et restent dans l'effectif, hors de combat.
  */
 async function subirLeCombat(base: Pool | PoolClient, { expeditionId, especeId }: Combat): Promise<void> {
   const { rows: escorte } = await base.query<{ especeId: string; attaque: number; vie: number; nombre: number; territoireId: number }>(
@@ -53,19 +56,24 @@ async function subirLeCombat(base: Pool | PoolClient, { expeditionId, especeId }
   );
   if (pertes.length === 0) return;
   const { territoireId } = escorte[0];
+  const blesses = pertes.map((p) => blessesParmi(p.nombre));
   await base.query(
-    `update expedition_escorte s set perdues = s.perdues + v.nombre from unnest($2::text[], $3::int[]) as v(espece_id, nombre)
+    `update expedition_escorte s set perdues = s.perdues + v.nombre, blessees = s.blessees + v.blesses
+     from unnest($2::text[], $3::int[], $4::int[]) as v(espece_id, nombre, blesses)
      where s.expedition_id = $1 and s.espece_id = v.espece_id`,
-    [expeditionId, pertes.map((p) => p.especeId), pertes.map((p) => p.nombre)],
+    [expeditionId, pertes.map((p) => p.especeId), pertes.map((p) => p.nombre), blesses],
   );
+  // US-0951 : seules les mortes quittent l'effectif.
+  const mortes = pertes.map((p, i) => ({ especeId: p.especeId, nombre: p.nombre - blesses[i] })).filter((p) => p.nombre > 0);
+  if (mortes.length === 0) return;
   const { rows: effectif } = await base.query<{ especeId: string; males: number; femelles: number }>(
     `select espece_id as "especeId", coalesce(sum(nombre) filter (where sexe = 'male'), 0)::int as males,
        coalesce(sum(nombre) filter (where sexe = 'femelle'), 0)::int as femelles
      from effectif where territoire_id = $1 and espece_id = any($2::text[]) group by espece_id`,
-    [territoireId, pertes.map((p) => p.especeId)],
+    [territoireId, mortes.map((p) => p.especeId)],
   );
   const parEspece = new Map(effectif.map(({ especeId, ...sexes }) => [especeId, sexes]));
-  const sorties = pertes.flatMap(({ especeId, nombre }) => {
+  const sorties = mortes.flatMap(({ especeId, nombre }) => {
     const { males, femelles } = sexesDesPertes(parEspece.get(especeId) ?? { males: 0, femelles: 0 }, nombre);
     return [
       { especeId, sexe: "male", nombre: males },

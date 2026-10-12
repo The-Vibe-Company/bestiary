@@ -5,7 +5,8 @@
 // US-0920 : rappelée, il le dit, et quand. US-0938 : et les Bêtes qui l'ont suivie jusqu'au Foyer. US-0942 : les Bêtes
 // trop fortes pour son escorte, restées sur leur Case, et la force qui lui manquait. US-0962 : et, sans les nommer, que
 // d'autres joueurs avaient une Expédition sur la Case pendant son séjour : le joueur ne l'apprend que là. US-0949 : et
-// les Bêtes que le joueur y avait repérées à son départ, parties avant son arrivée. Côté serveur uniquement.
+// les Bêtes que le joueur y avait repérées à son départ, parties avant son arrivée. US-0951 : et les morts et les Blessés de
+// son escorte au combat, Espèce par Espèce. Côté serveur uniquement.
 import "server-only";
 import type { PoolClient } from "pg";
 import type { Sexe } from "@/monde/betes-sauvages";
@@ -70,7 +71,12 @@ export type RetourARaconter = {
    * arrivée, chacune une fois (betesPartiesAvantLArrivee) ; absentes ou vides : aucune.
    */
   partiesAvant?: string[];
+  /** US-0951 : les pertes de son escorte au combat, Espèce par Espèce (pertesDeLEscorte) ; absentes ou vides : aucune. */
+  pertes?: PerteRacontee[];
 };
+
+/** US-0951 : les pertes d'une Espèce de l'escorte au combat : le nom de l'Espèce, ses Bêtes mortes et ses Blessés. */
+export type PerteRacontee = { nom: string; mortes: number; blessees: number };
 
 /** US-0942 : une Espèce trop forte pour l'escorte : son nom et la force qui manquait à l'escorte (forceQuiManque). */
 export type TropForte = { nom: string; manque: number };
@@ -130,6 +136,18 @@ function partiesAvantLArrivee(especes: string[]): string {
 function betesMontrees(nombre: number): string {
   if (nombre === 0) return "Aucune Bête ne s'est montrée.";
   return nombre === 1 ? "Une Bête s'est montrée." : `${nombre} Bêtes se sont montrées.`;
+}
+
+/**
+ * US-0951 : « Pertes au combat : Souris grise (2 morts, 1 Blessé) et Pigeon biset (2 Blessés). » : chaque Espèce de
+ * l'escorte qui a perdu des Bêtes, ses morts puis ses Blessés, sans dire un nombre nul.
+ */
+function pertesAuCombat(pertes: readonly PerteRacontee[]): string {
+  const especes = pertes.map(({ nom, mortes, blessees }) => {
+    const dits = [mortes > 0 && `${mortes} ${mortes > 1 ? "morts" : "mort"}`, blessees > 0 && `${blessees} ${blessees > 1 ? "Blessés" : "Blessé"}`];
+    return `${nom} (${dits.filter(Boolean).join(", ")})`;
+  });
+  return `Pertes au combat : ${enumeres(especes)}.`;
 }
 
 /** US-0938 : « 2 mâles », « 1 femelle » ; une Bête seule, son sexe : « mâle ». */
@@ -219,7 +237,8 @@ function resteesSurLeurCase(tropFortes: TropForte[]): string {
  * trop fortes pour l'escorte, et la force qui lui manquait ; quand d'autres ont suivi, une ligne après elle le dit des
  * Bêtes restées sur leur Case. US-0938 : puis, si des Bêtes ont suivi l'Expédition, une ligne les dit arrivées au Foyer.
  * US-0962 : quand d'autres joueurs séjournaient sur la Case, une ligne le dit, avant les Bêtes. US-0949 : puis, quand des
- * Bêtes que le joueur y avait repérées en étaient parties avant l'arrivée, une ligne les nomme.
+ * Bêtes que le joueur y avait repérées en étaient parties avant l'arrivée, une ligne les nomme. US-0951 : après les Bêtes,
+ * et avant celles arrivées au Foyer, une ligne donne les morts et les Blessés de l'escorte au combat, Espèce par Espèce.
  */
 export function recitDeRetour({
   destination,
@@ -233,6 +252,7 @@ export function recitDeRetour({
   ramenees,
   autresExpeditions,
   partiesAvant,
+  pertes,
 }: RetourARaconter): NouveauRecit {
   const sejour = durees.sejour === 0 ? "sans séjour" : `séjour ${formaterMinutes(durees.sejour)}`;
   return {
@@ -248,6 +268,7 @@ export function recitDeRetour({
       ...(vuesSansSuite?.length
         ? [vuesSansQueRienNeSuive(vuesSansSuite, tropFortes)]
         : [betesMontrees(rencontres), ...(tropFortes?.length ? [resteesSurLeurCase(tropFortes)] : [])]),
+      ...(pertes?.length ? [pertesAuCombat(pertes)] : []),
       ...(ramenees?.length ? [betesRamenees(ramenees)] : []),
     ].join("\n"),
     survenuLe: rentreeLe,
@@ -292,6 +313,8 @@ export async function raconterLeRetour(client: PoolClient, territoireId: number,
   const autresExpeditions = await dAutresJoueursSurLaCase(client, territoireId, caseId, sejourDUneExpedition(horaires));
   // US-0949 : les Bêtes que le joueur y avait repérées à son départ, parties avant son arrivée.
   const partiesAvant = await betesPartiesAvantLArrivee(client, territoireId, destination, horaires, vues);
+  // US-0951 : les morts et les Blessés de son escorte au combat.
+  const pertes = await pertesDeLEscorte(client, expeditionId);
   await ecrireUnRecit(
     client,
     territoireId,
@@ -308,9 +331,26 @@ export async function raconterLeRetour(client: PoolClient, territoireId: number,
       ramenees,
       autresExpeditions,
       partiesAvant,
+      pertes,
     }),
     detail,
   );
+}
+
+/**
+ * US-0951 : les pertes de l'escorte de l'Expédition `expeditionId` au combat (src/expeditions/pertes.ts), Espèce par
+ * Espèce, de la plus commune à la plus rare puis par nom, comme l'escorte se lit ailleurs : ses Bêtes mortes et ses
+ * Blessés ; aucune Espèce qui n'a rien perdu.
+ */
+async function pertesDeLEscorte(client: PoolClient, expeditionId: number): Promise<PerteRacontee[]> {
+  const { rows } = await client.query<PerteRacontee>(
+    `select es.nom, s.perdues - s.blessees as mortes, s.blessees
+     from expedition_escorte s join espece es on es.id = s.espece_id join rarete r on r.id = es.rarete_id
+     where s.expedition_id = $1 and s.perdues > 0
+     order by r.rang, es.nom`,
+    [expeditionId],
+  );
+  return rows;
 }
 
 /**

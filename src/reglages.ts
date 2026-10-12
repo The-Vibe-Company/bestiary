@@ -351,3 +351,9 @@ export const CHANCE_D_ATTAQUE_PAR_HEURE = 0.1;
  * ce chiffre (valeur provisoire, à régler en jouant), jusqu'à toute l'escorte (src/expeditions/combat.ts).
  */
 export const PERTES_PAR_ECART_DES_FORCES = 1;
+
+/**
+ * US-0951 : parmi les Bêtes qu'une Espèce de l'escorte perd au combat, la part qui n'est que blessée (valeur provisoire, à
+ * régler en jouant), arrondie au plus proche, la demie aux Blessés ; les autres meurent (src/expeditions/combat.ts).
+ */
+export const PART_DES_BLESSES = 0.5;

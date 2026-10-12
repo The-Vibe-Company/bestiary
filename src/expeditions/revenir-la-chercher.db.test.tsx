@@ -61,7 +61,10 @@ describe.skipIf(!URL_TEST)("revenir chercher une Bête repérée (US-0949, sur b
   /** Une heure du jeu, `minutes` après `instant`. */
   const apres = (instant: Date, minutes: number) => new Date(instant.getTime() + minutes * MINUTE_MS);
 
-  /** Un chef qui vient de naître dans le Monde d'essai, avec un explorateur et deux Souris grises. */
+  /**
+   * Un chef qui vient de naître dans le Monde d'essai, avec un explorateur et quatre Souris grises : la Bête trop forte
+   * peut attaquer la première escorte de deux et lui en tuer (US-0944) ; il en reste toujours deux pour repartir.
+   */
   const naitre = async () => {
     const n = ++numero;
     const compte = (await creerCompte(pool, `${lancement}-${n}@essai.test`, "une phrase de passe"))!;
@@ -69,7 +72,7 @@ describe.skipIf(!URL_TEST)("revenir chercher une Bête repérée (US-0949, sur b
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await territoireDuCompte(pool, compte.id))!;
     await pool.query("insert into habitant (territoire_id, prenom, metier) values ($1, 'Essai', 'explorateur')", [territoireId]);
-    await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, $2, 'male', 2)", [territoireId, faible.id]);
+    await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, $2, 'male', 4)", [territoireId, faible.id]);
     const { rows } = await pool.query<{ foyer: Coordonnees }>(
       "select json_build_object('q', f.q, 'r', f.r) as foyer from territoire t join case_du_monde f on f.id = t.foyer_case_id where t.id = $1",
       [territoireId],

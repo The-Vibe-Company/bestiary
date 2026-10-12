@@ -435,6 +435,13 @@
       "when": 1791827190574,
       "tag": "0064_pertes_de_l_escorte",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1791831193000,
+      "tag": "0066_blessees_de_l_escorte",
+      "breakpoints": true
     }
   ]
 }

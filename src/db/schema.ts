@@ -736,7 +736,9 @@ export const expedition = pgTable(
  * l'effectif du Territoire, qui les compte par sexe (ADR 0002) : l'escorte ne choisit pas le sexe, et les Bêtes sorties
  * se retranchent des disponibles (src/monde/effectif.ts). Elle part avec l'Expédition. US-0944 : `perdues`, combien de
  * ces Bêtes l'escorte a perdues au combat (src/expeditions/pertes.ts), sorties de l'effectif à cet instant ; `nombre`
- * reste celui du départ, dont se tire la force de l'escorte face aux Bêtes qu'elle rencontre (US-0934).
+ * reste celui du départ, dont se tire la force de l'escorte face aux Bêtes qu'elle rencontre (US-0934). US-0951 :
+ * `blessees`, combien des perdues ne sont que des Blessés : elles restent dans l'effectif et rentrent au Foyer avec
+ * l'Expédition ; seules les autres, mortes, en sont sorties.
  */
 export const expeditionEscorte = pgTable(
   "expedition_escorte",
@@ -749,11 +751,13 @@ export const expeditionEscorte = pgTable(
       .references(() => espece.id),
     nombre: integer("nombre").notNull(),
     perdues: integer("perdues").notNull().default(0),
+    blessees: integer("blessees").notNull().default(0),
   },
   (t) => [
     primaryKey({ columns: [t.expeditionId, t.especeId] }),
     check("expedition_escorte_au_moins_une", sql`${t.nombre} > 0`),
     check("expedition_escorte_perdues_parmi_elles", sql`${t.perdues} between 0 and ${t.nombre}`),
+    check("expedition_escorte_blessees_parmi_les_perdues", sql`${t.blessees} between 0 and ${t.perdues}`),
   ],
 );
 
