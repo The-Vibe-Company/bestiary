@@ -1,0 +1,69 @@
+src/app/jeu/recits/AnnonceDuCouple.css.test.ts
+  s_7c7d151152e4a5::t_bc127fb8bd3883 1-32
+src/app/jeu/recits/AnnonceDuCouple.module.css
+  s_7c7d151152e4a5::t_4f4d1c793c7294 1-125
+src/app/jeu/recits/AnnonceDuCouple.tsx
+  s_9f13ff8a0fe04c::t_14c17ff983a8ce 1-25
+src/app/jeu/recits/ListeDesRecits.test.tsx
+  s_7c7d151152e4a5::t_78d5507b953248 183-235
+src/app/jeu/recits/ListeDesRecits.tsx
+  s_7c7d151152e4a5::t_3a632c14e1bb3c 5,12,23,89-90
+src/app/jeu/recits/page.test.tsx
+  s_7c7d151152e4a5::t_f02483a7807987 200-225
+src/app/jeu/recits/page.tsx
+  s_7c7d151152e4a5::t_539bb4bf870829 58-59
+src/components/ActionsDuJeu.test.tsx
+  s_7c7d151152e4a5::t_676d47a544efe1 21,36,50,434-473
+src/components/ActionsDuJeu.tsx
+  s_7c7d151152e4a5::t_1db0aa0afc8953 3,39,48,59,61,75
+src/components/BarreHaut.module.css
+  s_7c7d151152e4a5::t_38b7727f8a493b 121-136
+src/components/MenuChef.test.tsx
+  s_7c7d151152e4a5::t_6ed1a58fe3fdfc 100-134
+src/components/MenuChef.tsx
+  s_7c7d151152e4a5::t_4dce2c63558fe7 10-11,13,65-70
+src/comptes/garde.test.ts
+  s_7c7d151152e4a5::t_12dfe46df57226 30-31,35,196-206
+src/comptes/garde.ts
+  s_7c7d151152e4a5::t_25a343132088ff 11,163-171
+src/monde/couple.db.test.ts
+  s_7c7d151152e4a5::t_2fe03ff0206d11 17,20,332-391
+src/monde/couple.ts
+  s_7c7d151152e4a5::t_ac47b99a214cf0 5-6,58-59,68-76
+src/monde/recits.db.test.ts
+  s_4ce34ec42d9105::t_d8f87e6abe729c 143-169
+src/monde/recits.ts
+  s_7c7d151152e4a5::t_f29caa77e9882a 5,11,13-24,63-67,70-72,77-80,83,85-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "060042d19e94353758d39ddcbdea60108a7fd30f",
+  "prompts": {},
+  "sessions": {
+    "s_4ce34ec42d9105": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "986afa6c-8f0b-494f-9694-d93f52c5ef9e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_9f13ff8a0fe04c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2f6f8144-2e0f-4365-a2df-7a153cae490d",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
