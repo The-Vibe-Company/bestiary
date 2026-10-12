@@ -1,0 +1,23 @@
+src/app/jeu/recits/RencontresDuRecit.module.css
+  s_75e9a780874bbd::t_34c72434f601e2 53-56
+src/app/jeu/recits/RencontresDuRecit.tsx
+  s_75e9a780874bbd::t_634b9988b6bf40 43
+src/app/jeu/recits/page.module.css
+  s_75e9a780874bbd::t_af062b7d99ca1d 231,283,286
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6e1e78a81534d2ff476b624499c3e21a1f38de8c",
+  "prompts": {},
+  "sessions": {
+    "s_75e9a780874bbd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e8a22366-3524-4157-8983-f900d79a348a",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
