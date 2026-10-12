@@ -118,6 +118,22 @@
   overflow-wrap: anywhere;
 }
 
+/* US-0958 : le nombre de Couples réunis, sous le nom : le libellé d'un côté, le nombre de l'autre. */
+.couples {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--trait-doux);
+  color: var(--texte-2);
+}
+
+.nombreCouples {
+  color: var(--encre);
+  font-weight: var(--graisse-titre);
+  font-variant-numeric: tabular-nums;
+}
+
 .choix {
   display: block;
   width: 100%;

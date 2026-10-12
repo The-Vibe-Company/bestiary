@@ -18,6 +18,7 @@ const garde = vi.hoisted(() => ({
   entretienALHeure: vi.fn(async () => "6.000000"),
   famineImminenteALHeure: vi.fn(async (): Promise<number | null> => null),
   famineALHeure: vi.fn(async (): Promise<number | null> => null),
+  couplesReunisALHeure: vi.fn(async () => 0),
 }));
 vi.mock("@/comptes/garde", () => garde);
 // US-0321 : le vrai avertissement, observé pour voir ce que la barre lui confie.
@@ -32,6 +33,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }), use
 vi.mock("next/server", async (original) => ({ ...(await original<object>()), connection: async () => {} }));
 
 import { ActionsDuJeu } from "./ActionsDuJeu";
+import { MenuChef } from "./MenuChef";
 
 describe("actions du joueur dans la barre, sur les pages du jeu", () => {
   afterEach(() => {
@@ -45,6 +47,7 @@ describe("actions du joueur dans la barre, sur les pages du jeu", () => {
     garde.entretienALHeure.mockClear();
     garde.famineImminenteALHeure.mockClear();
     garde.famineALHeure.mockClear();
+    garde.couplesReunisALHeure.mockClear();
     famine.FamineImminente.mockClear();
   });
   const joueur = (chef: { nomDeChef: string | null; territoireId?: number | null; recitLu?: boolean }) =>
@@ -428,5 +431,45 @@ describe("actions du joueur dans la barre, sur les pages du jeu", () => {
     vi.stubEnv("VERCEL_ENV", "production");
     expect(await rendu()).toBe("");
     expect(garde.joueurConnecte).not.toHaveBeenCalled();
+  });
+
+  describe("le nombre de Couples réunis dans le menu du chef (US-0958)", () => {
+    /** Ce que la barre confie au menu du chef. */
+    const menu = async () => {
+      const element = await ActionsDuJeu();
+      const enfants = (element as { props: { children: { type: unknown; props: object }[] } }).props.children;
+      return enfants.find((enfant) => enfant?.type === MenuChef)?.props;
+    };
+
+    it("confie au menu du chef le nombre de Couples réunis du Territoire, une fois entré dans son Foyer", async () => {
+      joueur({ nomDeChef: "Ourse", territoireId: 12, recitLu: true });
+      garde.couplesReunisALHeure.mockResolvedValueOnce(3);
+      expect(await menu()).toEqual({ nom: "Ourse", couplesReunis: 3 });
+      expect(garde.couplesReunisALHeure).toHaveBeenCalledWith(12);
+    });
+
+    it("le lit en même temps que les Stocks et le reste de la barre", async () => {
+      joueur({ nomDeChef: "Ourse", territoireId: 12, recitLu: true });
+      const lectures: string[] = [];
+      let finir = () => {};
+      garde.stocksALHeure.mockImplementationOnce(async () => {
+        lectures.push("stocks");
+        await new Promise<void>((fin) => (finir = fin));
+        return [];
+      });
+      garde.couplesReunisALHeure.mockImplementationOnce(async () => (lectures.push("couples"), 0));
+      const rendue = rendu();
+      await vi.waitFor(() => expect(lectures).toEqual(["stocks", "couples"]));
+      finir();
+      await rendue;
+    });
+
+    it("ne le compte pas avant le récit d'arrivée, ni sans Territoire : le menu n'a que le nom", async () => {
+      joueur({ nomDeChef: "Ourse", territoireId: 12, recitLu: false });
+      expect(await menu()).toEqual({ nom: "Ourse" });
+      joueur({ nomDeChef: "Ourse", territoireId: null, recitLu: true });
+      expect(await menu()).toEqual({ nom: "Ourse" });
+      expect(garde.couplesReunisALHeure).not.toHaveBeenCalled();
+    });
   });
 });

@@ -180,3 +180,56 @@ describe("le résumé en tête du récit d'un retour d'Expédition (US-0941)", (
     expect(resume().closest("[hidden]")).toBeNull();
   });
 });
+
+describe("l'annonce du Couple réuni en tête du récit du retour qui l'a réuni (US-0958)", () => {
+  afterEach(() => {
+    cleanup();
+    actions.lireUnRecit.mockClear();
+  });
+
+  /** Un retour d'Expédition qui a réuni le Couple de la Souris grise. */
+  const RETOUR: RecitAffiche = {
+    id: 51,
+    titre: "Retour d'Expédition",
+    texte: "Une Bête s'est montrée.",
+    instant: "2026-10-09T16:05:00.000Z",
+    quand: "9 octobre 2026 à 18:05",
+    lu: false,
+    resume: ["1 Bête ramenée"],
+    couples: [{ nom: "Souris grise", illustration: null }],
+  };
+  const ligne = () => screen.getByRole("button", { name: /^Retour d'Expédition/ });
+  /** L'annonce du Couple : la seule figure de la liste, « Couple réuni » et le nom de l'Espèce sous son illustration. */
+  const annonce = () => {
+    const figure = screen.getByRole("figure");
+    expect(figure.textContent).toBe("Couple réuni Souris grise");
+    return figure;
+  };
+
+  it("se voit sans ouvrir le récit, sous sa ligne et avant son texte, avec l'illustration de l'Espèce", () => {
+    render(<ListeDesRecits recits={[RETOUR, RECITS[1]]} />);
+    expect(ligne().getAttribute("aria-expanded")).toBe("false");
+    expect(annonce().closest("[hidden]")).toBeNull();
+    expect(within(annonce()).getByRole("img", { name: "Souris grise" })).toBeTruthy();
+    expect(ligne().contains(annonce())).toBe(false);
+    expect(ligne().compareDocumentPosition(annonce()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(annonce().compareDocumentPosition(screen.getByText("Une Bête s'est montrée.")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // Un seul retour a réuni un Couple.
+    expect(screen.getAllByRole("figure")).toHaveLength(1);
+  });
+
+  it("reste en place quand le récit se déplie et se replie", async () => {
+    render(<ListeDesRecits recits={[RETOUR]} />);
+    const utilisateur = userEvent.setup();
+    await utilisateur.click(ligne());
+    expect(screen.getByText("Une Bête s'est montrée.").hidden).toBe(false);
+    expect(annonce().closest("[hidden]")).toBeNull();
+    await utilisateur.click(ligne());
+    expect(annonce().closest("[hidden]")).toBeNull();
+  });
+
+  it("annonce chacun des Couples qu'un même retour a réunis", () => {
+    render(<ListeDesRecits recits={[{ ...RETOUR, couples: [{ nom: "Poule", illustration: null }, ...RETOUR.couples!] }]} />);
+    expect(screen.getAllByRole("figure").map((couple) => couple.textContent)).toEqual(["Couple réuni Poule", "Couple réuni Souris grise"]);
+  });
+});

@@ -2,12 +2,14 @@
 
 import { useId, useState, useTransition } from "react";
 import { lireUnRecit } from "./actions";
+import { AnnonceDuCouple, type CoupleAffiche } from "./AnnonceDuCouple";
 import styles from "./page.module.css";
 import { type RencontreAffichee, RencontresDuRecit } from "./RencontresDuRecit";
 
 /**
  * Un Récit tel que la liste le montre : sa date déjà écrite par le serveur, dans le fuseau du joueur. US-0940 : et les
  * Rencontres d'un retour d'Expédition, le cas échéant. US-0941 : et les faits de son résumé, pour un retour d'Expédition.
+ * US-0958 : et les Couples qu'il a réunis, le cas échéant.
  */
 export type RecitAffiche = {
   id: number;
@@ -18,6 +20,7 @@ export type RecitAffiche = {
   lu: boolean;
   resume?: string[];
   rencontres?: RencontreAffichee[];
+  couples?: CoupleAffiche[];
 };
 
 /**
@@ -83,6 +86,8 @@ export function ListeDesRecits({ recits }: { recits: RecitAffiche[] }) {
                 <path d="M2.5 4.5 6 8l3.5-3.5" />
               </svg>
             </button>
+            {/* US-0958 : l'annonce du Couple réuni, en tête du récit du retour qui l'a réuni, se voit sans l'ouvrir. */}
+            {recit.couples?.length ? <AnnonceDuCouple couples={recit.couples} /> : null}
             <p id={idTexte} className={styles.texte} hidden={!ouvert}>
               {recit.texte}
             </p>

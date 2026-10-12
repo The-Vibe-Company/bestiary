@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import {
+  couplesReunisALHeure,
   entretienALHeure,
   famineALHeure,
   famineImminenteALHeure,
@@ -35,6 +36,7 @@ import { Ressources } from "./Ressources";
  * US-0322 : avec depuis quand le Territoire retient la famine imminente, lu avec le reste après le rattrapage.
  * US-0323 : la Nourriture assurée, le danger est passé : l'avertissement n'est plus posé, même retenu.
  * US-0325 : en Famine, la même bande dit « Famine », avec depuis quand le Territoire la retient, lu avec le reste.
+ * US-0958 : le menu du chef dit le nombre de ses Couples réunis, lu avec le reste une fois entré dans son Foyer.
  */
 export async function ActionsDuJeu() {
   await connection();
@@ -43,7 +45,7 @@ export async function ActionsDuJeu() {
   if (!joueur) return null;
   if (!joueur.nomDeChef) return <BoutonDeconnexion />;
   const territoireId = joueur.recitLu ? joueur.territoireId : null;
-  const [stocks, habitants, recitsNonLus, voyageurs, sansMetier, entretien, famineImminente, enFamine] =
+  const [stocks, habitants, recitsNonLus, voyageurs, sansMetier, entretien, famineImminente, enFamine, couplesReunis] =
     territoireId !== null
       ? await Promise.all([
           stocksALHeure(territoireId),
@@ -54,8 +56,9 @@ export async function ActionsDuJeu() {
           entretienALHeure(territoireId),
           famineImminenteALHeure(territoireId),
           famineALHeure(territoireId),
+          couplesReunisALHeure(territoireId),
         ])
-      : [null, null, null, null, null, null, null, null];
+      : [null, null, null, null, null, null, null, null, null];
   // US-0321 : dans combien d'heures de jeu la Nourriture ne paiera plus l'Entretien ; null quand elle est assurée.
   const famine = stocks && entretien !== null ? nourriturePourEncoreDesStocks(stocks, entretien) : null;
   return (
@@ -69,7 +72,7 @@ export async function ActionsDuJeu() {
         </Ressources>
       ) : null}
       {stocks ? <Presence key={`presence-${stocks.map((s) => s.quantite).join("|")}`} /> : null}
-      <MenuChef nom={joueur.nomDeChef} />
+      <MenuChef nom={joueur.nomDeChef} couplesReunis={couplesReunis ?? undefined} />
       {/* US-0321 : comme les quantités, l'avertissement repart du nouveau temps à chaque recalage de la barre. */}
       {famine !== null ? (
         <FamineImminente

@@ -7,9 +7,10 @@ import { useDeconnexion } from "./Deconnexion";
 /**
  * Le nom de chef dans la barre du haut (US-0140). Un nom long est coupé, lisible en entier au
  * survol et en tête du menu. Le nom ouvre le menu, qui contient « Se déconnecter » ; un clic
- * ailleurs, Échap ou un nouveau clic le referment.
+ * ailleurs, Échap ou un nouveau clic le referment. US-0958 : sous le nom en entier, le nombre de
+ * Couples réunis du joueur, une fois entré dans son Foyer (`couplesReunis`, absent avant).
  */
-export function MenuChef({ nom }: { nom: string }) {
+export function MenuChef({ nom, couplesReunis }: { nom: string; couplesReunis?: number }) {
   const [ouvert, setOuvert] = useState(false);
   const { enCours, deconnecter } = useDeconnexion();
   const racine = useRef<HTMLDivElement>(null);
@@ -61,6 +62,12 @@ export function MenuChef({ nom }: { nom: string }) {
       {ouvert ? (
         <div className={styles.menu}>
           <p className={styles.nomComplet}>{nom}</p>
+          {couplesReunis !== undefined ? (
+            <p className={styles.couples}>
+              <span>Couples réunis</span>
+              <span className={styles.nombreCouples}>{couplesReunis}</span>
+            </p>
+          ) : null}
           <div id={idMenu} role="menu" aria-label={nom}>
             <button ref={premier} type="button" role="menuitem" className={styles.choix} onClick={deconnecter} disabled={enCours}>
               {enCours ? "Déconnexion…" : "Se déconnecter"}

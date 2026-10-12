@@ -197,6 +197,34 @@ describe("page Récits (US-0324)", () => {
     ]);
   });
 
+  it("annonce en tête du retour qui l'a réuni le Couple de l'Espèce, avec son illustration, sans le déplier (US-0958)", async () => {
+    connecte([
+      {
+        id: 71,
+        titre: "Retour d'Expédition",
+        texte: "Aucune Bête ne s'est montrée.",
+        survenuLe: new Date("2026-10-09T16:05:00Z"),
+        luLe: null,
+        couples: [{ especeId: "souris", nom: "Souris grise", illustration: "especes/souris.webp" }],
+      } as Recit,
+      { id: 72, titre: "Retour d'Expédition", texte: "Aucune Bête ne s'est montrée.", survenuLe: new Date("2026-10-08T16:05:00Z"), luLe: null },
+      TROIS_RECITS[1],
+    ]);
+    const html = renderToStaticMarkup(await Recits());
+    const [avec, ...sans] = [...html.matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(([, ligne]) => ligne);
+    // Sous la ligne du récit, son titre, sa date et son résumé, avant son texte replié.
+    const annonce = avec.match(/<\/button>(.*?)<p id="[^"]+"[^>]*hidden=""/)?.[1] ?? "";
+    expect(annonce).toMatch(/^<div[^>]*><figure[^>]*>.*<\/figure><\/div>$/);
+    expect(annonce).not.toContain("hidden");
+    expect(annonce).toContain('alt="Souris grise"');
+    expect(annonce).toContain("url=%2Fillustrations%2Fespeces%2Fsouris.webp");
+    // Servie à la taille qu'elle affiche, et non à celle de la fiche de l'Espèce.
+    expect(annonce).toContain('sizes="(max-width: 540px) and (orientation: portrait) 100vw, 220px"');
+    expect(annonce.replace(/<[^>]+>/g, "|").split("|").filter((morceau) => morceau.trim())).toEqual(["Couple réuni", "Souris grise"]);
+    // Les retours qui n'ont réuni aucun Couple, et les autres Récits, n'annoncent rien.
+    for (const ligne of sans) expect(ligne).not.toContain("<figure");
+  });
+
   it("montre d'abord le récit d'arrivée s'il ne l'a pas été (US-0160)", async () => {
     connecte();
     chefs.chefDuCompte.mockResolvedValueOnce({ nom: "Ourse", territoireId: 12, recitLu: false });

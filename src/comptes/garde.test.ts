@@ -27,9 +27,12 @@ const famine = vi.hoisted(() => ({ famineDepuis: vi.fn(async (): Promise<number 
 vi.mock("@/monde/famine", () => famine);
 const betes = vi.hoisted(() => ({ recevoirLesBetesDeNaissance: vi.fn(async () => 3) }));
 vi.mock("@/monde/betes-de-naissance", () => betes);
+const couples = vi.hoisted(() => ({ nombreDeCouples: vi.fn(async () => 0) }));
+vi.mock("@/monde/couple", () => couples);
 
 import { definirAncre } from "@/temps/horloge";
 import {
+  couplesReunisALHeure,
   entretienALHeure,
   exigerCompte,
   exigerCompteSansChef,
@@ -188,6 +191,17 @@ describe("garde du jeu", () => {
     expect(temps.rattraper).toHaveBeenCalledWith("territoire", 19);
     expect(famine.famineDepuis).toHaveBeenCalledWith(expect.anything(), 19);
     expect(ordre).toEqual(["rattrapage", "lecture"]);
+  });
+
+  it("compte les Couples réunis du menu du chef après avoir mis le Territoire à l'heure : un retour pendant l'absence compte dès l'ouverture (US-0958)", async () => {
+    temps.rattraper.mockClear();
+    const ordre: string[] = [];
+    temps.rattraper.mockImplementationOnce(async () => (ordre.push("rattrapage"), new Date()));
+    couples.nombreDeCouples.mockImplementationOnce(async () => (ordre.push("comptage"), 2));
+    expect(await couplesReunisALHeure(20)).toBe(2);
+    expect(temps.rattraper).toHaveBeenCalledWith("territoire", 20);
+    expect(couples.nombreDeCouples).toHaveBeenCalledWith(expect.anything(), 20);
+    expect(ordre).toEqual(["rattrapage", "comptage"]);
   });
 
   describe("reprendre l'arrivée là où elle s'était arrêtée (US-0160)", () => {

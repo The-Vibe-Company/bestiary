@@ -5,7 +5,7 @@ import { FORMATS_ESPECE, IllustrationEspece } from "./IllustrationEspece";
 const souris = { nom: "Souris grise", illustration: "especes/souris.webp" };
 
 describe("illustration d'une Espèce", () => {
-  it.each(["grand", "vignette"] as const)("existe en format %s, servi à sa taille par l'optimiseur", (format) => {
+  it.each(["grand", "moyen", "vignette"] as const)("existe en format %s, servi à sa taille par l'optimiseur", (format) => {
     const html = renderToStaticMarkup(<IllustrationEspece espece={souris} format={format} />);
     expect(html).toContain('alt="Souris grise"');
     expect(html).toContain(`sizes="${FORMATS_ESPECE[format]}"`);

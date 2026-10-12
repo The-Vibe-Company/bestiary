@@ -2,7 +2,8 @@
 // forment son Couple, sans action du joueur : tous deux quittent l'effectif et partent à l'abri, en Réserve (table
 // couple), d'où ils ne combattent plus et ne sortent plus ; les autres Bêtes de l'Espèce restent dans l'effectif, et
 // l'Espèce passe « Couple réuni » au Bestiaire. Un seul Couple par Espèce : il ne se défait pas, et aucun second ne se
-// forme. La page de la Réserve arrive à l'étape 33, l'annonce au récit avec US-0958. Côté serveur uniquement.
+// forme. La page de la Réserve arrive à l'étape 33. US-0958 : le récit du retour qui le réunit l'annonce
+// (recitsDuTerritoire, src/monde/recits.ts), et le menu du chef compte les Couples réunis. Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
 import { inscrireAuBestiaire } from "@/bestiaire/bestiaire";
@@ -57,8 +58,9 @@ export async function reunirLesCouples(client: PoolClient, territoireId: number,
 }
 
 /**
- * US-0956 : les Couples réunis du Territoire, du premier au dernier : ce que liront l'annonce au récit (US-0958) et la
- * Réserve (étape 33). Aucun tant qu'il n'en a réuni aucun. L'Élevage d'une Espèce se demande à elevageAcquis (US-0957).
+ * US-0956 : les Couples réunis du Territoire, du premier au dernier : ce que lira la Réserve (étape 33). Aucun tant qu'il
+ * n'en a réuni aucun. L'Élevage d'une Espèce se demande à elevageAcquis (US-0957). US-0958 : l'annonce au récit les lit
+ * avec les Récits (recitsDuTerritoire).
  */
 export async function couplesDuTerritoire(base: Pool | PoolClient, territoireId: number): Promise<CoupleReuni[]> {
   const { rows } = await base.query<CoupleReuni>(
@@ -66,4 +68,13 @@ export async function couplesDuTerritoire(base: Pool | PoolClient, territoireId:
     [territoireId],
   );
   return rows;
+}
+
+/**
+ * US-0958 : le nombre de Couples réunis du Territoire, que le menu du chef montre dans la barre du haut ; il n'augmente que
+ * d'un à chaque Couple, puisqu'un Couple ne se défait pas, et servira au classement principal (étape 60).
+ */
+export async function nombreDeCouples(base: Pool | PoolClient, territoireId: number): Promise<number> {
+  const { rows } = await base.query<{ nombre: number }>("select count(*)::int as nombre from couple where territoire_id = $1", [territoireId]);
+  return rows[0].nombre;
 }

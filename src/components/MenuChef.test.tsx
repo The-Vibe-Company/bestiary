@@ -97,3 +97,38 @@ describe("nom de chef dans la barre du haut (US-0140)", () => {
     expect(serveur.seDeconnecter).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("le nombre de Couples réunis dans le menu du chef (US-0958)", () => {
+  afterEach(cleanup);
+
+  /** La ligne « Couples réunis » du menu ouvert, ou null. */
+  const ligne = () => screen.queryByText("Couples réunis")?.parentElement ?? null;
+
+  it("montre sous le nom, d'une ligne sobre, « Couples réunis » suivi du nombre", async () => {
+    const u = userEvent.setup();
+    render(<MenuChef nom="Ourse" couplesReunis={2} />);
+    expect(screen.queryByText("Couples réunis")).toBeNull();
+    await u.click(screen.getByRole("button", { name: "Ourse" }));
+    expect(ligne()?.textContent).toBe("Couples réunis2");
+    expect([...ligne()!.children].map((morceau) => morceau.textContent)).toEqual(["Couples réunis", "2"]);
+    // Sous le nom en entier, avant « Se déconnecter » ; ce n'est pas un choix du menu.
+    const nom = screen.getByText("Ourse", { selector: "p" });
+    expect(nom.compareDocumentPosition(ligne()!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(ligne()!.compareDocumentPosition(screen.getByRole("menu")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getAllByRole("menuitem").map((choix) => choix.textContent)).toEqual(["Se déconnecter"]);
+  });
+
+  it("dit zéro tant qu'aucun Couple n'est réuni", async () => {
+    const u = userEvent.setup();
+    render(<MenuChef nom="Ourse" couplesReunis={0} />);
+    await u.click(screen.getByRole("button", { name: "Ourse" }));
+    expect(ligne()?.textContent).toBe("Couples réunis0");
+  });
+
+  it("ne la montre pas sans Territoire, avant l'entrée dans le Foyer", async () => {
+    const u = userEvent.setup();
+    render(<MenuChef nom="Ourse" />);
+    await u.click(screen.getByRole("button", { name: "Ourse" }));
+    expect(ligne()).toBeNull();
+  });
+});

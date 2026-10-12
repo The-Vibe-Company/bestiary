@@ -8,6 +8,7 @@ import { cache } from "react";
 import { chefDuCompte, naitreSurLaCouronne } from "@/chefs/chef";
 import { getPool } from "@/db";
 import { recevoirLesBetesDeNaissance } from "@/monde/betes-de-naissance";
+import { nombreDeCouples } from "@/monde/couple";
 import { famineDepuis } from "@/monde/famine";
 import { entretienDesHabitants, nombreDHabitants, nombreSansMetier } from "@/monde/habitants";
 import { famineImminenteDepuis } from "@/monde/production";
@@ -158,4 +159,13 @@ export async function famineImminenteALHeure(territoireId: number): Promise<numb
 export async function famineALHeure(territoireId: number): Promise<number | null> {
   await mettreALHeure(territoireId);
   return famineDepuis(getPool(), territoireId);
+}
+
+/**
+ * US-0958 : le nombre de Couples réunis du Territoire pour le menu du chef de la barre du haut, lu après sa mise à l'heure :
+ * un Couple réuni au retour d'une Expédition pendant l'absence compte dès l'ouverture.
+ */
+export async function couplesReunisALHeure(territoireId: number): Promise<number> {
+  await mettreALHeure(territoireId);
+  return nombreDeCouples(getPool(), territoireId);
 }

@@ -2,13 +2,26 @@
 // serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
+import { RETOUR_D_EXPEDITION } from "@/expeditions/resume-du-retour";
 import type { Sexe } from "./betes-sauvages";
 
 /**
  * Un Récit tel que la page Récits le montre : luLe est null tant que le joueur ne l'a pas ouvert. US-0940 : le retour
  * d'une Expédition qui a vu des Bêtes a ses Rencontres, dans l'ordre des apparitions ; les autres Récits n'en ont pas.
+ * US-0958 : le retour qui a réuni des Couples les annonce ; les autres Récits n'en ont pas.
  */
-export type Recit = { id: number; titre: string; texte: string; survenuLe: Date; luLe: Date | null; rencontres?: RencontreDuRecit[] };
+export type Recit = {
+  id: number;
+  titre: string;
+  texte: string;
+  survenuLe: Date;
+  luLe: Date | null;
+  rencontres?: RencontreDuRecit[];
+  couples?: CoupleDuRecit[];
+};
+
+/** US-0958 : une Espèce dont le retour d'une Expédition a réuni le Couple, telle que son Récit l'annonce : son nom et son illustration. */
+export type CoupleDuRecit = { especeId: string; nom: string; illustration: string | null };
 
 /**
  * US-0940 : ce qu'il advint d'une Bête vue lors d'une Rencontre : elle a suivi l'Expédition (apprivoisée) ; trop forte
@@ -47,19 +60,33 @@ export async function ecrireUnRecit(client: Pool | PoolClient, territoireId: num
  * Les Récits d'un Territoire, du plus récent au plus ancien ; deux Récits de la même heure, le dernier écrit d'abord.
  * US-0940 : les Rencontres d'un retour d'Expédition, dans l'ordre où il les a retenues, chacune avec le nom,
  * l'illustration et la Rareté de son Espèce, lus comme sur sa fiche.
+ *
+ * US-0958 : et les Couples que ce retour a réunis, avec le nom et l'illustration de leur Espèce : un Couple se réunit à
+ * l'instant même du retour qui l'a permis, dans sa transaction, juste avant son Récit (rentrerAuFoyer), d'où ce
+ * rapprochement par l'instant, sans rien retenir de plus ; ceux d'avant cette story s'annoncent donc aussi. Deux retours
+ * du même Territoire au même instant, à la milliseconde, l'annonceraient tous deux : cas rare, accepté.
  */
 export async function recitsDuTerritoire(base: Pool | PoolClient, territoireId: number): Promise<Recit[]> {
-  const { rows } = await base.query<Omit<Recit, "rencontres"> & { rencontres: (Omit<RencontreDuRecit, "vueLe"> & { vueLe: string })[] | null }>(
+  const { rows } = await base.query<
+    Omit<Recit, "rencontres" | "couples"> & { rencontres: (Omit<RencontreDuRecit, "vueLe"> & { vueLe: string })[] | null; couples: CoupleDuRecit[] | null }
+  >(
     `select r.id, r.titre, r.texte, r.survenu_le as "survenuLe", r.lu_le as "luLe",
        (select jsonb_agg(v.rencontre || jsonb_build_object('nom', e.nom, 'illustration', e.illustration, 'rarete', jsonb_build_object('id', ra.id, 'nom', ra.nom))
                          order by v.rang)
         from jsonb_array_elements(r.rencontres) with ordinality as v(rencontre, rang)
-          join espece e on e.id = v.rencontre->>'especeId' join rarete ra on ra.id = e.rarete_id) as rencontres
+          join espece e on e.id = v.rencontre->>'especeId' join rarete ra on ra.id = e.rarete_id) as rencontres,
+       (select jsonb_agg(jsonb_build_object('especeId', e.id, 'nom', e.nom, 'illustration', e.illustration) order by c.espece_id)
+        from couple c join espece e on e.id = c.espece_id
+        where r.titre = $2 and c.territoire_id = r.territoire_id and c.reuni_le = r.survenu_le) as couples
      from recit r where r.territoire_id = $1
      order by r.survenu_le desc, r.id desc`,
-    [territoireId],
+    [territoireId, RETOUR_D_EXPEDITION],
   );
-  return rows.map(({ rencontres, ...recit }) => (rencontres ? { ...recit, rencontres: rencontres.map((x) => ({ ...x, vueLe: new Date(x.vueLe) })) } : recit));
+  return rows.map(({ rencontres, couples, ...recit }) => ({
+    ...recit,
+    ...(rencontres && { rencontres: rencontres.map((x) => ({ ...x, vueLe: new Date(x.vueLe) })) }),
+    ...(couples && { couples }),
+  }));
 }
 
 /** Le nombre de Récits que le joueur n'a pas encore ouverts, pour l'entrée « Récits » de la navigation. */
