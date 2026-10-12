@@ -7,6 +7,7 @@ import "server-only";
 import type { Pool, PoolClient } from "pg";
 import { inscrireAuBestiaire } from "@/bestiaire/bestiaire";
 import { BETES_SORTIES } from "./effectif";
+import { ELEVAGE_ACQUIS } from "./elevage";
 
 /** US-0956 : le Couple réuni d'une Espèce, et l'instant du jeu où il l'a été. */
 export type CoupleReuni = { especeId: string; reuniLe: Date };
@@ -15,6 +16,8 @@ export type CoupleReuni = { especeId: string; reuniLe: Date };
  * US-0956 : à l'instant du jeu `le`, réunit le Couple de chaque Espèce du Territoire qui n'en a pas encore et dont
  * l'effectif compte un mâle et une femelle au Foyer : l'un et l'autre quittent l'effectif pour la Réserve, et l'Espèce
  * passe « Couple réuni » au Bestiaire (inscrireAuBestiaire). Rend les Espèces dont le Couple vient d'être réuni.
+ * US-0957 : leur Élevage est dès lors acquis, pour toujours (src/monde/elevage.ts), et c'est lui qui dit qu'une Espèce a
+ * déjà son Couple.
  *
  * L'effectif ne gagne une Bête au Foyer qu'au retour d'une Expédition : la Bête apprivoisée qui la suit y entre
  * (US-0938), et les Bêtes de son escorte n'en sont plus sorties (US-0916). Appelée par rentrerAuFoyer après les deux,
@@ -32,7 +35,7 @@ export async function reunirLesCouples(client: PoolClient, territoireId: number,
     `with a_reunir as (
        select e.espece_id
        from effectif e
-       where e.territoire_id = $1 and not exists (select 1 from couple c where c.territoire_id = $1 and c.espece_id = e.espece_id)
+       where e.territoire_id = $1 and not ${ELEVAGE_ACQUIS}
        group by e.territoire_id, e.espece_id
        having coalesce(sum(e.nombre) filter (where e.sexe = 'male'), 0) > (${BETES_SORTIES})
          and coalesce(sum(e.nombre) filter (where e.sexe = 'femelle'), 0) > (${BETES_SORTIES})
@@ -54,8 +57,8 @@ export async function reunirLesCouples(client: PoolClient, territoireId: number,
 }
 
 /**
- * US-0956 : les Couples réunis du Territoire, du premier au dernier : ce que liront l'annonce au récit (US-0958),
- * l'Élevage (US-0957) et la Réserve (étape 33). Aucun tant qu'il n'en a réuni aucun.
+ * US-0956 : les Couples réunis du Territoire, du premier au dernier : ce que liront l'annonce au récit (US-0958) et la
+ * Réserve (étape 33). Aucun tant qu'il n'en a réuni aucun. L'Élevage d'une Espèce se demande à elevageAcquis (US-0957).
  */
 export async function couplesDuTerritoire(base: Pool | PoolClient, territoireId: number): Promise<CoupleReuni[]> {
   const { rows } = await base.query<CoupleReuni>(

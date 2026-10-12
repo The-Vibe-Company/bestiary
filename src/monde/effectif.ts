@@ -4,6 +4,7 @@ import "server-only";
 import type { Pool, PoolClient } from "pg";
 import { forceDUneBete } from "@/expeditions/force";
 import type { Sexe } from "./betes-sauvages";
+import { ELEVAGE_ACQUIS } from "./elevage";
 
 /**
  * US-0904 : une Espèce de l'effectif, avec son illustration (null : aucune) et ses Bêtes disponibles pour l'escorte.
@@ -41,16 +42,16 @@ export const BETES_SORTIES = `select coalesce(sum(s.nombre), 0)::int from expedi
  * US-0937 : combien de mâles et de femelles le joueur en possède, au Foyer comme en escorte, pour savoir lequel lui manque
  * tant que le Couple de l'Espèce n'est pas réuni. US-0956 : les Bêtes d'un Couple réuni ont quitté l'effectif pour la
  * Réserve, d'où elles ne sortent jamais (src/monde/couple.ts) : elles ne sont ni disponibles ni comptées ; et le
- * Couple réuni se dit, le sexe ne comptant plus.
+ * Couple réuni se dit, le sexe ne comptant plus. US-0957 : c'est l'Élevage acquis (src/monde/elevage.ts).
  */
 export async function betesDisponibles(base: Pool | PoolClient, territoireId: number): Promise<EspeceDisponible[]> {
   const { rows } = await base.query<Omit<EspeceDisponible, "force"> & { attaque: number; vie: number }>(
-    `select es.id, es.nom, es.illustration, x.disponibles, es.attaque, es.vie, es.vitesse, x.males, x.femelles,
-       exists (select 1 from couple c where c.territoire_id = $1 and c.espece_id = es.id) as "coupleReuni"
+    `select es.id, es.nom, es.illustration, x.disponibles, es.attaque, es.vie, es.vitesse, x.males, x.femelles, x."coupleReuni"
      from (
        select e.espece_id, sum(e.nombre)::int - (${BETES_SORTIES}) as disponibles,
          coalesce(sum(e.nombre) filter (where e.sexe = 'male'), 0)::int as males,
-         coalesce(sum(e.nombre) filter (where e.sexe = 'femelle'), 0)::int as femelles
+         coalesce(sum(e.nombre) filter (where e.sexe = 'femelle'), 0)::int as femelles,
+         ${ELEVAGE_ACQUIS} as "coupleReuni"
        from effectif e
        where e.territoire_id = $1
        group by e.territoire_id, e.espece_id
