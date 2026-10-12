@@ -1,0 +1,91 @@
+src/app/jeu/reserve/page.css.test.ts
+  s_7c7d151152e4a5::t_e7ffa98118773c 23-31
+  s_7c7d151152e4a5::t_f486cd9c5166ee 32-38
+src/app/jeu/reserve/page.db.test.tsx
+  s_7c7d151152e4a5::t_c715f4a309e5b9 1-7,9-27,30-38,40-57,69-116,127
+  s_7c7d151152e4a5::t_4edf94e5860ca6 8,28-29,39
+  s_7c7d151152e4a5::t_83e0a4b1faaf7f 58-68,117-126
+src/app/jeu/reserve/page.module.css
+  s_7c7d151152e4a5::t_3dfb2579a6ec58 68-80,101-130
+  s_7c7d151152e4a5::t_6d07c46f385988 35-67,140-144
+  s_7c7d151152e4a5::t_81d161d4f35e31 81-100
+src/app/jeu/reserve/page.test.tsx
+  s_7c7d151152e4a5::t_2b7505b4d31222 3,15-16,24-29,41-43,48-49,51-53,59,62,65,82-83,88,96,105-137,144-153,165-169
+  s_7c7d151152e4a5::t_ae85e2c0448f04 44-47,50,138-143
+  s_7c7d151152e4a5::t_aaf7b7baabae33 86,89-90,170-202
+  s_7c7d151152e4a5::t_82b64eb6d65e04 154-164
+src/app/jeu/reserve/page.tsx
+  s_7c7d151152e4a5::t_a68b8aa05aac52 8-9,11,20-21,34,53-56,69-72
+  s_7c7d151152e4a5::t_633d747b60e0d8 22-23
+  s_7c7d151152e4a5::t_6f39356e29c53a 2,18-19,25-28,38-52
+  s_7c7d151152e4a5::t_8f5a81534160d5 24,57-68
+src/monde/couple.ts
+  s_7c7d151152e4a5::t_9797d4d6c8f0f0 72,82-84,85-86,89-90,93,96-98
+src/components/IllustrationEspece.tsx
+  s_7c7d151152e4a5::t_bd80e919269528 16
+  s_7c7d151152e4a5::t_d442d61ad47d4f 4-6,13
+src/app/jeu/reserve/[espece]/page.css.test.ts
+  s_7c7d151152e4a5::t_1087da58552ef0 1-18,25-30,31,34-36,53
+  s_7c7d151152e4a5::t_cc33bc29969d3a 19-24,32-33
+  s_7c7d151152e4a5::t_dbb8a72792c4c2 37-41
+  s_7c7d151152e4a5::t_18e600504e8261 42,44,52
+  s_7c7d151152e4a5::t_c34c9f42138fad 43-47
+  s_7c7d151152e4a5::t_d8ff4d2e112d66 48-52
+src/app/jeu/reserve/[espece]/page.db.test.tsx
+  s_7c7d151152e4a5::t_9d934fe689a901 1-50,63-64,66-69,71-92,95-96,108-114,192
+  s_7c7d151152e4a5::t_0e16021533060b 97-106
+  s_7c7d151152e4a5::t_b7672034b5af82 51-53,55-58,115,130-139,141,191
+  s_7c7d151152e4a5::t_79aff9b097a53e 140,142-153,155-158
+  s_7c7d151152e4a5::t_5f2958ecf4d4b2 154,160,177-191
+src/app/jeu/reserve/[espece]/page.module.css
+  s_7c7d151152e4a5::t_02a133999a29a2 1-8,12-14,16-44,94-131,153,154-164
+  s_7c7d151152e4a5::t_066f117dd4fda9 9-11,15,132-136,138-139,146-152
+  s_7c7d151152e4a5::t_40c8901d2d148c 60-67,69-85
+  s_7c7d151152e4a5::t_2f61ff46e66b53 147,150
+  s_7c7d151152e4a5::t_637986a10a1df9 137,140-145
+  s_7c7d151152e4a5::t_13343810930d80 68,86-93
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_6be6b104bd9608 1-2,4,6-16,27-32,57,61-66,68-69,71-72,74-78,80-91,129-135,137-141,143-150
+  s_7c7d151152e4a5::t_93159f80093fff 34-38,40-43,49-56,70,151-155,157-161,163-166,168-176,178-183,291
+  s_7c7d151152e4a5::t_4019908912289e 184-191
+  s_7c7d151152e4a5::t_d0df1c2407336b 44-46,167,177,193-208,210-244
+  s_7c7d151152e4a5::t_08222952e3019d 3,47-48,209,245-291
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_1a2b65675781b4 1-6,8-10,16-20,40-45,58,66-70,75-77,79,128,130-132,134-136
+  s_7c7d151152e4a5::t_074ad5baf2f8df 39,51,53-54,85-87,89-91,93-95,97-99,126-127
+  s_7c7d151152e4a5::t_063ce4c3335e3a 14
+  s_7c7d151152e4a5::t_29278ff11dd054 11,21-33,55,102-115
+  s_7c7d151152e4a5::t_971627ce83a1b9 7,34-39,56-57,116-126
+src/components/PastilleRarete.test.tsx
+  s_7c7d151152e4a5::t_ebb08edf5ee767 1-30
+src/donnees/especes.test.ts
+  s_7c7d151152e4a5::t_f8a8ae8c7e14a0 31-32
+src/monde/quantite.ts
+  s_7c7d151152e4a5::t_d88209923dea90 69-78
+src/monde/effectif.db.test.ts
+  s_7c7d151152e4a5::t_5c0c94afd3237c 297-307,311,313-322,325
+  s_7c7d151152e4a5::t_2683e6937bebf1 308-310,323-324
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_477c70d5f1bef1 6,124,128-135,138-141
+  s_7c7d151152e4a5::t_de902839262e23 125-126,136-137,151-153,156-157
+src/app/jeu/carte/Echantillon.tsx
+  s_7c7d151152e4a5::t_63ac86fd5d70e2 1-69
+src/app/jeu/carte/Legende.tsx
+  s_7c7d151152e4a5::t_7b80c9c1b8d8bf 3-4,6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5d164f05b06df42650ef0b4043dd2678bf791b63",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
