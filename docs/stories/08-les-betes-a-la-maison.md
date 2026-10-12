@@ -7,7 +7,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0801 · Ouvrir la Réserve
 **En tant que** joueur, **je veux** ouvrir la Réserve de mon Territoire, **afin de** voir les Couples que j'ai réunis.
 
-- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#47). Une entrée « Réserve » de la navigation, entre « Expéditions » et « Habitants », ouvre /jeu/reserve : son titre, une phrase (« Le lieu protégé de votre Territoire : vos Couples y vivent à l'abri, loin des combats. ») et le nombre de Couples en grand. Tranché : sans Couple, la page dit « 0 Couple » en attendant la Réserve vide (US-0809) ; sur mobile, six onglets égaux, noms en 11 px. La refonte AEOM de la navigation devra reprendre cette entrée.
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#47). Une entrée « Réserve » de la navigation, entre « Expéditions » et « Habitants », ouvre /jeu/reserve : son titre, une phrase (« Le lieu protégé de votre Territoire : vos Couples y vivent à l'abri, loin des combats. ») et le nombre de Couples en grand. Sans Couple, la page dit désormais « Aucun Couple pour l'instant » (US-0809) ; sur mobile, six onglets égaux, noms en 11 px. La refonte AEOM de la navigation devra reprendre cette entrée.
 - **Débloquée par** : Étape 4, US-0956
 - **Critères d'acceptation** :
   - Une entrée « Réserve » de la navigation ouvre la page, sur ordinateur comme sur mobile.
@@ -80,6 +80,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0809 · Voir une Réserve vide
 **En tant que** joueur, **je veux** une Réserve sobre tant que je n'ai réuni aucun Couple, **afin de** savoir d'un coup d'œil qu'elle attend son premier Couple.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#53). Sans Couple, la Réserve n'affiche que son titre, « Aucun Couple pour l'instant » et le bouton « Envoyer une Expédition », qui ouvre l'écran d'Expédition ; dès le premier Couple, la phrase de présentation, le nombre de Couples et leurs cartes prennent sa place. Tranché : « sans autre phrase » pris à la lettre, la phrase de US-0801 et « 0 Couple » ne s'affichent plus sur une Réserve vide.
 - **Débloquée par** : US-0801
 - **Critères d'acceptation** :
   - Sans Couple, la Réserve affiche « Aucun Couple pour l'instant », sans autre phrase.
