@@ -612,6 +612,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0957 · L'Élevage s'ouvre pour toujours
 **En tant que** joueur, **je veux** que l'Élevage d'une Espèce me reste acquis dès son Couple réuni, **afin de** ne jamais perdre ce que j'ai gagné.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#42). L'Élevage d'une Espèce est acquis dès que son Couple est réuni, à l'heure exacte du retour (en direct, au rattrapage ou par la tâche planifiée), et le reste pour toujours, même quand toutes ses Bêtes meurent ou que d'autres entrent dans l'effectif. Tranché : il est noté dans le Couple lui-même (table `couple`, qui ne se défait jamais), sans nouvelle table ni migration ; le sexe des Bêtes élevées n'a rien à décider tant qu'une Espèce élevée a déjà son Couple. Vérifié en vrai avec un Couple de poules.
 - **Débloquée par** : US-0956
 - **Critères d'acceptation** :
   - Dès le Couple réuni, l'Élevage de l'Espèce est noté comme acquis pour toujours ; on s'en servira, avec un Habitant éleveur, à l'étape 34.
