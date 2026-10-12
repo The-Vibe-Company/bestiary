@@ -557,6 +557,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0951 · Des Blessés parmi les pertes
 **En tant que** joueur, **je veux** qu'une partie de mes pertes soient seulement blessées, **afin de** ne pas tout perdre après un combat malheureux.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#58). Parmi les Bêtes qu'une Espèce de l'escorte perd au combat, une part ne sont que des Blessés : les mortes quittent l'effectif pour toujours, les Blessés rentrent au Foyer avec l'Expédition (et ne prennent pas part à un second combat). Le récit du retour le dit en une ligne, Espèce par Espèce : « Pertes au combat : Poule (2 morts, 2 Blessés) et Souris grise (6 morts, 6 Blessés). » (colonne `blessees`, migration 0066). Tranché : `PART_DES_BLESSES = 0.5` (provisoire) ; arrondi au plus proche, la demie aux Blessés, sans tirage (1 perdue = 1 Blessé), par combat et par Espèce. Vérifié en vrai contre un Loup gris. Restent les Blessés dans l'effectif, leur soin et leur guérison (US-0952 à US-0955).
 - **Débloquée par** : US-0944
 - **Critères d'acceptation** :
   - Parmi les pertes d'un combat, une part sont des Blessés (chiffre à régler), les autres meurent.
