@@ -707,6 +707,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0966 · Une Expédition assez forte arrive ensuite
 **En tant que** joueur, **je veux** qu'une Bête restée sur une Case puisse suivre une Expédition plus forte arrivée après, **afin de** récompenser celui qui revient mieux préparé.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#67). Les règles déjà en place la font : une Bête restée trop forte suit une Expédition assez forte arrivée ensuite, dès son arrivée, du même joueur ou d'un autre (US-0934) ; plusieurs assez fortes au même instant passent par le tirage proportionnel à la force (US-0963) ; celle déjà présente l'apprend dans son récit (US-0964). La PR n'ajoute que des essais sur base qui épinglent ces comportements, dans les deux ordres de mise à l'heure et page ouverte. Vérifié en vrai : 2 Souris grises voient un Renard roux trop fort, « Revenir la chercher » renvoie 91 Souris grises, et le Renard les suit.
 - **Débloquée par** : US-0963, US-0949
 - **Critères d'acceptation** :
   - Si une Bête restée trop forte voit arriver une Expédition assez forte, du même joueur ou d'un autre, elle la suit dès son arrivée.
