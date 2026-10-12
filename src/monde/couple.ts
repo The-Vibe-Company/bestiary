@@ -2,7 +2,7 @@
 // forment son Couple, sans action du joueur : tous deux quittent l'effectif et partent à l'abri, en Réserve (table
 // couple), d'où ils ne combattent plus et ne sortent plus ; les autres Bêtes de l'Espèce restent dans l'effectif, et
 // l'Espèce passe « Couple réuni » au Bestiaire. Un seul Couple par Espèce : il ne se défait pas, et aucun second ne se
-// forme. La page de la Réserve arrive à l'étape 33. US-0958 : le récit du retour qui le réunit l'annonce
+// forme. La page de la Réserve les montre (US-0801, US-0802). US-0958 : le récit du retour qui le réunit l'annonce
 // (recitsDuTerritoire, src/monde/recits.ts), et le menu du chef compte les Couples réunis. Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
@@ -58,9 +58,9 @@ export async function reunirLesCouples(client: PoolClient, territoireId: number,
 }
 
 /**
- * US-0956 : les Couples réunis du Territoire, du premier au dernier : ce que lira la Réserve (étape 33). Aucun tant qu'il
- * n'en a réuni aucun. L'Élevage d'une Espèce se demande à elevageAcquis (US-0957). US-0958 : l'annonce au récit les lit
- * avec les Récits (recitsDuTerritoire).
+ * US-0956 : les Couples réunis du Territoire, du premier au dernier ; la Réserve les montre avec leur Espèce
+ * (couplesEnReserve, US-0802). Aucun tant qu'il n'en a réuni aucun. L'Élevage d'une Espèce se demande à elevageAcquis
+ * (US-0957). US-0958 : l'annonce au récit les lit avec les Récits (recitsDuTerritoire).
  */
 export async function couplesDuTerritoire(base: Pool | PoolClient, territoireId: number): Promise<CoupleReuni[]> {
   const { rows } = await base.query<CoupleReuni>(
@@ -77,4 +77,21 @@ export async function couplesDuTerritoire(base: Pool | PoolClient, territoireId:
 export async function nombreDeCouples(base: Pool | PoolClient, territoireId: number): Promise<number> {
   const { rows } = await base.query<{ nombre: number }>("select count(*)::int as nombre from couple where territoire_id = $1", [territoireId]);
   return rows[0].nombre;
+}
+
+/** US-0802 : un Couple de la Réserve, tel que sa page le montre : son Espèce, son illustration (null : aucune) et sa Rareté. */
+export type CoupleEnReserve = { especeId: string; nom: string; illustration: string | null; rarete: { id: string; nom: string } };
+
+/**
+ * US-0802 : les Couples de la Réserve du Territoire, du premier réuni au dernier, comme couplesDuTerritoire, avec ce que
+ * la page en montre de leur Espèce. Ceux de ce seul Territoire : un joueur ne voit jamais la Réserve d'un autre.
+ */
+export async function couplesEnReserve(base: Pool | PoolClient, territoireId: number): Promise<CoupleEnReserve[]> {
+  const { rows } = await base.query<CoupleEnReserve>(
+    `select c.espece_id as "especeId", es.nom, es.illustration, json_build_object('id', r.id, 'nom', r.nom) as rarete
+     from couple c join espece es on es.id = c.espece_id join rarete r on r.id = es.rarete_id
+     where c.territoire_id = $1 order by c.reuni_le, c.espece_id`,
+    [territoireId],
+  );
+  return rows;
 }

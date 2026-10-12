@@ -32,6 +32,49 @@
   line-height: 1.1;
 }
 
+/*
+ * US-0802 : les Couples, une carte chacun sous le bloc de la Réserve, autant par ligne que la largeur en tient ; une seule
+ * sur un téléphone.
+ */
+.liste {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--ecart);
+  margin-top: var(--ecart);
+  padding: 0;
+  list-style: none;
+}
+
+.couple {
+  height: 100%;
+}
+
+/* Les deux Bêtes du Couple, côte à côte : l'illustration de leur Espèce, deux fois. */
+.betes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.bete {
+  border-radius: var(--arrondi-petit);
+}
+
+/* Puis le nom de l'Espèce et sa Rareté, qui passe à la ligne si le nom est long. */
+.espece {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.nom {
+  min-width: 0;
+  color: var(--encre);
+  font-weight: var(--graisse-titre);
+}
+
 @media (max-width: 820px), (max-height: 500px) {
   .page {
     padding: 12px;

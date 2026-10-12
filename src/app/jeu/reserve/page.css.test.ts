@@ -20,4 +20,13 @@ describe("la Réserve sur un téléphone (US-0801)", () => {
     expect(regle(".nombre")).toContain("font-size: 28px;");
     expect(regle(".nombre")).toContain("font-variant-numeric: tabular-nums;");
   });
+
+  it("range les Couples en cartes, autant par ligne que la largeur en tient, une seule sur un téléphone (US-0802)", () => {
+    expect(regle(".liste")).toContain("grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));");
+    expect(regle(".liste")).toContain("list-style: none;");
+  });
+
+  it("montre les deux Bêtes d'un Couple côte à côte, à parts égales (US-0802)", () => {
+    expect(regle(".betes")).toContain("grid-template-columns: 1fr 1fr;");
+  });
 });

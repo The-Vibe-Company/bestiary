@@ -3,13 +3,15 @@ import { Illustration } from "./Illustration";
 /**
  * Les formats d'une illustration d'Espèce : en grand sur sa fiche, en vignette dans une
  * liste ; US-0958 : en moyen dans l'annonce d'un Couple réuni, de toute la largeur d'un
- * téléphone en portrait, 220 px au plus ailleurs. L'optimiseur de Next sert à chaque format
- * la taille qu'il affiche.
+ * téléphone en portrait, 220 px au plus ailleurs ; US-0802 : en paire, les deux Bêtes d'un
+ * Couple côte à côte dans la Réserve, près de la moitié de l'écran tant qu'une carte y prend
+ * toute la largeur. L'optimiseur de Next sert à chaque format la taille qu'il affiche.
  */
 export const FORMATS_ESPECE = {
   grand: "(max-width: 820px) 100vw, 480px",
   moyen: "(max-width: 540px) and (orientation: portrait) 100vw, 220px",
   vignette: "96px",
+  paire: "(max-width: 440px) 45vw, 130px",
 } as const;
 
 type IllustrationEspeceProps = {
