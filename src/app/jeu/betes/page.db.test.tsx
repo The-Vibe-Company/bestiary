@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { reunirLesCouples } from "@/monde/couple";
+import { faireEntrerDansLEffectif } from "@/monde/effectif";
 import { lireMarquePage } from "@/temps/marque-page";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 
@@ -61,6 +62,7 @@ describe.skipIf(!URL_TEST)("voir l'effectif par Espèce, sur base (US-0810)", ()
     return {
       texte: html
         .replace(/<[^>]+>/g, "|")
+        .replace(/&#x27;/g, "'")
         .split("|")
         .map((m) => m.trim())
         .filter(Boolean)
@@ -112,5 +114,14 @@ describe.skipIf(!URL_TEST)("voir l'effectif par Espèce, sur base (US-0810)", ()
     expect(await reunir(t)).toEqual(["poule", "souris"]);
     // Les deux poules du Couple sont en Réserve : la poule quitte la liste, une souris reste.
     expect((await page(t.territoireId)).texte).toBe("Bêtes · 1 · Bête · Souris grise · Commune · 1");
+  });
+
+  it("sans aucune Bête, ne dit que « Aucune Bête pour l'instant » et mène à l'Expédition ; la première Bête ramenée y met la liste (US-0811)", async () => {
+    const t = await naitre();
+    expect(await page(t.territoireId)).toEqual({ texte: "Bêtes · Aucune Bête pour l'instant · Envoyer une Expédition", liens: ["/jeu/expeditions/nouvelle"] });
+
+    // La première Bête ramenée au Foyer entre dans l'effectif (US-0938).
+    await faireEntrerDansLEffectif(pool, t.territoireId, [{ especeId: "souris", sexe: "femelle" }]);
+    expect(await page(t.territoireId)).toEqual({ texte: "Bêtes · 1 · Bête · Souris grise · Commune · 1", liens: ["/jeu/reserve/souris?depuis=betes"] });
   });
 });

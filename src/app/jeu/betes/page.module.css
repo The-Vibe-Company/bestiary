@@ -27,6 +27,41 @@
   line-height: 1.1;
 }
 
+/*
+ * US-0811 : la page vide : le message, puis, au pouce, un lien de 44 px de haut sur l'Encre vers l'écran d'Expédition,
+ * comme celui de la Réserve vide ; toute la largeur sur mobile.
+ */
+.vide {
+  color: var(--texte-discret);
+}
+
+.envoyer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 0 18px;
+  border-radius: var(--arrondi-moyen);
+  background: var(--encre);
+  color: var(--blanc-chaud);
+  font-weight: var(--graisse-titre);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .envoyer:hover {
+    background: var(--encre-survol);
+  }
+}
+
+.envoyer:focus-visible {
+  outline: 2px solid var(--encre);
+  outline-offset: 2px;
+}
+
 /* Une ligne par Espèce, qui ouvre sa fiche d'un toucher. */
 .especes {
   display: grid;
@@ -108,5 +143,10 @@
 
   .vignette {
     width: 44px;
+  }
+
+  .envoyer {
+    display: flex;
+    width: 100%;
   }
 }

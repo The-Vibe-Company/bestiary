@@ -21,6 +21,10 @@ const betes = (nombre: number) => (nombre > 1 ? "Bêtes" : "Bête");
  * de son effectif (effectifParEspece), de la plus commune à la plus rare : sa vignette, son nom, sa Rareté et son
  * effectif. Les Bêtes d'un Couple, en Réserve, n'y comptent pas. Toucher une Espèce ouvre sa fiche (US-0803), qui se
  * referme ici. Sans session, la garde mène à la connexion, qui ramène ici.
+ *
+ * US-0811 : tant que le joueur n'a aucune Bête, la page, sobre, dit seulement « Aucune Bête pour l'instant », sans autre
+ * phrase, avec un bouton « Envoyer une Expédition » vers l'écran d'Expédition (US-0901), comme la Réserve vide (US-0809) ;
+ * dès la première Bête ramenée, le total et la liste prennent leur place.
  */
 export default async function Betes() {
   await connection();
@@ -31,11 +35,20 @@ export default async function Betes() {
   return (
     <main className={styles.page}>
       <h1 className={styles.titre}>Bêtes</h1>
-      <Bloc>
-        <p className={styles.total}>
-          <strong className={styles.nombre}>{total}</strong> {betes(total)}
-        </p>
-      </Bloc>
+      {especes.length === 0 ? (
+        <Bloc>
+          <p className={styles.vide}>Aucune Bête pour l&apos;instant</p>
+          <Link href="/jeu/expeditions/nouvelle" className={styles.envoyer}>
+            Envoyer une Expédition
+          </Link>
+        </Bloc>
+      ) : (
+        <Bloc>
+          <p className={styles.total}>
+            <strong className={styles.nombre}>{total}</strong> {betes(total)}
+          </p>
+        </Bloc>
+      )}
       {especes.length > 0 ? (
         <ul className={styles.especes} aria-label="Effectif">
           {especes.map((espece) => (

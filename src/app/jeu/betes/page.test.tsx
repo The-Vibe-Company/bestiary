@@ -121,3 +121,37 @@ describe("voir l'effectif par Espèce (US-0810)", () => {
     expect(cookie.jetonDeSession).not.toHaveBeenCalled();
   });
 });
+
+describe("voir un effectif vide (US-0811)", () => {
+  afterEach(() => {
+    session.compteDeLaSession.mockReset();
+    cookie.jetonDeSession.mockReset();
+    effectif.effectifParEspece.mockReset();
+  });
+
+  const connecte = (especes: EspeceDeLEffectif[]) => {
+    cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
+    session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
+    effectif.effectifParEspece.mockResolvedValue(especes);
+  };
+
+  it("sans aucune Bête, affiche « Aucune Bête pour l'instant », sans autre phrase", async () => {
+    connecte([]);
+    // Le titre, le message et le bouton : rien d'autre, ni « 0 Bête », ni liste.
+    const html = renderToStaticMarkup(await Betes());
+    expect(texte(html)).toBe("Bêtes · Aucune Bête pour l'instant · Envoyer une Expédition");
+    expect(html).not.toContain("<ul");
+  });
+
+  it("met un bouton « Envoyer une Expédition », qui mène à l'écran d'Expédition (US-0901)", async () => {
+    connecte([]);
+    expect(renderToStaticMarkup(await Betes())).toMatch(/<a[^>]*href="\/jeu\/expeditions\/nouvelle"[^>]*>Envoyer une Expédition<\/a>/);
+  });
+
+  it("dès la première Bête ramenée, le message et son bouton laissent place au total et à la liste", async () => {
+    connecte(EFFECTIF.slice(0, 1));
+    const html = renderToStaticMarkup(await Betes());
+    expect(texte(html)).toBe("Bêtes · 1 · Bête · Poule · Commune · 1");
+    expect(html).not.toContain("Envoyer une Expédition");
+  });
+});
