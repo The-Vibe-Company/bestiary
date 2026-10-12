@@ -17,21 +17,28 @@ import { forceDUneBete } from "./force";
 export type Combat = { expeditionId: number; especeId: string; le: Date; numero: number | null; beteDeNaissanceId: number | null };
 
 /**
- * US-0944 : livre les combats `combats`, dans l'ordre du temps : l'escorte de chaque Expédition attaquée, telle qu'il en
- * reste à cet instant, combat la Bête, et ses pertes s'appliquent avant le combat suivant. Au même instant, l'ordre des
- * Expéditions, puis celui des Bêtes, les sauvages ordinaires par leur numéro avant les Bêtes de naissance par leur ligne :
- * le même quel que soit le découpage du temps. Une Expédition sans escorte n'en perd aucune. Dans la transaction de
- * retenirLesRencontres (src/expeditions/rencontres.ts).
+ * US-0944 : les combats `combats` dans l'ordre où ils se livrent : l'ordre du temps ; au même instant, l'ordre des
+ * Expéditions, puis celui des Bêtes, les sauvages ordinaires par leur numéro avant les Bêtes de naissance par leur ligne.
+ * US-0947 : le récit du combat les rejoue dans ce même ordre (src/expeditions/recit-du-combat.ts).
  */
-export async function subirLesCombats(base: Pool | PoolClient, combats: readonly Combat[]): Promise<void> {
+export function dansLOrdreDesCombats<T extends Omit<Combat, "especeId">>(combats: readonly T[]): T[] {
   // Un nombre absent passe après tous les autres.
   const avant = (a: number | null, b: number | null) => (a === b ? 0 : a === null ? 1 : b === null ? -1 : a - b);
-  const dansLOrdre = [...combats].sort(
+  return [...combats].sort(
     (a, b) =>
       a.le.getTime() - b.le.getTime() || a.expeditionId - b.expeditionId || avant(a.numero, b.numero) || avant(a.beteDeNaissanceId, b.beteDeNaissanceId),
   );
+}
+
+/**
+ * US-0944 : livre les combats `combats`, dans l'ordre où ils se livrent (dansLOrdreDesCombats) : l'escorte de chaque
+ * Expédition attaquée, telle qu'il en reste à cet instant, combat la Bête, et ses pertes s'appliquent avant le combat
+ * suivant : le même quel que soit le découpage du temps. Une Expédition sans escorte n'en perd aucune. Dans la
+ * transaction de retenirLesRencontres (src/expeditions/rencontres.ts).
+ */
+export async function subirLesCombats(base: Pool | PoolClient, combats: readonly Combat[]): Promise<void> {
   // L'un après l'autre : sur le client d'une transaction, deux requêtes ne partent pas à la fois.
-  for (const combat of dansLOrdre) await subirLeCombat(base, combat);
+  for (const combat of dansLOrdreDesCombats(combats)) await subirLeCombat(base, combat);
 }
 
 /**

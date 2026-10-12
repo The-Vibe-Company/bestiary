@@ -295,6 +295,26 @@ describe("page Récits (US-0324)", () => {
     ]);
   });
 
+  it("compte dans le résumé les Bêtes de l'escorte mortes aux combats de son séjour (US-0947)", async () => {
+    const rencontre = (perdues?: number) => ({
+      especeId: "pigeon",
+      vueLe: new Date("2026-10-09T12:05:00Z"),
+      issue: "restee" as const,
+      sexe: null,
+      nouvelleEspece: false,
+      ...(perdues !== undefined && { perdues }),
+      nom: "Pigeon biset",
+      illustration: null,
+      rarete: { id: "commune", nom: "Commune" },
+    });
+    const retour = (id: number, rencontres: ReturnType<typeof rencontre>[]) =>
+      ({ id, titre: "Retour d'Expédition", texte: "…", survenuLe: new Date("2026-10-09T16:05:00Z"), luLe: null, rencontres }) as Recit;
+    connecte([retour(81, [rencontre(2), rencontre(), rencontre(1)]), retour(82, [rencontre(1)]), retour(83, [rencontre(0)])]);
+    const html = renderToStaticMarkup(await Recits());
+    const resumes = [...html.matchAll(/<button[^>]*>(.*?)<\/button>/g)].map(([, entete]) => entete.split("</time>")[1].replace(/<[^>]+>/g, ""));
+    expect(resumes).toEqual(["Aucune Bête ramenée · 3 Bêtes perdues", "Aucune Bête ramenée · 1 Bête perdue", "Aucune Bête ramenée"]);
+  });
+
   it("annonce en tête du retour qui l'a réuni le Couple de l'Espèce, avec son illustration, sans le déplier (US-0958)", async () => {
     connecte([
       {
