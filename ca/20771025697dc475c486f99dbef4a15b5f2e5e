@@ -1,0 +1,127 @@
+src/app/jeu/expeditions/ListeDesExpeditions.test.tsx
+  s_7c7d151152e4a5::t_403a40abad60c8 40-41
+src/app/jeu/expeditions/ListeDesExpeditions.tsx
+  s_7c7d151152e4a5::t_94a5d6b6766829 9,17-20,45
+src/app/jeu/expeditions/PanneauDeLExpedition.module.css
+  s_7c7d151152e4a5::t_299a538439d986 1-350
+src/app/jeu/expeditions/PanneauDeLExpedition.test.tsx
+  s_7c7d151152e4a5::t_a769606ae6ea65 1-223
+src/app/jeu/expeditions/PanneauDeLExpedition.tsx
+  s_75e9a780874bbd::t_69d98435c52114 1-186
+src/app/jeu/expeditions/nouvelle/AucunExplorateurLibre.css.test.ts
+  s_7c7d151152e4a5::t_4a9d0259f9d077 5-8,18,20
+src/app/jeu/expeditions/nouvelle/AucunExplorateurLibre.module.css
+  s_7c7d151152e4a5::t_e94ff3e81864cb 1-23,25-27,30-32,35-37,40-43,47-50
+src/app/jeu/expeditions/nouvelle/AucunExplorateurLibre.tsx
+  s_7c7d151152e4a5::t_d35cc2294ffc86 3-5,19,23-24,26,28,33
+src/app/jeu/expeditions/nouvelle/Escorte.css.test.ts
+  s_7c7d151152e4a5::t_bb069c240050f2 5-8,14,18-22,27,29,35-39
+src/app/jeu/expeditions/nouvelle/Escorte.module.css
+  s_7c7d151152e4a5::t_acd7cf7be3350b 1,3,6,14,17-18,20-24,28,31,33,35,40,42-43,47-48,56,67,70-71,73,75,79-80,88-89,93-107,110
+src/app/jeu/expeditions/nouvelle/Escorte.tsx
+  s_7c7d151152e4a5::t_44157f97d22a3a 7,88-89,92-93,98,101
+src/app/jeu/expeditions/nouvelle/Explorateurs.css.test.ts
+  s_7c7d151152e4a5::t_9ee5cd322a794c 5-9,15,17-20,23-26,29,31-32
+src/app/jeu/expeditions/nouvelle/Explorateurs.module.css
+  s_7c7d151152e4a5::t_f0aee8da5fd90b 1,3,6,9-10,15-16,21-22,29,33-36,39,41,44-48,51-54,57-59,62-67
+src/app/jeu/expeditions/nouvelle/Explorateurs.test.tsx
+  s_7c7d151152e4a5::t_0203921686dcc5 5,72-77
+src/app/jeu/expeditions/nouvelle/Explorateurs.tsx
+  s_7c7d151152e4a5::t_461e3f2bbfa184 5-6,13-15,27-28,48,52-61,65-66,69-70
+src/app/jeu/expeditions/nouvelle/Partir.module.css
+  s_7c7d151152e4a5::t_035150fd75e73b 1,3,6-12,15,17-19,22,24-26
+src/app/jeu/expeditions/nouvelle/Partir.tsx
+  s_7c7d151152e4a5::t_a5312c297d6206 4,22,46-51,53-55
+src/app/jeu/expeditions/nouvelle/Recapitulatif.css.test.ts
+  s_7c7d151152e4a5::t_1f41fbf4c850ff 19,21-23,32-33,36,41,43
+src/app/jeu/expeditions/nouvelle/Recapitulatif.module.css
+  s_7c7d151152e4a5::t_d5a1e23dfdfea3 1-4,6-7,10,12-30,33-46,49-52,56,59-62,67-68,72-98,101-102,111-135,148-149,157-158,162,166-169,179,187,192,212-218,233-243,249-255
+src/app/jeu/expeditions/nouvelle/Recapitulatif.test.tsx
+  s_7c7d151152e4a5::t_cda1653dc32221 5,193-197
+src/app/jeu/expeditions/nouvelle/Recapitulatif.tsx
+  s_7c7d151152e4a5::t_beb37993fb305e 6-8,15,27,40-51,104,130-133
+src/app/jeu/expeditions/nouvelle/SansEscorte.css.test.ts
+  s_7c7d151152e4a5::t_b6ed3a4abf49a7 12-14
+src/app/jeu/expeditions/nouvelle/SansEscorte.module.css
+  s_7c7d151152e4a5::t_a8ec70aac6e8aa 1,3-26
+src/app/jeu/expeditions/nouvelle/SansEscorte.tsx
+  s_7c7d151152e4a5::t_6ec731283960fa 2,6-8,13-19
+src/app/jeu/expeditions/nouvelle/Sejour.css.test.ts
+  s_7c7d151152e4a5::t_6b63933928e8c0 5-8,14-17,19-20,23,26-27
+src/app/jeu/expeditions/nouvelle/Sejour.module.css
+  s_7c7d151152e4a5::t_efd01e0eb5174d 1,3,10,12-14,18-21,23,27,29-73,77,85-88,91,94,101,103-104
+src/app/jeu/expeditions/nouvelle/Sejour.tsx
+  s_4ce34ec42d9105::t_af2a76e9779155 4,6,61-66,107-108,125
+src/app/jeu/expeditions/nouvelle/page.css.test.ts
+  s_7c7d151152e4a5::t_8c9369a72c0dc9 5-8,12-13,16-17,19-22,25-27,31,34-36,38-53
+src/app/jeu/expeditions/nouvelle/page.module.css
+  s_7c7d151152e4a5::t_7536ff4a2e3db1 2-4,7,10-61,65-66,68-85,88-94,97-104,107-110,113,116-126,130-142,144-145,149-151,154-156,159,161-162,165,167,171,173,176-186,189-191,193-195,198-200,204-205,207,210-211,214-216,219-221,224-233,235
+src/app/jeu/expeditions/nouvelle/page.test.tsx
+  s_7c7d151152e4a5::t_b79471122278c6 66-68,92-107,116,129,144,159,162,165,170-173,224-225,265,277,286,336,345,371,404,436
+src/app/jeu/expeditions/nouvelle/page.tsx
+  s_7c7d151152e4a5::t_a47de7e49e9a23 6,8-9,45-51,67-92,113-116,131,138-139,142-164,166
+src/app/jeu/expeditions/page.css.test.ts
+  s_75e9a780874bbd::t_ffb7bdecd86f97 5-9,22-26,29-30,34-74
+src/app/jeu/expeditions/page.module.css
+  s_7c7d151152e4a5::t_4cc24056966c18 1-4,6,9-19,22-23,26-29,31-33,37-40,43-47,50-59,67-73
+src/app/jeu/expeditions/page.test.tsx
+  s_7c7d151152e4a5::t_28de2bb23d0a33 72,86,94-98,104
+src/app/jeu/expeditions/page.tsx
+  s_7c7d151152e4a5::t_49742afd3aa639 7-8,22-26,38-51
+src/components/DetailDeLExpedition.tsx
+  s_7c7d151152e4a5::t_0ecd7ceb2ce6c8 18,21
+src/components/Frise.module.css
+  s_7c7d151152e4a5::t_61bbb2492c2ad6 1-106
+src/components/Frise.test.tsx
+  s_4ce34ec42d9105::t_b810193078d5a2 1-70
+src/components/Frise.tsx
+  s_75e9a780874bbd::t_dcfc6d3d931ff7 1-75
+src/components/Paysage.module.css
+  s_7c7d151152e4a5::t_f30f3778d3ab05 1-70
+src/components/Paysage.test.tsx
+  s_75e9a780874bbd::t_0d8fdcd506d7d1 1-35
+src/components/Paysage.tsx
+  s_4ce34ec42d9105::t_04f227845ae943 1-69
+src/styles/palette.css
+  s_c03ab4863ebb5d::t_a4005347720bfa 90-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ca20771025697dc475c486f99dbef4a15b5f2e5e",
+  "prompts": {},
+  "sessions": {
+    "s_4ce34ec42d9105": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "986afa6c-8f0b-494f-9694-d93f52c5ef9e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_75e9a780874bbd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e8a22366-3524-4157-8983-f900d79a348a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_c03ab4863ebb5d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1d8a31cd-1943-4a45-8e2a-a7b47de3df29",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
