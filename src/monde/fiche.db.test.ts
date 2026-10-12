@@ -2,7 +2,7 @@ import type { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
-import { poolDeTest, preparerMondeDeTest, URL_TEST } from "@/test/base";
+import { nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, URL_TEST } from "@/test/base";
 import { decouvrir } from "./brouillard";
 import { ficheDUneCase } from "./fiche";
 import { creerUnMonde } from "./generer";
@@ -17,9 +17,11 @@ describe.skipIf(!URL_TEST)("la fiche d'une Case (US-0428, sur base)", () => {
   let pool: Pool;
   let genereId: number;
   const lancement = `fiche-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /** Un nom de chef propre à ce lancement, pour ne pas croiser les autres essais. */
-  const nomUnique = () => `Fiche${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+  const nomUnique = () => nomDEssai("Fiche", suffixe, numero);
   /** Un chef qui naît dans le Monde du jeu, ou dans le Monde `mondeId` : son nom, son Territoire et la Case de son Foyer. */
   const naitre = async (mondeId: number | null = null) => {
     const compte = (await creerCompte(pool, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;

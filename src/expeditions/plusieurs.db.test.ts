@@ -6,7 +6,7 @@ import { betesDisponibles } from "@/monde/effectif";
 import { explorateursDuTerritoire, prochainRetourDUnExplorateur } from "@/monde/explorateurs";
 import type { Coordonnees } from "@/monde/hex";
 import { PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE, PORTEE_D_EXPLORATION_CASES, SEJOUR_MINUTES, SEJOURS_TOUT_PRETS_MINUTES } from "@/reglages";
-import { poolDeTest, preparerMondeDeTest, URL_TEST } from "@/test/base";
+import { nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, URL_TEST } from "@/test/base";
 import { type ChoixDuDepart, type Depart, EXPLORATEUR_PLUS_LIBRE, lancerLExpedition } from "./depart";
 import { expeditionsEnCours } from "./en-cours";
 import type { Phase } from "./phase";
@@ -19,6 +19,8 @@ type Retenue = Coordonnees & { partLe: Date; trajetMinutes: number | null; sejou
 describe.skipIf(!URL_TEST)("plusieurs Expéditions à la fois (US-0919, sur base)", () => {
   let pool: Pool;
   const lancement = `plusieurs-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /** L'heure du jeu du premier départ. */
   const INSTANT = new Date("2026-10-09T07:42:00.000Z");
@@ -30,7 +32,7 @@ describe.skipIf(!URL_TEST)("plusieurs Expéditions à la fois (US-0919, sur base
   /** Un joueur qui vient de naître, et son Territoire, avec ses trois Habitants sans Métier et sans Bête. */
   const nouveauTerritoire = async () => {
     const compte = (await creerCompte(pool, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;
-    const nom = `Plu${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+    const nom = nomDEssai("Plu", suffixe, numero);
     expect(await enregistrerNomDeChef(pool, compte.id, nom)).toMatchObject({ statut: "enregistre" });
     return (await chefDuCompte(pool, compte.id))!.territoireId!;
   };

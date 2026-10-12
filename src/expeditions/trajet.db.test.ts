@@ -5,7 +5,7 @@ import { creerCompte } from "@/comptes/compte";
 import { prochainRetourDUnExplorateur } from "@/monde/explorateurs";
 import type { Coordonnees } from "@/monde/hex";
 import { PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE } from "@/reglages";
-import { poolDeTest, preparerMondeDeTest, URL_TEST } from "@/test/base";
+import { nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, URL_TEST } from "@/test/base";
 import { type ChoixDuDepart, lancerLExpedition } from "./depart";
 import { expeditionsEnCours } from "./en-cours";
 
@@ -19,6 +19,8 @@ const MINUTE_MS = 60_000;
 describe.skipIf(!URL_TEST)("la durée du trajet d'une escorte (US-0912, sur base)", () => {
   let pool: Pool;
   const lancement = `trajet-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /** L'heure du jeu du départ. */
   const INSTANT = new Date("2026-10-09T07:42:00.000Z");
@@ -28,7 +30,7 @@ describe.skipIf(!URL_TEST)("la durée du trajet d'une escorte (US-0912, sur base
   /** Un joueur qui vient de naître, avec un explorateur et des Bêtes dans son effectif, Espèce par Espèce. */
   const nouveauTerritoire = async (betes: [string, number][]) => {
     const compte = (await creerCompte(pool, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;
-    const nom = `Tra${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+    const nom = nomDEssai("Tra", suffixe, numero);
     expect(await enregistrerNomDeChef(pool, compte.id, nom)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await chefDuCompte(pool, compte.id))!.territoireId!;
     await pool.query(`insert into habitant (territoire_id, prenom, metier) values ($1, 'Essai', 'explorateur')`, [territoireId]);

@@ -2,7 +2,7 @@ import type { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { entretienDesHabitants } from "./habitants";
 import { nourriturePourEncore, type StockDeNourriture } from "./nourriture";
 import { PRODUIRE } from "./production";
@@ -15,6 +15,8 @@ describe.skipIf(!URL_TEST)("combien de temps tiendra la Nourriture, contre le ca
   let pool: Pool;
   let mondeId: number;
   const lancement = `nourriture-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   const HEURE = 3_600_000;
   const DEBUT = new Date("2026-01-01T00:00:00Z");
@@ -26,7 +28,7 @@ describe.skipIf(!URL_TEST)("combien de temps tiendra la Nourriture, contre le ca
   const naitre = async (habitants: number, viande: { quantite: string; limite: string }, vegetaux: { quantite: string; limite: string }) => {
     const n = ++numero;
     const compte = (await creerCompte(pool, `${lancement}-${n}@essai.test`, "une phrase de passe"))!;
-    const nom = `Nour${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(n / 10) % 10]}${"abcdefghij"[n % 10]}`;
+    const nom = nomDEssai("Nour", suffixe, n);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await territoireDuCompte(pool, compte.id))!;
     for (const [ressource, reglage] of [

@@ -8,7 +8,7 @@ import { creerCompte } from "@/comptes/compte";
 import { MIGRATIONS_FOLDER } from "@/db/migrations";
 import { ABORDS_DU_FOYER_CASES, ECART_ENTRE_FOYERS } from "@/reglages";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { VERROU_DES_NAISSANCES } from "./bascule";
 import { abordsDuFoyer, casesDecouvertes, decouvrir } from "./brouillard";
 import { peutAccueillirUnFoyer } from "./foyers";
@@ -36,9 +36,11 @@ describe.skipIf(!URL_TEST)("le brouillard (sur base)", () => {
   let pool: Pool;
   let mondeId: number;
   const lancement = `brouillard-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   const nouveauCompte = async () => (await creerCompte(pool, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;
-  const nomUnique = () => `Bru${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+  const nomUnique = () => nomDEssai("Bru", suffixe, numero);
   /** Un Territoire tout neuf, né comme dans le jeu. */
   const naitre = async () => {
     const compte = await nouveauCompte();

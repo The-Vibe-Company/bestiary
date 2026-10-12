@@ -14,7 +14,7 @@ import { PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE } from "@/reglages";
 import { rattraperLesAbsents } from "@/temps/absents";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { lancerLExpedition } from "./depart";
 import { expeditionsEnCours } from "./en-cours";
 import { retourDUneExpedition } from "./phase";
@@ -35,6 +35,8 @@ describe.skipIf(!URL_TEST)("le retour au Foyer (US-0916, sur base)", () => {
   let pool: Pool;
   let mondeId: number;
   const lancement = `retour-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /** Les comptes des Territoires nés pendant l'essai en cours. */
   const nes: string[] = [];
@@ -47,7 +49,7 @@ describe.skipIf(!URL_TEST)("le retour au Foyer (US-0916, sur base)", () => {
     const n = ++numero;
     nes.push(`${lancement}-${n}@essai.test`);
     const compte = (await creerCompte(pool, `${lancement}-${n}@essai.test`, "une phrase de passe"))!;
-    const nom = `Ret${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(n / 10) % 10]}${"abcdefghij"[n % 10]}`;
+    const nom = nomDEssai("Ret", suffixe, n);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await territoireDuCompte(pool, compte.id))!;
     await pool.query(

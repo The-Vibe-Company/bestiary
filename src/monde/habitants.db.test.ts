@@ -11,7 +11,7 @@ import { PRENOMS } from "@/donnees/jeux";
 import { ENTRETIEN_HABITANT_PAR_HEURE, PLACES_DU_FOYER } from "@/reglages";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { famineDepuis } from "./famine";
 import {
   ajouterUnHabitantAuMetier,
@@ -45,9 +45,11 @@ describe.skipIf(!URL_TEST)("les premiers Habitants (US-0301, US-0303, US-0305, U
   let pool: Pool;
   let mondeId: number;
   const lancement = `habitants-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   const nouveauCompte = async () => (await creerCompte(pool, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;
-  const nomUnique = () => `Hab${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+  const nomUnique = () => nomDEssai("Hab", suffixe, numero);
   const habitants = async (territoireId: number) =>
     (await pool.query<{ id: number; metier: string | null }>("select id, metier from habitant where territoire_id = $1 order by id", [territoireId])).rows;
 

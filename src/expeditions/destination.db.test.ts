@@ -7,7 +7,7 @@ import { ficheDUneCase } from "@/monde/fiche";
 import { creerUnMonde } from "@/monde/generer";
 import { type Coordonnees, distance } from "@/monde/hex";
 import { PORTEE_D_EXPLORATION_CASES } from "@/reglages";
-import { poolDeTest, preparerMondeDeTest, URL_TEST } from "@/test/base";
+import { nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, URL_TEST } from "@/test/base";
 import { CASE_D_UN_TERRITOIRE, CASE_HORS_DE_PORTEE } from "./choix-de-destination";
 import { destinationDUneCase } from "./destination";
 
@@ -19,9 +19,11 @@ describe.skipIf(!URL_TEST)("la destination d'une Expédition (US-0907, US-0908, 
   let pool: Pool;
   let genereId: number;
   const lancement = `destination-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /** Un nom de chef propre à ce lancement, pour ne pas croiser les autres essais. */
-  const nomUnique = () => `Dest${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+  const nomUnique = () => nomDEssai("Dest", suffixe, numero);
   /** Un chef qui naît dans le Monde généré, ou dans le Monde du jeu (`mondeId` null) : son Territoire et la Case de son Foyer. */
   const naitre = async (mondeId: number | null = genereId) => {
     const compte = (await creerCompte(pool, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;

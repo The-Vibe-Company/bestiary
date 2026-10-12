@@ -13,7 +13,7 @@ import { PRESENCE_D_UNE_BETE_HEURES, RATTRAPER_APRES_MINUTES } from "@/reglages"
 import { rattraperLesAbsents } from "@/temps/absents";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { dureeDuTrajetMinutes } from "./allure";
 import { chanceDAttaqueParHeure, instantDeLAttaque, type Regime } from "./attaque";
 import { lancerLExpedition } from "./depart";
@@ -53,6 +53,8 @@ describe.skipIf(!URL_TEST)("la Bête trop forte peut attaquer (US-0943, sur base
   let especes: Map<string, Espece>;
   let faible: Espece;
   const lancement = `attaque-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /** Les Cases déjà prises par un essai de ce fichier : chacun a la sienne, sans Expédition d'un autre. */
   const prises = new Set<number>();
@@ -66,7 +68,7 @@ describe.skipIf(!URL_TEST)("la Bête trop forte peut attaquer (US-0943, sur base
   const naitre = async () => {
     const n = ++numero;
     const compte = (await creerCompte(pool, `${lancement}-${n}@essai.test`, "une phrase de passe"))!;
-    const nom = `Assaut${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(n / 10) % 10]}${"abcdefghij"[n % 10]}`;
+    const nom = nomDEssai("Assaut", suffixe, n);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await territoireDuCompte(pool, compte.id))!;
     await pool.query("insert into habitant (territoire_id, prenom, metier) select $1, 'Essai', 'explorateur' from generate_series(1, $2)", [

@@ -6,7 +6,7 @@ import { rattraperLesAbsents } from "@/temps/absents";
 import { definirAncre } from "@/temps/horloge";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { DEPART_DE_FAMINE, departsNonLus, famineDepuis, recitDesDeparts } from "./famine";
 import { entretienDesHabitants, habitantsDuTerritoire, nombreDHabitants, renvoyerLHabitant } from "./habitants";
 import { ecrireUnRecit, marquerUnRecitLu } from "./recits";
@@ -24,6 +24,8 @@ describe.skipIf(!URL_TEST)("la Famine, tenue par le mécanisme du temps (US-0325
   let pool: Pool;
   let mondeId: number;
   const lancement = `famine-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /** Les comptes des Territoires nés pendant l'essai en cours. */
   const nes: string[] = [];
@@ -36,7 +38,7 @@ describe.skipIf(!URL_TEST)("la Famine, tenue par le mécanisme du temps (US-0325
     const n = ++numero;
     nes.push(`${lancement}-${n}@essai.test`);
     const compte = (await creerCompte(pool, `${lancement}-${n}@essai.test`, "une phrase de passe"))!;
-    const nom = `Fain${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(n / 10) % 10]}${"abcdefghij"[n % 10]}`;
+    const nom = nomDEssai("Fain", suffixe, n);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await territoireDuCompte(pool, compte.id))!;
     await pool.query(

@@ -9,7 +9,7 @@ import { explorateursDuTerritoire, prochainRetourDUnExplorateur } from "@/monde/
 import { enregistrerLeMetier, habitantsDuTerritoire, renvoyerLHabitant, retirerUnHabitantDuMetier } from "@/monde/habitants";
 import type { Coordonnees } from "@/monde/hex";
 import { PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE, PORTEE_D_EXPLORATION_CASES } from "@/reglages";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { CASE_D_UN_TERRITOIRE, CASE_HORS_DE_PORTEE } from "./choix-de-destination";
 import { BETE_PLUS_DISPONIBLE, type ChoixDuDepart, EXPLORATEUR_PLUS_LIBRE, lancerLExpedition } from "./depart";
 import { expeditionsEnCours } from "./en-cours";
@@ -23,6 +23,8 @@ describe.skipIf(!URL_TEST)("lancer l'Expédition (US-0911, sur base)", () => {
   let pool: Pool;
   let mondeId: number;
   const lancement = `depart-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /** L'heure du jeu du départ. */
   const INSTANT = new Date("2026-10-09T07:42:00.000Z");
@@ -30,7 +32,7 @@ describe.skipIf(!URL_TEST)("lancer l'Expédition (US-0911, sur base)", () => {
   /** Un joueur qui vient de naître, et son Territoire, avec ses trois Habitants sans Métier et sans Bête. */
   const nouveauTerritoire = async () => {
     const compte = (await creerCompte(pool, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;
-    const nom = `Dep${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+    const nom = nomDEssai("Dep", suffixe, numero);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     return (await territoireDuCompte(pool, compte.id))!;
   };

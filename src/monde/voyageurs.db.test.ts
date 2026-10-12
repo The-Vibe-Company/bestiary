@@ -13,7 +13,7 @@ import { rattraperLesAbsents } from "@/temps/absents";
 import { programmerEvenement } from "@/temps/avancer";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { entretienDesHabitants, habitantsDuTerritoire, nombreDHabitants } from "./habitants";
 import { marquerUnRecitLu, recitsDuTerritoire } from "./recits";
 import { stocksDuTerritoire } from "./stocks";
@@ -103,9 +103,11 @@ describe.skipIf(!URL_TEST)("l'arrivée des Voyageurs (US-0331, sur base)", () =>
   let pool: Pool;
   let mondeId: number;
   const lancement = `voyageurs-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   const nouveauCompte = async () => (await creerCompte(pool, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;
-  const nomUnique = () => `Voy${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+  const nomUnique = () => nomDEssai("Voy", suffixe, numero);
 
   /** Un Territoire tout neuf, et l'instant de sa naissance. */
   const naitre = async () => {

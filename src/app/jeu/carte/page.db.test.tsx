@@ -9,7 +9,7 @@ import { BROUILLARD, couleur } from "@/monde/couleurs-de-la-carte";
 import { creerUnMonde } from "@/monde/generer";
 import { type Coordonnees, distance } from "@/monde/hex";
 import { ABORDS_DU_FOYER_CASES } from "@/reglages";
-import { poolDeTest, preparerMondeDeTest, URL_TEST } from "@/test/base";
+import { nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, URL_TEST } from "@/test/base";
 
 // La garde dit qui est connecté ; la page lit pour de bon la base de test.
 const garde = vi.hoisted(() => ({ exigerCompte: vi.fn() }));
@@ -32,8 +32,10 @@ describe.skipIf(!URL_TEST)("ce que la page de la carte envoie au navigateur, sur
   let pool: Pool;
   let genereId: number;
   const lancement = `page-carte-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
-  const nomUnique = () => `Bru${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+  const nomUnique = () => nomDEssai("Bru", suffixe, numero);
   /** Un chef qui naît dans le Monde généré : son nom, son Territoire et la Case de son Foyer. */
   const naitre = async () => {
     const compte = (await creerCompte(pool, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;

@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { BETES_DE_NAISSANCE, PORTEE_D_EXPLORATION_CASES, PRESENCE_D_UNE_BETE_DE_NAISSANCE_HEURES, PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
-import { poolDeTest, preparerMondeDeTest, URL_TEST } from "@/test/base";
+import { nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, URL_TEST } from "@/test/base";
 import { betesDeNaissanceDesCases, betesDeNaissancePresentes, poserLesBetesDeNaissance, recevoirLesBetesDeNaissance } from "./betes-de-naissance";
 import { creerUnMonde } from "./generer";
 import { type Coordonnees, distance } from "./hex";
@@ -33,9 +33,11 @@ describe.skipIf(!URL_TEST)("les Bêtes de naissance d'un Foyer (US-0975, sur bas
   let pool: Pool;
   let genereId: number;
   const lancement = `naissance-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /** Un nom de chef propre à ce lancement, pour ne pas croiser les autres essais. */
-  const nomUnique = () => `Portee${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+  const nomUnique = () => nomDEssai("Portee", suffixe, numero);
 
   /**
    * Un chef qui naît dans le Monde généré des essais, pour ne pas prendre de place au Monde du jeu : son Territoire, sa

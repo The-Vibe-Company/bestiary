@@ -8,7 +8,7 @@ import type { Coordonnees } from "@/monde/hex";
 import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { forceDUneBete } from "./force";
 import { betesQuiSuivent } from "./sexe";
 
@@ -31,6 +31,8 @@ describe.skipIf(!URL_TEST)("le sexe tiré au hasard (US-0937, sur base)", () => 
   let forceDeLaFaible = 0;
   const forces = new Map<string, number>();
   const lancement = `sexe-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /** Les Cases déjà prises par un essai de ce fichier : chacun a la sienne, sans Expédition d'un autre. */
   const prises = new Set<number>();
@@ -41,7 +43,7 @@ describe.skipIf(!URL_TEST)("le sexe tiré au hasard (US-0937, sur base)", () => 
   const naitre = async () => {
     const n = ++numero;
     const compte = (await creerCompte(pool, `${lancement}-${n}@essai.test`, "une phrase de passe"))!;
-    const nom = `Hasard${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(n / 10) % 10]}${"abcdefghij"[n % 10]}`;
+    const nom = nomDEssai("Hasard", suffixe, n);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await territoireDuCompte(pool, compte.id))!;
     return { territoireId, ne: await lireMarquePage(pool, "territoire", territoireId) };

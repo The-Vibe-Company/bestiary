@@ -7,7 +7,7 @@ import { rattraperLesAbsents } from "@/temps/absents";
 import { definirAncre } from "@/temps/horloge";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { entretienDesHabitants } from "./habitants";
 import { nourriturePourEncoreDesStocks } from "./nourriture";
 import { famineImminenteDepuis } from "./production";
@@ -23,6 +23,8 @@ describe.skipIf(!URL_TEST)("l'avertissement « famine imminente », tenu par le 
   let pool: Pool;
   let mondeId: number;
   const lancement = `famine-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
 
   /**
@@ -33,7 +35,7 @@ describe.skipIf(!URL_TEST)("l'avertissement « famine imminente », tenu par le 
   const naitre = async (habitants: number, viande: string, vegetaux: string, limiteDesVegetaux: string | null = null) => {
     const n = ++numero;
     const compte = (await creerCompte(pool, `${lancement}-${n}@essai.test`, "une phrase de passe"))!;
-    const nom = `Fami${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(n / 10) % 10]}${"abcdefghij"[n % 10]}`;
+    const nom = nomDEssai("Fami", suffixe, n);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await territoireDuCompte(pool, compte.id))!;
     await pool.query(

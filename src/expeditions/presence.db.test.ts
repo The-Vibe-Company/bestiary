@@ -6,7 +6,7 @@ import { hacher } from "@/monde/couronne";
 import type { Coordonnees } from "@/monde/hex";
 import { PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE } from "@/reglages";
 import { definirAncre } from "@/temps/horloge";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { lancerLExpedition } from "./depart";
 import { expeditionsEnCours } from "./en-cours";
 import { finDeLaPhase } from "./phase";
@@ -26,6 +26,8 @@ describe.skipIf(!URL_TEST)("le séjour sur la Case : les Expéditions présentes
   let pool: Pool;
   let mondeId: number;
   const lancement = `presence-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /**
    * L'heure du jeu du départ de chaque essai, à un mois de celle du précédent : les Expéditions d'un essai ne croisent
@@ -42,7 +44,7 @@ describe.skipIf(!URL_TEST)("le séjour sur la Case : les Expéditions présentes
   const naitre = async (explorateurs = 1) => {
     const n = ++numero;
     const compte = (await creerCompte(pool, `${lancement}-${n}@essai.test`, "une phrase de passe"))!;
-    const nom = `Seja${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(n / 10) % 10]}${"abcdefghij"[n % 10]}`;
+    const nom = nomDEssai("Seja", suffixe, n);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await territoireDuCompte(pool, compte.id))!;
     await pool.query(`insert into habitant (territoire_id, prenom, metier) select $1, 'Essai', 'explorateur' from generate_series(1, $2)`, [territoireId, explorateurs]);

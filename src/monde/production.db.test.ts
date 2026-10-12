@@ -4,7 +4,7 @@ import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { produire, PRODUIRE } from "./production";
 import { stocksDuTerritoire } from "./stocks";
 
@@ -15,13 +15,15 @@ describe.skipIf(!URL_TEST)("production continue du Foyer (US-0210, sur base)", (
   let pool: Pool;
   let mondeId: number;
   const lancement = `production-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   const HEURE = 3_600_000;
 
   /** Un Territoire tout neuf, aux Stocks remis à zéro et sans Habitants pour lire la production seule, sans Entretien (US-0316). */
   const naitre = async () => {
     const compte = (await creerCompte(pool, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;
-    const nom = `Prod${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+    const nom = nomDEssai("Prod", suffixe, numero);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await territoireDuCompte(pool, compte.id))!;
     await pool.query("update stock set quantite = 0 where territoire_id = $1", [territoireId]);

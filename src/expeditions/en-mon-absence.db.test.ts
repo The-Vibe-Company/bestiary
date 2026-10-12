@@ -20,7 +20,7 @@ import { formaterMinutes } from "@/temps/affichage";
 import { definirAncre, maintenant } from "@/temps/horloge";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, poolDansLaTransaction, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDansLaTransaction, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { dureeDuTrajetMinutes } from "./allure";
 import { casesRevelees } from "./brouillard";
 import { lancerLExpedition } from "./depart";
@@ -89,6 +89,8 @@ describe.skipIf(!URL_TEST)("une Expédition vécue en mon absence (US-0922, sur 
   /** L'Espèce la plus forte du jeu, dont deux Bêtes escortent A et B. */
   let forteId: string;
   const lancement = `absence-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   /** Les Expéditions de l'essai, dans l'ordre de leur départ. */
   let plans: Plan[];
   /** L'instant du jeu où tout est vécu : la dernière Expédition est rentrée, et la tâche planifiée vient de passer. */
@@ -214,7 +216,7 @@ describe.skipIf(!URL_TEST)("une Expédition vécue en mon absence (US-0922, sur 
      */
     const naitre = async (n: number) => {
       const compte = (await creerCompte(pool, `${lancement}-${n}@essai.test`, "une phrase de passe"))!;
-      const nom = `Abs${lancement.slice(-6).replace(/[^a-z]/g, "x")}${"abc"[n]}`;
+      const nom = nomDEssai("Abs", suffixe, n);
       expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
       const id = (await territoireDuCompte(pool, compte.id))!;
       await pool.query(

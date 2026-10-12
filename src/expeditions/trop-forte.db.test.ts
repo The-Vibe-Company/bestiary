@@ -8,7 +8,7 @@ import { type Coordonnees, distance } from "@/monde/hex";
 import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { dureeDuTrajetMinutes } from "./allure";
 import { lancerLExpedition } from "./depart";
 import { forceDUneBete } from "./force";
@@ -35,6 +35,8 @@ describe.skipIf(!URL_TEST)("la Bête trop forte reste sur sa Case (US-0942, sur 
   let especes: Map<string, Espece>;
   let faible: Espece;
   const lancement = `trop-forte-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /** Les Cases déjà prises par un essai de ce fichier : chacun a la sienne, sans Expédition d'un autre. */
   const prises = new Set<number>();
@@ -48,7 +50,7 @@ describe.skipIf(!URL_TEST)("la Bête trop forte reste sur sa Case (US-0942, sur 
   const naitre = async () => {
     const n = ++numero;
     const compte = (await creerCompte(pool, `${lancement}-${n}@essai.test`, "une phrase de passe"))!;
-    const nom = `Fort${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(n / 10) % 10]}${"abcdefghij"[n % 10]}`;
+    const nom = nomDEssai("Fort", suffixe, n);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await territoireDuCompte(pool, compte.id))!;
     await pool.query("insert into habitant (territoire_id, prenom, metier) values ($1, 'Essai', 'explorateur')", [territoireId]);

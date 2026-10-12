@@ -9,7 +9,7 @@ import { PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE, PRESENCE_D_UNE_BETE_HEURES } fro
 import { rattraperLesAbsents } from "@/temps/absents";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { cheminDUneExpedition } from "./chemin";
 import { lancerLExpedition } from "./depart";
 import { rencontresDUneExpedition } from "./rencontres";
@@ -31,6 +31,8 @@ describe.skipIf(!URL_TEST)("la Rencontre (US-0932, sur base)", () => {
   let pool: Pool;
   let mondeId: number;
   const lancement = `rencontre-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /**
    * Les Cases déjà prises par un essai de ce fichier : chacun a la sienne. Sans escorte, une Bête commune suit l'Expédition
@@ -49,7 +51,7 @@ describe.skipIf(!URL_TEST)("la Rencontre (US-0932, sur base)", () => {
   const naitre = async (explorateurs = 1) => {
     const n = ++numero;
     const compte = (await creerCompte(pool, `${lancement}-${n}@essai.test`, "une phrase de passe"))!;
-    const nom = `Renc${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(n / 10) % 10]}${"abcdefghij"[n % 10]}`;
+    const nom = nomDEssai("Renc", suffixe, n);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await territoireDuCompte(pool, compte.id))!;
     await pool.query(`insert into habitant (territoire_id, prenom, metier) select $1, 'Essai', 'explorateur' from generate_series(1, $2)`, [territoireId, explorateurs]);

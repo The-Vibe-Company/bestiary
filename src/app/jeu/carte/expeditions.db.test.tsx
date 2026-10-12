@@ -6,7 +6,7 @@ import { creerCompte } from "@/comptes/compte";
 import { lancerLExpedition } from "@/expeditions/depart";
 import type { ExpeditionEnCours } from "@/expeditions/en-cours";
 import type { Coordonnees } from "@/monde/hex";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 
 // La garde dit qui est connecté ; la page lit pour de bon la base de test.
 const garde = vi.hoisted(() => ({ exigerCompte: vi.fn() }));
@@ -25,12 +25,14 @@ describe.skipIf(!URL_TEST)("les Expéditions que la carte reçoit, sur base (US-
   let pool: Pool;
   let mondeId: number;
   const lancement = `carte-expeditions-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
 
   /** Un chef qui naît dans le Monde d'essai de ce fichier, et son Territoire. */
   const naitre = async () => {
     const compte = (await creerCompte(pool, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;
-    const nom = `Exp${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+    const nom = nomDEssai("Exp", suffixe, numero);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     return (await territoireDuCompte(pool, compte.id))!;
   };

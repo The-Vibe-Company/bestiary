@@ -12,7 +12,7 @@ import { lireMarquePage } from "@/temps/marque-page";
 import { DEPART_VOYAGEUR } from "@/monde/voyageurs";
 import { programmerEvenement } from "@/temps/avancer";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { casesLeveesParLExpedition, casesRevelees } from "./brouillard";
 import { cheminDUneExpedition } from "./chemin";
 import { lancerLExpedition } from "./depart";
@@ -32,6 +32,8 @@ describe.skipIf(!URL_TEST)("le brouillard se lève sur le chemin (US-0914, sur b
   let pool: Pool;
   let mondeId: number;
   const lancement = `chemin-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
 
   /**
@@ -41,7 +43,7 @@ describe.skipIf(!URL_TEST)("le brouillard se lève sur le chemin (US-0914, sur b
   const naitre = async () => {
     const n = ++numero;
     const compte = (await creerCompte(pool, `${lancement}-${n}@essai.test`, "une phrase de passe"))!;
-    const nom = `Chem${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(n / 10) % 10]}${"abcdefghij"[n % 10]}`;
+    const nom = nomDEssai("Chem", suffixe, n);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await territoireDuCompte(pool, compte.id))!;
     await pool.query("insert into habitant (territoire_id, prenom, metier) values ($1, 'Essai', 'explorateur'), ($1, 'Autre', 'explorateur')", [territoireId]);

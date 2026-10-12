@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { chefDuCompte, enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { ABORDS_DU_FOYER_CASES, CARTE_UTILISABLE_SECONDES } from "@/reglages";
-import { poolDeTest, preparerMondeDeTest, URL_TEST } from "@/test/base";
+import { nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, URL_TEST } from "@/test/base";
 import { casesDecouvertes, decouvrir } from "./brouillard";
 import { type CarteDuJoueur, carteDuJoueur, decouvertesDuJoueur } from "./carte";
 import { BROUILLARD } from "./couleurs-de-la-carte";
@@ -20,9 +20,11 @@ describe.skipIf(!URL_TEST)("la carte du Monde du joueur (US-0417, sur base)", ()
   let pool: Pool;
   let genereId: number;
   const lancement = `carte-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /** Un nom de chef propre à ce lancement, pour ne pas croiser les autres essais. */
-  const nomUnique = () => `Carte${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+  const nomUnique = () => nomDEssai("Carte", suffixe, numero);
   /** Un chef qui naît dans le Monde du jeu, ou dans le Monde `mondeId` ; son Territoire et la Case de son Foyer. */
   const naitre = async (mondeId: number | null = null) => {
     const compte = (await creerCompte(pool, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;

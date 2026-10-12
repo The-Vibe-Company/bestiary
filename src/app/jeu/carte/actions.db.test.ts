@@ -7,7 +7,7 @@ import { creerUnMonde } from "@/monde/generer";
 import { type Coordonnees, distance } from "@/monde/hex";
 import { ZONE_COEUR } from "@/monde/zones";
 import { ABORDS_DU_FOYER_CASES } from "@/reglages";
-import { poolDeTest, preparerMondeDeTest, URL_TEST } from "@/test/base";
+import { nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, URL_TEST } from "@/test/base";
 
 // La garde dit qui est connecté ; l'action lit pour de bon la base de test.
 const garde = vi.hoisted(() => ({ exigerCompte: vi.fn() }));
@@ -25,8 +25,10 @@ describe.skipIf(!URL_TEST)("les actions de la carte appelées directement, sur b
   let pool: Pool;
   let genereId: number;
   const lancement = `actions-carte-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
-  const nomUnique = () => `Act${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+  const nomUnique = () => nomDEssai("Act", suffixe, numero);
   /** Un chef qui naît dans le Monde généré, connecté pour la garde : son nom, son Territoire et la Case de son Foyer. */
   const naitre = async () => {
     const compte = (await creerCompte(pool, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;

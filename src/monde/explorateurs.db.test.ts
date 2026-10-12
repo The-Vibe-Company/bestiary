@@ -2,7 +2,7 @@ import type { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { explorateursDuTerritoire, prochainRetourDUnExplorateur } from "./explorateurs";
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
@@ -12,12 +12,14 @@ describe.skipIf(!URL_TEST)("les explorateurs de l'écran d'Expédition (US-0902,
   let pool: Pool;
   let mondeId: number;
   const lancement = `explorateurs-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (src/test/base.ts). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
 
   /** Un joueur qui vient de naître, et son Territoire, avec ses trois Habitants sans Métier. */
   const nouveauTerritoire = async () => {
     const compte = (await creerCompte(pool, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;
-    const nom = `Exp${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[numero % 10]}`;
+    const nom = nomDEssai("Exp", suffixe, numero);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     return (await territoireDuCompte(pool, compte.id))!;
   };
