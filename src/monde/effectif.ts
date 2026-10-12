@@ -28,9 +28,9 @@ export type EspeceDisponible = {
  * US-0904 : les Bêtes déjà sorties : combien l'Espèce en a hors du Foyer (expression sur `e`, les lignes de l'effectif
  * regroupées par Territoire et Espèce). US-0911 : celles des escortes de ses Expéditions en cours, jusqu'à leur retour.
  * US-0916 : rentrées, elles n'en sont plus. US-0956 : sorties, elles ne sont pas au Foyer pour réunir un Couple
- * (src/monde/couple.ts).
+ * (src/monde/couple.ts). US-0944 : sans celles que l'escorte a perdues au combat, sorties de l'effectif.
  */
-export const BETES_SORTIES = `select coalesce(sum(s.nombre), 0)::int from expedition_escorte s join expedition x on x.id = s.expedition_id
+export const BETES_SORTIES = `select coalesce(sum(s.nombre - s.perdues), 0)::int from expedition_escorte s join expedition x on x.id = s.expedition_id
   where x.territoire_id = e.territoire_id and s.espece_id = e.espece_id and x.rentree_le is null`;
 
 /**

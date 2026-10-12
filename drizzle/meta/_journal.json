@@ -428,6 +428,13 @@
       "when": 1791574927691,
       "tag": "0062_attaque_des_betes_trop_fortes",
       "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1791827190574,
+      "tag": "0064_pertes_de_l_escorte",
+      "breakpoints": true
     }
   ]
 }

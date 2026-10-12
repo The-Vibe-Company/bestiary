@@ -344,3 +344,10 @@ export const SIMULATION_DES_SEXES_TOLERANCE_POINTS = 2;
  * carnivore, divisée par deux pour un herbivore, telle quelle pour un omnivore (src/expeditions/attaque.ts).
  */
 export const CHANCE_D_ATTAQUE_PAR_HEURE = 0.1;
+
+/**
+ * US-0944 : au combat, la Bête trop forte l'emporte toujours, et l'escorte perd une part de ses Bêtes qui grandit avec
+ * l'écart des forces : l'écart (force de la Bête moins celle de l'escorte) rapporté à la force de la Bête, multiplié par
+ * ce chiffre (valeur provisoire, à régler en jouant), jusqu'à toute l'escorte (src/expeditions/combat.ts).
+ */
+export const PERTES_PAR_ECART_DES_FORCES = 1;

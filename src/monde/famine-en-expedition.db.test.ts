@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { lancerLExpedition } from "@/expeditions/depart";
+import { betesSauvagesDesCases } from "@/monde/betes-sauvages";
 import { rattraperLesAbsents } from "@/temps/absents";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
@@ -73,16 +74,23 @@ describe.skipIf(!URL_TEST)("ceux qui sont partis mangent toujours (US-0921, sur 
   const vingtHeures = () => naitre(VINGT, "72", "288");
   const apres = (ne: Date, ms: number) => new Date(ne.getTime() + ms);
 
-  /** Une Case libre du Monde du Territoire, à deux Cases de son Foyer. */
-  const destination = async (territoireId: number): Promise<Coordonnees> => {
-    const { rows } = await pool.query<Coordonnees>(
-      `select c.q, c.r from territoire t join case_du_monde f on f.id = t.foyer_case_id
+  /**
+   * Une Case libre du Monde du Territoire, à deux Cases de son Foyer, où ne se montre aucune Bête sauvage plus rare que
+   * commune pendant les 40 heures des essais : trop forte pour l'escorte, elle pourrait l'attaquer, et le combat lui
+   * coûterait des Bêtes (US-0944) ; une commune suit l'Expédition (US-0935), et n'entrerait dans l'effectif qu'au retour.
+   */
+  const destination = async (t: { territoireId: number; ne: Date }): Promise<Coordonnees> => {
+    const { rows } = await pool.query<Coordonnees & { id: number }>(
+      `select c.id, c.q, c.r from territoire t join case_du_monde f on f.id = t.foyer_case_id
          join case_du_monde c on c.monde_id = f.monde_id and c.chef_id is null
        where t.id = $1 and greatest(abs(c.q - f.q), abs(c.r - f.r), abs(c.q - f.q + c.r - f.r)) = 2
-       order by c.q, c.r limit 1`,
-      [territoireId],
+       order by c.q, c.r`,
+      [t.territoireId],
     );
-    return rows[0];
+    const betes = await betesSauvagesDesCases(pool, rows.map((c) => c.id), t.ne, apres(t.ne, 40 * HEURE));
+    const calme = rows.find((c) => betes.get(c.id)!.every((b) => b.rareteId === "commune"));
+    if (!calme) throw new Error("Aucune Case à deux Cases du Foyer sans Bête plus rare que commune pendant les essais.");
+    return { q: calme.q, r: calme.r };
   };
   /**
    * US-0911 : tous les explorateurs du Territoire partent en Expédition à sa naissance, escortés de deux souris, pour
@@ -96,7 +104,7 @@ describe.skipIf(!URL_TEST)("ceux qui sont partis mangent toujours (US-0921, sur 
     const depart = await lancerLExpedition(
       pool,
       t.territoireId,
-      { destination: await destination(t.territoireId), explorateurs: rows[0].n, escorte: new Map([["souris", 2]]), sejourMinutes: 7 * 24 * 60 },
+      { destination: await destination(t), explorateurs: rows[0].n, escorte: new Map([["souris", 2]]), sejourMinutes: 7 * 24 * 60 },
       t.ne,
     );
     expect(depart).toEqual({ expeditionId: expect.any(Number) });

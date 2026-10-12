@@ -27,7 +27,8 @@ export type ExpeditionEnCours = HorairesDUneExpedition & {
  * carte (US-0913) : ses horaires, ses explorateurs, dans l'ordre de leur arrivée au Foyer, et son escorte, Espèce par
  * Espèce, de la plus commune à la plus rare puis par nom, comme l'écran d'Expédition les propose (US-0904). US-0916 : une
  * Expédition rentrée au Foyer n'est plus en cours ; d'ici là, son heure passée, elle est « de retour ». US-0920 : ses
- * horaires disent aussi son rappel, d'où se lisent son demi-tour et son retour avancé.
+ * horaires disent aussi son rappel, d'où se lisent son demi-tour et son retour avancé. US-0944 : son escorte, sans les
+ * Bêtes perdues au combat.
  */
 export async function expeditionsEnCours(base: Pool | PoolClient, territoireId: number, instant: Date): Promise<ExpeditionEnCours[]> {
   const { rows } = await base.query<HorairesDUneExpedition & { id: number; q: number; r: number; explorateurs: string[]; escorte: EspeceDeLEscorte[] }>(
@@ -35,9 +36,9 @@ export async function expeditionsEnCours(base: Pool | PoolClient, territoireId: 
        x.rappelee_le as "rappeleeLe",
        array(select h.prenom from habitant h where h.expedition_id = x.id order by h.id) as explorateurs,
        coalesce((
-         select json_agg(json_build_object('id', es.id, 'nom', es.nom, 'nombre', s.nombre) order by r.rang, es.nom)
+         select json_agg(json_build_object('id', es.id, 'nom', es.nom, 'nombre', s.nombre - s.perdues) order by r.rang, es.nom)
          from expedition_escorte s join espece es on es.id = s.espece_id join rarete r on r.id = es.rarete_id
-         where s.expedition_id = x.id
+         where s.expedition_id = x.id and s.nombre > s.perdues
        ), '[]') as escorte
      from expedition x join case_du_monde c on c.id = x.case_id
      where x.territoire_id = $1 and x.rentree_le is null
