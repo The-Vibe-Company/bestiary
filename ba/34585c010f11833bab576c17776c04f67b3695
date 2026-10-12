@@ -1,0 +1,70 @@
+src/db/schema.ts
+  s_7c7d151152e4a5::t_7deb2def38d12d 705-707,724,734-735
+src/expeditions/retour.ts
+  s_7c7d151152e4a5::t_d526eb802c0bfd 6,8,21,29-30,32,35-36,38,40-42
+drizzle/0067_expedition_en_fuite.sql
+  s_7c7d151152e4a5::t_25ce980c2c0624 1-5
+src/temps/avancer.db.test.ts
+  s_7c7d151152e4a5::t_54eea1fbe143ef 5,183-228
+src/expeditions/betes-reperees.db.test.tsx
+  s_7c7d151152e4a5::t_0a2c3f09da3a67 12,129-130,148-151
+src/expeditions/en-cours.db.test.ts
+  s_7c7d151152e4a5::t_c84d8ace0d05ee 85,87
+src/test/attaques.ts
+  s_7c7d151152e4a5::t_037af8dcbd9e99 1-63
+src/components/DetailDeLExpedition.tsx
+  s_7c7d151152e4a5::t_d5df8ceeaa7931 49-50,73
+src/temps/avancer.ts
+  s_7c7d151152e4a5::t_3c704961e9c0f0 17-22,30-31,54-67,74-76,99-103,108,110-130,133-134,136
+src/bestiaire/bestiaire.db.test.ts
+  s_7c7d151152e4a5::t_3ff0957ec67e7d 16,253-265,270
+src/expeditions/une-bete-a-la-fois.db.test.ts
+  s_7c7d151152e4a5::t_2a5e750db21dda 9,115-127,204
+src/temps/regles.ts
+  s_7c7d151152e4a5::t_6ef8ef5e38fec3 21-28
+src/expeditions/rappel.db.test.ts
+  s_7c7d151152e4a5::t_c187f9171c8a09 268-269
+drizzle/meta/_journal.json
+  s_7c7d151152e4a5::t_9f0c18b6252482 446-451
+  s_7c7d151152e4a5::t_8963abafcd596d 445
+drizzle/meta/0067_snapshot.json
+  s_7c7d151152e4a5::t_25e5383c91ed37 1-3364
+src/expeditions/rencontres.db.test.ts
+  s_7c7d151152e4a5::t_a77b9d4756f7e3 12,17,84-100,182,350-361,365
+src/expeditions/recit-de-retour.ts
+  s_7c7d151152e4a5::t_ced5dc132b991f 284-286,289-290,299-302
+src/components/DetailDeLExpedition.test.tsx
+  s_7c7d151152e4a5::t_664e7211aa63c8 171-184
+src/expeditions/en-cours.ts
+  s_7c7d151152e4a5::t_b09fe6ef5501ba 21-22,33,36,38,51,53
+src/expeditions/rencontres.ts
+  s_7c7d151152e4a5::t_3982123cfc7867 24,115-118,120,122,131,168-173,175-176,211-216,218,238-253,269-271
+src/expeditions/recit-de-rencontre.db.test.ts
+  s_7c7d151152e4a5::t_922718d2578765 11,95-101,103-113,174-175,201,226-227,250-251
+src/expeditions/combat.db.test.ts
+  s_7c7d151152e4a5::t_06e306c0e29332 4-5,18,30-31,54-58,182,201-203,301-302,306,308-360,374-381,425-434
+src/expeditions/en-mon-absence.db.test.ts
+  s_7c7d151152e4a5::t_a2fb2fa84951ba 6,295-305,320-326,333
+src/expeditions/attaque.db.test.ts
+  s_7c7d151152e4a5::t_ab98407e5396d0 4-5,23,264,275,277
+src/expeditions/fuite.ts
+  s_7c7d151152e4a5::t_de8c46fb21252d 1-35
+src/expeditions/recit-de-retour.db.test.ts
+  s_7c7d151152e4a5::t_dfb2bbea79def0 14,124,160-173,177-185,286-287,302,304,317,321
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ba34585c010f11833bab576c17776c04f67b3695",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
