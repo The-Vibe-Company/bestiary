@@ -1,0 +1,77 @@
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_22f0ee893944bc 107,117,235
+docs/stories/09-explorer-et-apprivoiser.md
+  s_7c7d151152e4a5::t_81a007f0edb575 691,710
+docs/stories/README.md
+  s_7c7d151152e4a5::t_a0d88f3275823f 7
+src/app/jeu/betes/page.db.test.tsx
+  s_7c7d151152e4a5::t_e48860d74c68e4 9,21-23,103-104,117-118,122,131
+src/app/jeu/betes/page.module.css
+  s_7c7d151152e4a5::t_a114a0273db334 15,17
+src/app/jeu/betes/page.test.tsx
+  s_7c7d151152e4a5::t_68828af98469f7 23-25,95,97,111,185,189-217
+src/app/jeu/betes/page.tsx
+  s_7c7d151152e4a5::t_7d488b720da031 11,15,35-37,48,64
+src/app/jeu/recits/RencontresDuRecit.test.tsx
+  s_7c7d151152e4a5::t_f4390b3583ad44 89-109
+src/app/jeu/recits/RencontresDuRecit.tsx
+  s_7c7d151152e4a5::t_45d07413893ff7 12-14,37-38,50-57
+src/app/jeu/reserve/[espece]/BlocElever.module.css
+  s_7c7d151152e4a5::t_4aeb49ab7b7b26 7-11
+src/app/jeu/reserve/[espece]/BlocElever.test.tsx
+  s_7c7d151152e4a5::t_20ea4b8a757cff 11-13,24,29,36-45,50
+src/app/jeu/reserve/[espece]/BlocElever.tsx
+  s_7c7d151152e4a5::t_c38e5a70d9343d 5,16,18,24-25
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_2afa080ea9545e 28-30,101-103
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_fa933f01badc09 14,76
+src/components/PlacesDeLHabitat.module.css
+  s_7c7d151152e4a5::t_01e85a2fb6ae93 1-11
+src/components/PlacesDeLHabitat.test.tsx
+  s_7c7d151152e4a5::t_ec2e17d8eb9cdc 1-27
+src/components/PlacesDeLHabitat.tsx
+  s_7c7d151152e4a5::t_ad19cccc054d03 1-17
+src/expeditions/arrivee-plus-forte.db.test.ts
+  s_7c7d151152e4a5::t_a716dc936a767b 1-276
+src/expeditions/case-partagee.db.test.ts
+  s_7c7d151152e4a5::t_952b74b22dc978 259-260,263-264,345,349-350
+src/expeditions/chances.db.test.ts
+  s_7c7d151152e4a5::t_adc5260cfb30df 355-356,358
+src/expeditions/recit-de-rencontre.db.test.ts
+  s_7c7d151152e4a5::t_a37225e36ac980 186,211,215-243
+src/expeditions/recit-de-rencontre.test.ts
+  s_7c7d151152e4a5::t_0cb06679a62421 12-13,16-17,21,42-48
+src/expeditions/recit-de-rencontre.ts
+  s_7c7d151152e4a5::t_34510d68231ebc 7-8,26-27,29,31-32,40,42,44,69,74,83-88,100,102-103,117,119-120
+src/expeditions/recit-de-retour.test.ts
+  s_7c7d151152e4a5::t_9a2cc5e62c8a14 276-299
+src/expeditions/recit-de-retour.ts
+  s_7c7d151152e4a5::t_9290c8da9e5eee 71-75,246-253,286-289,303,321,367-369,393
+src/expeditions/recit-du-perdant.db.test.ts
+  s_7c7d151152e4a5::t_90198f081dbba0 1-183
+src/monde/habitat.db.test.ts
+  s_7c7d151152e4a5::t_666975d8e254a2 1-98
+src/monde/habitat.ts
+  s_7c7d151152e4a5::t_412f8bb4c6338d 1-27
+src/monde/recits.ts
+  s_7c7d151152e4a5::t_512e4df70c7d76 30,32
+src/reglages.ts
+  s_7c7d151152e4a5::t_206096f055cb0c 361-367
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e2f107b36d0cff9f5a8e9f35814eb19aae3391f9",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
