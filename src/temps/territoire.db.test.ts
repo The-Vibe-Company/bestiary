@@ -2,7 +2,7 @@ import type { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { rattraperLesAbsents } from "./absents";
 import { lireMarquePage } from "./marque-page";
 import { rattraper } from "./rattraper";
@@ -20,7 +20,8 @@ describe.skipIf(!URL_TEST)("le temps d'un Territoire (US-0156, sur base)", () =>
     await preparerMondeDeTest(pool);
     const compte = (await creerCompte(pool, `${lancement}@essai.test`, "une phrase de passe"))!;
     const mondeId = await mondeDEssai(pool, MONDE_D_ESSAI);
-    await enregistrerNomDeChef(pool, compte.id, `Temps${lancement.slice(-6).replace(/[^a-z]/g, "x")}`.slice(0, 16), Math.random, mondeId);
+    // Un nom qu'aucun mot interdit ne refuse : « Temps » suivi d'un « exe » tiré au hasard ne naissait pas.
+    expect(await enregistrerNomDeChef(pool, compte.id, `Temps${suffixeDEssai()}`, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     territoireId = (await territoireDuCompte(pool, compte.id))!;
   });
   afterAll(async () => {

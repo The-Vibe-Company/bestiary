@@ -61,6 +61,28 @@ export async function mondeDEssai(pool: Pool, nom: string): Promise<number> {
   });
 }
 
+/**
+ * Les lettres par lesquelles ne finit aucun mot interdit (US-0138) : une suite qui n'a qu'elles, collée au nom d'un chef
+ * d'essai, n'y forme jamais un de ces mots. Tirée parmi toutes les lettres, elle en formait un de temps en temps
+ * (« Gerboise » suivi de « xxe » donnait « Gerboisexxe »), et le chef, refusé, ne naissait pas. src/chefs/chef.db.test.ts
+ * vérifie qu'aucun mot de la liste ne finit par l'une d'elles.
+ */
+export const LETTRES_SANS_MOT_INTERDIT = "bcjquvwxz";
+
+/** Six lettres tirées au hasard parmi LETTRES_SANS_MOT_INTERDIT : la fin des noms de chef d'un lancement, propre à lui. */
+export function suffixeDEssai(): string {
+  return Array.from({ length: 6 }, () => LETTRES_SANS_MOT_INTERDIT[Math.floor(Math.random() * LETTRES_SANS_MOT_INTERDIT.length)]).join("");
+}
+
+/**
+ * Le nom du `n`-ième chef d'essai d'un lancement (de 0 à 80) : `debut`, la fin propre au lancement (suffixeDEssai), puis
+ * `n`, écrit lui aussi en LETTRES_SANS_MOT_INTERDIT.
+ */
+export function nomDEssai(debut: string, suffixe: string, n: number): string {
+  const lettres = LETTRES_SANS_MOT_INTERDIT;
+  return `${debut}${suffixe}${lettres[Math.floor(n / lettres.length) % lettres.length]}${lettres[n % lettres.length]}`;
+}
+
 /** Le Territoire du chef d'un compte, dans quelque Monde qu'il soit né (chefDuCompte ne lit que le Monde du jeu), ou null. */
 export async function territoireDuCompte(base: Pick<Pool, "query">, compteId: number): Promise<number | null> {
   const { rows } = await base.query<{ id: number }>("select t.id from territoire t join chef ch on ch.id = t.chef_id where ch.compte_id = $1", [compteId]);

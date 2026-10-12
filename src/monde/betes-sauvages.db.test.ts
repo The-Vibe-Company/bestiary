@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { ANNEAUX_DU_MONDE } from "@/reglages";
-import { poolDeTest, preparerMondeDeTest, URL_TEST } from "@/test/base";
+import { nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, URL_TEST } from "@/test/base";
 import { apparitions, betesSauvages, betesSauvagesDesCases, betesSauvagesDUneCase, emmenerUneBete, type EspeceSauvage, rangerLesEspeces } from "./betes-sauvages";
 import { creerUnMonde } from "./generer";
 import type { Coordonnees } from "./hex";
@@ -26,8 +26,12 @@ describe.skipIf(!URL_TEST)("les Bêtes sauvages d'une Case en base (US-0925)", (
   let genereId: number;
   const lancement = `betes-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   let numero = 0;
-  /** Un nom de chef propre à ce lancement, pour ne pas croiser les autres essais. */
-  const nomUnique = () => `Betes${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(numero / 10) % 10]}${"abcdefghij"[numero % 10]}`;
+  /**
+   * Un nom de chef propre à ce lancement, pour ne pas croiser les autres essais, qu'aucun mot interdit ne refuse : « Betes »
+   * suivi d'un « exe » tiré au hasard ne naissait pas.
+   */
+  const suffixe = suffixeDEssai();
+  const nomUnique = () => nomDEssai("Betes", suffixe, numero);
   /**
    * Un chef qui naît dans le Monde généré des essais, pour ne pas prendre de place au Monde du jeu : la Case de son Foyer,
    * et une Case libre de ce Monde, au Cœur sauvage, où aucun Foyer ne naît : elle le reste.
@@ -156,12 +160,21 @@ describe.skipIf(!URL_TEST)("les Bêtes sauvages d'une Case en base (US-0925)", (
   });
 
   it("calcule une Case seule comme toutes les Cases d'un Monde à la fois : le résultat ne change pas (US-0930)", async () => {
-    const { rows } = await pool.query<{ id: number }>("select id from case_du_monde where monde_id = $1 order by id", [genereId]);
-    const ids = rows.map((c) => c.id);
-    const toutes = await betesSauvagesDesCases(pool, ids, DEBUT, apres(JOUR));
-    expect(toutes.size).toBe(ids.length);
-    expect([...toutes.values()].flat().length).toBeGreaterThan(1000);
-    for (const id of ids.filter((_, i) => i % 211 === 0)) expect(await betesSauvagesDUneCase(pool, id, DEBUT, apres(JOUR)), `${id}`).toEqual(toutes.get(id));
+    // Les deux calculs dans un même état de la base : d'autres fichiers font naître et effacent des Foyers dans ce Monde au
+    // même moment, et une Case prise entre les deux n'aurait plus de Bêtes.
+    const client = await pool.connect();
+    try {
+      await client.query("begin isolation level repeatable read read only");
+      const { rows } = await client.query<{ id: number }>("select id from case_du_monde where monde_id = $1 order by id", [genereId]);
+      const ids = rows.map((c) => c.id);
+      const toutes = await betesSauvagesDesCases(client, ids, DEBUT, apres(JOUR));
+      expect(toutes.size).toBe(ids.length);
+      expect([...toutes.values()].flat().length).toBeGreaterThan(1000);
+      for (const id of ids.filter((_, i) => i % 211 === 0)) expect(await betesSauvagesDUneCase(client, id, DEBUT, apres(JOUR)), `${id}`).toEqual(toutes.get(id));
+    } finally {
+      await client.query("rollback");
+      client.release();
+    }
   });
 
   describe("une Bête qui suit une Expédition (US-0926)", () => {

@@ -9,7 +9,7 @@ import { recitsDuTerritoire } from "@/monde/recits";
 import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { dureeDuTrajetMinutes } from "./allure";
 import type { BeteReperee } from "./betes-reperees";
 import { lancerLExpedition } from "./depart";
@@ -57,6 +57,8 @@ describe.skipIf(!URL_TEST)("les Bêtes repérées que la carte reçoit, sur base
   let especes: Map<string, Espece>;
   let faible: Espece;
   const lancement = `betes-reperees-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  /** La fin des noms de chef de ce lancement, qu'aucun mot interdit ne refuse (suffixeDEssai). */
+  const suffixe = suffixeDEssai();
   let numero = 0;
   /** Les Cases déjà prises par un essai de ce fichier : chacun a la sienne, sans Expédition d'un autre. */
   const prises = new Set<number>();
@@ -70,7 +72,7 @@ describe.skipIf(!URL_TEST)("les Bêtes repérées que la carte reçoit, sur base
   const naitre = async () => {
     const n = ++numero;
     const compte = (await creerCompte(pool, `${lancement}-${n}@essai.test`, "une phrase de passe"))!;
-    const nom = `Rep${lancement.slice(-5).replace(/[^a-z]/g, "x")}${"abcdefghij"[Math.floor(n / 10) % 10]}${"abcdefghij"[n % 10]}`;
+    const nom = nomDEssai("Rep", suffixe, n);
     expect(await enregistrerNomDeChef(pool, compte.id, nom, Math.random, mondeId)).toMatchObject({ statut: "enregistre" });
     const territoireId = (await territoireDuCompte(pool, compte.id))!;
     await pool.query("insert into habitant (territoire_id, prenom, metier) values ($1, 'Essai', 'explorateur')", [territoireId]);
@@ -221,13 +223,15 @@ describe.skipIf(!URL_TEST)("les Bêtes repérées que la carte reçoit, sur base
   });
 
   it("n'est visible que du joueur dont l'Expédition l'a vue, pas de son voisin", async () => {
-    const moi = await voirUneBeteTropForte();
+    // Le voisin naît d'abord : né après le choix de la Case, son Foyer pourrait s'y poser, et la Bête n'y serait plus.
     const voisin = await naitre();
+    const moi = await voirUneBeteTropForte();
     await rattraperA(moi.territoireId, moi.retour);
     await rattraperA(voisin.territoireId, moi.retour);
     expect(await surLaCarte(moi.territoireId, moi.retour)).toEqual([repereDe(moi.place, moi.bete)]);
     expect(await surLaCarte(voisin.territoireId, moi.retour)).toEqual([]);
-  });
+    // 60 s : trouver une Bête rare seule coûte plus ou moins selon où naît le Foyer, et le chef peut renaître trois fois.
+  }, 60_000);
 
   it("disparaît à la fin de sa durée, sans qu'aucun récit le dise", async () => {
     const { territoireId, place, bete, retour } = await voirUneBeteTropForte();
@@ -240,8 +244,9 @@ describe.skipIf(!URL_TEST)("les Bêtes repérées que la carte reçoit, sur base
   });
 
   it("disparaît dès qu'elle a suivi une autre Expédition, même celle d'un voisin qui n'a pas encore ouvert de page, sans récit", async () => {
-    const moi = await voirUneBeteTropForte();
+    // Le voisin naît d'abord, comme ci-dessus.
     const voisin = await naitre();
+    const moi = await voirUneBeteTropForte();
     // Le voisin vient sur sa Case une demi-heure après le retour du joueur, assez fort pour qu'elle le suive (US-0934).
     const arrivee = apres(moi.retour, 30);
     await poser(voisin.territoireId, moi.caseId, arrivee, moi.bete.especeId, 1);
@@ -255,5 +260,5 @@ describe.skipIf(!URL_TEST)("les Bêtes repérées que la carte reçoit, sur base
     expect(await surLaCarte(moi.territoireId, apres(arrivee, 1))).toEqual([]);
     await rattraperA(moi.territoireId, apres(arrivee, JOUR));
     expect(await recitsQuiLaNomment(moi.territoireId, moi.bete.especeId, moi.retour)).toEqual([]);
-  });
+  }, 60_000);
 });

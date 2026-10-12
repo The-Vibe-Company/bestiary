@@ -53,18 +53,6 @@ sign = "inherit"        # "off" disables commit signing only in new Herdr worktr
 
 # A root-cause ticket is required for every known flaky failure. Rerun failed jobs once
 # with `armada ci why <pr> --rerun`; unknown failures are refused.
-# Les tests sur base qui dépendent du hasard du Monde d'essai (où naît un Foyer, quelles Bêtes y apparaissent) ou de
-# naissances simultanées (THE-1475).
-[[ci.known_failure]]
-check = "Lint, types, migrations, tests et secrets"
-pattern = "src/expeditions/rappel\\.db\\.test\\.ts > rappeler une Expédition"
-ticket = "THE-1475"
-
-[[ci.known_failure]]
-check = "Lint, types, migrations, tests et secrets"
-pattern = "src/chefs/chef\\.db\\.test\\.ts > .*naissent au même instant"
-ticket = "THE-1475"
-
 # [ci]
 # failure_patterns = ["FAIL (.+)"]  # optional test-name regex; exactly one capture group
 # [[ci.known_failure]]

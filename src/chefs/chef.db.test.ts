@@ -8,7 +8,7 @@ import { distance } from "@/monde/hex";
 import { foyerDuTerritoire, marquerRecitLu } from "@/monde/territoire";
 import { BETES_DE_NAISSANCE } from "@/reglages";
 import { maintenant } from "@/temps/horloge";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, territoireDuCompte, URL_TEST } from "@/test/base";
+import { LETTRES_SANS_MOT_INTERDIT, mondeDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { chefDuCompte, enregistrerNomDeChef, naitreSurLaCouronne, nomDejaPris, nomInterdit } from "./chef";
 import { caractereRefuse, cleDuNom, NOM_NON_AUTORISE, NOM_TROP_COURT } from "./nom";
 
@@ -31,6 +31,9 @@ describe.skipIf(!URL_TEST)("chef d'un compte (sur base)", () => {
     pool = poolDeTest();
     await preparerMondeDeTest(pool);
     mondeId = await mondeDEssai(pool, MONDE_D_ESSAI);
+    // Aucun mot interdit ne finit par l'une des lettres de la fin des noms d'essai (suffixeDEssai, nomUnique).
+    const { rows } = await pool.query("select mot from mot_interdit where right(mot, 1) = any($1::text[])", [[...LETTRES_SANS_MOT_INTERDIT]]);
+    expect(rows).toEqual([]);
   });
   afterAll(async () => {
     await pool.query("delete from compte where email like $1", [`${lancement}-%`]);
@@ -67,8 +70,13 @@ describe.skipIf(!URL_TEST)("chef d'un compte (sur base)", () => {
     await expect(ajouter("Lynx")).rejects.toMatchObject({ constraint: "chef_un_par_monde" });
   });
 
+  /**
+   * La fin des noms de ce lancement (suffixeDEssai) : aucun mot interdit ne les refuse, et tous les chefs nés au même
+   * instant naissent.
+   */
+  const suffixe = suffixeDEssai();
   /** Un nom propre à ce lancement, pour ne pas croiser les chefs des autres essais. */
-  const nomUnique = (base: string) => `${base}${lancement.slice(-6).replace(/[^a-z]/g, "x")}`.slice(0, 16);
+  const nomUnique = (base: string) => `${base}${suffixe}`.slice(0, 16);
   const nommer = async (nom: string) => {
     const compte = await nouveauCompte();
     return pool.query("insert into chef (compte_id, monde_id, nom, cle_nom) values ($1, (select id from monde order by id limit 1), $2, $3)", [

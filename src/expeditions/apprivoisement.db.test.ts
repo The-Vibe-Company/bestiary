@@ -269,14 +269,15 @@ describe.skipIf(!URL_TEST)("la Bête à portée suit l'Expédition (US-0934, sur
       for (const t of [b, a, c]) await rattraperA(t, fin);
     });
     expect(vues).toEqual(attendues);
-  });
+    // 60 s, comme l'essai par tranches : trouver une Bête rare seule coûte plus ou moins selon où naît le Foyer.
+  }, 60_000);
 
   it("la même Bête suit la même Expédition quand son Territoire est rattrapé le dernier, après les autres", async () => {
     const { vues, attendues } = await troisTerritoires(async (a, b, c, _debut, fin) => {
       for (const t of [a, c, b]) await rattraperA(t, fin);
     });
     expect(vues).toEqual(attendues);
-  });
+  }, 60_000);
 
   it("la même Bête suit la même Expédition quand les Territoires sont rattrapés par tranches, chacun à ses heures", async () => {
     const { vues, attendues } = await troisTerritoires(async (a, b, c, debut, fin) => {

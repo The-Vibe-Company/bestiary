@@ -46,6 +46,12 @@ describe.skipIf(!URL_TEST)("le récit de retour d'une Expédition (US-0917, sur 
   let numero = 0;
   /** Les comptes des Territoires nés pendant l'essai en cours. */
   const nes: string[] = [];
+  /**
+   * Les Cases où une Expédition de ce fichier a déjà séjourné : chacune a la sienne. Deux Territoires nés côte à côte
+   * prendraient sinon la même première Case calme, aux mêmes heures, et leurs récits diraient que d'autres Expéditions
+   * y séjournaient (US-0962).
+   */
+  const prises = new Set<number>();
   const apres = (instant: Date, ms: number) => new Date(instant.getTime() + ms);
 
   /** Un chef qui vient de naître dans le Monde d'essai, avec deux explorateurs : son Territoire et l'instant de sa naissance. */
@@ -59,7 +65,10 @@ describe.skipIf(!URL_TEST)("le récit de retour d'une Expédition (US-0917, sur 
     await pool.query("insert into habitant (territoire_id, prenom, metier) values ($1, 'Joran', 'explorateur'), ($1, 'Ilda', 'explorateur')", [territoireId]);
     return { territoireId, ne: await lireMarquePage(pool, "territoire", territoireId) };
   };
-  /** Les Cases libres du Monde du Territoire à ECART Cases de son Foyer, hors de celles de ses Bêtes de naissance (US-0975). */
+  /**
+   * Les Cases libres du Monde du Territoire à ECART Cases de son Foyer, hors de celles de ses Bêtes de naissance (US-0975)
+   * et de celles qu'un autre essai a prises.
+   */
   const casesAPortee = async (territoireId: number) =>
     (
       await pool.query<Coordonnees & { id: number }>(
@@ -70,7 +79,7 @@ describe.skipIf(!URL_TEST)("le récit de retour d'une Expédition (US-0917, sur 
          order by c.q, c.r`,
         [territoireId, ECART],
       )
-    ).rows;
+    ).rows.filter((c) => !prises.has(c.id));
   /**
    * La première Case à ECART Cases du Foyer où se montrent `betes` Bêtes sauvages pendant le séjour de `sejour` minutes d'une
    * Expédition partie à `depart` : aucune pour une Case calme.
@@ -78,7 +87,10 @@ describe.skipIf(!URL_TEST)("le récit de retour d'une Expédition (US-0917, sur 
   const uneCaseOu = async (territoireId: number, depart: Date, sejour: number, betes: number): Promise<Coordonnees> => {
     const arrivee = apres(depart, ALLER * MINUTE);
     for (const c of await casesAPortee(territoireId)) {
-      if ((await betesSauvagesDUneCase(pool, c.id, arrivee, apres(arrivee, sejour * MINUTE))).length === betes) return { q: c.q, r: c.r };
+      if ((await betesSauvagesDUneCase(pool, c.id, arrivee, apres(arrivee, sejour * MINUTE))).length === betes) {
+        prises.add(c.id);
+        return { q: c.q, r: c.r };
+      }
     }
     throw new Error(`Aucune Case à ${ECART} Cases où se montrent ${betes} Bêtes.`);
   };
@@ -104,7 +116,10 @@ describe.skipIf(!URL_TEST)("le récit de retour d'une Expédition (US-0917, sur 
       for (let depart = apresLe; depart < apres(apresLe, 9 * jour); depart = apres(depart, heure)) {
         const arrivee = apres(depart, aller * MINUTE);
         const montrees = betes.get(c.id)!.filter((b) => b.arrivee < apres(arrivee, sejour * MINUTE) && b.depart > arrivee);
-        if (conviennent(montrees)) return { destination: { q: c.q, r: c.r }, depart, montrees };
+        if (conviennent(montrees)) {
+          prises.add(c.id);
+          return { destination: { q: c.q, r: c.r }, depart, montrees };
+        }
       }
     }
     return null;
