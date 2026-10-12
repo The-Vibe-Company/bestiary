@@ -1,0 +1,21 @@
+src/app/jeu/reserve/[espece]/BlocElever.test.tsx
+  s_7c7d151152e4a5::t_9af6ef6adfc50f 2,6,12-15,37-47
+src/app/jeu/reserve/[espece]/actions.test.ts
+  s_7c7d151152e4a5::t_f161518d203299 56-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "19ff308d508db5987625a52330c4ea1bd92f4782",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
