@@ -1,10 +1,11 @@
 // L'Apprivoisement (US-0934) : une Bête sauvage qu'une Expédition voit sur sa Case (US-0932) et qu'elle a à portée la
-// suit, sans combat, depuis l'instant où elle la voit : aucune Bête de l'escorte n'y est blessée ni tuée. Dès lors, la
-// Bête a quitté sa Case : personne d'autre ne peut plus la rencontrer. Elle suit la première Expédition qui la voit et
-// l'a à portée, tous Territoires confondus, à égalité d'instant celle de plus petit identifiant (décidé le 2026-10-09) :
-// des données toutes fixées au départ (horaires, escorte, force), d'où le même choix quel que soit le Territoire rattrapé
-// en premier. L'étape 44 partagera les Bêtes entre plusieurs Expéditions, à chances proportionnelles à leur force. Les
-// Rencontres (src/expeditions/rencontres.ts) l'appliquent. Côté serveur comme dans le navigateur.
+// suit, sans combat, depuis l'instant où elle la voit : aucune Bête de l'escorte n'y est blessée ni tuée. Passé cet
+// instant, la Bête a quitté sa Case : personne d'autre ne peut plus la rencontrer ; à cet instant même, toutes les
+// Expéditions présentes la voient encore (US-0962). Elle suit la première Expédition qui la voit et l'a à portée, tous
+// Territoires confondus, à égalité d'instant celle de plus petit identifiant (décidé le 2026-10-09) : des données toutes
+// fixées au départ (horaires, escorte, force), d'où le même choix quel que soit le Territoire rattrapé en premier. US-0963
+// partagera les Bêtes entre plusieurs Expéditions, à chances proportionnelles à leur force. Les Rencontres
+// (src/expeditions/rencontres.ts) l'appliquent. Côté serveur comme dans le navigateur.
 
 /** US-0934 : la Rareté des Bêtes toujours à portée. */
 export const COMMUNE = "commune";

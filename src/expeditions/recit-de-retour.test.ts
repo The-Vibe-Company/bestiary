@@ -225,3 +225,23 @@ describe("les Bêtes qui ont suivi l'Expédition jusqu'au Foyer (US-0938)", () =
     expect(recitDeRetour(retour({ rencontres: 2 })).texte.split("\n").at(-1)).toBe("2 Bêtes se sont montrées.");
   });
 });
+
+describe("d'autres joueurs séjournaient sur la Case (US-0962)", () => {
+  it("une ligne le dit, sans nommer personne, après les Cases sorties du brouillard et avant les Bêtes", () => {
+    const ramenees = [{ nom: "Renard roux", sexe: "male" as const }];
+    expect(recitDeRetour(retour({ rencontres: 1, ramenees, autresExpeditions: true })).texte.split("\n")).toEqual([
+      "Destination : Forêt, à 3 Cases de votre Foyer.",
+      "Aller 1 h, séjour 4 h, retour 1 h.",
+      "12 Cases sont sorties du brouillard.",
+      "D'autres Expéditions séjournaient sur la Case.",
+      "Une Bête s'est montrée.",
+      "Bête ramenée au Foyer : Renard roux (mâle).",
+    ]);
+  });
+
+  it("aucune ligne quand l'Expédition était seule sur sa Case", () => {
+    for (const autresExpeditions of [false, undefined]) {
+      expect(recitDeRetour(retour({ rencontres: 1, autresExpeditions })).texte.split("\n")).not.toContain("D'autres Expéditions séjournaient sur la Case.");
+    }
+  });
+});

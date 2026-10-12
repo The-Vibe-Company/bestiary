@@ -267,9 +267,9 @@ describe.skipIf(!URL_TEST)("la Rencontre (US-0932, sur base)", () => {
     expect(siennes.filter((r) => r.beteDeNaissanceId !== null)).toEqual([
       { vueLe: arrivee, caseId: bn.caseId, apparueLe: bn.arrivee, especeId: bn.especeId, rareteId: "commune", numero: null, beteDeNaissanceId: bn.id, apprivoisee: true },
     ]);
-    // Le voisin voit les mêmes Bêtes sauvages, sauf les communes : arrivées au même instant, elles ont suivi celle du joueur,
-    // de plus petit identifiant (US-0934, US-0935).
-    expect(await rencontres(chezLeVoisin)).toEqual(siennes.filter((r) => r.beteDeNaissanceId === null && !r.apprivoisee));
+    // Le voisin voit les mêmes Bêtes sauvages, aux mêmes instants (US-0962), mais aucune ne le suit : arrivées au même
+    // instant, les communes ont suivi celle du joueur, de plus petit identifiant (US-0934, US-0935).
+    expect(await rencontres(chezLeVoisin)).toEqual(siennes.filter((r) => r.beteDeNaissanceId === null).map((r) => ({ ...r, apprivoisee: false })));
   });
 
   it("retient les mêmes Rencontres, aux mêmes instants, en direct, par morceaux, d'un bloc au rattrapage, ou par la tâche planifiée", async () => {

@@ -3,8 +3,8 @@
 // apprivoisée, avec son sexe (US-0934, US-0937) ; trop forte pour son escorte, restée sur sa Case, avec la force qui lui
 // manquait (US-0942) ; ou repartie à la fin de sa durée (US-0926), avant que l'Expédition ne quitte la Case. Une Bête vue
 // qui n'a pas suivi l'Expédition était trop forte pour son escorte : à portée, elle aurait suivi la première Expédition
-// qui la voyait (lExpeditionSuivie). La page Récits les montre avec l'illustration et la Rareté de leur Espèce. Côté
-// serveur uniquement.
+// qui la voyait (lExpeditionSuivie) ; ou bien elle en suivait une autre, à l'instant même où elle l'a vue (US-0962), et
+// en est partie. La page Récits les montre avec l'illustration et la Rareté de leur Espèce. Côté serveur uniquement.
 import "server-only";
 import type { PoolClient } from "pg";
 import type { Sexe } from "@/monde/betes-sauvages";
@@ -77,14 +77,16 @@ async function sexesDesApprivoisees(client: PoolClient, expeditionId: number): P
 /**
  * US-0940 : pour chaque Bête sauvage des Rencontres `vues` qui n'a pas suivi l'Expédition `expeditionId`, par Rencontre :
  * l'instant où elle a quitté sa Case (departDUneBete), parmi les Expéditions de sa Case pendant toute sa présence, et la
- * force qui manquait à l'escorte (US-0942). Une Bête de naissance, commune, suit toujours la première Expédition qui la
- * voit (US-0975) : elle n'y est jamais. Aucune lecture si toutes ont suivi.
+ * force qui manquait à l'escorte (US-0942). US-0962 : une Bête de naissance, commune, suit toujours la première
+ * Expédition qui la voit (US-0975) : vue sans la suivre, elle en suivait une autre au même instant, et en est partie
+ * aussitôt. Aucune lecture si toutes ont suivi.
  */
 async function betesRestees(client: PoolClient, expeditionId: number, vues: readonly Rencontre[]): Promise<Map<number, { depart: Date; manque: number }>> {
+  const parties = new Map(vues.filter((r) => !r.apprivoisee && r.numero === null).map((r) => [r.id, { depart: r.vueLe, manque: 0 }]));
   const restees = vues
     .filter((r) => !r.apprivoisee && r.numero !== null)
     .map((r) => ({ ...r, finDePresence: new Date(r.apparueLe.getTime() + PRESENCE_MS) }));
-  if (restees.length === 0) return new Map();
+  if (restees.length === 0) return parties;
   const caseId = restees[0].caseId;
   const depuis = new Date(Math.min(...restees.map((r) => r.apparueLe.getTime())));
   const jusqua = new Date(Math.max(...restees.map((r) => r.finDePresence.getTime())));
@@ -92,10 +94,11 @@ async function betesRestees(client: PoolClient, expeditionId: number, vues: read
   const escortes = await forcesDesEscortes(client, [...new Set([expeditionId, ...presentes.map((x) => x.id)])]);
   const forces = await forcesDesEspeces(client, [...new Set(restees.map((r) => r.especeId))]);
   const expeditions = presentes.map((x) => ({ id: x.id, arrivee: x.arrivee, depart: x.depart, escorte: escortes.get(x.id) ?? null }));
-  return new Map(
-    restees.map((r) => {
+  return new Map([
+    ...parties,
+    ...restees.map((r): [number, { depart: Date; manque: number }] => {
       const bete = { arrivee: r.apparueLe, depart: r.finDePresence, force: forces.get(r.especeId)!, rareteId: r.rareteId };
       return [r.id, { depart: departDUneBete(bete, expeditions), manque: forceQuiManque(escortes.get(expeditionId) ?? null, bete) }];
     }),
-  );
+  ]);
 }

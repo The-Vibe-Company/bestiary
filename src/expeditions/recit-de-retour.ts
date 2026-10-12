@@ -3,7 +3,9 @@
 // a sorties du brouillard et si des Bêtes se sont montrées. US-0940 : le détail de ses Rencontres, Bête par Bête, s'y joint
 // (src/expeditions/recit-de-rencontre.ts).
 // US-0920 : rappelée, il le dit, et quand. US-0938 : et les Bêtes qui l'ont suivie jusqu'au Foyer. US-0942 : les Bêtes
-// trop fortes pour son escorte, restées sur leur Case, et la force qui lui manquait. Côté serveur uniquement.
+// trop fortes pour son escorte, restées sur leur Case, et la force qui lui manquait. US-0962 : et, sans les nommer, que
+// d'autres joueurs avaient une Expédition sur la Case pendant son séjour : le joueur ne l'apprend que là. Côté serveur
+// uniquement.
 import "server-only";
 import type { PoolClient } from "pg";
 import type { Sexe } from "@/monde/betes-sauvages";
@@ -14,6 +16,7 @@ import { COMMUNE, forceQuiManque } from "./apprivoisement";
 import { casesLeveesParLExpedition } from "./brouillard";
 import { casesDuFoyer } from "./choix-de-destination";
 import { demiTourDUneExpedition, type HorairesDUneExpedition, sejourDUneExpedition } from "./phase";
+import { expeditionsPresentesSurLaCase } from "./presence";
 import { rencontresARaconter } from "./recit-de-rencontre";
 import { forcesDesEscortes, forcesDesEspeces, type Rencontre, rencontresDUneExpedition } from "./rencontres";
 import { RETOUR_D_EXPEDITION } from "./resume-du-retour";
@@ -59,6 +62,8 @@ export type RetourARaconter = {
   rappel?: RappelARaconter | null;
   /** US-0938 : les Bêtes qui l'ont suivie jusqu'au Foyer, dans l'ordre de leur Apprivoisement ; absentes : aucune. */
   ramenees?: BeteRamenee[];
+  /** US-0962 : l'Expédition d'un autre joueur était sur la Case à un instant de son séjour ; absent : aucune. */
+  autresExpeditions?: boolean;
 };
 
 /** US-0942 : une Espèce trop forte pour l'escorte : son nom et la force qui manquait à l'escorte (forceQuiManque). */
@@ -107,6 +112,9 @@ function casesSorties(nombre: number): string {
   return nombre === 1 ? "Une Case est sortie du brouillard." : `${nombre} Cases sont sorties du brouillard.`;
 }
 
+/** US-0962 : la ligne qui dit que d'autres joueurs séjournaient sur la Case, sans nommer leurs chefs (décidé le 2026-10-10). */
+export const AUTRES_EXPEDITIONS = "D'autres Expéditions séjournaient sur la Case.";
+
 /** US-0917 : quand rien ne s'est passé, « Aucune Bête ne s'est montrée. » ; sinon « Une Bête s'est montrée. », « 3 Bêtes se sont montrées. ». */
 function betesMontrees(nombre: number): string {
   if (nombre === 0) return "Aucune Bête ne s'est montrée.";
@@ -148,8 +156,9 @@ export function especesVuesSansSuite(rencontres: Pick<Rencontre, "especeId" | "r
 
 /**
  * US-0942 : les Espèces des Bêtes que l'Expédition a vues sans qu'elles la suivent, chacune une fois, dans l'ordre de ses
- * Rencontres : toutes trop fortes pour son escorte, car une Bête à portée suit la première Expédition qui la voit, et les
- * suivantes ne la voient plus (lExpeditionSuivie, src/expeditions/apprivoisement.ts).
+ * Rencontres : trop fortes pour son escorte, car une Bête à portée suit la première Expédition qui la voit, et les
+ * suivantes ne la voient plus (lExpeditionSuivie, src/expeditions/apprivoisement.ts) ; ou à portée, mais partie avec une
+ * autre Expédition à l'instant même où celle-ci la voyait (US-0962) : aucune force ne lui manquait (especesRestees).
  */
 export function especesTropFortes(rencontres: Pick<Rencontre, "especeId" | "apprivoisee">[]): string[] {
   return [...new Set(rencontres.filter((r) => !r.apprivoisee).map((r) => r.especeId))];
@@ -198,8 +207,9 @@ function resteesSurLeurCase(tropFortes: TropForte[]): string {
  * qu'aucune n'a suivi, la ligne des Bêtes nomme les Espèces vues et le dit. US-0942 : elle dit aussi qu'elles étaient
  * trop fortes pour l'escorte, et la force qui lui manquait ; quand d'autres ont suivi, une ligne après elle le dit des
  * Bêtes restées sur leur Case. US-0938 : puis, si des Bêtes ont suivi l'Expédition, une ligne les dit arrivées au Foyer.
+ * US-0962 : quand d'autres joueurs séjournaient sur la Case, une ligne le dit, avant les Bêtes.
  */
-export function recitDeRetour({ destination, durees, casesLevees, rencontres, vuesSansSuite, tropFortes, rentreeLe, rappel, ramenees }: RetourARaconter): NouveauRecit {
+export function recitDeRetour({ destination, durees, casesLevees, rencontres, vuesSansSuite, tropFortes, rentreeLe, rappel, ramenees, autresExpeditions }: RetourARaconter): NouveauRecit {
   const sejour = durees.sejour === 0 ? "sans séjour" : `séjour ${formaterMinutes(durees.sejour)}`;
   return {
     titre: RETOUR_D_EXPEDITION,
@@ -208,6 +218,7 @@ export function recitDeRetour({ destination, durees, casesLevees, rencontres, vu
       ...(rappel ? [rappelee(rappel)] : []),
       `Aller ${formaterMinutes(durees.aller)}, ${sejour}, retour ${formaterMinutes(durees.retour)}.`,
       casesSorties(casesLevees),
+      ...(autresExpeditions ? [AUTRES_EXPEDITIONS] : []),
       // Le résumé des Bêtes ; leur détail, Bête par Bête, est le récit de Rencontre (US-0940), joint au Récit.
       ...(vuesSansSuite?.length
         ? [vuesSansQueRienNeSuive(vuesSansSuite, tropFortes)]
@@ -224,8 +235,8 @@ export function recitDeRetour({ destination, durees, casesLevees, rencontres, vu
  * Cases levées et ses Rencontres sont donc toutes retenues, les mêmes en direct qu'au rattrapage d'une absence.
  */
 export async function raconterLeRetour(client: PoolClient, territoireId: number, expeditionId: number, rentreeLe: Date): Promise<void> {
-  const { rows } = await client.query<HorairesDUneExpedition & { biome: string; decouverte: boolean; destination: Coordonnees; foyer: Coordonnees }>(
-    `select coalesce(v.nom, b.nom) as biome, json_build_object('q', c.q, 'r', c.r) as destination, json_build_object('q', f.q, 'r', f.r) as foyer,
+  const { rows } = await client.query<HorairesDUneExpedition & { caseId: number; biome: string; decouverte: boolean; destination: Coordonnees; foyer: Coordonnees }>(
+    `select c.id as "caseId", coalesce(v.nom, b.nom) as biome, json_build_object('q', c.q, 'r', c.r) as destination, json_build_object('q', f.q, 'r', f.r) as foyer,
        exists (select 1 from case_decouverte d where d.territoire_id = x.territoire_id and d.case_id = c.id) as decouverte,
        x.part_le as "partLe", x.trajet_minutes as "trajetMinutes", x.sejour_minutes as "sejourMinutes", x.rappelee_le as "rappeleeLe"
      from expedition x join case_du_monde c on c.id = x.case_id join biome b on b.id = c.biome_id
@@ -236,7 +247,7 @@ export async function raconterLeRetour(client: PoolClient, territoireId: number,
   );
   // Après la bascule d'un Monde (US-0414), une Expédition déjà partie garde sa destination dans l'ancien : sa distance au
   // nouveau Foyer n'y a pas de sens, comme son chemin (leverLeBrouillard) ; cas rare, accepté.
-  const { biome, decouverte, destination, foyer, ...horaires } = rows[0];
+  const { caseId, biome, decouverte, destination, foyer, ...horaires } = rows[0];
   const rappel = rappelDUneExpedition(horaires);
   // Un retour n'est programmé qu'au trajet chiffré (programmerLeRetour, migration 0052) : jamais atteint.
   const durees = dureesReelles(horaires, rentreeLe);
@@ -253,6 +264,7 @@ export async function raconterLeRetour(client: PoolClient, territoireId: number,
   // US-0942 : les Bêtes vues restées sur leur Case, trop fortes pour l'escorte : la force qui lui manquait.
   const tropFortes = await especesRestees(client, expeditionId, vues);
   const ramenees = await betesRameneesAuFoyer(client, expeditionId);
+  const autresExpeditions = await dAutresJoueursSurLaCase(client, territoireId, caseId, sejourDUneExpedition(horaires));
   await ecrireUnRecit(
     client,
     territoireId,
@@ -267,9 +279,21 @@ export async function raconterLeRetour(client: PoolClient, territoireId: number,
       rentreeLe,
       rappel,
       ramenees,
+      autresExpeditions,
     }),
     detail,
   );
+}
+
+/**
+ * US-0962 : si l'Expédition d'un autre Territoire que `territoireId` était sur la Case `caseId` à un instant du séjour
+ * `sejour` (expeditionsPresentesSurLaCase) ; celles du même joueur, qu'il connaît, ne comptent pas. Lue au retour : les
+ * horaires de chacune sont fixés au départ, ou au rappel, d'où la même réponse en direct, au rattrapage ou par la tâche
+ * planifiée. Sans séjour, aucune.
+ */
+async function dAutresJoueursSurLaCase(client: PoolClient, territoireId: number, caseId: number, sejour: { debut: Date; fin: Date } | null): Promise<boolean> {
+  if (!sejour || sejour.fin <= sejour.debut) return false;
+  return (await expeditionsPresentesSurLaCase(client, caseId, sejour.debut, sejour.fin)).some((x) => x.territoireId !== territoireId);
 }
 
 /** US-0935 : le nom de chacune des Espèces `ids`, dans le même ordre. */

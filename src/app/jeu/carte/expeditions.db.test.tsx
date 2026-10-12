@@ -77,4 +77,26 @@ describe.skipIf(!URL_TEST)("les Expéditions que la carte reçoit, sur base (US-
     ]);
     expect(await envoyees(voisin)).toEqual([]);
   });
+
+  it("US-0962 : deux joueurs en séjour sur la même Case : la carte de chacun ne montre que son Expédition, jamais celle de l'autre", async () => {
+    const moi = await naitre();
+    const voisin = await naitre();
+    await pool.query("insert into habitant (territoire_id, prenom, metier) values ($1, 'Ilda', 'explorateur')", [moi]);
+    const destination = await aLEcart(moi, 2);
+    // Mon Expédition, partie il y a deux heures, séjourne déjà sur la Case ; celle du voisin y séjourne depuis une
+    // demi-heure, posée en base comme un départ l'aurait fait, loin de son Foyer.
+    const instant = Date.now();
+    const depart = await lancerLExpedition(pool, moi, { destination, explorateurs: 1, escorte: new Map(), sejourMinutes: 240 }, new Date(instant - 2 * 3_600_000));
+    const mienne = (depart as { expeditionId: number }).expeditionId;
+    const { rows } = await pool.query<{ id: number }>(
+      `insert into expedition (territoire_id, case_id, part_le, trajet_minutes, sejour_minutes)
+       select $1, c.id, $4, 30, 240 from territoire t join case_du_monde f on f.id = t.foyer_case_id
+         join case_du_monde c on c.monde_id = f.monde_id and c.q = $2 and c.r = $3
+       where t.id = $5 returning id`,
+      [voisin, destination.q, destination.r, new Date(instant - 3_600_000), moi],
+    );
+    const sienne = rows[0].id;
+    expect((await envoyees(moi)).map((e) => e.id)).toEqual([mienne]);
+    expect((await envoyees(voisin)).map((e) => e.id)).toEqual([sienne]);
+  });
 });

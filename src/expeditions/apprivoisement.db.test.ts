@@ -223,10 +223,10 @@ describe.skipIf(!URL_TEST)("la Bête à portée suit l'Expédition (US-0934, sur
 
   /**
    * Trois Territoires sur la Case d'une Bête rare : avant l'Apprivoisement, une escorte trop faible et une Expédition sans
-   * escorte la voient ; l'escorte forte de B arrive une heure après elle et l'emmène ; ensuite, ni une autre de B, ni une
-   * escorte forte de A, ni celle de C arrivée au même instant mais partie plus tard, ne la voient. `rattrapages` met les
-   * Territoires à l'heure ; rend ce que chaque Expédition a vu et l'instant où la Bête est partie (vues), à côté de ce
-   * qu'on en attend (attendues).
+   * escorte la voient ; l'escorte forte de B arrive une heure après elle et l'emmène ; celle de C, arrivée au même instant
+   * mais partie plus tard, la voit aussi sans l'emmener (US-0962) ; ensuite, ni une autre de B, ni une escorte forte de A,
+   * ne la voient. `rattrapages` met les Territoires à l'heure ; rend ce que chaque Expédition a vu et l'instant où la Bête
+   * est partie (vues), à côté de ce qu'on en attend (attendues).
    */
   const troisTerritoires = async (rattrapages: (a: number, b: number, c: number, debut: Date, fin: Date) => Promise<void>) => {
     const [a, b, c] = [await naitre(), await naitre(), await naitre()];
@@ -246,7 +246,7 @@ describe.skipIf(!URL_TEST)("la Bête à portée suit l'Expédition (US-0934, sur
         faibleDeA: [{ ...sans, depuisLApparition: 0, apprivoisee: false }],
         sansEscorteDeC: [{ ...sans, depuisLApparition: 30 * MINUTE_MS, apprivoisee: false }],
         forteDeB: [{ ...sans, depuisLApparition: HEURE * MINUTE_MS, apprivoisee: true }],
-        forteDeCEnMemeTemps: [],
+        forteDeCEnMemeTemps: [{ ...sans, depuisLApparition: HEURE * MINUTE_MS, apprivoisee: false }],
         autreDeB: [],
         forteDeA: [],
         partie: apres(bete.arrivee, HEURE),
