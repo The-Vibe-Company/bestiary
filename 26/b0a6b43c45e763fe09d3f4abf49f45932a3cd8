@@ -1,0 +1,27 @@
+src/app/jeu/reserve/[espece]/page.db.test.tsx
+  s_7c7d151152e4a5::t_79aff9b097a53e 140,142-158
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_d0df1c2407336b 37-39,138,148,164-215
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_29278ff11dd054 10,17-29,45-46,91-104
+src/monde/effectif.db.test.ts
+  s_7c7d151152e4a5::t_5c0c94afd3237c 297-308,310-320
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_477c70d5f1bef1 6,124-125,127-138,148
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "26b0a6b43c45e763fe09d3f4abf49f45932a3cd8",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
