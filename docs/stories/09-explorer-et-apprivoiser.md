@@ -522,6 +522,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0948 · Repérer la Bête restée sur la carte
 **En tant que** joueur, **je veux** voir sur ma carte où une Bête trop forte est restée, **afin de** ne pas oublier de revenir la chercher.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, THE-1466, Zewed/bestia-2#41). Au retour d'une Expédition qui a vu une Bête trop forte pour son escorte, la Case où elle est restée porte un repère « Bête repérée » (une empreinte sur une pastille pêche), visible du seul joueur dont l'Expédition l'a vue ; le toucher ouvre sa fiche : son Espèce et « jusqu'à 22 h environ ». Tranché : l'heure approximative, arrondie à l'heure la plus proche dans le fuseau du joueur (« minuit » pour 0 h) ; le repère disparaît à la fin de sa durée, ou quand la Bête suit une autre Expédition, sans récit. Vérifié en vrai avec trois chefs d'essai.
 - **Débloquée par** : US-0942, US-0917
 - **Critères d'acceptation** :
   - Au retour, la Case où la Bête est restée porte un repère « Bête repérée » avec son Espèce, visible du seul joueur dont l'Expédition l'a vue.
