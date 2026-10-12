@@ -256,12 +256,12 @@ describe.skipIf(!URL_TEST)("chaque Expédition présente voit la Bête (US-0962,
     expect(A.recits).toHaveLength(1);
     expect(B.recits).toHaveLength(1);
     expect(A.recits[0].rencontres).toEqual([expect.objectContaining({ ...vue, issue: "apprivoisee" })]);
-    // Une seule l'emmène : A, que désigne le tirage (US-0963) ; ce que le récit de B en dit est US-0964.
-    expect(B.recits[0].rencontres).toEqual([expect.objectContaining({ ...vue, sexe: null })]);
-    expect(B.recits[0].rencontres![0].issue).not.toBe("apprivoisee");
+    // Une seule l'emmène : A, que désigne le tirage (US-0963) ; le récit de B la dit partie avec une autre Expédition (US-0964).
+    expect(B.recits[0].rencontres).toEqual([expect.objectContaining({ ...vue, issue: "emmenee", repartieLe: bete.arrivee, sexe: null })]);
     // Le texte de chaque retour le dit : A la ramène au Foyer ; B l'a vue, et rien ne lui manquait pour l'emmener.
     expect(A.recits[0].texte).toMatch(/^Une Bête s'est montrée\.\nBête ramenée au Foyer : .+\.$/m);
-    expect(B.recits[0].texte.split("\n").at(-1)).toBe("Une Bête s'est montrée.");
+    // US-0964 : B l'a vue partir avec une autre Expédition, sans que son chef soit nommé.
+    expect(B.recits[0].texte.split("\n").slice(-2)).toEqual(["Une Bête s'est montrée.", expect.stringMatching(/^.+ a suivi une autre Expédition\.$/)]);
     expect(B.recits[0].texte).not.toMatch(/ramenée|trop forte|aucune Bête ne les a suivis/);
     expect(A.bestiaire).toEqual([{ especeId: bete.especeId, etat: "apprivoisee", croiseeLe: bete.arrivee }]);
     expect(B.bestiaire).toEqual([{ especeId: bete.especeId, etat: "croisee", croiseeLe: bete.arrivee }]);
@@ -342,11 +342,11 @@ describe.skipIf(!URL_TEST)("chaque Expédition présente voit la Bête (US-0962,
     });
     expect(vues.every((i) => i >= 0)).toBe(true);
     // Toutes deux la voient au même instant ; sans escorte, chacune avait la même chance (US-0963) : l'une la ramène, et
-    // l'autre, qu'elle a quittée pour la première, ne la dit pas « restée sur sa Case ». US-0950 : repartie à cet instant
+    // l'autre, qu'elle a quittée pour la première, ne la dit pas « restée sur sa Case », mais emmenée (US-0964) à cet instant
     // même.
     const deux = vues.map((i, k) => recits[k].rencontres![i]);
     for (const r of deux) expect(r).toMatchObject({ especeId: bn.especeId, vueLe: arrivee });
-    expect(deux.map((r) => r.issue).sort()).toEqual(["apprivoisee", "repartie"]);
-    expect(deux.find((r) => r.issue === "repartie")).toMatchObject({ repartieLe: arrivee, sexe: null });
+    expect(deux.map((r) => r.issue).sort()).toEqual(["apprivoisee", "emmenee"]);
+    expect(deux.find((r) => r.issue === "emmenee")).toMatchObject({ repartieLe: arrivee, sexe: null });
   });
 });

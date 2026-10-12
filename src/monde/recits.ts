@@ -27,8 +27,9 @@ export type CoupleDuRecit = { especeId: string; nom: string; illustration: strin
 /**
  * US-0940 : ce qu'il advint d'une Bête vue lors d'une Rencontre : elle a suivi l'Expédition (apprivoisée) ; trop forte
  * pour son escorte, elle est restée sur sa Case ; ou elle en est repartie avant l'Expédition, à la fin de sa durée.
+ * US-0964 : ou elle a suivi une autre Expédition avant que celle-ci ne quitte la Case (emmenée).
  */
-export type IssueDUneRencontre = "apprivoisee" | "restee" | "repartie";
+export type IssueDUneRencontre = "apprivoisee" | "restee" | "repartie" | "emmenee";
 
 /**
  * US-0940 : une Rencontre telle que le Récit d'un retour d'Expédition la retient : l'Espèce de la Bête, l'instant du jeu

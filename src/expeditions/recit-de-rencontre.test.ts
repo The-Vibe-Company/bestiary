@@ -9,16 +9,16 @@ describe("le départ d'une Bête vue sans qu'elle suive (US-0940)", () => {
   const sansEscorte = { id: 7, arrivee: h(9), depart: h(13), escorte: null };
 
   it("sans autre Expédition qui l'ait à portée, à la fin de sa durée", () => {
-    expect(departDUneBete(bete, [sansEscorte])).toEqual(h(16));
-    expect(departDUneBete(bete, [sansEscorte, { id: 8, arrivee: h(11), depart: h(15), escorte: 999 }])).toEqual(h(16));
+    expect(departDUneBete(bete, [sansEscorte])).toEqual({ le: h(16), emmenee: false });
+    expect(departDUneBete(bete, [sansEscorte, { id: 8, arrivee: h(11), depart: h(15), escorte: 999 }])).toEqual({ le: h(16), emmenee: false });
   });
 
-  it("plus tôt quand une autre Expédition, assez forte, arrive sur sa Case : à l'instant où elle la suit", () => {
-    expect(departDUneBete(bete, [sansEscorte, { id: 8, arrivee: h(12), depart: h(14), escorte: 1_000 }])).toEqual(h(12));
+  it("plus tôt quand une autre Expédition, assez forte, arrive sur sa Case : à l'instant où elle la suit, emmenée par elle (US-0964)", () => {
+    expect(departDUneBete(bete, [sansEscorte, { id: 8, arrivee: h(12), depart: h(14), escorte: 1_000 }])).toEqual({ le: h(12), emmenee: true });
   });
 
   it("à la fin de sa durée quand l'Expédition assez forte n'arrive qu'après son départ", () => {
-    expect(departDUneBete(bete, [sansEscorte, { id: 8, arrivee: h(16), depart: h(18), escorte: 5_000 }])).toEqual(h(16));
+    expect(departDUneBete(bete, [sansEscorte, { id: 8, arrivee: h(16), depart: h(18), escorte: 5_000 }])).toEqual({ le: h(16), emmenee: false });
   });
 });
 
@@ -39,6 +39,13 @@ describe("ce qu'il advint de la Bête d'une Rencontre (US-0940)", () => {
 
   it("partie de sa Case avant la fin du séjour, elle est repartie à la fin de sa durée", () => {
     expect(issueDUneRencontre(false, avant, fin)).toBe("repartie");
+    expect(issueDUneRencontre(false, avant, fin, false)).toBe("repartie");
+  });
+
+  it("partie avant la fin du séjour avec une autre Expédition, elle a été emmenée (US-0964) ; après, elle était restée", () => {
+    expect(issueDUneRencontre(false, avant, fin, true)).toBe("emmenee");
+    expect(issueDUneRencontre(false, fin, fin, true)).toBe("restee");
+    expect(issueDUneRencontre(true, avant, fin, true)).toBe("apprivoisee");
   });
 
   it("sans départ connu, elle est restée", () => {

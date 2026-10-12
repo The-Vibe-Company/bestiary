@@ -86,6 +86,27 @@ describe("le récit de Rencontre (US-0940)", () => {
     expect(issues.map((issue) => issue.querySelector("time")?.getAttribute("datetime"))).toEqual(["2026-10-09T15:15:00.000Z", "2026-10-09T23:10:00.000Z"]);
   });
 
+  it("dit d'une Bête partie avec une autre Expédition qu'elle l'a suivie, à quelle heure, sans nommer personne (US-0964)", () => {
+    const emmenee: RencontreAffichee = { ...RENCONTRES[2], issue: "emmenee" };
+    render(
+      <RencontresDuRecit
+        rencontres={[
+          { ...emmenee, repartie: { instant: "2026-10-09T13:15:00.000Z", heure: "15:15", autreJour: false } },
+          { ...emmenee, repartie: { instant: "2026-10-09T23:10:00.000Z", heure: "10 octobre à 01:10", autreJour: true } },
+          emmenee,
+        ]}
+      />,
+    );
+    const issues = lignes().map((ligne) => ligne.querySelector("[data-issue]")!);
+    expect(issues.map((issue) => issue.textContent)).toEqual([
+      "Partie à 15:15 avec une autre Expédition",
+      "Partie le 10 octobre à 01:10 avec une autre Expédition",
+      "Partie avec une autre Expédition",
+    ]);
+    expect(issues.map((issue) => issue.getAttribute("data-issue"))).toEqual(["emmenee", "emmenee", "emmenee"]);
+    expect(issues[0].querySelector("time")?.getAttribute("datetime")).toBe("2026-10-09T13:15:00.000Z");
+  });
+
   it("dit le sexe d'un mâle apprivoisé", () => {
     render(<RencontresDuRecit rencontres={[{ ...RENCONTRES[0], sexe: "male", nouvelleEspece: false }]} />);
     expect(screen.getByText("Apprivoisée, mâle")).toBeTruthy();

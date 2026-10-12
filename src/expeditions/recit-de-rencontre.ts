@@ -4,7 +4,8 @@
 // manquait (US-0942) ; ou repartie à la fin de sa durée (US-0926), avant que l'Expédition ne quitte la Case, à l'heure
 // de son départ (US-0950). Une Bête vue qui n'a pas suivi l'Expédition était trop forte pour son escorte : à portée, elle
 // aurait suivi la première Expédition qui la voyait (lExpeditionSuivie) ; ou bien elle en suivait une autre, à l'instant
-// même où elle l'a vue (US-0962), et en est partie. La page Récits les montre avec l'illustration et la Rareté de leur
+// même où elle l'a vue (US-0962), et en est partie. US-0964 : partie avec une autre Expédition, elle a été emmenée : le
+// récit le dit, sans nommer le chef qui l'a emportée. La page Récits les montre avec l'illustration et la Rareté de leur
 // Espèce. Côté serveur uniquement.
 import "server-only";
 import type { PoolClient } from "pg";
@@ -22,11 +23,13 @@ const PRESENCE_MS = PRESENCE_D_UNE_BETE_HEURES * 3_600_000;
 /**
  * US-0940 : ce qu'il advint de la Bête d'une Rencontre : apprivoisée, elle a suivi l'Expédition ; sinon, trop forte pour son
  * escorte, elle est repartie si elle a quitté sa Case (`depart`) avant la fin du séjour de l'Expédition (`finDuSejour`),
- * et restée sur sa Case si elle y était encore jusqu'au bout. Sans départ connu (null), elle est restée.
+ * et restée sur sa Case si elle y était encore jusqu'au bout. Sans départ connu (null), elle est restée. US-0964 : partie
+ * en suivant une autre Expédition (`emmenee`), elle a été emmenée.
  */
-export function issueDUneRencontre(apprivoisee: boolean, depart: Date | null, finDuSejour: Date): IssueDUneRencontre {
+export function issueDUneRencontre(apprivoisee: boolean, depart: Date | null, finDuSejour: Date, emmenee = false): IssueDUneRencontre {
   if (apprivoisee) return "apprivoisee";
-  return depart !== null && depart < finDuSejour ? "repartie" : "restee";
+  if (depart === null || depart >= finDuSejour) return "restee";
+  return emmenee ? "emmenee" : "repartie";
 }
 
 /**
@@ -34,10 +37,11 @@ export function issueDUneRencontre(apprivoisee: boolean, depart: Date | null, fi
  * suit une autre Expédition de sa Case (`expeditions`, de tous les Territoires), la première qui l'a à portée
  * (lExpeditionSuivie). La règle même des Rencontres, sur des horaires et des escortes fixés au départ : le même instant
  * quel que soit le Territoire rattrapé en premier, que celui de l'autre Expédition ait déjà retenu son départ ou non.
+ * US-0964 : `emmenee`, elle est partie en suivant une autre Expédition, et non à la fin de sa durée.
  */
-export function departDUneBete(bete: BeteDisputee, expeditions: readonly ExpeditionSurLaCase[]): Date {
+export function departDUneBete(bete: BeteDisputee, expeditions: readonly ExpeditionSurLaCase[]): { le: Date; emmenee: boolean } {
   const suivie = lExpeditionSuivie(bete, expeditions);
-  return suivie && suivie.le < bete.depart ? suivie.le : bete.depart;
+  return suivie && suivie.le < bete.depart ? { le: suivie.le, emmenee: true } : { le: bete.depart, emmenee: false };
 }
 
 /**
@@ -62,12 +66,12 @@ export async function rencontresARaconter(
   const restees = await betesRestees(client, expeditionId, vues);
   return vues.map((r) => {
     const restee = restees.get(r.id);
-    const issue = issueDUneRencontre(r.apprivoisee, restee?.depart ?? null, sejour.fin);
+    const issue = issueDUneRencontre(r.apprivoisee, restee?.depart ?? null, sejour.fin, restee?.emmenee);
     return {
       especeId: r.especeId,
       vueLe: r.vueLe,
       issue,
-      ...(issue === "repartie" && restee ? { repartieLe: restee.depart } : {}),
+      ...((issue === "repartie" || issue === "emmenee") && restee ? { repartieLe: restee.depart } : {}),
       sexe: sexes.get(r.id) ?? null,
       nouvelleEspece: r.nouvelleEspece,
       ...(issue === "restee" && restee?.manque ? { manque: restee.manque } : {}),
@@ -75,6 +79,12 @@ export async function rencontresARaconter(
     };
   });
 }
+
+/**
+ * US-0940 : une Bête vue qui n'a pas suivi l'Expédition : l'instant où elle a quitté sa Case, la force qui manquait à
+ * l'escorte (US-0942), et (US-0964) si elle est partie en suivant une autre Expédition.
+ */
+type BeteRestee = { depart: Date; manque: number; emmenee: boolean };
 
 /** US-0937 : le sexe de chaque Bête apprivoisée lors d'une Rencontre de l'Expédition `expeditionId`, par Rencontre. */
 async function sexesDesApprivoisees(client: PoolClient, expeditionId: number): Promise<Map<number, Sexe>> {
@@ -87,10 +97,10 @@ async function sexesDesApprivoisees(client: PoolClient, expeditionId: number): P
  * l'instant où elle a quitté sa Case (departDUneBete), parmi les Expéditions de sa Case pendant toute sa présence, et la
  * force qui manquait à l'escorte (US-0942). US-0962 : une Bête de naissance, commune, suit toujours la première
  * Expédition qui la voit (US-0975) : vue sans la suivre, elle en suivait une autre au même instant, et en est partie
- * aussitôt. Aucune lecture si toutes ont suivi.
+ * aussitôt. US-0964 : et si elle est partie en suivant une autre Expédition (`emmenee`). Aucune lecture si toutes ont suivi.
  */
-async function betesRestees(client: PoolClient, expeditionId: number, vues: readonly Rencontre[]): Promise<Map<number, { depart: Date; manque: number }>> {
-  const parties = new Map(vues.filter((r) => !r.apprivoisee && r.numero === null).map((r) => [r.id, { depart: r.vueLe, manque: 0 }]));
+async function betesRestees(client: PoolClient, expeditionId: number, vues: readonly Rencontre[]): Promise<Map<number, BeteRestee>> {
+  const parties = new Map(vues.filter((r) => !r.apprivoisee && r.numero === null).map((r) => [r.id, { depart: r.vueLe, manque: 0, emmenee: true }]));
   const restees = vues
     .filter((r) => !r.apprivoisee && r.numero !== null)
     .map((r) => ({ ...r, finDePresence: new Date(r.apparueLe.getTime() + PRESENCE_MS) }));
@@ -104,9 +114,10 @@ async function betesRestees(client: PoolClient, expeditionId: number, vues: read
   const expeditions = presentes.map((x) => ({ id: x.id, arrivee: x.arrivee, depart: x.depart, escorte: escortes.get(x.id) ?? null }));
   return new Map([
     ...parties,
-    ...restees.map((r): [number, { depart: Date; manque: number }] => {
+    ...restees.map((r): [number, BeteRestee] => {
       const bete = { ...r, arrivee: r.apparueLe, depart: r.finDePresence, force: forces.get(r.especeId)! };
-      return [r.id, { depart: departDUneBete(bete, expeditions), manque: forceQuiManque(escortes.get(expeditionId) ?? null, bete) }];
+      const { le, emmenee } = departDUneBete(bete, expeditions);
+      return [r.id, { depart: le, manque: forceQuiManque(escortes.get(expeditionId) ?? null, bete), emmenee }];
     }),
   ]);
 }

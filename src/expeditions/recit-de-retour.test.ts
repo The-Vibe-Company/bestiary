@@ -273,6 +273,30 @@ describe("la Bête repérée partie avant l'arrivée (US-0949)", () => {
   });
 });
 
+describe("les Bêtes parties avec une autre Expédition (US-0964)", () => {
+  it("une ligne dit chaque Espèce qui a suivi une autre Expédition, sans nommer personne, avant les Bêtes ramenées au Foyer", () => {
+    const ramenees = [{ nom: "Poule", sexe: "femelle" as const }];
+    expect(recitDeRetour(retour({ rencontres: 2, emmenees: ["Écureuil roux"], ramenees })).texte.split("\n").slice(-3)).toEqual([
+      "2 Bêtes se sont montrées.",
+      "Écureuil roux a suivi une autre Expédition.",
+      "Bête ramenée au Foyer : Poule (femelle).",
+    ]);
+  });
+
+  it("plusieurs Espèces, dans l'ordre où elles se sont montrées", () => {
+    expect(recitDeRetour(retour({ rencontres: 3, emmenees: ["Écureuil roux", "Lièvre"] })).texte.split("\n").at(-1)).toBe("Écureuil roux et Lièvre ont suivi d'autres Expéditions.");
+  });
+
+  it("aucune ligne quand aucune Bête n'est partie avec une autre Expédition", () => {
+    for (const emmenees of [[], undefined]) expect(recitDeRetour(retour({ rencontres: 2, emmenees })).texte.split("\n").at(-1)).toBe("2 Bêtes se sont montrées.");
+  });
+
+  it("la ligne vient après les Bêtes et avant les pertes au combat (US-0951)", () => {
+    const texte = recitDeRetour(retour({ rencontres: 2, emmenees: ["Écureuil roux"], pertes: [{ nom: "Souris grise", mortes: 1, blessees: 0 }] })).texte;
+    expect(texte.split("\n").slice(-3)).toEqual(["2 Bêtes se sont montrées.", "Écureuil roux a suivi une autre Expédition.", "Pertes au combat : Souris grise (1 mort)."]);
+  });
+});
+
 describe("les morts et les Blessés de l'escorte au combat (US-0951)", () => {
   const lignes = (autre: Partial<RetourARaconter>) => recitDeRetour(retour({ rencontres: 1, ...autre })).texte.split("\n");
 

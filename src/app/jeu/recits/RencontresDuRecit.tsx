@@ -9,9 +9,9 @@ import styles from "./RencontresDuRecit.module.css";
 /**
  * US-0940 : une Rencontre telle que le Récit d'un retour la montre : son heure, déjà écrite par le serveur dans le fuseau du
  * joueur, l'Espèce de la Bête avec son illustration et sa Rareté, et ce qu'il en advint ; restée sur sa Case, la force
- * qui manquait à l'escorte (US-0942) ; repartie, l'heure de son départ (US-0950), avec son jour s'il n'est plus celui de
- * la Rencontre (`autreJour`). US-0949 : restée et toujours sur sa Case, l'adresse de l'écran d'Expédition qui revient la
- * chercher (`revenir`).
+ * qui manquait à l'escorte (US-0942) ; repartie, ou emmenée par une autre Expédition (US-0964), l'heure de son départ
+ * (US-0950), avec son jour s'il n'est plus celui de la Rencontre (`autreJour`). US-0949 : restée et toujours sur sa Case,
+ * l'adresse de l'écran d'Expédition qui revient la chercher (`revenir`).
  */
 export type RencontreAffichee = {
   instant: string;
@@ -34,7 +34,8 @@ const entier = (n: number) => new Intl.NumberFormat("fr-FR").format(n).replace(/
 
 /**
  * US-0940 : « Apprivoisée, femelle », « Trop forte, restée sur sa Case : il manquait 37 340 de force », « Repartie à la
- * fin de sa durée ». US-0950 : « Repartie à 17:15, à la fin de sa durée », « Repartie le 13 octobre à 01:10, … ».
+ * fin de sa durée ». US-0950 : « Repartie à 17:15, à la fin de sa durée », « Repartie le 13 octobre à 01:10, … ». US-0964 :
+ * « Partie à 17:15 avec une autre Expédition », sans nommer personne.
  */
 function ceQuIlAdvint({ issue, repartie, sexe, manque }: Pick<RencontreAffichee, "issue" | "repartie" | "sexe" | "manque">): ReactNode {
   if (issue === "apprivoisee") return sexe ? `Apprivoisée, ${SEXES[sexe]}` : "Apprivoisée";
@@ -46,6 +47,14 @@ function ceQuIlAdvint({ issue, repartie, sexe, manque }: Pick<RencontreAffichee,
     );
   }
   if (issue === "repartie") return "Repartie à la fin de sa durée";
+  if (issue === "emmenee" && repartie) {
+    return (
+      <>
+        Partie {repartie.autreJour ? "le" : "à"} <time dateTime={repartie.instant}>{repartie.heure}</time> avec une autre Expédition
+      </>
+    );
+  }
+  if (issue === "emmenee") return "Partie avec une autre Expédition";
   return manque ? `Trop forte, restée sur sa Case : il manquait ${entier(manque)} de force` : "Trop forte, restée sur sa Case";
 }
 

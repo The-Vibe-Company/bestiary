@@ -352,9 +352,10 @@ describe.skipIf(!URL_TEST)("des chances proportionnelles à la force (US-0963, s
     it("la Bête qu'une autre Expédition a déjà emmenée ne suit pas celle-ci : elle ne rejoint jamais deux Foyers", () => {
       expect(lus.rencontres).toEqual({ A: [{ apprivoisee: true, sexe: expect.any(String) }], B: [{ apprivoisee: false, sexe: null }] });
       expect(lus.effectifs).toEqual({ A: 1, B: 0 });
-      // B l'a vue : son Espèce reste croisée à son Bestiaire, et son récit la dit partie à l'instant où A l'a emmenée.
+      // B l'a vue : son Espèce reste croisée à son Bestiaire, et son récit la dit partie avec une autre Expédition (US-0964),
+      // à l'instant où A l'a emmenée.
       expect(lus.bestiaireDeB).toEqual([{ especeId: bete.especeId, etat: "croisee", croiseeLe: bete.arrivee }]);
-      expect(lus.recitDeB).toEqual([expect.objectContaining({ especeId: bete.especeId, issue: "repartie", repartieLe: bete.arrivee, sexe: null })]);
+      expect(lus.recitDeB).toEqual([expect.objectContaining({ especeId: bete.especeId, issue: "emmenee", repartieLe: bete.arrivee, sexe: null })]);
     });
   });
 });

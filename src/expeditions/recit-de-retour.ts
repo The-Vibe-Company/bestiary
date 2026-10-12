@@ -69,6 +69,11 @@ export type RetourARaconter = {
   /** US-0962 : l'Expédition d'un autre joueur était sur la Case à un instant de son séjour ; absent : aucune. */
   autresExpeditions?: boolean;
   /**
+   * US-0964 : les Espèces des Bêtes vues parties avec une autre Expédition, chacune une fois, dans l'ordre des apparitions ;
+   * absentes ou vides : aucune.
+   */
+  emmenees?: string[];
+  /**
    * US-0949 : les Espèces des Bêtes que le joueur avait repérées sur la Case à son départ et qui n'y étaient plus à son
    * arrivée, chacune une fois (betesPartiesAvantLArrivee) ; absentes ou vides : aucune.
    */
@@ -239,6 +244,14 @@ function resteesSurLeurCase(tropFortes: TropForte[]): string {
 }
 
 /**
+ * US-0964 : « Écureuil roux a suivi une autre Expédition. », « Écureuil roux et Lièvre ont suivi d'autres Expéditions. » :
+ * sans nommer le chef qui l'a emportée (décidé le 2026-10-12).
+ */
+function suiviesAilleurs(especes: string[]): string {
+  return especes.length > 1 ? `${enumeres(especes)} ont suivi d'autres Expéditions.` : `${especes[0]} a suivi une autre Expédition.`;
+}
+
+/**
  * US-0947 : « Combat le 9 octobre à 14:05 : <Espèce de la Bête>, de force 37 340, contre votre escorte, de force 35 900. » ;
  * attaquée sans escorte, ou après l'avoir toute perdue : « Attaque le … : <Espèce de la Bête>, de force 37 340, contre vos
  * explorateurs, sans escorte. ».
@@ -270,9 +283,10 @@ function finDuRecit(combats: readonly CombatDuRetour[], pertes: readonly PerteRa
  * trop fortes pour l'escorte, et la force qui lui manquait ; quand d'autres ont suivi, une ligne après elle le dit des
  * Bêtes restées sur leur Case. US-0938 : puis, si des Bêtes ont suivi l'Expédition, une ligne les dit arrivées au Foyer.
  * US-0962 : quand d'autres joueurs séjournaient sur la Case, une ligne le dit, avant les Bêtes. US-0949 : puis, quand des
- * Bêtes que le joueur y avait repérées en étaient parties avant l'arrivée, une ligne les nomme. US-0947 : attaquée, il finit
- * par chaque combat, dans l'ordre du temps, puis ses pertes, Espèce par Espèce, en morts et en Blessés (US-0951), ou « Aucune
- * perte. », et la fuite des explorateurs.
+ * Bêtes que le joueur y avait repérées en étaient parties avant l'arrivée, une ligne les nomme. US-0964 : quand des Bêtes
+ * vues ont suivi une autre Expédition, une ligne le dit, après les Bêtes. US-0947 : attaquée, il finit par chaque combat,
+ * dans l'ordre du temps, puis ses pertes, Espèce par Espèce, en morts et en Blessés (US-0951), ou « Aucune perte. », et la
+ * fuite des explorateurs.
  */
 export function recitDeRetour({
   destination,
@@ -286,6 +300,7 @@ export function recitDeRetour({
   ramenees,
   autresExpeditions,
   partiesAvant,
+  emmenees,
   pertes,
   combats,
 }: RetourARaconter): NouveauRecit {
@@ -303,6 +318,7 @@ export function recitDeRetour({
       ...(vuesSansSuite?.length
         ? [vuesSansQueRienNeSuive(vuesSansSuite, tropFortes)]
         : [betesMontrees(rencontres), ...(tropFortes?.length ? [resteesSurLeurCase(tropFortes)] : [])]),
+      ...(emmenees?.length ? [suiviesAilleurs(emmenees)] : []),
       ...(ramenees?.length ? [betesRamenees(ramenees)] : []),
       ...finDuRecit(combats ?? [], pertes ?? []),
     ].join("\n"),
@@ -348,6 +364,9 @@ export async function raconterLeRetour(client: PoolClient, territoireId: number,
   const autresExpeditions = await dAutresJoueursSurLaCase(client, territoireId, caseId, sejourDUneExpedition(horaires));
   // US-0949 : les Bêtes que le joueur y avait repérées à son départ, parties avant son arrivée.
   const partiesAvant = await betesPartiesAvantLArrivee(client, territoireId, destination, horaires, vues);
+  // US-0964 : les Bêtes vues parties avec une autre Expédition, que dit son récit de Rencontre.
+  const idsEmmenees = [...new Set(detail.filter((r) => r.issue === "emmenee").map((r) => r.especeId))];
+  const emmenees = idsEmmenees.length > 0 ? await nomsDesEspeces(client, idsEmmenees) : undefined;
   // US-0951 : les morts et les Blessés de son escorte au combat.
   const pertes = await pertesDeLEscorte(client, expeditionId);
   // US-0947 : ses combats ; et les Bêtes mortes aux combats, que le résumé compte, retenues sur la Rencontre de la dernière
@@ -371,6 +390,7 @@ export async function raconterLeRetour(client: PoolClient, territoireId: number,
       ramenees,
       autresExpeditions,
       partiesAvant,
+      emmenees,
       pertes,
       combats,
     }),
