@@ -1,0 +1,71 @@
+src/app/EntreeDuJeu.tsx
+  s_7c7d151152e4a5::t_405d657899996d 6,11-14,29,34,37
+src/app/confirmer/[jeton]/NouveauLien.tsx
+  s_7c7d151152e4a5::t_84fca1d0f27a51 5,35
+src/app/confirmer/[jeton]/page.tsx
+  s_7c7d151152e4a5::t_dbd2919bcaa14b 7,51
+src/app/connexion/FormulaireConnexion.tsx
+  s_7c7d151152e4a5::t_4c6067f7e01807 7,88
+src/app/connexion/page.tsx
+  s_7c7d151152e4a5::t_7f8cc1b08e897d 22
+src/app/entree.module.css
+  s_7c7d151152e4a5::t_51ba133c9b6202 1-5,8-9,14-16,21-28,35-42,45-54,56,66,73,79,81,87-88,92,99,106-107,111-112,118-119,130,134,140-142,176-177,181,183,186-187,189-192,199-200,219-221,224,226-228,236,238-240,244,248-258,262-263,266,269-274,277,280-285,291-294,299-300,304,310,315,332,341-342,347-350,355-356,361,363-364,407-408,416-417
+src/app/error.module.css
+  s_7c7d151152e4a5::t_af4c9ce0ad18f7 1-4,7,10-17,22-23,27-28,32,36-44
+src/app/error.tsx
+  s_7c7d151152e4a5::t_0e94592cf5b1d2 3,6-9,12-19
+src/app/globals.css
+  s_7c7d151152e4a5::t_efa7ddd624cb5a 20-22,71-73,79-81,83-84,92-95,97-98,150-151,163-165
+src/app/inscription/FormulaireInscription.tsx
+  s_7c7d151152e4a5::t_9b21669e7c8c25 9,186,235
+src/app/jeu/arrivee/page.tsx
+  s_7c7d151152e4a5::t_b79f20f6664320 6,36
+src/app/jeu/nom-de-chef/FormulaireNomDeChef.tsx
+  s_7c7d151152e4a5::t_e43ac4fa0c0fc5 14,152
+src/app/mot-de-passe-oublie/FormulaireOubli.tsx
+  s_7c7d151152e4a5::t_bd2812040b7f8d 8,45,92
+src/app/mot-de-passe-oublie/page.tsx
+  s_7c7d151152e4a5::t_eb48884e6812d5 15
+src/app/not-found.module.css
+  s_7c7d151152e4a5::t_f0a2fcdaa68d57 1,3
+src/app/not-found.tsx
+  s_7c7d151152e4a5::t_a097ef927dc363 3-5,10,13-22
+src/app/page.module.css
+  s_7c7d151152e4a5::t_88574a91ff1312 2-6,9-13,16,19,21-22,24-26,29-43,46-47,50-53,56-62,65-71,74-77,80-85,88-89,92-93,96-103,106,110-112,116-118,121-125,128-134,137-139,142-174,176-181,183,185,187-188,190-192,194-196,198,204,206,208
+src/app/page.tsx
+  s_7c7d151152e4a5::t_ab605a6c687ab4 3,7,9-13,18-31,33-36,38-49
+src/app/reinitialiser/[jeton]/FormulaireNouveauMotDePasse.tsx
+  s_7c7d151152e4a5::t_e14f50d7d7d074 5,77
+src/app/reinitialiser/[jeton]/LienHorsService.tsx
+  s_7c7d151152e4a5::t_464e4c0e6a49ef 2,12
+src/app/reinitialiser/[jeton]/page.tsx
+  s_7c7d151152e4a5::t_21471f8642fcbc 25
+src/components/BarreHaut.module.css
+  s_7c7d151152e4a5::t_5507ea2f3fc925 2-9,25-30,64,86,94,97-98,100-102,104-106,110-111,115,147-148,159,164,188
+src/components/Logo.module.css
+  s_7c7d151152e4a5::t_e3a772fea7393f 1-5,9,13-14,19,23-24,26-40,52-53,57-61,75,77-78,80-83,85-90,92
+src/components/Logo.tsx
+  s_7c7d151152e4a5::t_ebb106fb312104 5-8,12-17
+src/components/PageEntree.module.css
+  s_7c7d151152e4a5::t_64e181a8bca677 1-5,8,10,13-21,23,25,28-29,32-33,36-42,44-46,49-58,62-66,70-72,75,78-83,85,88,90,93-101,105-114
+src/components/PageEntree.tsx
+  s_7c7d151152e4a5::t_3ae271dae5f5c8 1,3,7-8,14-17,24-27,31-45,48-49
+src/styles/palette.css
+  s_7c7d151152e4a5::t_c20dfd9b97d6c9 5-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "504f9676af431ab20bcc62f20eaea86fd78d5d7b",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
