@@ -1,0 +1,27 @@
+src/app/jeu/expeditions/nouvelle/Escorte.tsx
+  s_7c7d151152e4a5::t_901170f9ba23ff 45,49
+src/app/jeu/expeditions/nouvelle/page.tsx
+  s_7c7d151152e4a5::t_64f40a2ad6c320 86,89,93,156-157
+src/monde/blesses.db.test.ts
+  s_7c7d151152e4a5::t_ff9b0187710c21 142-149
+src/monde/blesses.ts
+  s_7c7d151152e4a5::t_82712bdecccf5f 9-14,25,27
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_b1f25e9c2d72ac 10,14-15,46,49,54-55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dc7cf8124d967ab9ee702c8a951576c46a1a6074",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
