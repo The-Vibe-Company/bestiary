@@ -37,6 +37,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0804 · Lire l'attaque, la vie, la vitesse et la charge
 **En tant que** joueur, **je veux** lire les chiffres de combat et de transport d'une Espèce, **afin de** savoir ce que vaut chacune de ses Bêtes.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#56). Sous l'effectif, la fiche d'une Espèce donne son Attaque, sa Vie, sa Vitesse (en km/h) et sa Charge, avec les valeurs de la base, à la française (« 14 953 », « 87,5 »). Tranché : une Espèce sans masse ou sans vitesse ne peut pas entrer en base (les données la refusent) ; la charge s'affiche sans unité, son explication vient avec US-0807. Reste : l'ordre de « Fermer » sur un téléphone couché, à revoir avec US-0807.
 - **Débloquée par** : US-0803
 - **Critères d'acceptation** :
   - La fiche affiche l'attaque, la vie, la vitesse et la charge de l'Espèce, avec les valeurs enregistrées pour elle.
