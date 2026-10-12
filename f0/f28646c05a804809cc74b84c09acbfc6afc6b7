@@ -1,0 +1,21 @@
+docs/stories/08-les-betes-a-la-maison.md
+  s_e951f251d0e676::t_4aaecbe1cff4ac 96
+docs/stories/README.md
+  s_e951f251d0e676::t_d4663ded082dea 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f0f28646c05a804809cc74b84c09acbfc6afc6b7",
+  "prompts": {},
+  "sessions": {
+    "s_e951f251d0e676": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af06d5d2792521676",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
