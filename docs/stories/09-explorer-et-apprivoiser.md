@@ -658,6 +658,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0962 · Chaque Expédition présente voit la Bête
 **En tant que** joueur, **je veux** voir une Bête même si d'autres joueurs ont une Expédition sur la même Case, **afin de** ne pas être privé de la Rencontre.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#43). À l'instant où une Bête se met à suivre une Expédition, toutes les Expéditions présentes sur la Case la voient (celle qui arrive à cet instant comprise) ; la Bête suit toujours celle que désigne US-0934. Tranché : un joueur n'apprend la présence d'autres Expéditions que par son récit de retour, en une ligne (« D'autres Expéditions séjournaient sur la Case. »), qui ne compte que les Expéditions des autres joueurs ayant partagé au moins un instant de séjour, sans nommer leurs chefs ; la carte ne montre que ses propres Expéditions. Le résultat ne dépend plus de l'ordre de mise à l'heure des Territoires. Vérifié en vrai avec deux comptes sur la même Prairie. Reste : le perdant lit encore « Repartie à la fin de sa durée » dans le détail de sa Rencontre (US-0964).
 - **Débloquée par** : US-0932
 - **Critères d'acceptation** :
   - Quand une Bête apparaît sur une Case où séjournent les Expéditions de plusieurs joueurs, toutes la voient, et son Espèce entre au Bestiaire de chacun.
