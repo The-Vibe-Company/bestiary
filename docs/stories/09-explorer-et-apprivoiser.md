@@ -688,6 +688,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0964 · Le récit du perdant
 **En tant que** joueur, **je veux** apprendre qu'une Bête m'a échappé au profit d'une autre Expédition, **afin de** comprendre pourquoi je rentre les mains vides.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#59). Une Bête qui a suivi une autre Expédition avant la fin du séjour se lit « Partie à 17:12 avec une autre Expédition » dans la Rencontre du perdant (et non plus « Repartie à la fin de sa durée »), et le récit ajoute « Poule a suivi une autre Expédition. » ; le perdant ne perd rien, garde l'Espèce « croisée », et rentre à l'heure. Tranché : le chef qui l'a emportée n'est pas nommé (comme US-0962) ; la règle vaut pour le perdant du tirage (US-0963) comme pour celui qu'une escorte plus forte arrivée après dépasse (US-0966) ; une Bête emmenée à l'instant même du départ reste « restée ». Sans migration. Vérifié en vrai avec trois comptes sur une Prairie.
 - **Débloquée par** : US-0963, US-0940
 - **Critères d'acceptation** :
   - Au retour, le perdant reçoit un récit qui dit que la Bête a suivi une autre Expédition.

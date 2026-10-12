@@ -104,6 +104,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0811 · Voir un effectif vide
 **En tant que** nouveau joueur, **je veux** une page Bêtes sobre tant que je n'ai aucune Bête, **afin de** savoir où aller en chercher.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#62). Sans aucune Bête, la page Bêtes dit seulement « Aucune Bête pour l'instant » avec le bouton « Envoyer une Expédition » ; dès la première Bête, le total et la liste reviennent. Tranché : « sans autre phrase » à la lettre, comme US-0809 ; le bloc « Bêtes » du Foyer garde « 0 ».
 - **Débloquée par** : US-0810
 - **Critères d'acceptation** :
   - Sans aucune Bête, la page Bêtes affiche « Aucune Bête pour l'instant », sans autre phrase.
@@ -113,6 +114,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0812 · Trouver l'Élevage d'une Espèce
 **En tant que** joueur, **je veux** trouver l'Élevage sur la fiche d'une Espèce dont j'ai réuni le Couple, **afin de** produire des Bêtes de cette Espèce.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#64). La fiche d'une Espèce dont le joueur a réuni le Couple montre un bloc « Élever » (ancre #elever) ; aucune autre fiche ne l'a. L'annonce du Couple réuni dans le récit (US-0958) porte un lien « Élever » vers ce bloc. Tranché : le bouton reste grisé tant que l'Élevage ne se lance pas (US-0813 à US-0815) ; l'action serveur `elever` est le seul chemin d'une demande, prend le Territoire de la session, relit l'Élevage acquis et refuse sans Couple (« Pas d'Élevage sans Couple réuni. »), de la même façon pour le Couple d'un autre ou une Espèce inconnue. Le vrai lancement (US-0815) devra relire l'Élevage acquis dans la transaction du paiement.
 - **Débloquée par** : US-0803, US-0957
 - **Critères d'acceptation** :
   - La fiche d'une Espèce dont le Couple est réuni propose un bloc « Élever ».
