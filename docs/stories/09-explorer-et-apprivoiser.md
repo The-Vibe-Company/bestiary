@@ -631,6 +631,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0959 · Après le Couple, les Bêtes rejoignent l'effectif
 **En tant que** joueur, **je veux** que les Bêtes apprivoisées après la réunion du Couple renforcent mon effectif, **afin de** ne rien perdre à continuer d'en apprivoiser.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#44). Une fois le Couple d'une Espèce réuni, chaque Bête de cette Espèce qui arrive au Foyer rejoint l'effectif, quel que soit son sexe, même quand une Bête de l'autre sexe attend déjà : aucun second Couple ne se forme, en direct, au rattrapage ou par la tâche planifiée. La règle venait déjà de US-0956 : la story est prouvée par des tests. Au passage, un test instable corrigé : les chefs d'un même Monde d'essai naissent d'abord, avant qu'on choisisse leurs Cases. Vérifié en vrai avec des poules.
 - **Débloquée par** : US-0956
 - **Critères d'acceptation** :
   - Une fois le Couple réuni, toute nouvelle Bête apprivoisée de l'Espèce rejoint l'effectif, quel que soit son sexe.
