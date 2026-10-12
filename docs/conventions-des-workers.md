@@ -29,6 +29,7 @@ Lis d'abord `AGENTS.md` (ce Next.js 16 a des changements cassants ; les guides s
 - Une base de test réutilisée d'une PR à l'autre peut faire sauter une migration à Drizzle : applique ce qui manque sur la base, sans toucher aux fichiers. Si une migration réservée plus tôt fusionne avant la tienne, recoud ton instantané avec `drizzle-kit`, puis remets ta base d'aplomb.
 - La suite complète vide la ligne `horloge` de sa base : après avoir ancré l'horloge du serveur de dev, ne relance pas la suite sur la même base.
 - Avalanche d'`ECONNREFUSED` sur 5433 : `pg_isready`, puis `open -a Docker`, puis relance.
+- Un essai dont l'escorte séjourne sur une Case qu'il n'a pas choisie calme ne relit pas l'effectif après coup : une Bête rare peut l'attaquer et lui coûter des Bêtes (US-0944). Choisis une Case sans Bête plus rare que commune pendant tout le séjour.
 - Arrête tes serveurs par leurs PID, jamais par leur nom (`pkill -f …` arrête aussi ceux des autres agents). Un critère « sur mobile » se vérifie aussi téléphone couché.
 
 ## La pull request
