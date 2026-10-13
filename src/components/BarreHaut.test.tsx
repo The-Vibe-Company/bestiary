@@ -38,6 +38,11 @@ describe("barre du haut", () => {
     expect(formes).toMatch(/@media \(max-width: 1023px\) \{\s*:root:has\(\[data-onglets\]\) \{[^}]*--hauteur-nav: 58px;/);
   });
 
+  it("dans le jeu, déclare la barre fixe comme le bord haut de l'écran : une page ouverte d'une page défilée s'ouvre en haut", () => {
+    // Le navigateur, et Next.js pour décider s'il remonte une page ouverte, ne comptent visible que ce qui est sous elle.
+    expect(lire("src/app/globals.css")).toMatch(/html:has\(\[data-onglets\]\) \{[^}]*scroll-padding-top: var\(--hauteur-barre\);/);
+  });
+
   it("dans le jeu, est la barre de la maquette : fixe en haut, d'un bord à l'autre, un dégradé sarcelle sur un filet de cuivre", () => {
     const jeu = regleDe(feuille(), ".barre:has(.navigation)");
     expect(jeu).toContain("position: fixed;");
