@@ -40,6 +40,9 @@ const POULE: FicheDEspece = {
   vie: 14953,
   vitesse: 14,
   charge: 500,
+  taille: 31.623,
+  regime: "omnivore",
+  entretienParHeure: 5,
 };
 
 /** US-0804 : les caractéristiques de la fiche, nom et valeur, les espaces des milliers lues comme des espaces. */
@@ -158,7 +161,7 @@ describe("lire l'attaque, la vie, la vitesse et la charge (US-0804)", () => {
 
   it("affiche l'attaque, la vie, la vitesse et la charge de l'Espèce, avec ses valeurs enregistrées, sans phrase", async () => {
     connecte(POULE);
-    expect(caracteristiques(await ouvrir("poule"))).toEqual([
+    expect(caracteristiques(await ouvrir("poule")).slice(0, 4)).toEqual([
       ["Attaque", "5 981"],
       ["Vie", "14 953"],
       ["Vitesse", "14 km/h"],
@@ -168,7 +171,7 @@ describe("lire l'attaque, la vie, la vitesse et la charge (US-0804)", () => {
 
   it("écrit une valeur décimale à la française : « 87,5 »", async () => {
     connecte({ ...POULE, especeId: "pigeon", nom: "Pigeon biset", attaque: 1214, vie: 4046, vitesse: 80, charge: 87.5 });
-    expect(caracteristiques(await ouvrir("pigeon"))).toEqual([
+    expect(caracteristiques(await ouvrir("pigeon")).slice(0, 4)).toEqual([
       ["Attaque", "1 214"],
       ["Vie", "4 046"],
       ["Vitesse", "80 km/h"],
@@ -182,5 +185,57 @@ describe("lire l'attaque, la vie, la vitesse et la charge (US-0804)", () => {
     expect(html).toContain("<dd>5\u00a0981</dd>");
     expect(html).toContain("<dd>14\u00a0953</dd>");
     expect(html).toContain("<dd>14\u00a0km/h</dd>");
+  });
+});
+
+describe("lire la taille, le régime et l'Entretien (US-0805)", () => {
+  afterEach(() => {
+    session.compteDeLaSession.mockReset();
+    cookie.jetonDeSession.mockReset();
+    effectif.especeDuTerritoire.mockReset();
+  });
+
+  const connecte = (fiche: FicheDEspece) => {
+    cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
+    session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
+    effectif.especeDuTerritoire.mockResolvedValue(fiche);
+  };
+  /** Les caractéristiques de US-0805, après celles de US-0804. */
+  const dernieres = async (fiche: FicheDEspece) => {
+    connecte(fiche);
+    return caracteristiques(await ouvrir(fiche.especeId)).slice(4);
+  };
+
+  it("affiche la taille en Places occupées par Bête, le régime et l'Entretien par heure dans la Nourriture du régime", async () => {
+    expect(await dernieres(POULE)).toEqual([
+      ["Taille", "31,623 Places"],
+      ["Régime", "Omnivore"],
+      ["Entretien", "5 Viande ou Végétaux / h"],
+    ]);
+  });
+
+  it("nourrit un herbivore de Végétaux et un carnivore de Viande", async () => {
+    expect(await dernieres({ ...POULE, especeId: "pigeon", nom: "Pigeon biset", taille: 8.556, regime: "herbivore", entretienParHeure: 1.25 })).toEqual([
+      ["Taille", "8,556 Places"],
+      ["Régime", "Herbivore"],
+      ["Entretien", "1,25 Végétaux / h"],
+    ]);
+    expect(await dernieres({ ...POULE, especeId: "chasseur", nom: "Chasseur", taille: 2, regime: "carnivore", entretienParHeure: 0.5 })).toEqual([
+      ["Taille", "2 Places"],
+      ["Régime", "Carnivore"],
+      ["Entretien", "0,5 Viande / h"],
+    ]);
+  });
+
+  it("accorde la Place au singulier sous deux : « 1 Place », « 1,5 Place »", async () => {
+    expect((await dernieres({ ...POULE, taille: 1 }))[0]).toEqual(["Taille", "1 Place"]);
+    expect((await dernieres({ ...POULE, taille: 1.5 }))[0]).toEqual(["Taille", "1,5 Place"]);
+  });
+
+  it("colle la valeur à son unité d'espaces insécables : « 31,623 Places » et « 5 Viande ou Végétaux / h » ne se coupent pas", async () => {
+    connecte(POULE);
+    const html = await ouvrir("poule");
+    expect(html).toContain("<dd>31,623\u00a0Places</dd>");
+    expect(html).toContain("<dd>5\u00a0Viande ou Végétaux\u00a0/\u00a0h</dd>");
   });
 });

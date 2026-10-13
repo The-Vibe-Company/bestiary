@@ -3,6 +3,7 @@
 // Espèce le montrent. Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
+import type { regime } from "@/db/schema";
 import { forceDUneBete } from "@/expeditions/force";
 import type { Sexe } from "./betes-sauvages";
 import { ELEVAGE_ACQUIS } from "./elevage";
@@ -120,9 +121,21 @@ export async function nombreDeBetes(base: Pool | PoolClient, territoireId: numbe
 /**
  * US-0804 : la fiche d'une Espèce : ce que la page Bêtes en montre, et ses caractéristiques telles que la base les a
  * enregistrées pour elle (src/donnees/jeux.ts, par le barème) : son attaque, sa vie, sa vitesse en km/h et sa charge. Les
- * mêmes pour tous les joueurs : rien du Territoire n'y entre, aucune Recherche non plus (ADR 0005).
+ * mêmes pour tous les joueurs : rien du Territoire n'y entre, aucune Recherche non plus (ADR 0005). US-0805 : et sa taille
+ * en Places par Bête, son régime et son Entretien par heure et par Bête.
  */
-export type FicheDEspece = EspeceDeLEffectif & { attaque: number; vie: number; vitesse: number; charge: number };
+export type FicheDEspece = EspeceDeLEffectif & {
+  attaque: number;
+  vie: number;
+  vitesse: number;
+  charge: number;
+  taille: number;
+  regime: Regime;
+  entretienParHeure: number;
+};
+
+/** US-0805 : le régime d'une Espèce, qui dit la Nourriture de son Entretien : l'une des valeurs de l'énumération en base. */
+export type Regime = (typeof regime.enumValues)[number];
 
 /**
  * US-0810 : l'Espèce `especeId` telle que sa fiche la montre au joueur, avec son effectif sur le Territoire : quand il en a
@@ -132,7 +145,7 @@ export type FicheDEspece = EspeceDeLEffectif & { attaque: number; vie: number; v
 export async function especeDuTerritoire(base: Pool | PoolClient, territoireId: number, especeId: string): Promise<FicheDEspece | null> {
   const { rows } = await base.query<FicheDEspece>(
     `select es.id as "especeId", es.nom, es.illustration, json_build_object('id', r.id, 'nom', r.nom) as rarete, x.effectif,
-       es.attaque, es.vie, es.vitesse, es.charge
+       es.attaque, es.vie, es.vitesse, es.charge, es.taille, es.regime, es.entretien_par_heure as "entretienParHeure"
      from espece es
      join rarete r on r.id = es.rarete_id
      cross join lateral (select coalesce(sum(e.nombre), 0)::int as effectif from effectif e where e.territoire_id = $1 and e.espece_id = es.id) x

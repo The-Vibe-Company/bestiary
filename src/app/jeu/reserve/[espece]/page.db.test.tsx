@@ -137,9 +137,25 @@ describe.skipIf(!URL_TEST)("ouvrir la fiche d'une Espèce, sur base (US-0803)", 
     const nombre = (n: number) => n.toLocaleString("fr-FR").replace(/[\u00a0\u202f]/g, " ");
     const attendues = [`Attaque ${nombre(rows[0].attaque)}`, `Vie ${nombre(rows[0].vie)}`, `Vitesse ${nombre(rows[0].vitesse)} km/h`, `Charge ${nombre(rows[0].charge)}`];
 
-    expect(await caracteristiques(a.territoireId, "pigeon")).toEqual(attendues);
+    expect((await caracteristiques(a.territoireId, "pigeon")).slice(0, 4)).toEqual(attendues);
     // Rien du Territoire n'y entre : un autre joueur lit les mêmes valeurs pour la même Espèce.
-    expect(await caracteristiques(b.territoireId, "pigeon")).toEqual(attendues);
+    expect((await caracteristiques(b.territoireId, "pigeon")).slice(0, 4)).toEqual(attendues);
+  });
+
+  it("affiche la taille, le régime et l'Entretien enregistrés pour l'Espèce (US-0805)", async () => {
+    const t = await naitre();
+    await reunir(t, "pigeon");
+    const { rows } = await pool.query<{ taille: number; regime: string; entretien: number }>(
+      "select taille, regime, entretien_par_heure as entretien from espece where id = 'pigeon'",
+    );
+    const nombre = (n: number) => n.toLocaleString("fr-FR", { maximumFractionDigits: 3 }).replace(/[\u00a0\u202f]/g, " ");
+    // Le pigeon est herbivore (donnees/especes.yaml) : il mange des Végétaux.
+    expect(rows[0].regime).toBe("herbivore");
+    expect((await caracteristiques(t.territoireId, "pigeon")).slice(4)).toEqual([
+      `Taille ${nombre(rows[0].taille)} Places`,
+      "Régime Herbivore",
+      `Entretien ${nombre(rows[0].entretien)} Végétaux / h`,
+    ]);
   });
 
   it("ne propose le bloc « Élever » que sur la fiche d'une Espèce dont le joueur a réuni le Couple (US-0812)", async () => {

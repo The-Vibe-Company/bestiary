@@ -8,7 +8,7 @@ import { IllustrationEspece } from "@/components/IllustrationEspece";
 import kit from "@/components/kit.module.css";
 import { PastilleRarete } from "@/components/PastilleRarete";
 import { getPool } from "@/db";
-import { especeDuTerritoire } from "@/monde/effectif";
+import { especeDuTerritoire, type Regime } from "@/monde/effectif";
 import { elevageAcquis } from "@/monde/elevage";
 import { placesDeLHabitat } from "@/monde/habitat";
 import { caracteristiqueAffichee as nombre } from "@/monde/quantite";
@@ -17,6 +17,19 @@ import styles from "./page.module.css";
 
 // Le titre reste celui de la Réserve : le nom d'une Espèce ne se lit pas sans la garde.
 export const metadata: Metadata = { title: "Réserve" };
+
+/** US-0805 : « 1 Place », « 1,5 Place », « 31,623 Places » : le pluriel à partir de deux. */
+const places = (taille: number) => `${nombre(taille)}\u00a0${taille >= 2 ? "Places" : "Place"}`;
+
+/**
+ * US-0805 : le régime d'une Espèce, et la Nourriture de son Entretien : la Viande pour un carnivore, les Végétaux pour un
+ * herbivore, l'une ou l'autre pour un omnivore (ce qu'il mange vraiment se décidera avec US-0826).
+ */
+const REGIMES: Record<Regime, { nom: string; nourriture: string }> = {
+  carnivore: { nom: "Carnivore", nourriture: "Viande" },
+  herbivore: { nom: "Herbivore", nourriture: "Végétaux" },
+  omnivore: { nom: "Omnivore", nourriture: "Viande ou Végétaux" },
+};
 
 /** US-0803 : un identifiant d'Espèce, tel que les données du jeu les écrivent (« souris », « peu_commune »). */
 const IDENTIFIANT = /^[a-z0-9_]{1,64}$/;
@@ -33,7 +46,8 @@ const IDENTIFIANT = /^[a-z0-9_]{1,64}$/;
  * US-0804 : sous l'effectif, ses caractéristiques telles que la base les a enregistrées, les mêmes pour tous les joueurs :
  * l'attaque, la vie, la vitesse en km/h et la charge, un nom et une valeur chacune, sans phrase (leurs explications
  * arrivent avec US-0807). Toutes sont toujours là : une Espèce à qui il en manque une ne se charge pas en base
- * (src/donnees/jeux.ts).
+ * (src/donnees/jeux.ts). US-0805 : puis sa taille en Places occupées par Bête, son régime et son Entretien par heure et
+ * par Bête, dans la Nourriture de son régime.
  *
  * Sur le fond du jeu, un panneau orné : la peinture de l'Espèce dans son filet vert ; son nom en Bree Serif, sa Rareté
  * en puce, l'effectif en grand, puis ses caractéristiques sous un filet doux ; « Fermer », un bouton au contour vert.
@@ -80,6 +94,20 @@ export default async function FicheDeLEspece({
             <div>
               <dt>Charge</dt>
               <dd>{nombre(fiche.charge)}</dd>
+            </div>
+            <div>
+              <dt>Taille</dt>
+              <dd>{places(fiche.taille)}</dd>
+            </div>
+            <div>
+              <dt>Régime</dt>
+              <dd>{REGIMES[fiche.regime].nom}</dd>
+            </div>
+            <div>
+              <dt>Entretien</dt>
+              <dd>
+                {nombre(fiche.entretienParHeure)}&nbsp;{REGIMES[fiche.regime].nourriture}&nbsp;/&nbsp;h
+              </dd>
             </div>
           </dl>
         </div>

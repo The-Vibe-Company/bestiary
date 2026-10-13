@@ -141,12 +141,6 @@
   .illustration {
     width: min(480px, calc(var(--hauteur-utile) - 48px));
   }
-
-  /* US-0804 : les caractéristiques sur deux paires de colonnes, deux lignes au lieu de quatre, pour garder « Fermer » à vue. */
-  .caracteristiques {
-    grid-template-columns: max-content max-content max-content minmax(0, 1fr);
-    gap: 4px 16px;
-  }
 }
 
 @media (max-width: 600px) and (orientation: portrait) {

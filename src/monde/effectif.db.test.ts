@@ -294,10 +294,30 @@ describe.skipIf(!URL_TEST)("les Bêtes disponibles pour l'escorte (US-0904, sur 
       await ajouter(voisin, [["pigeon", "male", 3]]);
       expect(await reunir(t)).toEqual(["souris"]);
 
-      // US-0804 : avec les caractéristiques de l'Espèce, telles que la base les a enregistrées.
-      expect(await especeDuTerritoire(pool, t, "poule")).toEqual({ ...POULE, effectif: 2, attaque: 5981, vie: 14953, vitesse: 14, charge: 500 });
+      // US-0804, US-0805 : avec les caractéristiques de l'Espèce, telles que la base les a enregistrées.
+      expect(await especeDuTerritoire(pool, t, "poule")).toEqual({
+        ...POULE,
+        effectif: 2,
+        attaque: 5981,
+        vie: 14953,
+        vitesse: 14,
+        charge: 500,
+        taille: 31.623,
+        regime: "omnivore",
+        entretienParHeure: 5,
+      });
       // Son Couple en Réserve, l'effectif de l'Espèce est vide : la fiche le rappelle.
-      expect(await especeDuTerritoire(pool, t, "souris")).toEqual({ ...SOURIS, effectif: 0, attaque: 473, vie: 473, vitesse: 13, charge: 5 });
+      expect(await especeDuTerritoire(pool, t, "souris")).toEqual({
+        ...SOURIS,
+        effectif: 0,
+        attaque: 473,
+        vie: 473,
+        vitesse: 13,
+        charge: 5,
+        taille: 1,
+        regime: "omnivore",
+        entretienParHeure: 0.167,
+      });
       // Ni une Espèce sans Bête ni Couple, ni celle d'un autre joueur, ni une Espèce inconnue.
       expect(await especeDuTerritoire(pool, t, "pigeon")).toBeNull();
       expect(await especeDuTerritoire(pool, t, "espece_inconnue")).toBeNull();
