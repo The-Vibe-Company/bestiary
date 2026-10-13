@@ -137,6 +137,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0813 · Choisir combien de Bêtes élever
 **En tant que** joueur, **je veux** choisir le nombre de Bêtes à élever, **afin de** doser ce que j'investis.
 
+- **Statut** : Livrée le 2026-10-13 (autopilot, Zewed/bestia-2#74). Le bloc « Élever » de la fiche propose la quantité : « − », le champ (1 d'abord), « + » et « Max », qui donne le plus grand nombre de Bêtes que les Stocks de Nourriture paient (poule, 1 000 Viande et 1 000 Végétaux : 2). Une quantité nulle, négative ou non entière (« 0 », « -2 », « 2,5 », « deux ») est refusée sous le champ : « La quantité doit être un nombre entier, d'au moins 1. », et par le serveur pour une demande forgée. Le bouton « Élever » reste grisé jusqu'à US-0815. Tranché : une Bête élevée coûte la Nourriture qu'elle mange en 7 jours (`JOURS_D_ENTRETIEN_PAR_BETE_ELEVEE`, provisoire ; poule 840, souris 28) ; un carnivore paie en Viande, un herbivore en Végétaux, un omnivore avec les deux additionnés ; « Max » ne compte pas encore les Places (US-0825) ni les Élevages en cours (US-0819).
 - **Débloquée par** : US-0812
 - **Critères d'acceptation** :
   - Le bloc « Élever » propose un champ de quantité, des boutons « − » et « + », et un bouton « Max ».
