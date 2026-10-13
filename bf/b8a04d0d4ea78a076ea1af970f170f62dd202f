@@ -1,0 +1,19 @@
+src/app/globals.css
+  s_197c47ffa215f4::t_6a72360ff6bc74 98-102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bfb8a04d0d4ea78a076ea1af970f170f62dd202f",
+  "prompts": {},
+  "sessions": {
+    "s_197c47ffa215f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5d864287176be1e2",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
