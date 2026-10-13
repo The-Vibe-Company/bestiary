@@ -19,7 +19,7 @@ import { betesReperees } from "./betes-reperees";
 import { casesLeveesParLExpedition } from "./brouillard";
 import { casesDuFoyer } from "./choix-de-destination";
 import { demiTourDUneExpedition, type HorairesDUneExpedition, sejourDUneExpedition } from "./phase";
-import { expeditionsPresentesSurLaCase } from "./presence";
+import { expeditionsPresentesSurLaCaseApresLesFuites } from "./fuites-des-cases";
 import { rencontresARaconter } from "./recit-de-rencontre";
 import { type CombatARaconter, combatsDUneExpedition } from "./recit-du-combat";
 import { forcesDesEscortes, forcesDesEspeces, type Rencontre, rencontresDUneExpedition } from "./rencontres";
@@ -332,10 +332,13 @@ export function recitDeRetour({
  * Cases levées et ses Rencontres sont donc toutes retenues, les mêmes en direct qu'au rattrapage d'une absence.
  */
 export async function raconterLeRetour(client: PoolClient, territoireId: number, expeditionId: number, rentreeLe: Date): Promise<void> {
-  const { rows } = await client.query<HorairesDUneExpedition & { caseId: number; biome: string; decouverte: boolean; destination: Coordonnees; foyer: Coordonnees }>(
+  const { rows } = await client.query<
+    HorairesDUneExpedition & { caseId: number; biome: string; decouverte: boolean; destination: Coordonnees; foyer: Coordonnees; enFuite: boolean }
+  >(
     `select c.id as "caseId", coalesce(v.nom, b.nom) as biome, json_build_object('q', c.q, 'r', c.r) as destination, json_build_object('q', f.q, 'r', f.r) as foyer,
        exists (select 1 from case_decouverte d where d.territoire_id = x.territoire_id and d.case_id = c.id) as decouverte,
-       x.part_le as "partLe", x.trajet_minutes as "trajetMinutes", x.sejour_minutes as "sejourMinutes", x.rappelee_le as "rappeleeLe"
+       x.part_le as "partLe", x.trajet_minutes as "trajetMinutes", x.sejour_minutes as "sejourMinutes", x.rappelee_le as "rappeleeLe",
+       x.en_fuite as "enFuite"
      from expedition x join case_du_monde c on c.id = x.case_id join biome b on b.id = c.biome_id
        left join variante_biome v on v.id = c.variante_id
        join territoire t on t.id = x.territoire_id join case_du_monde f on f.id = t.foyer_case_id
@@ -344,8 +347,11 @@ export async function raconterLeRetour(client: PoolClient, territoireId: number,
   );
   // Après la bascule d'un Monde (US-0414), une Expédition déjà partie garde sa destination dans l'ancien : sa distance au
   // nouveau Foyer n'y a pas de sens, comme son chemin (leverLeBrouillard) ; cas rare, accepté.
-  const { caseId, biome, decouverte, destination, foyer, ...horaires } = rows[0];
-  const rappel = rappelDUneExpedition(horaires);
+  const { caseId, biome, decouverte, destination, foyer, enFuite, ...horaires } = rows[0];
+  // US-0945 : son demi-tour en fuite après un combat n'est pas un rappel du joueur : aucune ligne « Rappelée » ici, la
+  // fuite des explorateurs est dite par le récit du combat (FUITE_DES_EXPLORATEURS, US-0947) ; ses durées sont celles de
+  // son séjour écourté.
+  const rappel = enFuite ? null : rappelDUneExpedition(horaires);
   // Un retour n'est programmé qu'au trajet chiffré (programmerLeRetour, migration 0052) : jamais atteint.
   const durees = dureesReelles(horaires, rentreeLe);
   if (!durees) throw new Error(`Retour sans trajet chiffré pour l'Expédition ${expeditionId}.`);
@@ -440,13 +446,13 @@ async function betesPartiesAvantLArrivee(
 
 /**
  * US-0962 : si l'Expédition d'un autre Territoire que `territoireId` était sur la Case `caseId` à un instant du séjour
- * `sejour` (expeditionsPresentesSurLaCase) ; celles du même joueur, qu'il connaît, ne comptent pas. Lue au retour : les
- * horaires de chacune sont fixés au départ, ou au rappel, d'où la même réponse en direct, au rattrapage ou par la tâche
- * planifiée. Sans séjour, aucune.
+ * `sejour` (expeditionsPresentesSurLaCaseApresLesFuites) ; celles du même joueur, qu'il connaît, ne comptent pas. Lue au
+ * retour : les horaires de chacune sont fixés au départ, ou au rappel, et sa fuite (US-0945) se calcule pour la Case
+ * entière, d'où la même réponse en direct, au rattrapage ou par la tâche planifiée. Sans séjour, aucune.
  */
 async function dAutresJoueursSurLaCase(client: PoolClient, territoireId: number, caseId: number, sejour: { debut: Date; fin: Date } | null): Promise<boolean> {
   if (!sejour || sejour.fin <= sejour.debut) return false;
-  return (await expeditionsPresentesSurLaCase(client, caseId, sejour.debut, sejour.fin)).some((x) => x.territoireId !== territoireId);
+  return (await expeditionsPresentesSurLaCaseApresLesFuites(client, caseId, sejour.debut, sejour.fin)).some((x) => x.territoireId !== territoireId);
 }
 
 /** US-0935 : le nom de chacune des Espèces `ids`, dans le même ordre. */

@@ -11,7 +11,7 @@ import type { Coordonnees } from "@/monde/hex";
 import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { lExpeditionSuivie } from "./apprivoisement";
 import { forceDUneBete } from "./force";
-import { expeditionsPresentesSurLesCases } from "./presence";
+import { expeditionsPresentesApresLesFuites } from "./fuites-des-cases";
 import { forcesDesEscortes } from "./rencontres";
 
 /**
@@ -75,7 +75,7 @@ export async function betesReperees(base: Pool | PoolClient, territoireId: numbe
   });
   if (betes.length === 0) return [];
   const depuis = new Date(Math.min(...betes.map((b) => b.arrivee.getTime())));
-  const expeditions = await expeditionsPresentesSurLesCases(base, caseIds, depuis, juste);
+  const expeditions = await expeditionsPresentesApresLesFuites(base, caseIds, depuis, juste);
   const escortes = await forcesDesEscortes(base, [...new Set([...expeditions.values()].flat().map((x) => x.id))]);
   return betes
     // Toutes les Expéditions lues sont arrivées au plus tard à cet instant : celle que la Bête suivrait l'a déjà emmenée.

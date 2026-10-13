@@ -7,6 +7,7 @@ import type { ExpeditionEnCours } from "@/expeditions/en-cours";
 import { finDeLaPhase, type Phase, phaseDUneExpedition, retourDUneExpedition } from "@/expeditions/phase";
 import { formaterJourEtHeure, formaterMinutes } from "@/temps/affichage";
 import styles from "./DetailDeLExpedition.module.css";
+import kit from "./kit.module.css";
 
 /** Le fuseau des joueurs, pour l'heure de retour prévue. */
 const FUSEAU = "Europe/Paris";
@@ -46,6 +47,9 @@ const uneEspece = (nom: string, nombre: number) => `${nom} × ${nombre}`;
  * US-0920 : sous son détail, « Rappeler », à l'aller comme en séjour (décidé le 2026-10-08) : elle fait demi-tour, et la
  * page relue la montre au retour, d'où le bouton disparaît. Il attend la réponse du serveur, grisé : un double clic ne la
  * rappelle qu'une fois. Sans trajet chiffré (US-0912), aucun retour, donc rien à rappeler.
+ *
+ * US-0945 : en fuite après un combat, elle est au retour avec la mention « en fuite » : « Retour · en fuite », sur la carte
+ * comme dans le panneau de la liste (src/app/jeu/expeditions/PanneauDeLExpedition.tsx).
  */
 export function DetailDeLExpedition({ expedition, instant, repliable = false }: { expedition: ExpeditionEnCours; instant: Date; repliable?: boolean }) {
   const [deplie, setDeplie] = useState(false);
@@ -66,8 +70,9 @@ export function DetailDeLExpedition({ expedition, instant, repliable = false }: 
           {"inconnue" in destination ? "Case inconnue" : destination.biome}
         </strong>
         <span className={styles.distance}>{casesDuFoyer(destination.distance)}</span>
-        <span id={id("phase")} className={styles.phase}>
+        <span id={id("phase")} className={`${kit.puce} ${styles.phase}`}>
           {PHASES[phase]}
+          {phase === "retour" && expedition.enFuite ? " · en fuite" : null}
         </span>
         <span id={id("reste")} className={styles.reste}>
           {reste === null ? (

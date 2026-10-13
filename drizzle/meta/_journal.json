@@ -442,6 +442,13 @@
       "when": 1791831193000,
       "tag": "0066_blessees_de_l_escorte",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1791831303051,
+      "tag": "0067_expedition_en_fuite",
+      "breakpoints": true
     }
   ]
 }

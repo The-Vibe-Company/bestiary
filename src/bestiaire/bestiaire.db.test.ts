@@ -13,6 +13,7 @@ import { PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE, PRESENCE_D_UNE_BETE_HEURES } fro
 import { rattraperLesAbsents } from "@/temps/absents";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
+import { epargneePar } from "@/test/attaques";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { bestiaireDuTerritoire, inscrireAuBestiaire } from "./bestiaire";
 
@@ -249,11 +250,24 @@ describe.skipIf(!URL_TEST)("l'Espèce croisée entre au Bestiaire (US-0933, sur 
     // Sans escorte, une Bête commune suit la première de ces Expéditions qui la voit et quitte la Case (US-0935) : chaque
     // façon de compter le temps y passe seule, puis la Case redevient ce qu'elle était, sans ses Expéditions ni la trace
     // des Bêtes parties avec elles.
+    // US-0945 : chaque Expédition posée est épargnée par les Bêtes plus rares, trop fortes pour elle : attaquée, elle
+    // fuirait à l'heure de ses propres tirages, qui changent d'un Territoire à l'autre. Celle qu'une Bête attaquerait est
+    // effacée, et une autre posée.
+    const plusRares = (await betesSauvagesDUneCase(pool, caseId, debut, fin)).filter(plusRare);
+    const poserEpargnee = async (territoireId: number, partLe: Date, trajet: number, sejour: number) => {
+      const [arrivee, depart] = [apres(partLe, trajet), apres(partLe, trajet + sejour)];
+      for (let posees = 0; posees < 100; posees++) {
+        const id = await poser(territoireId, caseId, partLe, trajet, sejour);
+        if (await epargneePar(pool, caseId, plusRares, id, { debut: arrivee, fin: depart })) return id;
+        await pool.query("delete from expedition where id = $1", [id]);
+      }
+      throw new Error("100 Expéditions posées, toutes attaquées.");
+    };
     const bestiaires = [];
     const rencontres = [];
     for (const [k, { territoireId }] of territoires.entries()) {
       const ids: number[] = [];
-      for (const [partie, trajet, sejour] of HORAIRES) ids.push(await poser(territoireId, caseId, apres(debut, partie), trajet, sejour));
+      for (const [partie, trajet, sejour] of HORAIRES) ids.push(await poserEpargnee(territoireId, apres(debut, partie), trajet, sejour));
       await facons[k](territoireId);
       bestiaires.push(await bestiaire(territoireId));
       rencontres.push(await Promise.all(ids.map(vues)));

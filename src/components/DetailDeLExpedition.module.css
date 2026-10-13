@@ -26,16 +26,11 @@
   color: var(--texte-discret);
 }
 
-/* La phase, sur deux rangs, dans le ton de l'état « en Expédition » de la page Habitants. */
+/* La phase, sur deux rangs, dans la puce du kit (kit.puce), comme dans la liste des Expéditions. */
 .phase {
   grid-row: 1 / span 2;
   grid-column: 2;
-  padding: 2px 10px;
-  border-radius: 999px;
-  background: var(--ciel);
-  color: var(--ciel-fonce);
-  font-size: 13px;
-  font-weight: var(--graisse-titre);
+  white-space: nowrap;
 }
 
 /* Le temps restant, au bout : ses chiffres ne bougent pas la ligne quand ils changent. */

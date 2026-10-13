@@ -14,7 +14,7 @@ import type { Coordonnees } from "@/monde/hex";
 import type { IssueDUneRencontre, RencontreRacontee } from "@/monde/recits";
 import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { type BeteDisputee, type ExpeditionSurLaCase, forceQuiManque, lExpeditionSuivie } from "./apprivoisement";
-import { expeditionsPresentesSurLesCases } from "./presence";
+import { expeditionsPresentesApresLesFuites } from "./fuites-des-cases";
 import { forcesDesEscortes, forcesDesEspeces, type Rencontre } from "./rencontres";
 
 /** US-0926 : combien de temps une Bête sauvage reste sur sa Case, en millisecondes du jeu. */
@@ -97,7 +97,8 @@ async function sexesDesApprivoisees(client: PoolClient, expeditionId: number): P
  * l'instant où elle a quitté sa Case (departDUneBete), parmi les Expéditions de sa Case pendant toute sa présence, et la
  * force qui manquait à l'escorte (US-0942). US-0962 : une Bête de naissance, commune, suit toujours la première
  * Expédition qui la voit (US-0975) : vue sans la suivre, elle en suivait une autre au même instant, et en est partie
- * aussitôt. US-0964 : et si elle est partie en suivant une autre Expédition (`emmenee`). Aucune lecture si toutes ont suivi.
+ * aussitôt. US-0964 : et si elle est partie en suivant une autre Expédition (`emmenee`). US-0945 : une Expédition en fuite
+ * n'est plus sur la Case après sa fuite, même d'un Territoire pas encore rattrapé. Aucune lecture si toutes ont suivi.
  */
 async function betesRestees(client: PoolClient, expeditionId: number, vues: readonly Rencontre[]): Promise<Map<number, BeteRestee>> {
   const parties = new Map(vues.filter((r) => !r.apprivoisee && r.numero === null).map((r) => [r.id, { depart: r.vueLe, manque: 0, emmenee: true }]));
@@ -108,7 +109,7 @@ async function betesRestees(client: PoolClient, expeditionId: number, vues: read
   const caseId = restees[0].caseId;
   const depuis = new Date(Math.min(...restees.map((r) => r.apparueLe.getTime())));
   const jusqua = new Date(Math.max(...restees.map((r) => r.finDePresence.getTime())));
-  const presentes = (await expeditionsPresentesSurLesCases(client, [caseId], depuis, jusqua)).get(caseId)!;
+  const presentes = (await expeditionsPresentesApresLesFuites(client, [caseId], depuis, jusqua)).get(caseId)!;
   const escortes = await forcesDesEscortes(client, [...new Set([expeditionId, ...presentes.map((x) => x.id)])]);
   const forces = await forcesDesEspeces(client, [...new Set(restees.map((r) => r.especeId))]);
   const expeditions = presentes.map((x) => ({ id: x.id, arrivee: x.arrivee, depart: x.depart, escorte: escortes.get(x.id) ?? null }));

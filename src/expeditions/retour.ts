@@ -3,9 +3,9 @@
 // programmé au départ : le mécanisme unique du temps (src/temps/avancer.ts) l'applique à son instant exact, page ouverte,
 // à l'ouverture d'une page ou par la tâche planifiée, toujours avec le même résultat. Côté serveur uniquement.
 import "server-only";
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 import { reunirLesCouples } from "@/monde/couple";
-import { type Evenement, programmerEvenement } from "@/temps/avancer";
+import { deplacerEvenement, type Evenement, programmerEvenement } from "@/temps/avancer";
 import { accueillirLesBetesQuiSuivent } from "./arrivee-au-foyer";
 import { type HorairesDUneExpedition, retourDUneExpedition } from "./phase";
 import { raconterLeRetour } from "./recit-de-retour";
@@ -18,7 +18,7 @@ export const RETOUR_EXPEDITION = "retour_expedition";
  * retourDUneExpedition (src/expeditions/phase.ts), le seul calcul de cette heure. Au départ, dans sa transaction. Sans
  * trajet chiffré (US-0912), aucun : elle reste à l'aller.
  */
-export async function programmerLeRetour(client: PoolClient, territoireId: number, expeditionId: number, horaires: HorairesDUneExpedition): Promise<void> {
+export async function programmerLeRetour(client: Pool | PoolClient, territoireId: number, expeditionId: number, horaires: HorairesDUneExpedition): Promise<void> {
   const retour = retourDUneExpedition(horaires);
   if (retour) await programmerEvenement(client, "territoire", territoireId, retour, RETOUR_EXPEDITION, { expedition: expeditionId });
 }
@@ -26,17 +26,20 @@ export async function programmerLeRetour(client: PoolClient, territoireId: numbe
 /**
  * US-0920 : déplace le retour au Foyer de l'Expédition `expeditionId`, encore à venir, à l'heure que donnent ses horaires
  * nouveaux, une fois rappelée : retourDUneExpedition, toujours. Dans la transaction du rappel. Un seul retour reste
- * programmé ; s'il manquait (aucun retour en attente), il est programmé à cette heure.
+ * programmé ; s'il manquait (aucun retour en attente), il est programmé à cette heure. US-0945 : ou dans celle du temps
+ * qui avance, à la fuite de l'Expédition : il y reprend son rang à sa nouvelle heure (deplacerEvenement).
  */
-export async function deplacerLeRetour(client: PoolClient, territoireId: number, expeditionId: number, horaires: HorairesDUneExpedition): Promise<void> {
+export async function deplacerLeRetour(client: Pool | PoolClient, territoireId: number, expeditionId: number, horaires: HorairesDUneExpedition): Promise<void> {
   const retour = retourDUneExpedition(horaires);
   if (!retour) return;
-  const { rowCount } = await client.query(
-    `update evenement set survient_le = $4
+  const { rows } = await client.query<{ id: string }>(
+    `select id from evenement
      where element = 'territoire' and element_id = $1 and type = $2 and traite_le is null and donnees->>'expedition' = $3::text`,
-    [territoireId, RETOUR_EXPEDITION, expeditionId, retour],
+    [territoireId, RETOUR_EXPEDITION, expeditionId],
   );
-  if (rowCount === 0) await programmerLeRetour(client, territoireId, expeditionId, horaires);
+  // L'un après l'autre : sur le client d'une transaction, deux requêtes ne partent pas à la fois.
+  for (const { id } of rows) await deplacerEvenement(client, "territoire", territoireId, Number(id), retour);
+  if (rows.length === 0) await programmerLeRetour(client, territoireId, expeditionId, horaires);
 }
 
 /**

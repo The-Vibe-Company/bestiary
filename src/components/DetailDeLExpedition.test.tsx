@@ -168,6 +168,20 @@ describe("rappeler une Expédition (US-0920)", () => {
     expect(detail()["Retour prévu"]).toBe("9 octobre à 10:18");
   });
 
+  it("en fuite après un combat (US-0945), passe au retour avec la mention « en fuite », sans rien à rappeler", () => {
+    // Attaquée 1 h 30 après son arrivée : elle rentre en 1 h, comme rappelée en séjour.
+    const enFuite = { ...FORET, rappeleeLe: apres(60 + 90), enFuite: true };
+    render(<DetailDeLExpedition expedition={enFuite} instant={apres(60 + 100)} />);
+    expect(ligne().slice(2)).toEqual(["Retour · en fuite", "rentre dans 50 min"]);
+    expect(detail()["Retour prévu"]).toBe("9 octobre à 13:12");
+    expect(rappeler()).toBeNull();
+  });
+
+  it("rappelée par le joueur, elle n'est pas en fuite", () => {
+    render(<DetailDeLExpedition expedition={{ ...FORET, rappeleeLe: apres(60 + 90), enFuite: false }} instant={apres(60 + 100)} />);
+    expect(ligne().slice(2)).toEqual(["Retour", "rentre dans 50 min"]);
+  });
+
   it("n'a rien à rappeler tant que son trajet n'est pas chiffré (US-0912) : il n'y aurait pas de retour", () => {
     render(<DetailDeLExpedition expedition={{ ...FORET, trajetMinutes: null }} instant={apres(18)} />);
     expect(rappeler()).toBeNull();

@@ -702,7 +702,9 @@ export const beteDeNaissance = pgTable(
  * que la migration 0050 a rattrapée. Ses explorateurs la portent sur leur ligne (habitant.expedition_id). Elle part
  * avec le Territoire. US-0916 : rentrée au Foyer à `rentree_le`, un instant du jeu (null tant qu'elle est en cours), elle
  * n'est pas effacée : la présence sur sa Case (src/expeditions/presence.ts) la relit. US-0920 : rappelée par le joueur à
- * `rappelee_le`, un instant du jeu (null sans rappel), elle fait demi-tour aussitôt (src/expeditions/phase.ts).
+ * `rappelee_le`, un instant du jeu (null sans rappel), elle fait demi-tour aussitôt (src/expeditions/phase.ts). US-0945 :
+ * `en_fuite`, ce demi-tour est sa fuite après un combat, à l'instant de l'attaque (src/expeditions/fuite.ts), et non un
+ * rappel du joueur.
  */
 export const expedition = pgTable(
   "expedition",
@@ -719,6 +721,7 @@ export const expedition = pgTable(
     sejourMinutes: integer("sejour_minutes").notNull(),
     rentreeLe: timestamp("rentree_le", { withTimezone: true }),
     rappeleeLe: timestamp("rappelee_le", { withTimezone: true }),
+    enFuite: boolean("en_fuite").notNull().default(false),
   },
   (t) => [
     index("expedition_par_territoire").on(t.territoireId),
@@ -728,6 +731,8 @@ export const expedition = pgTable(
     check("expedition_sejour_positif", sql`${t.sejourMinutes} > 0`),
     // US-0920 : une Expédition ne se rappelle qu'une fois partie.
     check("expedition_rappelee_apres_son_depart", sql`${t.rappeleeLe} >= ${t.partLe}`),
+    // US-0945 : une Expédition en fuite a fait demi-tour, à l'instant de sa fuite.
+    check("expedition_en_fuite_a_fait_demi_tour", sql`not ${t.enFuite} or ${t.rappeleeLe} is not null`),
   ],
 );
 

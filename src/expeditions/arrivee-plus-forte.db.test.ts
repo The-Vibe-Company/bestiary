@@ -13,6 +13,7 @@ import { recitsDuTerritoire } from "@/monde/recits";
 import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
+import { attaqueTiree, effacerLExpedition } from "@/test/attaques";
 import { mondeDEssai, nomDEssai, poolDansLaTransaction, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { lExpeditionSuivie } from "./apprivoisement";
 import { chanceDAttaqueParHeure, instantDeLAttaque, type Regime } from "./attaque";
@@ -36,8 +37,11 @@ const JOUEURS = ["A", "B", "C", "D"] as const;
 
 /** Une Espèce telle que l'essai la choisit : la force d'une de ses Bêtes (US-0905) et son régime. */
 type Espece = { id: string; rareteId: string; force: number; regime: Regime };
-/** Une Expédition à poser : son joueur, son arrivée sur la Case, son séjour, et son escorte (Espèce, nombre), s'il en a une. */
-type APoser = { joueur: Joueur; arrivee: Date; sejour: number; escorte?: [Espece, number] };
+/**
+ * Une Expédition à poser : son joueur, son arrivée sur la Case, son séjour, et son escorte (Espèce, nombre), s'il en a une ;
+ * US-0945 : `attaquee`, que les tirages de la Bête l'attaquent avant l'arrivée des assez fortes, ce qui la fait fuir.
+ */
+type APoser = { joueur: Joueur; arrivee: Date; sejour: number; escorte?: [Espece, number]; attaquee?: boolean };
 /** Ce qu'une Expédition a vécu de la Bête : son identifiant, sa Rencontre et ses attaques subies. */
 type Vecue = { id: number; apprivoisee: boolean; vueLe: Date; attaques: Date[] };
 /** La manière de vivre le temps : les Territoires mis à l'heure dans l'ordre `ordre`, d'un bloc, ou toutes les `pas` minutes. */
@@ -92,6 +96,21 @@ describe.skipIf(!URL_TEST)("une Expédition assez forte arrive ensuite (US-0966,
     return rows[0].id;
   };
   /**
+   * L'Expédition `x` posée comme `poser`. US-0945 : sans escorte, la Bête, trop forte pour elle, ne l'attaque pas avant
+   * l'arrivée des Expéditions assez fortes : attaquée, elle fuirait, et ne serait plus sur la Case pour la perdre. Celle
+   * que ses tirages feraient attaquer avant est effacée avant de vivre, et une autre posée ; sauf `attaquee`, qui veut
+   * justement celle-là.
+   */
+  const poserSelonLAttaque = async (client: PoolClient, x: APoser) => {
+    for (let posees = 0; posees < 100; posees++) {
+      const id = await poser(client, x);
+      const ensemble = { debut: new Date(Math.max(bete.arrivee.getTime(), x.arrivee.getTime())), fin: ensuite() };
+      if (x.escorte || !!(await attaqueTiree(client, { caseId: laCase.id, especeId: bete.especeId, numero: bete.numero }, id, ensemble)) === !!x.attaquee) return id;
+      await effacerLExpedition(client, id);
+    }
+    throw new Error(`100 Expéditions posées, aucune ${x.attaquee ? "attaquée" : "épargnée"} avant l'arrivée des assez fortes.`);
+  };
+  /**
    * Les Expéditions `posees`, vécues dans une transaction annulée ensuite jusqu'au retour de toutes, à la manière
    * `maniere` : pour chacune, sa Rencontre de la Bête et ses attaques subies ; pour chaque joueur, ses Récits de retour,
    * l'effectif de l'Espèce de la Bête et son état au Bestiaire.
@@ -102,7 +121,7 @@ describe.skipIf(!URL_TEST)("une Expédition assez forte arrive ensuite (US-0966,
       await client.query("begin");
       const jeu = poolDansLaTransaction(client);
       const ids: number[] = [];
-      for (const x of posees) ids.push(await poser(client, x));
+      for (const x of posees) ids.push(await poserSelonLAttaque(client, x));
       const fin = apres(new Date(Math.max(...posees.map((x) => retourDUneExpedition(arriveeA(x.arrivee, x.sejour))!.getTime()))), HEURE);
       const instants = [fin];
       if (pas) for (let t = apres(bete.arrivee, -2 * HEURE); t < fin; t = apres(t, pas)) instants.splice(-1, 0, t);
@@ -146,7 +165,8 @@ describe.skipIf(!URL_TEST)("une Expédition assez forte arrive ensuite (US-0966,
   /**
    * Les attaques que l'Expédition `x` de A, vue la Bête à son apparition, doit avoir subies : la première que lui promettent
    * ses tirages si elles étaient restées ensemble jusqu'au départ de la Bête à la fin de sa durée (instantDeLAttaque),
-   * seulement si elle tombe avant l'arrivée de l'Expédition assez forte, qui l'emmène : après, plus aucune.
+   * seulement si elle tombe avant l'arrivée de l'Expédition assez forte, qui l'emmène : après, plus aucune. US-0945 :
+   * posée épargnée jusque-là (poserSelonLAttaque), elle n'en a aucune ; attaquée, elle fuit, une seule fois.
    */
   const attaquesAttendues = (x: Vecue) => {
     const promise = instantDeLAttaque({ debut: bete.arrivee, fin: bete.depart }, chanceDAttaqueParHeure(espece.regime), (heure) =>
@@ -240,6 +260,25 @@ describe.skipIf(!URL_TEST)("une Expédition assez forte arrive ensuite (US-0966,
       expect(sansLeHasard(autre), JSON.stringify(maniere)).toEqual(sansLeHasard(vecue));
       expect(autre.vecues[0].attaques, JSON.stringify(maniere)).toEqual(attaquesAttendues(autre.vecues[0]));
     }
+  }, 120_000);
+
+  it("attaquée avant l'arrivée de l'Expédition assez forte, celle déjà présente fuit, et la Bête, restée, suit ensuite l'autre (US-0945)", async () => {
+    const posees = [{ ...premiere(), attaquee: true }, assezForte("B")];
+    const { vecues, joueurs } = await vivre(posees, { ordre: ["A", "B"] });
+    // A fuit à l'instant de l'attaque, avant l'arrivée de B ; la Bête n'était pas encore partie.
+    expect(vecues[0].attaques).toEqual(attaquesAttendues(vecues[0]));
+    expect(vecues[0].attaques).toHaveLength(1);
+    expect(vecues[0].attaques[0] < ensuite()).toBe(true);
+    // B arrive ensuite, assez fort : elle le suit, et il la ramène.
+    expect(vecues.map(({ apprivoisee, vueLe }) => ({ apprivoisee, vueLe }))).toEqual([
+      { apprivoisee: false, vueLe: bete.arrivee },
+      { apprivoisee: true, vueLe: ensuite() },
+    ]);
+    expect([joueurs.B.effectif, joueurs.B.etat]).toEqual([1, "apprivoisee"]);
+    expect([joueurs.A.effectif, joueurs.A.etat]).toEqual([0, "croisee"]);
+    // A était déjà parti quand elle a suivi B : pour lui, elle est restée, et son récit ne dit pas qu'elle a suivi une autre.
+    expect(rencontreDuRecit(joueurs.A.recits, posees[0].arrivee)).toMatchObject({ issue: "restee" });
+    expect(joueurs.A.recits[0].texte.split("\n")).not.toContain(`${await nomDeLEspece()} a suivi une autre Expédition.`);
   }, 120_000);
 
   it("une Expédition assez forte du même joueur arrive ensuite : la Bête la suit, et l'autre Expédition du joueur la perd", async () => {

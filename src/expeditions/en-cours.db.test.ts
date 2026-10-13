@@ -82,8 +82,9 @@ describe.skipIf(!URL_TEST)("le détail des Expéditions en cours (US-0918, sur b
         partLe: INSTANT,
         trajetMinutes: 3 * PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE,
         sejourMinutes: 240,
-        // US-0920 : pas rappelée.
+        // US-0920 : pas rappelée ; US-0945 : pas en fuite.
         rappeleeLe: null,
+        enFuite: false,
         explorateurs: ["Joran", "Ines"],
         escorte: [],
       },

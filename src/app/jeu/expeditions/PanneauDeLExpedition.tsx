@@ -57,6 +57,8 @@ function debutDeLaPhase(expedition: ExpeditionEnCours, phase: Phase): Date | nul
  * US-0920 : au pied de son détail, « Rappeler », à l'aller comme en séjour : elle fait demi-tour, et la page relue la
  * montre au retour, d'où le bouton disparaît. Il attend la réponse du serveur, grisé : un double clic ne la rappelle
  * qu'une fois. Sans trajet chiffré (US-0912), aucun retour, donc rien à rappeler.
+ *
+ * US-0945 : en fuite après un combat, elle est au retour avec la mention « en fuite », comme sur la carte.
  */
 export function PanneauDeLExpedition({ expedition, instant, serre = false }: { expedition: ExpeditionEnCours; instant: Date; serre?: boolean }) {
   const [deplie, setDeplie] = useState(false);
@@ -86,6 +88,7 @@ export function PanneauDeLExpedition({ expedition, instant, serre = false }: { e
           <span className={styles.puce}>
             <span id={id("phase")} className={styles.phase}>
               {PHASES[phase]}
+              {phase === "retour" && expedition.enFuite ? " · en fuite" : null}
             </span>
             <span id={id("reste")} className={styles.reste}>
               {reste === null ? (

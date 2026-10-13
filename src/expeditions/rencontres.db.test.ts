@@ -9,10 +9,12 @@ import { PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE, PRESENCE_D_UNE_BETE_HEURES } fro
 import { rattraperLesAbsents } from "@/temps/absents";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
+import { effacerLExpedition, epargneePar } from "@/test/attaques";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { lExpeditionSuivie } from "./apprivoisement";
 import { cheminDUneExpedition } from "./chemin";
 import { lancerLExpedition } from "./depart";
+import { type HorairesDUneExpedition, sejourDUneExpedition } from "./phase";
 import { rencontresDUneExpedition } from "./rencontres";
 
 const MINUTE_MS = 60_000;
@@ -78,6 +80,23 @@ describe.skipIf(!URL_TEST)("la Rencontre (US-0932, sur base)", () => {
     const depart = await lancerLExpedition(pool, territoireId, { destination, explorateurs: 1, escorte: new Map(), sejourMinutes }, instant);
     if (!("expeditionId" in depart)) throw new Error(depart.refus);
     return depart.expeditionId;
+  };
+  /**
+   * US-0945 : comme partir, une Expédition qu'aucune Bête plus rare de la Case `caseId` (`betes`) n'attaque pendant son
+   * séjour : attaquée, elle fuirait (src/expeditions/fuite.ts) et rentrerait plus tôt. Celle qu'une Bête attaquerait est
+   * effacée avant de vivre, et une autre lancée, avec ses propres tirages.
+   */
+  const partirEpargnee = async (territoireId: number, destination: Coordonnees, instant: Date, sejourMinutes: number, caseId: number, betes: BeteSauvage[]) => {
+    for (let lancees = 0; lancees < 100; lancees++) {
+      const id = await partir(territoireId, destination, instant, sejourMinutes);
+      const { rows } = await pool.query<HorairesDUneExpedition>(
+        'select part_le as "partLe", trajet_minutes as "trajetMinutes", sejour_minutes as "sejourMinutes" from expedition where id = $1',
+        [id],
+      );
+      if (await epargneePar(pool, caseId, betes, id, sejourDUneExpedition(rows[0])!)) return id;
+      await effacerLExpedition(pool, id);
+    }
+    throw new Error("100 Expéditions lancées, toutes attaquées.");
   };
   /**
    * Une Expédition du Territoire vers la Case `caseId`, telle qu'un départ la poserait en base, avec les horaires donnés,
@@ -160,7 +179,7 @@ describe.skipIf(!URL_TEST)("la Rencontre (US-0932, sur base)", () => {
     const { place, caseId, bete } = await uneBeteSeule(territoireId, 2, apres(ne, 3 * JOUR));
     // Elle arrive une heure avant la Bête, et reste quatre heures.
     const depart = apres(bete.arrivee, -ALLER - HEURE);
-    const id = await partir(territoireId, place, depart, 4 * HEURE);
+    const id = await partirEpargnee(territoireId, place, depart, 4 * HEURE, caseId, [bete]);
 
     await rattraperA(territoireId, bete.arrivee);
     expect(await rencontres(id)).toEqual([]);
@@ -328,10 +347,22 @@ describe.skipIf(!URL_TEST)("la Rencontre (US-0932, sur base)", () => {
     // même instant, tirée au sort (US-0963), et quitte la Case (US-0935) : chaque
     // façon de compter le temps y passe seule, puis la Case redevient ce qu'elle était, sans ses Expéditions ni la trace
     // des Bêtes parties avec elles.
+    // US-0945 : chaque Expédition posée est épargnée par les Bêtes plus rares, trop fortes pour elle : attaquée, elle
+    // fuirait à l'heure de ses propres tirages, qui changent d'un Territoire à l'autre. Celle qu'une Bête attaquerait est
+    // effacée, et une autre posée.
+    const toutes = await betesSauvagesDUneCase(pool, caseId, debut, fin);
+    const poserEpargnee = async (territoireId: number, partLe: Date, trajet: number, sejour: number) => {
+      for (let posees = 0; posees < 100; posees++) {
+        const id = await poser(territoireId, caseId, partLe, trajet, sejour);
+        if (await epargneePar(pool, caseId, toutes, id, { debut: apres(partLe, trajet), fin: apres(partLe, trajet + sejour) })) return id;
+        await pool.query("delete from expedition where id = $1", [id]);
+      }
+      throw new Error("100 Expéditions posées, toutes attaquées.");
+    };
     const vues = [];
     for (const [k, { territoireId }] of territoires.entries()) {
       const ids: number[] = [];
-      for (const [partie, trajet, sejour] of HORAIRES) ids.push(await poser(territoireId, caseId, apres(debut, partie), trajet, sejour));
+      for (const [partie, trajet, sejour] of HORAIRES) ids.push(await poserEpargnee(territoireId, apres(debut, partie), trajet, sejour));
       await facons[k](territoireId);
       vues.push(await Promise.all(ids.map(rencontres)));
       await pool.query("delete from expedition where id = any($1::int[])", [ids]);

@@ -267,8 +267,9 @@ describe.skipIf(!URL_TEST)("rappeler une Expédition (US-0920, sur base)", () =>
     const { territoireId, ne } = await naitre();
     const autre = await naitre();
     const depart = apres(ne, MINUTE);
-    const expeditionId = await partir(territoireId, await uneCase(territoireId), depart);
     const finDuSejour = apres(depart, (ALLER + SEJOUR) * MINUTE);
+    // US-0945 : sur une Case où rien ne se montre, aucune Bête ne l'attaque, et elle ne fuit pas avant la fin du séjour.
+    const expeditionId = await partir(territoireId, await uneCaseCalme(territoireId, apres(depart, ALLER * MINUTE), finDuSejour), depart);
 
     expect(await rappelerLExpedition(pool, autre.territoireId, expeditionId, apres(depart, MINUTE))).toEqual({ refus: RAPPEL_SANS_EXPEDITION });
     expect(await rappelerLExpedition(pool, territoireId, expeditionId + 1_000_000, apres(depart, MINUTE))).toEqual({ refus: RAPPEL_SANS_EXPEDITION });

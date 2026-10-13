@@ -1,7 +1,8 @@
 // US-0943 : la Bête trop forte, restée sur sa Case (US-0942), peut attaquer l'Expédition qui la voit tant que toutes deux y
 // sont, à l'heure que disent ses tirages : la même page ouverte, au retour du joueur ou par la tâche planifiée, une seule
 // fois ; jamais après le rappel de l'Expédition, ni après avoir suivi une autre Expédition ; celle qui n'attaque pas laisse
-// l'Expédition finir son séjour normalement. Le combat (US-0944) et la fuite (US-0945) viendront ensuite.
+// l'Expédition finir son séjour normalement. Le combat (US-0944) et la fuite (US-0945) suivent l'attaque
+// (src/expeditions/combat.db.test.ts).
 import type { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
@@ -19,7 +20,7 @@ import { chanceDAttaqueParHeure, instantDeLAttaque, type Regime } from "./attaqu
 import { lancerLExpedition } from "./depart";
 import { forceDUneBete } from "./force";
 import { type HorairesDUneExpedition, retourDUneExpedition } from "./phase";
-import { rappelerLExpedition } from "./rappel";
+import { RAPPEL_DEJA_AU_RETOUR, rappelerLExpedition } from "./rappel";
 import { attaquesSubies, rencontresDUneExpedition } from "./rencontres";
 
 const MINUTE_MS = 60_000;
@@ -260,7 +261,7 @@ describe.skipIf(!URL_TEST)("la Bête trop forte peut attaquer (US-0943, sur base
     60_000,
   );
 
-  it("rappelée avant que la Bête l'attaque, l'Expédition n'est plus attaquée ; rappelée après, l'attaque reste", async () => {
+  it("rappelée avant que la Bête l'attaque, l'Expédition n'est plus attaquée ; attaquée, elle a fui et ne se rappelle plus (US-0945), l'attaque reste", async () => {
     const chef = await naitrePresDUneBeteRare();
     // Deux Expéditions attaquées : la première l'est, la seconde l'aurait été plus de deux minutes après, et plus d'une
     // minute après son arrivée.
@@ -271,9 +272,9 @@ describe.skipIf(!URL_TEST)("la Bête trop forte peut attaquer (US-0943, sur base
     };
     const [premiere, seconde] = lesDeux(await lancerJusqua(chef, (xs) => lesDeux(xs) !== null))!;
 
-    // La première, rappelée une minute après son attaque ; la seconde, une minute avant la sienne.
+    // La première, une minute après son attaque, a déjà fui : elle ne se rappelle plus ; la seconde, rappelée une minute avant la sienne.
     await rattraperA(chef.territoireId, apres(premiere.promise!, 1));
-    expect(await rappelerLExpedition(pool, chef.territoireId, premiere.id, apres(premiere.promise!, 1))).toEqual({ rappeleeLe: apres(premiere.promise!, 1) });
+    expect(await rappelerLExpedition(pool, chef.territoireId, premiere.id, apres(premiere.promise!, 1))).toEqual({ refus: RAPPEL_DEJA_AU_RETOUR });
     await rattraperA(chef.territoireId, apres(seconde.promise!, -1));
     expect(await rappelerLExpedition(pool, chef.territoireId, seconde.id, apres(seconde.promise!, -1))).toEqual({ rappeleeLe: apres(seconde.promise!, -1) });
     await rattraperA(chef.territoireId, apres(chef.bete.depart, JOUR));

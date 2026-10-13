@@ -11,6 +11,7 @@ import { rattraperLesAbsents } from "@/temps/absents";
 import { formaterMinutes } from "@/temps/affichage";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
+import { effacerLExpedition, epargneePar } from "@/test/attaques";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { dureeDuTrajetMinutes } from "./allure";
 import { lancerLExpedition } from "./depart";
@@ -120,7 +121,7 @@ describe.skipIf(!URL_TEST)("le récit de retour d'une Expédition (US-0917, sur 
         const montrees = betes.get(c.id)!.filter((b) => b.arrivee < apres(arrivee, sejour * MINUTE) && b.depart > arrivee);
         if (conviennent(montrees)) {
           prises.add(c.id);
-          return { destination: { q: c.q, r: c.r }, depart, montrees };
+          return { caseId: c.id, destination: { q: c.q, r: c.r }, depart, montrees };
         }
       }
     }
@@ -156,14 +157,32 @@ describe.skipIf(!URL_TEST)("le récit de retour d'une Expédition (US-0917, sur 
       }
     }
   };
-  /** Un explorateur, sans escorte, part à `depart` vers `destination` pour `sejour` minutes : l'Expédition et l'instant de son retour. */
-  const partir = async (territoireId: number, destination: Coordonnees, depart: Date, sejour = 60, escorte: EscorteDEssai | null = null) => {
+  /**
+   * Un explorateur, sans escorte, part à `depart` vers `destination` pour `sejour` minutes : l'Expédition et l'instant de
+   * son retour. US-0945 : avec `menaces`, les Bêtes de sa Case, une Expédition qu'aucune plus rare n'attaque : attaquée,
+   * elle fuirait (src/expeditions/fuite.ts), et ces essais racontent un séjour mené à son terme. Celle qu'une Bête
+   * attaquerait est effacée avant de vivre, et une autre lancée, avec ses propres tirages.
+   */
+  const partir = async (
+    territoireId: number,
+    destination: Coordonnees,
+    depart: Date,
+    sejour = 60,
+    escorte: EscorteDEssai | null = null,
+    menaces?: { caseId: number; montrees: BeteSauvage[] },
+  ) => {
     // US-0942 : ou avec une escorte, `nombre` Bêtes de l'Espèce `especeId`, à son allure.
     const choix = { destination, explorateurs: 1, escorte: new Map(escorte ? [[escorte.especeId, escorte.nombre]] : []), sejourMinutes: sejour };
-    const resultat = await lancerLExpedition(pool, territoireId, choix, depart);
-    if (!("expeditionId" in resultat)) throw new Error(resultat.refus);
     const horaires = { partLe: depart, trajetMinutes: escorte?.aller ?? ALLER, sejourMinutes: sejour };
-    return { expeditionId: resultat.expeditionId, retour: retourDUneExpedition(horaires)!, arrivee: sejourDUneExpedition(horaires)!.debut };
+    for (let lancees = 0; lancees < 100; lancees++) {
+      const resultat = await lancerLExpedition(pool, territoireId, choix, depart);
+      if (!("expeditionId" in resultat)) throw new Error(resultat.refus);
+      if (!menaces || (await epargneePar(pool, menaces.caseId, menaces.montrees, resultat.expeditionId, sejourDUneExpedition(horaires)!))) {
+        return { expeditionId: resultat.expeditionId, retour: retourDUneExpedition(horaires)!, arrivee: sejourDUneExpedition(horaires)!.debut };
+      }
+      await effacerLExpedition(pool, resultat.expeditionId);
+    }
+    throw new Error("100 Expéditions lancées, toutes attaquées.");
   };
   /** Le Territoire mis à l'heure du jeu `instant`, comme à l'ouverture d'une page : le mécanisme unique du temps. */
   const aLHeure = (territoireId: number, instant: Date) => rattraper("territoire", territoireId, { pool, jusqua: instant });
@@ -267,8 +286,8 @@ describe.skipIf(!URL_TEST)("le récit de retour d'une Expédition (US-0917, sur 
   });
 
   it("quand seule une Bête plus rare s'est montrée, sans escorte, le récit nomme son Espèce, dit qu'aucune Bête n'a suivi, trop forte, et qu'il manquait toute sa force (US-0935, US-0942)", async () => {
-    const { territoireId, destination, depart } = await naitreAvecUnSejourOu((b) => b.rareteId !== "commune");
-    const { expeditionId, retour } = await partir(territoireId, destination, depart, 240);
+    const { territoireId, caseId, destination, depart, montrees } = await naitreAvecUnSejourOu((b) => b.rareteId !== "commune");
+    const { expeditionId, retour } = await partir(territoireId, destination, depart, 240, null, { caseId, montrees });
 
     await aLHeure(territoireId, retour);
     const [vue] = await rencontresDUneExpedition(pool, expeditionId);
@@ -283,9 +302,9 @@ describe.skipIf(!URL_TEST)("le récit de retour d'une Expédition (US-0917, sur 
     // Deux Souris grises, communes de force 473 (US-0905), font l'escorte.
     const faible = await uneEspece("souris");
     const escorte = { especeId: faible.id, nombre: 2, aller: dureeDuTrajetMinutes(ECART, [{ vitesse: faible.vitesse, nombre: 2 }]) };
-    const { territoireId, destination, depart, montrees } = await naitreEtUnSejourOu((m) => m.length === 1 && m[0].rareteId !== "commune", { aller: escorte.aller });
+    const { territoireId, caseId, destination, depart, montrees } = await naitreEtUnSejourOu((m) => m.length === 1 && m[0].rareteId !== "commune", { aller: escorte.aller });
     await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, $2, 'male', 2)", [territoireId, faible.id]);
-    const { expeditionId, retour } = await partir(territoireId, destination, depart, 240, escorte);
+    const { expeditionId, retour } = await partir(territoireId, destination, depart, 240, escorte, { caseId, montrees });
 
     await aLHeure(territoireId, retour);
     expect((await rencontresDUneExpedition(pool, expeditionId)).map((r) => r.apprivoisee)).toEqual([false]);
@@ -298,11 +317,11 @@ describe.skipIf(!URL_TEST)("le récit de retour d'une Expédition (US-0917, sur 
 
   it("quand une Bête commune a suivi et qu'une plus rare est restée, une ligne dit celle qui n'a pas suivi, trop forte, et de combien (US-0942)", async () => {
     // Un séjour de douze heures, sans escorte, où se montrent une Bête plus rare et au moins une commune.
-    const { territoireId, destination, depart, montrees } = await naitreEtUnSejourOu(
+    const { territoireId, caseId, destination, depart, montrees } = await naitreEtUnSejourOu(
       (m) => m.filter((b) => b.rareteId !== "commune").length === 1 && m.some((b) => b.rareteId === "commune"),
       { sejour: 12 * 60 },
     );
-    const { expeditionId, retour } = await partir(territoireId, destination, depart, 12 * 60);
+    const { expeditionId, retour } = await partir(territoireId, destination, depart, 12 * 60, null, { caseId, montrees });
 
     await aLHeure(territoireId, retour);
     const vues = await rencontresDUneExpedition(pool, expeditionId);

@@ -8,6 +8,7 @@ import { recitsDuTerritoire } from "@/monde/recits";
 import { ABORDS_DU_FOYER_CASES, PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE } from "@/reglages";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
+import { effacerLExpedition, epargneePar } from "@/test/attaques";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { lancerLExpedition } from "./depart";
 import { forceDUneBete } from "./force";
@@ -91,13 +92,25 @@ describe.skipIf(!URL_TEST)("le récit de Rencontre (US-0940, sur base)", () => {
     }
     throw new Error(`Aucun séjour à ${ECART} Cases tel que l'essai le veut, en trois naissances.`);
   };
-  /** Un explorateur, sans escorte, part à `depart` vers `destination` : l'Expédition et l'instant de son retour. */
-  const partir = async (territoireId: number, destination: Coordonnees, depart: Date) => {
-    const resultat = await lancerLExpedition(pool, territoireId, { destination, explorateurs: 1, escorte: new Map(), sejourMinutes: SEJOUR }, depart);
-    if (!("expeditionId" in resultat)) throw new Error(resultat.refus);
+  /**
+   * Un explorateur, sans escorte, part à `depart` vers `destination` : l'Expédition et l'instant de son retour. US-0945 :
+   * une Expédition qu'aucune des Bêtes plus rares de son séjour (`menaces`, sur la Case `caseId`) n'attaque : attaquée,
+   * elle fuirait (src/expeditions/fuite.ts), et ces essais racontent un séjour mené à son terme. Celle qu'une Bête
+   * attaquerait est effacée avant de vivre, et une autre lancée, avec ses propres tirages.
+   */
+  const partir = async (territoireId: number, destination: Coordonnees, depart: Date, menaces?: { caseId: number; betes: BeteSauvage[] }) => {
     const horaires = { partLe: depart, trajetMinutes: ALLER, sejourMinutes: SEJOUR };
-    expect(sejourDUneExpedition(horaires)!.debut).toEqual(apres(depart, ALLER * MINUTE));
-    return { expeditionId: resultat.expeditionId, retour: retourDUneExpedition(horaires)! };
+    const sejour = sejourDUneExpedition(horaires)!;
+    expect(sejour.debut).toEqual(apres(depart, ALLER * MINUTE));
+    for (let lancees = 0; lancees < 100; lancees++) {
+      const resultat = await lancerLExpedition(pool, territoireId, { destination, explorateurs: 1, escorte: new Map(), sejourMinutes: SEJOUR }, depart);
+      if (!("expeditionId" in resultat)) throw new Error(resultat.refus);
+      if (!menaces || (await epargneePar(pool, menaces.caseId, menaces.betes, resultat.expeditionId, sejour))) {
+        return { expeditionId: resultat.expeditionId, retour: retourDUneExpedition(horaires)! };
+      }
+      await effacerLExpedition(pool, resultat.expeditionId);
+    }
+    throw new Error("100 Expéditions lancées, toutes attaquées.");
   };
   /** Le Territoire mis à l'heure du jeu `instant`, comme à l'ouverture d'une page : le mécanisme unique du temps. */
   const aLHeure = (territoireId: number, instant: Date) => rattraper("territoire", territoireId, { pool, jusqua: instant });
@@ -161,8 +174,8 @@ describe.skipIf(!URL_TEST)("le récit de Rencontre (US-0940, sur base)", () => {
   });
 
   it("une Bête plus rare encore là à la fin du séjour : trop forte pour l'Expédition sans escorte, restée sur sa Case", async () => {
-    const { territoireId, destination, depart, arrivee, montrees } = await unSejourOu((m, _arrivee, fin) => m.length === 1 && !commune(m[0]) && m[0].depart >= fin);
-    const { retour } = await partir(territoireId, destination, depart);
+    const { territoireId, caseId, destination, depart, arrivee, montrees } = await unSejourOu((m, _arrivee, fin) => m.length === 1 && !commune(m[0]) && m[0].depart >= fin);
+    const { retour } = await partir(territoireId, destination, depart, { caseId, betes: montrees });
 
     await aLHeure(territoireId, retour);
     const [bete] = montrees;
@@ -188,7 +201,7 @@ describe.skipIf(!URL_TEST)("le récit de Rencontre (US-0940, sur base)", () => {
     const { territoireId, caseId, destination, depart, arrivee, montrees } = await unSejourOu(
       (m, arrivee, fin) => m.length === 1 && !commune(m[0]) && m[0].depart >= fin && Math.max(m[0].arrivee.getTime(), arrivee.getTime()) < fin.getTime() - 2 * HEURE,
     );
-    const { retour } = await partir(territoireId, destination, depart);
+    const { retour } = await partir(territoireId, destination, depart, { caseId, betes: montrees });
     const [bete] = montrees;
     // Une heure après que l'Expédition l'a vue, celle d'un voisin arrive sur la Case, avec une escorte assez forte pour elle.
     const emmenee = apres(bete.arrivee > arrivee ? bete.arrivee : arrivee, HEURE);
@@ -215,7 +228,8 @@ describe.skipIf(!URL_TEST)("le récit de Rencontre (US-0940, sur base)", () => {
   it("une Bête plus rare emmenée par le voisin à l'instant même où l'Expédition quitte sa Case : restée tant qu'elle y était, pas emmenée (US-0964)", async () => {
     // Une Bête plus rare encore là après la fin du séjour.
     const { territoireId, caseId, destination, depart, fin, montrees } = await unSejourOu((m, _arrivee, fin) => m.length === 1 && !commune(m[0]) && m[0].depart > fin);
-    const { retour } = await partir(territoireId, destination, depart);
+    // US-0945 : épargnée par la Bête jusqu'à la fin du séjour : attaquée, elle fuirait avant, et l'égalité ne se jouerait pas.
+    const { retour } = await partir(territoireId, destination, depart, { caseId, betes: montrees });
     const [bete] = montrees;
     // L'Expédition d'un voisin, assez forte pour elle, arrive sur la Case à l'instant où celle du joueur en repart.
     const voisin = await naitre();
@@ -242,8 +256,8 @@ describe.skipIf(!URL_TEST)("le récit de Rencontre (US-0940, sur base)", () => {
   });
 
   it("une Bête plus rare partie de sa Case avant la fin du séjour : repartie à la fin de sa durée, à son heure ; l'Expédition finit son séjour sans plus être attaquée (US-0950)", async () => {
-    const { territoireId, destination, depart, arrivee, fin, montrees } = await unSejourOu((m, _arrivee, fin) => m.length === 1 && !commune(m[0]) && m[0].depart < fin);
-    const { expeditionId, retour } = await partir(territoireId, destination, depart);
+    const { territoireId, caseId, destination, depart, arrivee, fin, montrees } = await unSejourOu((m, _arrivee, fin) => m.length === 1 && !commune(m[0]) && m[0].depart < fin);
+    const { expeditionId, retour } = await partir(territoireId, destination, depart, { caseId, betes: montrees });
 
     await aLHeure(territoireId, retour);
     const [bete] = montrees;
@@ -266,8 +280,8 @@ describe.skipIf(!URL_TEST)("le récit de Rencontre (US-0940, sur base)", () => {
   }, 60_000);
 
   it("plusieurs Bêtes vues : chacune à son heure, dans l'ordre des apparitions, avec ce qu'il en advint", async () => {
-    const { territoireId, destination, depart, arrivee, fin, montrees } = await unSejourOu((m) => m.length >= 2);
-    const { expeditionId, retour } = await partir(territoireId, destination, depart);
+    const { territoireId, caseId, destination, depart, arrivee, fin, montrees } = await unSejourOu((m) => m.length >= 2);
+    const { expeditionId, retour } = await partir(territoireId, destination, depart, { caseId, betes: montrees });
 
     await aLHeure(territoireId, retour);
     const recit = await leRecit(territoireId);

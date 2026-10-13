@@ -6,6 +6,7 @@ import { type BeteSauvage, betesSauvagesDUneCase } from "@/monde/betes-sauvages"
 import { type Coordonnees, distance } from "@/monde/hex";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
+import { epargneePar } from "@/test/attaques";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { dureeDuTrajetMinutes } from "./allure";
 import { lancerLExpedition } from "./depart";
@@ -111,6 +112,19 @@ describe.skipIf(!URL_TEST)("une Bête à la fois (US-0936, sur base)", () => {
     await pool.query("insert into expedition_escorte (expedition_id, espece_id, nombre) values ($1, $2, 1)", [rows[0].id, faible.id]);
     return rows[0].id;
   };
+  /**
+   * US-0945 : comme poser, une Expédition qu'aucune des Bêtes plus fortes qu'elle parmi `betes` n'attaque pendant son
+   * séjour : attaquée, elle fuirait (src/expeditions/fuite.ts), et ne verrait pas les Bêtes suivantes. Celle qu'une Bête
+   * attaquerait est effacée, et une autre posée, avec ses propres tirages.
+   */
+  const poserEpargnee = async (territoireId: number, caseId: number, arrivee: Date, sejourMinutes: number, betes: BeteSauvage[]) => {
+    for (let posees = 0; posees < 100; posees++) {
+      const id = await poser(territoireId, caseId, arrivee, sejourMinutes);
+      if (await epargneePar(pool, caseId, betes, id, { debut: arrivee, fin: apres(arrivee, sejourMinutes) })) return id;
+      await pool.query("delete from expedition where id = $1", [id]);
+    }
+    throw new Error("100 Expéditions posées, toutes attaquées.");
+  };
   /** Le Territoire mis à l'heure du jeu `instant`, comme à l'ouverture d'une page : le mécanisme unique du temps. */
   const rattraperA = (territoireId: number, instant: Date) => rattraper("territoire", territoireId, { pool, jusqua: instant });
   /** Ce que l'Expédition a vu, Rencontre par Rencontre, dans l'ordre où le jeu les donne : la Bête, l'instant, et si elle a suivi. */
@@ -187,7 +201,7 @@ describe.skipIf(!URL_TEST)("une Bête à la fois (US-0936, sur base)", () => {
         presentes.filter(commune).length >= 2 &&
         presentes.findLastIndex((b) => !commune(b)) < presentes.findIndex(commune),
     );
-    const id = await poser(territoireId, caseId, arrivee, JOUR);
+    const id = await poserEpargnee(territoireId, caseId, arrivee, JOUR, betes);
     await rattrapage(territoireId, apres(arrivee, -HEURE), apres(arrivee, JOUR + HEURE));
     return {
       vues: { rencontres: await vues(id), parties: await parties(caseId) },

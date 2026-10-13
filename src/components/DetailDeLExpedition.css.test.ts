@@ -11,6 +11,10 @@ const regle = (selecteur: string, texte = CSS) => texte.match(new RegExp(`(?:^|\
 describe("le détail d'une Expédition sur un téléphone (US-0918)", () => {
   const mobile = CSS.match(/@media \(max-width: 820px\), \(max-height: 500px\) \{([\s\S]*?)\n\}/)?.[1] ?? "";
 
+  it("dit sa phase dans la puce du kit (src/components/kit.module.css), sans couleur à elle : le bleu du ciel est celui des Bêtes rares", () => {
+    expect(regle(".phase")).not.toMatch(/background|color|--ciel/);
+  });
+
   it("sur ordinateur, se lit tout entier : la destination se plie, la phase et le temps restant gardent leur place, rien à déplier", () => {
     expect(regle(".ligne")).toContain("grid-template-columns: minmax(0, 1fr) auto auto;");
     expect(regle(".destination")).toContain("overflow-wrap: anywhere;");

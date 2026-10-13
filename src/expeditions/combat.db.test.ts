@@ -1,7 +1,8 @@
 // US-0944 : quand une Bête trop forte attaque une Expédition (US-0943), le combat se règle par la somme des forces : la
 // Bête l'emporte, l'escorte perd des Bêtes au prorata de ses Espèces, à l'instant de l'attaque, et elles quittent
 // l'effectif ; jamais les explorateurs, ni les Bêtes restées au Foyer, ni les Couples ; la Bête reste sur sa Case. Les
-// mêmes pertes page ouverte, au retour du joueur ou par la tâche planifiée.
+// mêmes pertes page ouverte, au retour du joueur ou par la tâche planifiée. US-0945 : puis l'Expédition fuit : elle
+// abandonne son séjour et rentre aussitôt au Foyer, avec tous ses explorateurs et les Bêtes qui lui restent.
 import type { Pool, PoolClient } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
@@ -14,7 +15,7 @@ import { type Coordonnees, distance } from "@/monde/hex";
 import { recitsDuTerritoire } from "@/monde/recits";
 import { PRESENCE_D_UNE_BETE_HEURES, RATTRAPER_APRES_MINUTES } from "@/reglages";
 import { rattraperLesAbsents } from "@/temps/absents";
-import { formaterJourEtHeure } from "@/temps/affichage";
+import { formaterJourEtHeure, formaterMinutes } from "@/temps/affichage";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
 import { mondeDEssai, nomDEssai, poolDansLaTransaction, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
@@ -26,6 +27,8 @@ import { subirLesCombats } from "./pertes";
 import { expeditionsEnCours } from "./en-cours";
 import { forceDUneBete } from "./force";
 import { retourDUneExpedition } from "./phase";
+import { expeditionsPresentesSurLaCase } from "./presence";
+import { RAPPEL_DEJA_AU_RETOUR, rappelerLExpedition } from "./rappel";
 import { raconterLeRetour } from "./recit-de-retour";
 import { combatsDUneExpedition } from "./recit-du-combat";
 import { attaquesSubies } from "./rencontres";
@@ -50,8 +53,11 @@ const MONDE_D_ESSAI = "Essai du combat (US-0944)";
 type Espece = { id: string; vitesse: number; force: number; regime: Regime };
 /** Un chef né près d'une Bête rare seule : son Territoire, sa naissance, son Foyer, la Case de la Bête et la Bête. */
 type Chef = { territoireId: number; ne: Date; foyer: Coordonnees; place: Coordonnees; caseId: number; bete: BeteSauvage };
-/** Une Expédition de l'essai : son identifiant, son départ, son retour prévu, et l'instant où la Bête l'attaque (null : jamais). */
-type Lancee = { id: number; partLe: Date; retour: Date; attaque: Date | null };
+/**
+ * Une Expédition de l'essai : son identifiant, son départ, son aller en minutes, son retour prévu au départ, et l'instant
+ * où la Bête l'attaque (null : jamais).
+ */
+type Lancee = { id: number; partLe: Date; aller: number; retour: Date; attaque: Date | null };
 
 describe.skipIf(!URL_TEST)("le combat par la somme des forces (US-0944, sur base)", () => {
   let pool: Pool;
@@ -175,7 +181,7 @@ describe.skipIf(!URL_TEST)("le combat par la somme des forces (US-0944, sur base
         chanceDAttaqueParHeure(especes.get(chef.bete.especeId)!.regime),
         (heure) => hasardsDeLAttaque({ graine, ...chef.place }, chef.bete.numero, id, heure),
       );
-      lancees.push({ id, partLe, retour: retourDUneExpedition({ partLe, trajetMinutes: aller, sejourMinutes: SEJOUR })!, attaque });
+      lancees.push({ id, partLe, aller, retour: retourDUneExpedition({ partLe, trajetMinutes: aller, sejourMinutes: SEJOUR })!, attaque });
     }
     return lancees;
   };
@@ -194,6 +200,9 @@ describe.skipIf(!URL_TEST)("le combat par la somme des forces (US-0944, sur base
     const perdues = pertes.find((p) => p.especeId === id)?.nombre ?? 0;
     return perdues - blessesParmi(perdues);
   };
+  /** L'instant du jeu où l'Expédition est rentrée au Foyer, ou null. */
+  const rentreeLe = async (expeditionId: number) =>
+    (await pool.query<{ rentreeLe: Date | null }>(`select rentree_le as "rentreeLe" from expedition where id = $1`, [expeditionId])).rows[0].rentreeLe;
   /** Ce que l'escorte `escorte` perd au combat contre la Bête du chef, Espèce par Espèce, selon la règle (src/expeditions/combat.ts). */
   const pertesAttendues = ({ bete }: Chef, escorte: Map<string, number>): Perte[] =>
     pertesDuCombat(
@@ -291,14 +300,80 @@ describe.skipIf(!URL_TEST)("le combat par la somme des forces (US-0944, sur base
   it("attaquée sans escorte, l'Expédition ne perd aucune Bête, et celles du Foyer restent toutes", async () => {
     const chef = await naitrePresDUneBeteRare();
     const lancees = await lancerJusquALAttaque(chef, new Map());
-    await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, 'souris', 'male', 3), ($1, 'souris', 'femelle', 2)", [
-      chef.territoireId,
-    ]);
+    // Cinq mâles : au retour, aucun Couple ne se réunit (US-0956), et l'effectif reste celui du Foyer.
+    await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, 'souris', 'male', 5)", [chef.territoireId]);
     const x = lancees.at(-1)!;
     await rattraperA(chef.territoireId, apres(x.attaque!, 1));
     expect(await attaquesSubies(pool, x.id)).toEqual([expect.objectContaining({ le: x.attaque })]);
-    expect(await proposees(chef.territoireId, new Map([["souris", 0]]))).toEqual({ souris: { disponibles: 5, males: 3, femelles: 2 } });
+    expect(await proposees(chef.territoireId, new Map([["souris", 0]]))).toEqual({ souris: { disponibles: 5, males: 5, femelles: 0 } });
     expect(await escorteEnCours(chef.territoireId, x.id, x.attaque!)).toEqual({});
+    // US-0945 : elle fuit de même, sans rien perdre, et rentre à l'heure de sa fuite.
+    expect((await expeditionsEnCours(pool, chef.territoireId, apres(x.attaque!, 1))).find((e) => e.id === x.id)).toMatchObject({ phase: "retour", enFuite: true });
+    const rentree = apres(x.attaque!, x.aller);
+    await rattraperA(chef.territoireId, rentree);
+    expect(await rentreeLe(x.id)).toEqual(rentree);
+    expect(await proposees(chef.territoireId, new Map([["souris", 0]]))).toEqual({ souris: { disponibles: 5, males: 5, femelles: 0 } });
+  }, 60_000);
+
+  it("après le combat, l'Expédition fuit : elle quitte sa Case, rentre aussitôt, le retour aussi long que l'aller, avec tous ses explorateurs et ses Bêtes survivantes ; le joueur ne la rappelle plus", async () => {
+    const chef = await naitrePresDUneBeteRare();
+    const escorte = presqueAussiForte(chef);
+    // Les Couples des deux Espèces déjà réunis : au retour, aucun autre ne se réunit (US-0956), l'effectif ne bouge pas.
+    await pool.query("insert into couple (territoire_id, espece_id, reuni_le) values ($1, 'poule', $2), ($1, 'souris', $2)", [chef.territoireId, chef.ne]);
+    const lancees = await lancerJusquALAttaque(chef, escorte);
+    const x = lancees.at(-1)!;
+    const le = x.attaque!;
+    const rentree = apres(le, x.aller);
+    // Bien avant son retour prévu au départ.
+    expect(rentree < x.retour).toBe(true);
+    const pertes = pertesAttendues(chef, escorte);
+    const total = [...escorte.values()].reduce((n, nombre) => n + nombre, 0);
+
+    await rattraperA(chef.territoireId, apres(le, -1 / 60_000));
+    expect((await expeditionsEnCours(pool, chef.territoireId, le)).find((e) => e.id === x.id)).toMatchObject({ phase: "sejour", enFuite: false });
+    await rattraperA(chef.territoireId, apres(le, 1 / 60_000));
+    // Dans la liste et sur la carte : au retour, en fuite, avec son retour avancé.
+    const enFuite = (await expeditionsEnCours(pool, chef.territoireId, apres(le, 1 / 60_000))).find((e) => e.id === x.id)!;
+    expect(enFuite).toMatchObject({ phase: "retour", enFuite: true, rappeleeLe: le });
+    expect(retourDUneExpedition(enFuite)).toEqual(rentree);
+    // Elle a quitté sa Case : la Bête n'y voit plus personne.
+    expect((await expeditionsPresentesSurLaCase(pool, chef.caseId, apres(le, -1))).map((e) => e.id)).toContain(x.id);
+    expect((await expeditionsPresentesSurLaCase(pool, chef.caseId, le)).map((e) => e.id)).not.toContain(x.id);
+    expect(await rappelerLExpedition(pool, chef.territoireId, x.id, apres(le, 1))).toEqual({ refus: RAPPEL_DEJA_AU_RETOUR });
+
+    await rattraperA(chef.territoireId, apres(rentree, -1 / 60_000));
+    expect(await rentreeLe(x.id)).toBeNull();
+    await rattraperA(chef.territoireId, rentree);
+    expect(await rentreeLe(x.id)).toEqual(rentree);
+    // Son explorateur est de retour ; ses Bêtes survivantes, Blessés compris (US-0951), sont de nouveau proposées, les autres
+    // Expéditions toujours dehors.
+    const { rows } = await pool.query("select count(*)::int as n from habitant where expedition_id = $1", [x.id]);
+    expect(rows[0].n).toBe(0);
+    expect((await explorateursDuTerritoire(pool, chef.territoireId)).libres).toBe(LANCEES_AU_PLUS - (lancees.length - 1));
+    const disponibles = Object.fromEntries((await betesDisponibles(pool, chef.territoireId)).map((e) => [e.id, e.disponibles]));
+    for (const [id, nombre] of escorte) {
+      expect(disponibles[id], id).toBe(nombre * LANCEES_AU_PLUS + 1 - (lancees.length - 1) * nombre - mortes(pertes, id));
+    }
+    expect(pertes.reduce((n, p) => n + p.nombre, 0)).toBeLessThan(total);
+    // Son récit ne la dit pas rappelée : son séjour s'est arrêté à l'attaque.
+    const recit = (await recitsDuTerritoire(pool, chef.territoireId)).find((r) => r.titre === "Retour d'Expédition")!;
+    expect(recit.survenuLe).toEqual(rentree);
+    expect(recit.texte).not.toMatch(/Rappelée/);
+    expect(recit.texte).toContain(`séjour ${formaterMinutes(Math.ceil((le.getTime() - apres(x.partLe, x.aller).getTime()) / MINUTE_MS))}`);
+  }, 60_000);
+
+  it("une attaque dont la Rencontre manque ne s'écrit pas : l'Expédition ne fuit pas, et le temps ne s'arrête pas sans fin", async () => {
+    const chef = await naitrePresDUneBeteRare();
+    const x = (await lancerJusquALAttaque(chef, new Map())).at(-1)!;
+    // Sa Rencontre retenue, puis effacée, comme une donnée héritée incohérente : rien ne peut porter son attaque.
+    await rattraperA(chef.territoireId, apres(x.attaque!, -1 / 60_000));
+    await pool.query("delete from rencontre where expedition_id = $1", [x.id]);
+
+    await rattraperA(chef.territoireId, x.retour);
+    expect(await attaquesSubies(pool, x.id)).toEqual([]);
+    expect(await rentreeLe(x.id)).toEqual(x.retour);
+    const { rows } = await pool.query("select rappelee_le, en_fuite from expedition where id = $1", [x.id]);
+    expect(rows[0]).toEqual({ rappelee_le: null, en_fuite: false });
   }, 60_000);
 
   it("au retour, le récit dit le combat : son heure, la Bête et sa force, la force de l'escorte, ses pertes Espèce par Espèce, puis la fuite des explorateurs (US-0947)", async () => {
@@ -337,6 +412,14 @@ describe.skipIf(!URL_TEST)("le combat par la somme des forces (US-0944, sur base
         )
       ).rows,
       effectif: (await jeu.query("select espece_id, sexe, nombre from effectif where territoire_id = $1 order by 1, 2", [territoireId])).rows,
+      // US-0945 : la fuite, et le retour, chacun à son heure.
+      expeditions: (
+        await jeu.query(
+          `select id, rappelee_le, en_fuite, rentree_le, (select count(*)::int from habitant h where h.expedition_id = x.id) as dehors
+           from expedition x where territoire_id = $1 order by id`,
+          [territoireId],
+        )
+      ).rows,
     });
     /** L'essai dans une transaction annulée ensuite, où chaque transaction du jeu devient un point de reprise : le suivant repart du même état. */
     const enEssai = async <T,>(essai: (jeu: Pool) => Promise<T>): Promise<T> => {
@@ -380,6 +463,16 @@ describe.skipIf(!URL_TEST)("le combat par la somme des forces (US-0944, sur base
       ];
       expect(bilans[1]).toEqual(bilans[0]);
       expect(bilans[2]).toEqual(bilans[0]);
+      // Seule l'Expédition attaquée a fui, et elle est rentrée à l'heure de sa fuite, d'un bloc comme par morceaux.
+      expect(bilans[0].expeditions).toEqual(
+        lancees.map((l) => ({
+          id: l.id,
+          rappelee_le: l.attaque,
+          en_fuite: l.attaque !== null,
+          rentree_le: l.attaque ? apres(l.attaque, l.aller) : l.retour,
+          dehors: 0,
+        })),
+      );
       // Seule l'Expédition attaquée a perdu des Bêtes, celles que dit la règle ; US-0951 : et les mêmes Blessés parmi elles.
       const pertes = new Map(pertesAttendues(chef, escorte).map((p) => [p.especeId, p.nombre]));
       expect(bilans[0].escortes).toEqual(

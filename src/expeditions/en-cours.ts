@@ -18,6 +18,8 @@ export type ExpeditionEnCours = HorairesDUneExpedition & {
   phase: Phase;
   explorateurs: string[];
   escorte: EspeceDeLEscorte[];
+  /** US-0945 : en fuite après un combat : son demi-tour (rappeleeLe) est sa fuite, non un rappel. */
+  enFuite?: boolean;
 };
 
 /**
@@ -28,12 +30,12 @@ export type ExpeditionEnCours = HorairesDUneExpedition & {
  * Espèce, de la plus commune à la plus rare puis par nom, comme l'écran d'Expédition les propose (US-0904). US-0916 : une
  * Expédition rentrée au Foyer n'est plus en cours ; d'ici là, son heure passée, elle est « de retour ». US-0920 : ses
  * horaires disent aussi son rappel, d'où se lisent son demi-tour et son retour avancé. US-0944 : son escorte, sans les
- * Bêtes perdues au combat.
+ * Bêtes perdues au combat. US-0945 : et si elle est en fuite.
  */
 export async function expeditionsEnCours(base: Pool | PoolClient, territoireId: number, instant: Date): Promise<ExpeditionEnCours[]> {
-  const { rows } = await base.query<HorairesDUneExpedition & { id: number; q: number; r: number; explorateurs: string[]; escorte: EspeceDeLEscorte[] }>(
+  const { rows } = await base.query<HorairesDUneExpedition & { id: number; q: number; r: number; explorateurs: string[]; escorte: EspeceDeLEscorte[]; enFuite: boolean }>(
     `select x.id, c.q, c.r, x.part_le as "partLe", x.trajet_minutes as "trajetMinutes", x.sejour_minutes as "sejourMinutes",
-       x.rappelee_le as "rappeleeLe",
+       x.rappelee_le as "rappeleeLe", x.en_fuite as "enFuite",
        array(select h.prenom from habitant h where h.expedition_id = x.id order by h.id) as explorateurs,
        coalesce((
          select json_agg(json_build_object('id', es.id, 'nom', es.nom, 'nombre', s.nombre - s.perdues) order by r.rang, es.nom)
@@ -46,9 +48,9 @@ export async function expeditionsEnCours(base: Pool | PoolClient, territoireId: 
     [territoireId],
   );
   const expeditions: ExpeditionEnCours[] = [];
-  for (const { id, q, r, explorateurs, escorte, ...horaires } of rows) {
+  for (const { id, q, r, explorateurs, escorte, enFuite, ...horaires } of rows) {
     const destination = await ficheDUneCase(base, territoireId, { q, r });
-    if (destination) expeditions.push({ id, destination, phase: phaseDUneExpedition(horaires, instant), ...horaires, explorateurs, escorte });
+    if (destination) expeditions.push({ id, destination, phase: phaseDUneExpedition(horaires, instant), ...horaires, explorateurs, escorte, enFuite });
   }
   return expeditions;
 }

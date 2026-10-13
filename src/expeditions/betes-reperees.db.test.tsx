@@ -9,6 +9,7 @@ import { recitsDuTerritoire } from "@/monde/recits";
 import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
+import { attaqueTiree } from "@/test/attaques";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { dureeDuTrajetMinutes } from "./allure";
 import type { BeteReperee } from "./betes-reperees";
@@ -125,7 +126,8 @@ describe.skipIf(!URL_TEST)("les Bêtes repérées que la carte reçoit, sur base
   /**
    * Un chef né là où une Bête rare se montre seule autour de son Foyer, plus forte que ses deux Souris grises, qui lance
    * vers elle une Expédition arrivée une heure après elle, pour SEJOUR minutes : la Bête reste sur sa Case (US-0942). S'il
-   * n'y en a aucune, il renaît ailleurs, jusqu'à trois fois. Son Territoire, la Case et la Bête, et l'instant du retour.
+   * n'y en a aucune, il renaît ailleurs, jusqu'à trois fois. Son Territoire, la Case et la Bête, et l'instant du retour,
+   * avancé si la Bête l'attaque (US-0945).
    */
   const voirUneBeteTropForte = async () => {
     for (let essai = 0; essai < 3; essai++) {
@@ -143,7 +145,10 @@ describe.skipIf(!URL_TEST)("les Bêtes repérées que la carte reçoit, sur base
         apres(arrivee, -aller),
       );
       if (!("expeditionId" in lancee)) throw new Error(lancee.refus);
-      const retour = apres(arrivee, SEJOUR + aller);
+      // US-0945 : attaquée par la Bête, l'Expédition fuit, et rentre plus tôt, aussi vite qu'à l'aller.
+      const ensemble = { debut: arrivee, fin: new Date(Math.min(bete.depart.getTime(), apres(arrivee, SEJOUR).getTime())) };
+      const attaque = await attaqueTiree(pool, { caseId: ici.caseId, especeId: bete.especeId, numero: bete.numero }, lancee.expeditionId, ensemble);
+      const retour = attaque ? apres(attaque, aller) : apres(arrivee, SEJOUR + aller);
       // Rentrée bien avant que la Bête s'en aille : la Bête est encore là à son retour.
       expect(retour.getTime()).toBeLessThan(apres(bete.depart, -HEURE).getTime());
       return { ...chef, ...ici, retour };
