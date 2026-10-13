@@ -1,0 +1,21 @@
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_b35891b9b80c13 48,50
+src/monde/roles.ts
+  s_7c7d151152e4a5::t_ebb235216cc09e 9,26,28-30,38,49,68,83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0913771a25fa8799f1ed4ce0bc4504e01e1097e1",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
