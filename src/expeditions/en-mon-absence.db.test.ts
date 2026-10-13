@@ -3,7 +3,9 @@
 // ouverte, au retour du joueur ou par la tâche planifiée : le brouillard levé (US-0914), les Rencontres (US-0932), les
 // Bêtes qui la suivent (US-0934), le Bestiaire (US-0933), le retour (US-0916), son récit (US-0917), et le rappel
 // (US-0920), à l'aller ou en séjour. Les mêmes Expéditions du même Territoire sont vécues ici des trois manières, et tout ce
-// qu'elles laissent se compare. Les combats (étape 41) n'existent pas encore.
+// qu'elles laissent se compare. Aucune n'est attaquée (US-0943) : le tirage d'une attaque dépend de l'identifiant de
+// l'Expédition, que chaque manière tire à nouveau. Escortées par l'Espèce la plus forte du jeu, A et B ont toute Bête à
+// portée ; sans escorte, C et E séjournent là où ne se montre aucune Bête plus rare que commune.
 import type { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { bestiaireDuTerritoire, type EspeceAuBestiaire } from "@/bestiaire/bestiaire";
@@ -287,12 +289,26 @@ describe.skipIf(!URL_TEST)("une Expédition vécue en mon absence (US-0922, sur 
     const premierDepart = a.horaires.partLe;
     // B, escortée, part dix minutes après A, pour quatre heures sur la Case d'une Bête de naissance, encore là à son arrivée.
     const b = prevoir(chef, "B", naissance[0], apres(premierDepart, 10), 4 * HEURE, [forte]);
-    // C, sans escorte, part la dernière, tout près, pour une demi-heure, là où elle sort le plus de Cases du brouillard que
-    // ni les abords du Foyer, découverts à sa naissance, ni A ni B ne sortent, et qui sont bien dans le Monde.
+    // C, sans escorte, part la dernière, tout près, pour une demi-heure, sur une Case calme, là où elle sort le plus de Cases
+    // du brouillard que ni les abords du Foyer, découverts à sa naissance, ni A ni B ne sortent, et qui sont bien dans le
+    // Monde.
     const revelees = (p: Plan) => casesRevelees(foyer, p.destination, p.horaires, p.retour);
     const dejaVues = new Set([...(await casesDecouvertes(pool, territoireId)), ...revelees(a), ...revelees(b)].map(cle));
     const neuves = (p: Plan) => revelees(p).filter((x) => anneau(x) <= MONDE_RAYON && !dejaVues.has(cle(x))).length;
-    const versC = (await aLEcart(chef, 3)).map((x) => prevoir(chef, "C", x, apres(premierDepart, 40), 30));
+    /**
+     * Sans escorte, l'Expédition `p` ne voit sur sa Case que des Bêtes communes pendant tout son séjour : aucune n'est trop
+     * forte pour elle, aucune ne peut l'attaquer, et chaque manière de vivre l'essai lui laisse le même récit.
+     */
+    const calme = async (p: Plan) => {
+      const { debut, fin: repart } = sejourDUneExpedition(p.horaires)!;
+      return (await betesSauvagesDUneCase(pool, p.caseId, debut, repart)).every((x) => x.rareteId === "commune");
+    };
+    const versC = [];
+    for (const x of await aLEcart(chef, 3)) {
+      const p = prevoir(chef, "C", x, apres(premierDepart, 40), 30);
+      if (await calme(p)) versC.push(p);
+    }
+    expect(versC.length, "aucune Case calme à 3 Cases du Foyer pour C").toBeGreaterThan(0);
     const c = versC.reduce((x, y) => (neuves(y) > neuves(x) ? y : x));
     expect(neuves(c)).toBeGreaterThan(0);
     /** L'Expédition `p`, rappelée par le joueur à l'instant `le` (US-0920) : ses horaires, et son retour, en découlent. */
@@ -305,17 +321,21 @@ describe.skipIf(!URL_TEST)("une Expédition vécue en mon absence (US-0922, sur 
     const versD = (await aLEcart(chef, 6)).find((x) => x.id !== a.caseId)!;
     const d = rappelee(prevoir(chef, "D", versD, apres(premierDepart, 50), HEURE), apres(premierDepart, 50 + 107));
     expect(sejourDUneExpedition(d.horaires)).toBeNull();
-    // E, sans escorte, part une heure après A, à 2 à 4 Cases, pour quatre heures là où se montrent le plus de Bêtes, et le
-    // joueur la rappelle pendant son séjour, 2 h 03 après son arrivée : celles d'après ne la trouvent plus.
-    const versE = [...(await aLEcart(chef, 2)), ...(await aLEcart(chef, 3)), ...(await aLEcart(chef, 4))]
-      .filter((x) => ![a.caseId, c.caseId].includes(x.id))
-      .map((x) => prevoir(chef, "E", x, apres(premierDepart, 60), 4 * HEURE));
+    // E, sans escorte, part une heure après A, à 2 à 4 Cases, pour quatre heures là où se montrent le plus de Bêtes, toutes
+    // communes, et le joueur la rappelle pendant son séjour, 2 h 03 après son arrivée : celles d'après ne la trouvent plus.
+    const versE = [];
+    for (const x of [...(await aLEcart(chef, 2)), ...(await aLEcart(chef, 3)), ...(await aLEcart(chef, 4))]) {
+      const p = prevoir(chef, "E", x, apres(premierDepart, 60), 4 * HEURE);
+      if (![a.caseId, c.caseId].includes(x.id) && (await calme(p))) versE.push(p);
+    }
     const animation = new Map<Plan, number>();
     for (const p of versE) {
       const { debut, fin: repart } = sejourDUneExpedition(p.horaires)!;
       animation.set(p, (await betesSauvagesDUneCase(pool, p.caseId, debut, repart)).length);
     }
+    expect(versE.length, "aucune Case calme à 2 à 4 Cases du Foyer pour E").toBeGreaterThan(0);
     const e0 = versE.reduce((x, y) => (animation.get(y)! > animation.get(x)! ? y : x));
+    expect(animation.get(e0), "aucune Bête sur la Case de E").toBeGreaterThan(0);
     const e = rappelee(e0, apres(sejourDUneExpedition(e0.horaires)!.debut, 2 * HEURE + 3));
     plans = [a, b, c, d, e];
     // Elles ne rentrent pas dans l'ordre de leurs départs : C, partie après A et B, rentre la première ; A, la dernière.
@@ -407,6 +427,8 @@ describe.skipIf(!URL_TEST)("une Expédition vécue en mon absence (US-0922, sur 
     const recitDe = (lettre: Lettre) => recits.find((r) => r.survenuLe.getTime() === plan(lettre).retour.getTime())!.texte;
     expect(recitDe("D")).toMatch(/^Rappelée à l'aller le .*\nAller 1 h 47, sans séjour, retour 1 h 47\.$/m);
     expect(recitDe("E")).toMatch(/^Rappelée pendant le séjour le .*\nAller .*, séjour 2 h 03, retour .*\.$/m);
+    // Aucune attaque, dont le tirage dépend de l'identifiant de l'Expédition, tiré à nouveau par chaque manière (US-0943).
+    for (const maniere of MANIERES) for (const { texte } of bilans[maniere].recits) expect(texte, maniere).not.toMatch(/^(Combat|Attaque) le /m);
     for (const maniere of fermees) expect(bilans[maniere].recits, maniere).toEqual(recits);
   });
 
