@@ -47,6 +47,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0805 · Lire la taille, le régime et l'Entretien
 **En tant que** joueur, **je veux** lire ce qu'une Bête occupe et ce qu'elle mange, **afin de** savoir combien je peux en loger et en nourrir.
 
+- **Statut** : Livrée le 2026-10-13 (autopilot, Zewed/bestia-2#71). La fiche d'une Espèce ajoute sa Taille (« 31,623 Places », « 1 Place »), son Régime (« Omnivore ») et son Entretien (« 5 Viande ou Végétaux / h » ; un carnivore mange de la Viande, un herbivore des Végétaux), dans le bloc des caractéristiques de la refonte. Tranché : « Viande ou Végétaux » pour un omnivore, à reprendre si US-0826 choisit un partage fixe.
 - **Débloquée par** : US-0803
 - **Critères d'acceptation** :
   - La fiche affiche la taille de l'Espèce, en Places occupées par Bête.

@@ -717,6 +717,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0967 · Deux Expéditions du même joueur sur une Case
 **En tant que** joueur, **je veux** savoir si je peux envoyer deux Expéditions sur la même Case, **afin de** ne pas gaspiller mes explorateurs.
 
+- **Statut** : Livrée le 2026-10-13 (autopilot, Zewed/bestia-2#72). Un joueur peut envoyer une seconde Expédition vers une Case où il en a déjà une, sans message (US-0919 : aucune limite sauf les explorateurs libres). Ses deux Expéditions passent par le même tirage proportionnel à la force (US-0963), qui ne sait pas à qui elles sont ; celle qui perd lit « X a suivi une autre Expédition. » (US-0964), sans la ligne des autres joueurs. Les règles en place font la story : elle est prouvée par des tests. « Nouvelle Espèce au Bestiaire » reste sur la Rencontre de la première Expédition lancée (US-0933).
 - **Débloquée par** : US-0963
 - **Critères d'acceptation** :
   - Envoyer une seconde Expédition vers une Case où l'on en a déjà une : autorisé ou refusé avec un message (à décider).
