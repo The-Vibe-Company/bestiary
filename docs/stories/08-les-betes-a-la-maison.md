@@ -57,6 +57,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0806 · Lire le Biome d'Habitat et le Rôle
 **En tant que** joueur, **je veux** lire où vit une Espèce et à quoi elle sert en dehors du combat, **afin de** savoir où l'élever et comment l'employer.
 
+- **Statut** : Livrée le 2026-10-13 (autopilot, Zewed/bestia-2#75). La fiche d'une Espèce se termine par son Habitat, le nom du Biome précédé de son pictogramme (« Prairie »), et son Rôle (« Nourricier » pour la poule, « Éclaireur » pour le pigeon, « Aucun Rôle » pour la souris), dans le bloc des caractéristiques de la refonte. Tranché : le pictogramme est la Case du Biome telle que la carte et sa légende la dessinent (même couleur, même motif) ; une Espèce d'eau prend la Case de mer.
 - **Débloquée par** : US-0803
 - **Critères d'acceptation** :
   - La fiche affiche le Biome d'Habitat de l'Espèce, avec son nom et son pictogramme.
