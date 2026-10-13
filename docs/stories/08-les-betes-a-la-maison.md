@@ -128,6 +128,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0843 · Confier l'Élevage à un éleveur
 **En tant que** joueur, **je veux** confier l'Élevage d'une Espèce à un Habitant éleveur, **afin de** faire naître des Bêtes de son Couple.
 
+- **Statut** : Livrée le 2026-10-13 (autopilot, Zewed/bestia-2#78, migration 0068). Le bloc « Élever » dit quel éleveur libre s'en occupera (« Éleveur : Hael ») ; sans éleveur libre, « Aucun éleveur libre. » avec un lien vers la page Habitants, et « Élever » grisé avec cette raison. Pendant son Élevage, l'éleveur est « à l'Élevage · Poule » sur la page Habitants, son Métier verrouillé comme celui d'un explorateur parti (ni changé, ni retiré, ni renvoyé). L'Élevage reste acquis sans éleveur. Tranché : colonne `habitant.espece_elevee` (null = libre), posée par le lancement (US-0815) ; le premier éleveur libre par prénom, sans choix entre éleveurs (US-0844) ; refus dans l'ordre Couple, éleveur, quantité. Reste à trancher avec US-0815 et US-0834 : une Famine peut encore faire partir un éleveur à l'Élevage.
 - **Débloquée par** : US-0812, Étape 14
 - **Critères d'acceptation** :
   - Le bloc « Élever » demande un éleveur libre : un Habitant au Métier d'éleveur qui ne s'occupe d'aucun autre Élevage.
