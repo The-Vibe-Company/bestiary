@@ -8,10 +8,13 @@ import { IllustrationEspece } from "@/components/IllustrationEspece";
 import kit from "@/components/kit.module.css";
 import { PastilleRarete } from "@/components/PastilleRarete";
 import { getPool } from "@/db";
+import { blessesAuFoyer } from "@/monde/blesses";
+import { blessesAffiches, blessesDans } from "@/monde/blesses-affiches";
 import { especeDuTerritoire, type Regime } from "@/monde/effectif";
 import { elevageAcquis } from "@/monde/elevage";
 import { placesDeLHabitat } from "@/monde/habitat";
 import { caracteristiqueAffichee as nombre } from "@/monde/quantite";
+import { maintenant } from "@/temps/horloge";
 import { BlocElever } from "./BlocElever";
 import styles from "./page.module.css";
 
@@ -43,6 +46,9 @@ const IDENTIFIANT = /^[a-z0-9_]{1,64}$/;
  * US-0810 : elle s'ouvre aussi depuis la page Bêtes (especeDuTerritoire), et rappelle l'effectif de l'Espèce, vide quand
  * ses seules Bêtes forment le Couple. Ouverte depuis la page Bêtes (`?depuis=betes`), « Fermer » y ramène.
  *
+ * US-0952 : sous l'effectif, avant les caractéristiques, chaque groupe de Blessés au Foyer de l'Espèce et le temps qui lui
+ * reste avant sa guérison, comme sur la page Bêtes, en note discrète ; rien sans Blessé.
+ *
  * US-0804 : sous l'effectif, ses caractéristiques telles que la base les a enregistrées, les mêmes pour tous les joueurs :
  * l'attaque, la vie, la vitesse en km/h et la charge, un nom et une valeur chacune, sans phrase (leurs explications
  * arrivent avec US-0807). Toutes sont toujours là : une Espèce à qui il en manque une ne se charge pas en base
@@ -68,6 +74,9 @@ export default async function FicheDeLEspece({
   const fiche = territoireId === null ? null : await especeDuTerritoire(getPool(), territoireId, espece);
   if (!fiche) notFound();
   const retour = (await searchParams).depuis === "betes" ? "/jeu/betes" : "/jeu/reserve";
+  const instant = maintenant();
+  const groupes = fiche.effectif > 0 && territoireId !== null ? ((await blessesAuFoyer(getPool(), territoireId, instant)).get(fiche.especeId) ?? []) : [];
+  const blesses = blessesAffiches(groupes, instant, fiche.effectif);
   return (
     <main className={styles.page}>
       <article className={`${kit.panneau} ${styles.fiche}`}>
@@ -78,6 +87,11 @@ export default async function FicheDeLEspece({
           <p className={styles.effectif}>
             <span>Effectif</span> <strong className={styles.nombre}>{fiche.effectif}</strong>
           </p>
+          {blesses.map((groupe, i) => (
+            <p key={i} className={`${kit.note} ${styles.blesses}`}>
+              {`dont ${blessesDans(groupe)}`}
+            </p>
+          ))}
           <dl className={styles.caracteristiques}>
             <div>
               <dt>Attaque</dt>

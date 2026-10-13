@@ -6,6 +6,7 @@ import { Bloc } from "@/components/Bloc";
 import { IllustrationEspece } from "@/components/IllustrationEspece";
 import kit from "@/components/kit.module.css";
 import { forceDeLEscorte } from "@/expeditions/force";
+import { type BlessesAffiches, blessesDans } from "@/monde/blesses-affiches";
 import type { EspeceDisponible } from "@/monde/effectif";
 import styles from "./Escorte.module.css";
 
@@ -50,8 +51,10 @@ export const entier = (n: number) => new Intl.NumberFormat("fr-FR").format(n).re
  * Bête ajoutée ou retirée, comme au rechargement ; zéro tant qu'aucune Bête n'est choisie.
  * US-0937 : sous les disponibles de chaque Espèce, combien de mâles et de femelles le joueur en possède, Bêtes sorties
  * comprises, pour savoir lequel lui manque pour réunir son Couple. US-0956 : plus rien une fois son Couple réuni.
+ * US-0952 : puis, parmi les disponibles, chaque groupe de Blessés de l'Espèce (`blesses`, par Espèce) et le temps qui
+ * lui reste avant sa guérison ; rien sans Blessé.
  */
-export function Escorte({ especes }: { especes: EspeceDisponible[] }) {
+export function Escorte({ especes, blesses = {} }: { especes: EspeceDisponible[]; blesses?: Record<string, BlessesAffiches[]> }) {
   const recherche = useSearchParams();
   const id = useId();
   if (especes.length === 0) return null;
@@ -83,6 +86,11 @@ export function Escorte({ especes }: { especes: EspeceDisponible[] }) {
                 <span id={idNom}>{e.nom}</span>
                 <span className={styles.disponibles}>{disponibles(e.disponibles)}</span>
                 {!e.coupleReuni && <span className={styles.disponibles}>{sexes(e)}</span>}
+                {(blesses[e.id] ?? []).map((groupe, i) => (
+                  <span key={i} className={styles.disponibles}>
+                    {`dont ${blessesDans(groupe)}`}
+                  </span>
+                ))}
               </p>
               <div role="group" aria-labelledby={idNom} className={styles.choix}>
                 <span className={kit.pas}>

@@ -41,6 +41,9 @@ const effectif = vi.hoisted(() => ({
 }));
 vi.mock("@/monde/effectif", () => effectif);
 vi.mock("./Escorte", () => ({ Escorte: (p: object) => <i data-escorte={JSON.stringify(p)} /> }));
+// US-0952 : les Blessés au Foyer, lus sur base (src/monde/blesses.db.test.ts) : ici, ce que l'écran en fait.
+const blesses = vi.hoisted(() => ({ blessesAuFoyer: vi.fn(async (): Promise<Map<string, { nombre: number; gueriLe: Date }[]>> => new Map()) }));
+vi.mock("@/monde/blesses", () => blesses);
 // US-0949 : les Bêtes repérées du Territoire, lues sur base (betes-reperees.db.test.tsx) : ici, ce que l'écran en fait.
 const reperees = vi.hoisted(() => ({ betesReperees: vi.fn(async (): Promise<BeteReperee[]> => []) }));
 vi.mock("@/expeditions/betes-reperees", () => reperees);
@@ -370,7 +373,7 @@ describe("l'escorte de l'écran d'Expédition (US-0904)", () => {
     destinations.destinationDUneCase.mockResolvedValue({ fiche: FORET });
     const html = await ouvrir({ q: "3", r: "-5" });
     expect(effectif.betesDisponibles).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12);
-    const [avant, apres] = html.split(donne("escorte", { especes: [SOURIS] }));
+    const [avant, apres] = html.split(donne("escorte", { especes: [SOURIS], blesses: {} }));
     expect(avant).toMatch(new RegExp(`${donne("explorateurs", { libres: 2, total: 3 })}$`));
     expect(apres).toMatch(/^<\/div><section[^>]*><h2[^>]*>Séjour<\/h2>/);
   });
@@ -388,6 +391,59 @@ describe("l'escorte de l'écran d'Expédition (US-0904)", () => {
   it("garde l'escorte choisie en allant choisir la destination sur la carte (US-0907)", async () => {
     connecte();
     expect(lien(await ouvrir({ escorte: ["poule.1", "souris.2"] }), "Choisir sur la carte")).toBe("/jeu/carte?choix=destination&escorte=poule.1&escorte=souris.2");
+  });
+});
+
+describe("les Blessés dans l'effectif (US-0952)", () => {
+  it("donne au bloc Escorte les groupes de Blessés au Foyer de chaque Espèce, lus pour le Territoire à l'heure du jeu, et leur temps avant guérison", async () => {
+    cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
+    session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
+    // L'heure du jeu de l'écran : 07:42:13.250 ; guéris à 12:42:13.250, puis à 12:43 : 5 h, puis 5 h 01 à la minute supérieure.
+    blesses.blessesAuFoyer.mockResolvedValueOnce(
+      new Map([
+        [
+          "souris",
+          [
+            { nombre: 2, gueriLe: new Date("2026-10-09T12:42:13.250Z") },
+            { nombre: 1, gueriLe: new Date("2026-10-09T12:43:00Z") },
+          ],
+        ],
+      ]),
+    );
+    const html = await ouvrir();
+    expect(blesses.blessesAuFoyer).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, new Date("2026-10-09T07:42:13.250Z"));
+    expect(confie(html, "escorte").blesses).toEqual({
+      souris: [
+        { nombre: 2, dansMinutes: 300 },
+        { nombre: 1, dansMinutes: 301 },
+      ],
+    });
+  });
+
+  it("n'en montre jamais plus que de Bêtes de l'Espèce au Foyer : les derniers à guérir en premier retranchés", async () => {
+    cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
+    session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
+    // Trois Souris grises au Foyer ; des Blessés rentrés repartis depuis en escorte : quatre en deux groupes, puis un.
+    blesses.blessesAuFoyer.mockResolvedValueOnce(
+      new Map([
+        [
+          "souris",
+          [
+            { nombre: 2, gueriLe: new Date("2026-10-09T12:42:13.250Z") },
+            { nombre: 2, gueriLe: new Date("2026-10-09T13:42:13.250Z") },
+            { nombre: 1, gueriLe: new Date("2026-10-09T14:42:13.250Z") },
+          ],
+        ],
+        ["pigeon", [{ nombre: 1, gueriLe: new Date("2026-10-09T12:42:13.250Z") }]],
+      ]),
+    );
+    // Aucun pigeon au Foyer : aucun de ses Blessés ne s'y montre.
+    expect(confie(await ouvrir(), "escorte").blesses).toEqual({
+      souris: [
+        { nombre: 2, dansMinutes: 300 },
+        { nombre: 1, dansMinutes: 360 },
+      ],
+    });
   });
 });
 

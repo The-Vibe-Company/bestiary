@@ -15,6 +15,11 @@ vi.mock("@/chefs/chef", () => chefs);
 // L'effectif du Territoire, lu sur base (src/monde/effectif.db.test.ts, page.db.test.tsx) : ici, ce que la page en montre.
 const effectif = vi.hoisted(() => ({ effectifParEspece: vi.fn(async (): Promise<EspeceDeLEffectif[]> => []) }));
 vi.mock("@/monde/effectif", () => effectif);
+// US-0952 : les Blessés au Foyer, lus sur base (src/monde/blesses.db.test.ts), à l'heure du jeu de la page.
+const blesses = vi.hoisted(() => ({ blessesAuFoyer: vi.fn(async (): Promise<Map<string, { nombre: number; gueriLe: Date }[]>> => new Map()) }));
+vi.mock("@/monde/blesses", () => blesses);
+const MAINTENANT = vi.hoisted(() => new Date("2026-10-09T07:42:13.250Z"));
+vi.mock("@/temps/horloge", async (original) => ({ ...(await original<object>()), maintenant: () => MAINTENANT }));
 // US-0822 : les Places de l'Habitat du Foyer, lues sur base (src/monde/habitat.db.test.ts).
 const habitat = vi.hoisted(() => ({ placesDeLHabitat: vi.fn(async () => ({ occupees: 21, total: 500 })) }));
 vi.mock("@/monde/habitat", () => habitat);
@@ -122,6 +127,29 @@ describe("voir l'effectif par Espèce (US-0810)", () => {
     vi.stubEnv("VERCEL_ENV", "production");
     await expect(Betes()).rejects.toMatchObject({ digest: expect.stringContaining("404") });
     expect(cookie.jetonDeSession).not.toHaveBeenCalled();
+  });
+
+  it("distingue, dans l'effectif d'une Espèce, chaque groupe de Blessés au Foyer et le temps qui lui reste avant sa guérison (US-0952)", async () => {
+    connecte();
+    blesses.blessesAuFoyer.mockResolvedValueOnce(
+      new Map([
+        [
+          "souris",
+          [
+            { nombre: 3, gueriLe: new Date("2026-10-09T12:42:13.250Z") },
+            { nombre: 1, gueriLe: new Date("2026-10-10T06:42:13.250Z") },
+          ],
+        ],
+      ]),
+    );
+    const html = renderToStaticMarkup(await Betes());
+    expect(blesses.blessesAuFoyer).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, MAINTENANT);
+    const [poule, souris] = especesMontrees(html);
+    expect(souris.texte).toBe("Souris grise · Commune · dont 3 Blessés, guéris dans 5 h · dont 1 Blessé, guéri dans 23 h · 12");
+    expect(souris.nom).toBe("Souris grise, Commune, 12 Bêtes, dont 3 Blessés, guéris dans 5 h, dont 1 Blessé, guéri dans 23 h");
+    // Sans Blessé, rien de plus, pas même une ligne vide.
+    expect(poule.texte).toBe("Poule · Commune · 1");
+    expect(poule.nom).toBe("Poule, Commune, 1 Bête");
   });
 });
 

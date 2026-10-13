@@ -11,8 +11,11 @@ import { PastilleRarete } from "@/components/PastilleRarete";
 import { Paysage } from "@/components/Paysage";
 import { PlacesDeLHabitat } from "@/components/PlacesDeLHabitat";
 import { getPool } from "@/db";
+import { blessesAuFoyer, type GroupeDeBlesses } from "@/monde/blesses";
+import { blessesAffiches, blessesDans } from "@/monde/blesses-affiches";
 import { effectifParEspece } from "@/monde/effectif";
 import { placesDeLHabitat } from "@/monde/habitat";
+import { maintenant } from "@/temps/horloge";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = { title: "Bêtes" };
@@ -24,7 +27,9 @@ const betes = (nombre: number) => (nombre > 1 ? "Bêtes" : "Bête");
  * US-0810 : la page Bêtes, qu'ouvre le bloc « Bêtes » du Foyer : le total des Bêtes du joueur en haut, puis chaque Espèce
  * de son effectif (effectifParEspece), de la plus commune à la plus rare : sa vignette, son nom, sa Rareté et son
  * effectif. Les Bêtes d'un Couple, en Réserve, n'y comptent pas. Toucher une Espèce ouvre sa fiche (US-0803), qui se
- * referme ici. Sans session, la garde mène à la connexion, qui ramène ici.
+ * referme ici. Sans session, la garde mène à la connexion, qui ramène ici. US-0952 : sous le nom et la Rareté d'une Espèce,
+ * chaque groupe de ses Blessés au Foyer (blessesAuFoyer, à l'heure du jeu, jamais plus que son effectif) et le temps qui lui
+ * reste avant sa guérison : « dont 3 Blessés, guéris dans 5 h » ; rien sans Blessé.
  *
  * US-0811 : tant que le joueur n'a aucune Bête, la page, sobre, dit seulement « Aucune Bête pour l'instant », sans autre
  * phrase, avec un bouton « Envoyer une Expédition » vers l'écran d'Expédition (US-0901), comme la Réserve vide (US-0809) ;
@@ -44,6 +49,9 @@ export default async function Betes() {
   if (!entreeDuJeuOuverte()) notFound();
   const { territoireId } = await exigerCompte("/jeu/betes");
   const especes = territoireId === null ? [] : await effectifParEspece(getPool(), territoireId);
+  const instant = maintenant();
+  const groupes = territoireId === null || especes.length === 0 ? new Map<string, GroupeDeBlesses[]>() : await blessesAuFoyer(getPool(), territoireId, instant);
+  const blesses = (especeId: string, effectif: number) => blessesAffiches(groupes.get(especeId) ?? [], instant, effectif).map((g) => `dont ${blessesDans(g)}`);
   const total = especes.reduce((somme, espece) => somme + espece.effectif, 0);
   const places = territoireId === null || especes.length === 0 ? null : await placesDeLHabitat(getPool(), territoireId);
   return (
@@ -73,22 +81,30 @@ export default async function Betes() {
       )}
       {especes.length > 0 ? (
         <ul className={styles.especes} aria-label="Effectif">
-          {especes.map((espece) => (
-            <li key={espece.especeId}>
-              <Link
-                href={`/jeu/reserve/${espece.especeId}?depuis=betes`}
-                className={`${kit.panneau} ${styles.espece}`}
-                aria-label={`${espece.nom}, ${espece.rarete.nom}, ${espece.effectif} ${betes(espece.effectif)}`}
-              >
-                <IllustrationEspece espece={espece} format="carte" className={`${kit.vignette} ${styles.peinture}`} />
-                <span className={styles.identite}>
-                  <span className={`${kit.titreServif} ${styles.nom}`}>{espece.nom}</span>
-                  <PastilleRarete rarete={espece.rarete} />
-                </span>
-                <span className={styles.effectif}>{espece.effectif}</span>
-              </Link>
-            </li>
-          ))}
+          {especes.map((espece) => {
+            const lignes = blesses(espece.especeId, espece.effectif);
+            return (
+              <li key={espece.especeId}>
+                <Link
+                  href={`/jeu/reserve/${espece.especeId}?depuis=betes`}
+                  className={`${kit.panneau} ${styles.espece}`}
+                  aria-label={[`${espece.nom}, ${espece.rarete.nom}, ${espece.effectif} ${betes(espece.effectif)}`, ...lignes].join(", ")}
+                >
+                  <IllustrationEspece espece={espece} format="carte" className={`${kit.vignette} ${styles.peinture}`} />
+                  <span className={styles.identite}>
+                    <span className={`${kit.titreServif} ${styles.nom}`}>{espece.nom}</span>
+                    <PastilleRarete rarete={espece.rarete} />
+                    {lignes.map((ligne, i) => (
+                      <span key={i} className={`${kit.note} ${styles.blesses}`}>
+                        {ligne}
+                      </span>
+                    ))}
+                  </span>
+                  <span className={styles.effectif}>{espece.effectif}</span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       ) : null}
     </main>

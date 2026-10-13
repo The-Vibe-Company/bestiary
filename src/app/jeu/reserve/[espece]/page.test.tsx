@@ -17,6 +17,11 @@ vi.mock("@/chefs/chef", () => chefs);
 // une Espèce dont le joueur a des Bêtes, ou dont il a réuni le Couple.
 const effectif = vi.hoisted(() => ({ especeDuTerritoire: vi.fn(async (): Promise<FicheDEspece | null> => null) }));
 vi.mock("@/monde/effectif", () => effectif);
+// US-0952 : les Blessés au Foyer, lus sur base (src/monde/blesses.db.test.ts), à l'heure du jeu de la fiche.
+const blesses = vi.hoisted(() => ({ blessesAuFoyer: vi.fn(async (): Promise<Map<string, { nombre: number; gueriLe: Date }[]>> => new Map()) }));
+vi.mock("@/monde/blesses", () => blesses);
+const MAINTENANT = vi.hoisted(() => new Date("2026-10-09T07:42:13.250Z"));
+vi.mock("@/temps/horloge", async (original) => ({ ...(await original<object>()), maintenant: () => MAINTENANT }));
 // US-0812 : l'Élevage de l'Espèce, acquis ou non, lu sur base (page.db.test.tsx).
 const elevage = vi.hoisted(() => ({ elevageAcquis: vi.fn(async () => false) }));
 vi.mock("@/monde/elevage", async (original) => ({ ...(await original<object>()), elevageAcquis: elevage.elevageAcquis }));
@@ -94,6 +99,17 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
     // Une Espèce dont toutes les Bêtes forment le Couple, en Réserve, a un effectif vide : la fiche le dit.
     connecte({ ...POULE, effectif: 0 });
     expect(await ouvrir("poule")).toMatch(/<span>Effectif<\/span> <strong[^>]*>0<\/strong>/);
+  });
+
+  it("distingue, sous l'effectif, chaque groupe de Blessés au Foyer et le temps qui lui reste avant sa guérison (US-0952)", async () => {
+    connecte();
+    blesses.blessesAuFoyer.mockResolvedValueOnce(new Map([["poule", [{ nombre: 3, gueriLe: new Date("2026-10-09T12:42:13.250Z") }]]]));
+    const html = await ouvrir("poule");
+    expect(blesses.blessesAuFoyer).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, MAINTENANT);
+    expect(html).toMatch(/<strong[^>]*>12<\/strong><\/p><p[^>]*>dont 3 Blessés, guéris dans 5 h<\/p>/);
+    // Sans Blessé, rien de plus.
+    connecte();
+    expect(await ouvrir("poule")).not.toContain("Blessé");
   });
 
   it("propose sous la fiche le bloc « Élever » quand le joueur a réuni le Couple de l'Espèce (US-0812)", async () => {

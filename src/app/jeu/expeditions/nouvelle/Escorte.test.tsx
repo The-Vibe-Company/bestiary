@@ -247,3 +247,29 @@ describe("les mâles et les femelles de l'effectif (US-0937)", () => {
     expect(sexes("Poule")).toBe("0 mâle · 1 femelle");
   });
 });
+
+describe("les Blessés de l'effectif (US-0952)", () => {
+  it("distingue, sous les disponibles d'une Espèce, chaque groupe de Blessés et le temps restant avant sa guérison", () => {
+    render(
+      <Escorte
+        especes={[POULE, { ...SOURIS, disponibles: 6 }]}
+        blesses={{
+          souris: [
+            { nombre: 2, dansMinutes: 300 },
+            { nombre: 1, dansMinutes: 1_380 },
+          ],
+        }}
+      />,
+    );
+    expect(textes().slice(9, 15)).toEqual(["Souris grise", "6 disponibles", "2 mâles · 1 femelle", "dont 2 Blessés, guéris dans 5 h", "dont 1 Blessé, guéri dans 23 h", "−"]);
+  });
+
+  it("sans Blessé, rien de plus, pas même une ligne vide", () => {
+    render(<Escorte especes={[POULE, SOURIS]} blesses={{ souris: [] }} />);
+    const sansBlesses = textes();
+    cleanup();
+    ecran();
+    expect(textes()).toEqual(sansBlesses);
+    expect(within(bloc()).queryByText(/Blessé/)).toBeNull();
+  });
+});

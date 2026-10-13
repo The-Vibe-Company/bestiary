@@ -59,6 +59,11 @@
   text-transform: uppercase;
 }
 
+/* US-0952 : chaque groupe de Blessés, en note discrète (kit.note), sous l'effectif. */
+.blesses {
+  overflow-wrap: anywhere;
+}
+
 .nombre {
   color: var(--creme);
   font: var(--graisse-titre) 28px / 1 var(--police);

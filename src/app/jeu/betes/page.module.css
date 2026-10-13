@@ -155,6 +155,13 @@
   overflow-wrap: anywhere;
 }
 
+/* US-0952 : chaque groupe de Blessés, en note discrète (kit.note), sous le nom et la Rareté, sur sa propre ligne. */
+.blesses {
+  flex-basis: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .effectif {
   grid-area: effectif;
   align-self: end;

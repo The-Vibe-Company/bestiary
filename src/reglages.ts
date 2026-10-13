@@ -373,3 +373,9 @@ export const PLACES_DE_L_HABITAT_DU_FOYER = 500;
  */
 export const SIMULATION_DES_CHANCES_RENCONTRES = 10_000;
 export const SIMULATION_DES_CHANCES_TOLERANCE_POINTS = 2;
+
+/**
+ * US-0952 : un Blessé (US-0951) guérit en 24 heures de jeu (valeur provisoire, à régler en jouant, comme l'Espèce y
+ * comptera ou non, US-0954), comptées depuis son retour au Foyer avec son Expédition (src/monde/blesses.ts).
+ */
+export const GUERISON_DES_BLESSES_HEURES = 24;
