@@ -496,6 +496,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0945 · Les explorateurs fuient
 **En tant que** joueur, **je veux** que mes explorateurs s'enfuient après un combat, **afin de** ne jamais perdre d'Habitants en Expédition.
 
+- **Statut** : Livrée le 2026-10-13 (autopilot, Zewed/bestia-2#65, migration 0067). Après un combat, l'Expédition abandonne son séjour et rentre aussitôt avec tous ses explorateurs et les Bêtes qui lui restent, Blessés compris ; attaquée sans escorte, elle fuit sans rien perdre. Dans la liste et sur la carte : « Retour · en fuite », « rentre dans … » compté jusqu'à sa nouvelle heure ; elle ne peut plus être rappelée. Tranché : la fuite s'écrit comme un rappel (`rappelee_le` à l'instant de l'attaque, colonne `en_fuite`) et le retour dure le temps de l'aller (US-0920) ; plusieurs attaques au même instant font une seule fuite ; le premier demi-tour l'emporte sur l'autre ; le temps s'arrête à la première attaque. Une Expédition en fuite quitte la Case pour tous les joueurs, quel que soit l'ordre des rattrapages : chaque Territoire calcule les fuites de toute la Case des mêmes faits (`src/expeditions/fuites-de-la-case.ts`).
 - **Débloquée par** : US-0944
 - **Critères d'acceptation** :
   - Après un combat, l'Expédition abandonne son séjour et rentre aussitôt au Foyer avec les Bêtes survivantes.

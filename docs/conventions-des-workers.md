@@ -26,10 +26,11 @@ Lis d'abord `AGENTS.md` (ce Next.js 16 a des changements cassants ; les guides s
 - Un essai à plusieurs chefs les fait tous naître d'abord, puis choisit ses Cases (Bête de naissance, destination), une par essai : un Foyer né après coup peut tomber sur la Case choisie.
 - Un essai qui cherche dans le Monde (une Bête rare, une Case calme) prend 60 s de délai et un plafond prévu pour le régime le plus défavorable.
 - Aucune Espèce d'essai nommée dans le code ni dans les tests : prends souris, poule ou pigeon.
-- Une base de test réutilisée d'une PR à l'autre peut faire sauter une migration à Drizzle : applique ce qui manque sur la base, sans toucher aux fichiers. Si une migration réservée plus tôt fusionne avant la tienne, recoud ton instantané avec `drizzle-kit`, puis remets ta base d'aplomb.
+- Une base de test réutilisée d'une PR à l'autre peut faire sauter une migration à Drizzle : applique ce qui manque sur la base, sans toucher aux fichiers. Si une migration réservée plus tôt fusionne avant la tienne, recoud ton instantané (copie le précédent, change la table, nouvel `id`, `prevId` = l'`id` du précédent) jusqu'à ce que `drizzle-kit generate` ne trouve aucun changement et que `drizzle-kit check` passe, puis remets ta base d'aplomb. Un script qui importe un module `server-only` se lance avec `npx tsx --conditions=react-server`.
 - La suite complète vide la ligne `horloge` de sa base : après avoir ancré l'horloge du serveur de dev, ne relance pas la suite sur la même base.
 - Avalanche d'`ECONNREFUSED` sur 5433 : `pg_isready`, puis `open -a Docker`, puis relance.
-- Un essai dont l'escorte séjourne sur une Case qu'il n'a pas choisie calme ne relit pas l'effectif après coup : une Bête rare peut l'attaquer et lui coûter des Bêtes (US-0944). Choisis une Case sans Bête plus rare que commune pendant tout le séjour.
+- Un essai qui raconte un séjour (effectif, heure de retour, récit) sur une Case qu'il n'a pas choisie calme est attaquable : une Bête rare peut lui coûter des Bêtes (US-0944) et le faire fuir (US-0945). Choisis une Case sans Bête plus rare que commune pendant tout le séjour, ou épargne l'Expédition avec `epargneePar` / `effacerLExpedition` (`src/test/attaques.ts`), qui calculent l'attaque comme le jeu.
+- Tout état que lisent plusieurs Territoires (présence sur une Case, force d'escorte, départ d'une Bête) se prouve par un essai à deux joueurs sur une Case partagée, rattrapés dans les deux ordres.
 - Arrête tes serveurs par leurs PID, jamais par leur nom (`pkill -f …` arrête aussi ceux des autres agents). Un critère « sur mobile » se vérifie aussi téléphone couché.
 
 ## La pull request
