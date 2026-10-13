@@ -83,12 +83,13 @@ export type SorteDUnFait = "combat" | "pertes" | "fuite" | "ailleurs";
 /**
  * La sorte d'un fait d'un retour d'Expédition, lue dans le texte que le jeu a écrit (recitDeRetour), pour que la page le
  * marque sans rien lui ajouter : US-0947, un combat (« Combat le … », « Attaque le … »), ses pertes (US-0951, « Pertes
- * au combat : … », « Aucune perte. ») et la fuite des explorateurs ; US-0964, une Bête qui a suivi une autre Expédition,
+ * au combat : … », « Aucune perte. » ; US-0946, « Toute votre escorte a été perdue au combat : … ») et la fuite des
+ * explorateurs ; US-0964, une Bête qui a suivi une autre Expédition,
  * et US-0949, une Bête repérée partie avant l'arrivée. null pour tout autre fait.
  */
 export function sorteDUnFait(fait: string): SorteDUnFait | null {
   if (/^(Combat|Attaque) le /.test(fait)) return "combat";
-  if (/^Pertes au combat : /.test(fait) || fait === "Aucune perte.") return "pertes";
+  if (/^(Pertes au combat|Toute votre escorte a été perdue au combat) : /.test(fait) || fait === "Aucune perte.") return "pertes";
   if (/^Vos explorateurs ont fui/.test(fait)) return "fuite";
   if (/ (a suivi une autre Expédition|ont suivi d'autres Expéditions|plus sur la Case à votre arrivée)\.$/.test(fait)) return "ailleurs";
   return null;

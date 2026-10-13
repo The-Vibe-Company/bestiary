@@ -81,4 +81,8 @@ describe("la lecture d'un Récit sur la page Récits", () => {
       ].map(sorteDUnFait),
     ).toEqual(["combat", "combat", "pertes", "pertes", "fuite", "ailleurs", "ailleurs", "ailleurs", null, null]);
   });
+
+  it("marque comme des pertes l'escorte perdue tout entière (US-0946)", () => {
+    expect(sorteDUnFait("Toute votre escorte a été perdue au combat : Poule (1 Blessé) et Souris grise (1 mort, 1 Blessé).")).toBe("pertes");
+  });
 });

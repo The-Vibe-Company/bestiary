@@ -376,3 +376,29 @@ describe("le récit du combat (US-0947)", () => {
     for (const combats of [[], undefined]) expect(lignes({ combats })).toEqual(lignes({}));
   });
 });
+
+describe("toute l'escorte perdue (US-0946)", () => {
+  const combat: CombatDuRetour = { le: aParis(9, 14, 5), bete: { nom: "Pigeon biset", force: 37_340 }, escorte: 10_403, sansEscorte: false };
+  const lignes = (autre: Partial<RetourARaconter>) => recitDeRetour(retour({ rencontres: 1, combats: [combat], ...autre })).texte.split("\n");
+
+  it("le récit l'annonce sans ambiguïté, Espèce par Espèce, à la place des pertes : ses morts et ses Blessés, puis la fuite des explorateurs", () => {
+    const pertes = [
+      { nom: "Poule", mortes: 0, blessees: 1 },
+      { nom: "Souris grise", mortes: 1, blessees: 1 },
+    ];
+    expect(lignes({ pertes, escortePerdue: true }).slice(-3)).toEqual([
+      "Combat le 9 octobre à 14:05 : Pigeon biset, de force 37 340, contre votre escorte, de force 10 403.",
+      "Toute votre escorte a été perdue au combat : Poule (1 Blessé) et Souris grise (1 mort, 1 Blessé).",
+      "Vos explorateurs ont fui et sont tous rentrés au Foyer.",
+    ]);
+  });
+
+  it("toutes mortes, de même, chaque Espèce avec ses morts", () => {
+    expect(lignes({ pertes: [{ nom: "Poule", mortes: 3, blessees: 0 }], escortePerdue: true }).at(-2)).toBe("Toute votre escorte a été perdue au combat : Poule (3 morts).");
+  });
+
+  it("une escorte qui garde des Bêtes valides dit ses pertes comme avant", () => {
+    expect(lignes({ pertes: [{ nom: "Poule", mortes: 1, blessees: 1 }], escortePerdue: false }).at(-2)).toBe("Pertes au combat : Poule (1 mort, 1 Blessé).");
+    expect(lignes({ pertes: [{ nom: "Poule", mortes: 1, blessees: 1 }] }).at(-2)).toBe("Pertes au combat : Poule (1 mort, 1 Blessé).");
+  });
+});

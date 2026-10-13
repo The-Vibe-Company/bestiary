@@ -7,7 +7,8 @@
 // d'autres joueurs avaient une Expédition sur la Case pendant son séjour : le joueur ne l'apprend que là. US-0949 : et
 // les Bêtes que le joueur y avait repérées à son départ, parties avant son arrivée. US-0951 : et les morts et les Blessés de
 // son escorte au combat, Espèce par Espèce. US-0947 : attaquée, il finit par le récit de chaque combat
-// (src/expeditions/recit-du-combat.ts), ses pertes et la fuite des explorateurs. Côté serveur uniquement.
+// (src/expeditions/recit-du-combat.ts), ses pertes et la fuite des explorateurs. US-0946 : quand toute l'escorte est
+// perdue, la ligne des pertes l'annonce. Côté serveur uniquement.
 import "server-only";
 import type { PoolClient } from "pg";
 import type { Sexe } from "@/monde/betes-sauvages";
@@ -80,6 +81,11 @@ export type RetourARaconter = {
   partiesAvant?: string[];
   /** US-0951 : les pertes de son escorte au combat, Espèce par Espèce (pertesDeLEscorte) ; absentes ou vides : aucune. */
   pertes?: PerteRacontee[];
+  /**
+   * US-0946 : toutes les Bêtes de son escorte sont perdues au combat, mortes ou Blessées : aucune ne rentre valide
+   * (escorteToutePerdue) ; absent : non.
+   */
+  escortePerdue?: boolean;
   /** US-0947 : les combats qu'elle a livrés, dans l'ordre où ils se sont livrés (combatsDUneExpedition) ; absents : aucun. */
   combats?: CombatDuRetour[];
 };
@@ -155,14 +161,16 @@ function betesMontrees(nombre: number): string {
 
 /**
  * US-0951 : « Pertes au combat : Souris grise (2 morts, 1 Blessé) et Pigeon biset (2 Blessés). » : chaque Espèce de
- * l'escorte qui a perdu des Bêtes, ses morts puis ses Blessés, sans dire un nombre nul.
+ * l'escorte qui a perdu des Bêtes, ses morts puis ses Blessés, sans dire un nombre nul. US-0946 : quand toute l'escorte
+ * est perdue, la ligne l'annonce, Espèce par Espèce de même : « Toute votre escorte a été perdue au combat : Poule
+ * (1 Blessé) et Souris grise (1 mort, 1 Blessé). ».
  */
-function pertesAuCombat(pertes: readonly PerteRacontee[]): string {
+function pertesAuCombat(pertes: readonly PerteRacontee[], escortePerdue: boolean): string {
   const especes = pertes.map(({ nom, mortes, blessees }) => {
     const dits = [mortes > 0 && `${mortes} ${mortes > 1 ? "morts" : "mort"}`, blessees > 0 && `${blessees} ${blessees > 1 ? "Blessés" : "Blessé"}`];
     return `${nom} (${dits.filter(Boolean).join(", ")})`;
   });
-  return `Pertes au combat : ${enumeres(especes)}.`;
+  return `${escortePerdue ? "Toute votre escorte a été perdue au combat" : "Pertes au combat"} : ${enumeres(especes)}.`;
 }
 
 /** US-0938 : « 2 mâles », « 1 femelle » ; une Bête seule, son sexe : « mâle ». */
@@ -266,10 +274,11 @@ export const FUITE_DES_EXPLORATEURS = "Vos explorateurs ont fui et sont tous ren
 
 /**
  * US-0947 : la fin du récit d'une Expédition attaquée : chaque combat, puis ses pertes (US-0951), « Aucune perte. » sans
- * perte, et la fuite des explorateurs. Sans combat, les seules pertes, s'il y en a.
+ * perte, et la fuite des explorateurs. Sans combat, les seules pertes, s'il y en a. US-0946 : toute l'escorte perdue, la
+ * ligne des pertes l'annonce.
  */
-function finDuRecit(combats: readonly CombatDuRetour[], pertes: readonly PerteRacontee[]): string[] {
-  const lignePertes = pertes.length ? [pertesAuCombat(pertes)] : [];
+function finDuRecit(combats: readonly CombatDuRetour[], pertes: readonly PerteRacontee[], escortePerdue: boolean): string[] {
+  const lignePertes = pertes.length ? [pertesAuCombat(pertes, escortePerdue)] : [];
   if (combats.length === 0) return lignePertes;
   return [...combats.map(combat), ...(lignePertes.length ? lignePertes : ["Aucune perte."]), FUITE_DES_EXPLORATEURS];
 }
@@ -286,7 +295,7 @@ function finDuRecit(combats: readonly CombatDuRetour[], pertes: readonly PerteRa
  * Bêtes que le joueur y avait repérées en étaient parties avant l'arrivée, une ligne les nomme. US-0964 : quand des Bêtes
  * vues ont suivi une autre Expédition, une ligne le dit, après les Bêtes. US-0947 : attaquée, il finit par chaque combat,
  * dans l'ordre du temps, puis ses pertes, Espèce par Espèce, en morts et en Blessés (US-0951), ou « Aucune perte. », et la
- * fuite des explorateurs.
+ * fuite des explorateurs. US-0946 : quand toute l'escorte est perdue, la ligne des pertes l'annonce.
  */
 export function recitDeRetour({
   destination,
@@ -302,6 +311,7 @@ export function recitDeRetour({
   partiesAvant,
   emmenees,
   pertes,
+  escortePerdue,
   combats,
 }: RetourARaconter): NouveauRecit {
   const sejour = durees.sejour === 0 ? "sans séjour" : `séjour ${formaterMinutes(durees.sejour)}`;
@@ -320,7 +330,7 @@ export function recitDeRetour({
         : [betesMontrees(rencontres), ...(tropFortes?.length ? [resteesSurLeurCase(tropFortes)] : [])]),
       ...(emmenees?.length ? [suiviesAilleurs(emmenees)] : []),
       ...(ramenees?.length ? [betesRamenees(ramenees)] : []),
-      ...finDuRecit(combats ?? [], pertes ?? []),
+      ...finDuRecit(combats ?? [], pertes ?? [], escortePerdue ?? false),
     ].join("\n"),
     survenuLe: rentreeLe,
   };
@@ -373,8 +383,9 @@ export async function raconterLeRetour(client: PoolClient, territoireId: number,
   // US-0964 : les Bêtes vues parties avec une autre Expédition, que dit son récit de Rencontre.
   const idsEmmenees = [...new Set(detail.filter((r) => r.issue === "emmenee").map((r) => r.especeId))];
   const emmenees = idsEmmenees.length > 0 ? await nomsDesEspeces(client, idsEmmenees) : undefined;
-  // US-0951 : les morts et les Blessés de son escorte au combat.
+  // US-0951 : les morts et les Blessés de son escorte au combat ; US-0946 : et si elle y a été perdue tout entière.
   const pertes = await pertesDeLEscorte(client, expeditionId);
+  const escortePerdue = await escorteToutePerdue(client, expeditionId);
   // US-0947 : ses combats ; et les Bêtes mortes aux combats, que le résumé compte, retenues sur la Rencontre de la dernière
   // Bête qui a attaqué ; rien sans mort.
   const combats = await combatsDUneExpedition(client, expeditionId);
@@ -398,6 +409,7 @@ export async function raconterLeRetour(client: PoolClient, territoireId: number,
       partiesAvant,
       emmenees,
       pertes,
+      escortePerdue,
       combats,
     }),
     detail.map((r, i) => (vues[i].id === derniere ? { ...r, perdues: mortes } : r)),
@@ -418,6 +430,18 @@ async function pertesDeLEscorte(client: PoolClient, expeditionId: number): Promi
     [expeditionId],
   );
   return rows;
+}
+
+/**
+ * US-0946 : si l'escorte de l'Expédition `expeditionId` a été perdue tout entière au combat : chacune de ses Espèces y a
+ * perdu toutes ses Bêtes, mortes ou Blessées (src/expeditions/pertes.ts), et aucune ne rentre valide ; faux sans escorte.
+ */
+async function escorteToutePerdue(client: PoolClient, expeditionId: number): Promise<boolean> {
+  const { rows } = await client.query<{ perdue: boolean }>(
+    "select coalesce(bool_and(s.perdues >= s.nombre), false) as perdue from expedition_escorte s where s.expedition_id = $1 and s.nombre > 0",
+    [expeditionId],
+  );
+  return rows[0].perdue;
 }
 
 /**
