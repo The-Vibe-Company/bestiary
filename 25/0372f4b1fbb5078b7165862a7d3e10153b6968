@@ -1,0 +1,21 @@
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_d1ecbc5a82766c 180-181
+src/monde/cout-d-elevage.test.ts
+  s_7c7d151152e4a5::t_bd5a09a3b1cc1f 12-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "250372f4b1fbb5078b7165862a7d3e10153b6968",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
