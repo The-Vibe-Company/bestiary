@@ -1,0 +1,21 @@
+src/app/globals.css
+  s_197c47ffa215f4::t_057332e3739962 97-105
+src/components/BarreHaut.test.tsx
+  s_197c47ffa215f4::t_feb5beb076f412 41-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4c20a2d556f645e408b8e41d5f638b64862cd16a",
+  "prompts": {},
+  "sessions": {
+    "s_197c47ffa215f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5d864287176be1e2",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
