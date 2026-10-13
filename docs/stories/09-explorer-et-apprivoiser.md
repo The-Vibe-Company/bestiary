@@ -580,6 +580,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0953 · Les Blessés restent au Foyer
 **En tant que** joueur, **je veux** que mes Blessés ne puissent pas repartir, **afin de** ne pas les exposer par erreur.
 
+- **Statut** : Livrée le 2026-10-13 (autopilot, Zewed/bestia-2#66). Les Blessés ne sont plus proposés en escorte avant leur guérison : le bloc Escorte de l'écran d'Expédition dit « Poule · 795 disponibles · 2 Blessés, guéris dans 4 h », « Toutes » ne prend que les valides, et un départ qui en emmènerait un est refusé (le départ relit les disponibles à son propre instant). Ils restent dans l'effectif ; guéris, ils redeviennent disponibles. Une Espèce toute blessée garde sa ligne, à 0 disponible. Tranché : les Blessés ne défendront pas le Foyer (étape 54, aucun code encore) ; jamais plus de Blessés que de Bêtes au Foyer, jamais moins de zéro disponible.
 - **Débloquée par** : US-0951, US-0904
 - **Critères d'acceptation** :
   - Les Blessés ne sont jamais proposés dans une escorte (ni, plus tard, dans une Attaque).

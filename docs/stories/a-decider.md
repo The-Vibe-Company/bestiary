@@ -2,7 +2,7 @@
 
 Tous les « (à décider) » laissés dans les stories, jalon par jalon. On les tranche au moment d'attaquer la story concernée, pas avant. Une fois décidé, on remplace la mention dans la story par la règle retenue, et on met à jour [CONTEXT.md](../../CONTEXT.md) si un mot du jeu change.
 
-213 points au total.
+198 points au total.
 
 ## [Jalon 0 · Les fondations](00-fondations.md)
 
@@ -71,7 +71,6 @@ Tous les « (à décider) » laissés dans les stories, jalon par jalon. On les 
 
 ## [Jalon 8 · Les Bêtes à la maison](08-les-betes-a-la-maison.md)
 
-- [US-0814](08-les-betes-a-la-maison.md) · Voir le coût et la durée d'un Élevage : le coût se paie en Viande, en Végétaux, ou selon le régime de l'Espèce.
 - [US-0819](08-les-betes-a-la-maison.md) · Ajouter un Élevage à la file : une longueur maximale de file (chiffre à régler) ; chaque éleveur a la sienne (US-0844).
 - [US-0820](08-les-betes-a-la-maison.md) · Annuler un Élevage : ce qui dépasserait la limite de stock est perdu, et la confirmation le signale.
 - [US-0824](08-les-betes-a-la-maison.md) · Occuper des Places selon la taille : les Bêtes du Couple en Réserve occupent des Places, ou non.
@@ -90,24 +89,10 @@ Tous les « (à décider) » laissés dans les stories, jalon par jalon. On les 
 - [US-0929](09-explorer-et-apprivoiser.md) · La Densité change la fréquence : la Densité ne change pas les pourcentages de Rareté.
 - [US-0929](09-explorer-et-apprivoiser.md) · La Densité change la fréquence : elle n'est jamais affichée en chiffre ; que le récit en donne une impression, comme « la faune semblait abondante ».
 - [US-0939](09-explorer-et-apprivoiser.md) · Une Bête apprivoisée sans Place libre : quand l'Habitat du Foyer n'a plus de Place libre pour elle, la Bête rejoint quand même le joueur en surnombre, attend une Place, ou repart au sauvage.
-- [US-0943](09-explorer-et-apprivoiser.md) · La Bête trop forte peut attaquer : une chance d'attaque qui dépend de la Rareté ou du régime, un carnivore étant plus agressif.
-- [US-0944](09-explorer-et-apprivoiser.md) · Le combat par la somme des forces : la répartition des pertes entre les Espèces de l'escorte, au prorata des effectifs ou des forces.
-- [US-0944](09-explorer-et-apprivoiser.md) · Le combat par la somme des forces : la Bête sauvage ne subit aucune perte et reste sur sa Case.
-- [US-0947](09-explorer-et-apprivoiser.md) · Le récit du combat : le récit donne l'heure du combat, l'Espèce de la Bête et la force de l'escorte ; afficher aussi la force exacte de la Bête.
-- [US-0948](09-explorer-et-apprivoiser.md) · Repérer la Bête restée sur la carte : le repère indique jusqu'à quand elle devrait rester ; heure exacte ou approximative.
-- [US-0948](09-explorer-et-apprivoiser.md) · Repérer la Bête restée sur la carte : le repère disparaît à la fin de sa durée, ou dès qu'elle a suivi une autre Expédition ; le joueur l'apprend-il.
-- [US-0951](09-explorer-et-apprivoiser.md) · Des Blessés parmi les pertes : avec de petits nombres (une seule Bête perdue), arrondi ou tirage au sort.
-- [US-0953](09-explorer-et-apprivoiser.md) · Les Blessés restent au Foyer : leur part dans la défense du Foyer, à l'étape 54.
-- [US-0954](09-explorer-et-apprivoiser.md) · La guérison avec le temps : un Blessé guérit après une durée (chiffre à régler) ; la même pour toutes les Espèces ou selon l'Espèce.
-- [US-0954](09-explorer-et-apprivoiser.md) · La guérison avec le temps : la page Récits signale les guérisons ; note à part ou simple compteur.
 - [US-0955](09-explorer-et-apprivoiser.md) · Soigner plus vite : un Blessé dont on s'occupe guérit plus vite ; le moyen, construction, Poste ou Bête à Rôle.
 - [US-0960](09-explorer-et-apprivoiser.md) · Le mâle ou la femelle n'est pas au Foyer : si l'une est Blessée, le Couple se forme aussitôt et elle guérit en Réserve, ou il attend sa guérison.
 - [US-0961](09-explorer-et-apprivoiser.md) · Prévenir avant de risquer une Bête précieuse : si l'escorte emmène la seule Bête d'un sexe d'une Espèce sans Couple, le récapitulatif le signale ; simple avertissement ou confirmation demandée.
-- [US-0962](09-explorer-et-apprivoiser.md) · Chaque Expédition présente voit la Bête : un joueur n'apprend la présence des autres Expéditions que par le récit du retour.
-- [US-0963](09-explorer-et-apprivoiser.md) · Des chances proportionnelles à la force : une Expédition pour qui la Bête est trop forte ne participe pas au tirage ; ou la portée se juge sur la somme des escortes présentes.
-- [US-0964](09-explorer-et-apprivoiser.md) · Le récit du perdant : nommer le chef qui l'a emportée.
 - [US-0965](09-explorer-et-apprivoiser.md) · Une Bête trop forte pour toutes : laquelle elle attaque (au hasard, la plus faible…), et si elle peut en attaquer plusieurs.
-- [US-0967](09-explorer-et-apprivoiser.md) · Deux Expéditions du même joueur sur une Case : envoyer une seconde Expédition vers une Case où l'on en a déjà une : autorisé ou refusé avec un message.
 - [US-0970](09-explorer-et-apprivoiser.md) · Les pigeons gardent les Bêtes en vue : la forme exacte de l'effet, présence prolongée ou Bêtes repérées sur les Cases voisines.
 
 ## [Jalon 10 · Le Bestiaire](10-le-bestiaire.md)
