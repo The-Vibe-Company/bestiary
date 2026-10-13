@@ -47,11 +47,12 @@ describe.skipIf(!URL_TEST)("refuser l'Élevage d'une Espèce sans Couple, sur ba
       client.release();
     }
   };
-  /** L'Élevage de l'Espèce `espece` demandé pour le joueur du Territoire, comme le bouton l'envoie, ou par tout autre chemin. */
+  /** L'Élevage d'une Bête de l'Espèce `espece` demandé pour le joueur du Territoire, comme le bouton l'envoie, ou par tout autre chemin. */
   const demander = (territoireId: number, espece: string) => {
     garde.exigerCompte.mockResolvedValue({ id: 1, email: "nom@exemple.fr", nomDeChef: "Ourse", territoireId, recitLu: true });
     const formulaire = new FormData();
     formulaire.set("espece", espece);
+    formulaire.set("quantite", "1");
     return elever({ refus: null }, formulaire);
   };
 

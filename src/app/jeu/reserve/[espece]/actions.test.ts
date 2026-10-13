@@ -18,11 +18,13 @@ vi.mock("@/db", () => ({ getPool: () => ({}) }));
 
 import { ELEVAGE_SANS_COUPLE } from "@/monde/elevage";
 import { elever } from "./actions";
+import { QUANTITE_REFUSEE } from "./quantite";
 
-/** Un Élevage demandé pour l'Espèce `espece`, comme le bloc « Élever » l'envoie, ou par tout autre chemin. */
-const demander = (espece: string | null) => {
+/** Un Élevage demandé pour l'Espèce `espece`, comme le bloc « Élever » l'envoie (une Bête d'abord), ou par tout autre chemin. */
+const demander = (espece: string | null, quantite: string | null = "1") => {
   const formulaire = new FormData();
   if (espece !== null) formulaire.set("espece", espece);
+  if (quantite !== null) formulaire.set("quantite", quantite);
   return elever({ refus: null }, formulaire);
 };
 
@@ -91,3 +93,40 @@ describe("refuser l'Élevage d'une Espèce sans Couple (US-0812)", () => {
     expect(cookie.jetonDeSession).not.toHaveBeenCalled();
   });
 });
+
+describe("refuser une quantité nulle, négative ou non entière (US-0813)", () => {
+  afterEach(() => {
+    elevage.elevageAcquis.mockReset();
+    cookie.jetonDeSession.mockReset();
+  });
+
+  const connecte = () => {
+    cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
+    session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
+  };
+
+  it("refuse, avec un message clair, une quantité qui n'est pas un nombre entier d'au moins 1, même hors du bloc", async () => {
+    connecte();
+    elevage.elevageAcquis.mockResolvedValue(true);
+    for (const quantite of [null, "", "0", "-2", "2.5", "2,5", "1e3", "deux"]) expect(await demander("poule", quantite)).toEqual({ refus: QUANTITE_REFUSEE });
+    const formulaire = new FormData();
+    formulaire.set("espece", "poule");
+    formulaire.append("quantite", "2");
+    formulaire.append("quantite", "3");
+    expect(await elever({ refus: null }, formulaire)).toEqual({ refus: QUANTITE_REFUSEE });
+    expect(QUANTITE_REFUSEE).toBe("La quantité doit être un nombre entier, d'au moins 1.");
+  });
+
+  it("accepte une quantité entière d'au moins 1", async () => {
+    connecte();
+    elevage.elevageAcquis.mockResolvedValue(true);
+    for (const quantite of ["1", "12", " 3 "]) expect(await demander("poule", quantite)).toEqual({ refus: null });
+  });
+
+  it("refuse d'abord l'Élevage sans Couple, quelle que soit la quantité", async () => {
+    connecte();
+    elevage.elevageAcquis.mockResolvedValue(false);
+    expect(await demander("pigeon", "0")).toEqual({ refus: ELEVAGE_SANS_COUPLE });
+  });
+});
+

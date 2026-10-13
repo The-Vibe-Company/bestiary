@@ -16,6 +16,83 @@
   margin-top: 14px;
 }
 
+/*
+ * US-0813 : la quantité, son étiquette au-dessus, puis le pas du kit (« − », le champ, « + ») et « Max » d'une ligne,
+ * au-dessus du bouton ; la ligne ne déborde pas du panneau, même sur un écran de 320 px : le champ lui cède sa largeur.
+ */
+.quantite {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.reglage {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/*
+ * Le pas du kit (fixe chez lui), qui cède ici de sa largeur quand la ligne manque de place : celle du champ seulement,
+ * « − » et « + » gardant la leur. Des sélecteurs plus forts que ceux du kit, quel que soit l'ordre des feuilles.
+ */
+.quantite .pas {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.quantite .pas .pasBouton {
+  flex: none;
+}
+
+/*
+ * Le champ, dans le pas, à la place du nombre ; 16 px au moins : sur iPhone, un champ plus petit fait zoomer la page.
+ * Il cède de sa largeur sur un petit écran.
+ */
+.champ {
+  flex: 0 1 96px;
+  min-width: 0;
+  height: 32px;
+  padding: 0 6px;
+  border-top: 0;
+  border-bottom: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Plus fort que le nombre du pas du kit (40 px au moins), pour que le champ puisse céder toute sa largeur. */
+.quantite .pas .champ {
+  min-width: 0;
+}
+
+.champ:focus-visible {
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: -2px;
+}
+
+/* Une quantité refusée : le pas se borde de braise, et le message le dit en clair. */
+.pas:has(.champ[aria-invalid="true"]) {
+  border-color: var(--braise-filet);
+}
+
+.max {
+  flex: none;
+  min-height: 34px;
+}
+
+/* La quantité que « − », « + » ou « Max » viennent de donner, pour les lecteurs d'écran seulement. */
+.annonce {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* Le bouton « Élever », au pouce : l'action principale du kit, éteinte tant que l'Élevage ne se lance pas. */
 .bouton {
   min-height: 44px;
@@ -27,11 +104,35 @@
   outline-offset: 2px;
 }
 
-/* Le refus, juste sous le bouton, en braise, son texte en clair : jamais la couleur seule. */
+/* Le refus, juste sous le bouton (ou sous la quantité), en braise, son texte en clair : jamais la couleur seule. */
 .refus {
   margin-top: 10px;
   color: var(--braise);
   font: var(--graisse-titre) 13.5px / 1.35 var(--police);
+}
+
+.quantite .refus {
+  margin-top: 0;
+}
+
+/*
+ * Au pouce, sur un téléphone : « − », « + » et « Max » ont 44 px de surface, comme l'escorte ; des sélecteurs plus forts que
+ * ceux du kit (son pas en grand, son bouton qui monte à 36 px sous 760 px), quel que soit l'ordre des feuilles.
+ */
+@media (max-width: 820px), (max-height: 500px) {
+  .quantite .pas .pasBouton {
+    width: 44px;
+    height: 44px;
+  }
+
+  .champ {
+    height: 44px;
+  }
+
+  .quantite .reglage > .max {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
 @media (max-width: 600px) and (orientation: portrait) {

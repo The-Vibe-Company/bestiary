@@ -28,6 +28,9 @@ vi.mock("@/monde/elevage", async (original) => ({ ...(await original<object>()),
 // US-0822 : les Places de l'Habitat du Foyer, lues sur base (src/monde/habitat.db.test.ts).
 const habitat = vi.hoisted(() => ({ placesDeLHabitat: vi.fn(async () => ({ occupees: 21, total: 500 })) }));
 vi.mock("@/monde/habitat", () => habitat);
+// US-0813 : les Bêtes que les Stocks de Nourriture permettent de payer, lues sur base (src/monde/cout-d-elevage.db.test.ts).
+const cout = vi.hoisted(() => ({ maxAElever: vi.fn(async () => 7) }));
+vi.mock("@/monde/cout-d-elevage", () => cout);
 vi.mock("@/temps/rattraper", () => ({ rattraper: vi.fn(async () => new Date()) }));
 vi.mock("@/db", () => ({ getPool: () => ({}) }));
 vi.mock("next/server", async (original) => ({ ...(await original<object>()), connection: async () => {} }));
@@ -122,6 +125,21 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
     // US-0822 : avec les Places de l'Habitat du Foyer, comme la page Bêtes.
     expect(habitat.placesDeLHabitat).toHaveBeenLastCalledWith(expect.anything(), 12);
     expect(html.slice(html.indexOf('id="elever"')).replace(/<[^>]+>/g, "")).toContain("Places : 21 / 500");
+  });
+
+  it("y propose la quantité, et « Max » au nombre de Bêtes que les Stocks du joueur permettent de payer (US-0813)", async () => {
+    connecte();
+    elevage.elevageAcquis.mockResolvedValueOnce(true);
+    const html = await ouvrir("poule");
+    expect(cout.maxAElever).toHaveBeenLastCalledWith(expect.anything(), 12, "poule");
+    const bloc = html.slice(html.indexOf('id="elever"'));
+    expect(bloc).toMatch(/<input[^>]*name="quantite"[^>]*value="1"/);
+    expect(bloc).toMatch(/<button type="button"[^>]*>Max<\/button>/);
+    expect(bloc).not.toMatch(/<button[^>]*disabled=""[^>]*>Max<\/button>/);
+    // Des Stocks qui ne paient pas une Bête : « Max » est grisé.
+    cout.maxAElever.mockResolvedValueOnce(0);
+    elevage.elevageAcquis.mockResolvedValueOnce(true);
+    expect(await ouvrir("poule")).toMatch(/<button[^>]*disabled=""[^>]*>Max<\/button>/);
   });
 
   it("ne le propose pas pour une Espèce sans Couple, même avec des Bêtes (US-0812)", async () => {

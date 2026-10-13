@@ -379,3 +379,9 @@ export const SIMULATION_DES_CHANCES_TOLERANCE_POINTS = 2;
  * comptera ou non, US-0954), comptées depuis son retour au Foyer avec son Expédition (src/monde/blesses.ts).
  */
 export const GUERISON_DES_BLESSES_HEURES = 24;
+
+/**
+ * US-0813 : une Bête élevée coûte autant de Nourriture qu'elle en mange pendant 7 jours (valeur provisoire, à régler en
+ * jouant) : son Entretien par heure, fois 24, fois ce nombre (src/monde/cout-d-elevage.ts) ; une souris environ 28, une poule 840.
+ */
+export const JOURS_D_ENTRETIEN_PAR_BETE_ELEVEE = 7;
