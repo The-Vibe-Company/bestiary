@@ -1,13 +1,77 @@
-/* US-0417 : la carte du Monde dans toute la place sous la barre du haut (et au-dessus des onglets sur mobile), sans défiler. */
+/*
+ * US-0417 : la carte du Monde dans tout l'écran, sans défiler : les pièces du haut et la rangée des médaillons sont
+ * posées dessus. Au-delà du Monde, la mer du soir ; par-dessus, la lumière dorée d'une fin de journée et l'ombre des
+ * bords, comme un plateau peint sous la lampe (la même que la scène, components/Scene.module.css). Sur un téléphone, la
+ * carte s'arrête au-dessus de la rangée des médaillons, qui tient toute la largeur.
+ */
 .page {
-  height: var(--hauteur-utile);
+  position: fixed;
+  inset: 0;
   overflow: hidden;
+  background: radial-gradient(ellipse at 55% 40%, var(--mer-du-soir), var(--mer-profonde) 75%);
+}
+
+.page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse 70% 55% at 55% 12%, var(--soleil), transparent 70%),
+    radial-gradient(ellipse 120% 100% at 50% 50%, transparent 60%, var(--ombre-du-soir) 100%);
+  pointer-events: none;
+}
+
+/* Des bancs de brume qui passent lentement sur le Monde, comme sur la scène (components/Scene.module.css). */
+.page::before {
+  content: "";
+  position: absolute;
+  inset: -10% -20%;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse 18% 9% at 22% 28%, var(--nuage), transparent 70%),
+    radial-gradient(ellipse 26% 11% at 68% 62%, var(--nuage), transparent 70%),
+    radial-gradient(ellipse 15% 8% at 44% 86%, var(--nuage), transparent 70%),
+    radial-gradient(ellipse 20% 9% at 86% 18%, var(--nuage), transparent 70%);
+  animation: deriver 80s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes deriver {
+  from {
+    transform: translateX(-5%);
+  }
+
+  to {
+    transform: translateX(5%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page::before {
+    animation: none;
+  }
 }
 
 /* US-0425 : la carte et ses boutons de zoom, posés par-dessus, dans toute la place de la page. */
 .cadre {
   position: relative;
   height: 100%;
+}
+
+/*
+ * Le grain d'une peinture, fondu dans les couleurs de la carte : les Cases et la brume prennent la matière du Monde peint
+ * des illustrations. Il laisse passer les gestes, sous les boutons de la carte.
+ */
+.cadre::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.33 0 0 0 0 0.2 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+  opacity: 0.8;
+  pointer-events: none;
 }
 
 /*
@@ -28,9 +92,9 @@
   cursor: grabbing;
 }
 
-/* US-0422 : la carte sélectionnée au clavier, d'un contour tracé dedans : la page coupe ce qui dépasse. */
+/* US-0422 : la carte sélectionnée au clavier, d'un contour de cuivre clair tracé dedans : la page coupe ce qui dépasse. */
 .carte:focus-visible {
-  outline: 2px solid var(--encre);
+  outline: 2px solid var(--cuivre-clair);
   outline-offset: -2px;
 }
 
@@ -42,6 +106,11 @@
   .page:has([data-fiche-de-la-case]) [aria-controls] + [id] {
     display: none;
   }
+
+  /* Sur un téléphone, la carte s'arrête au-dessus de la rangée des médaillons, qui tient toute la largeur. */
+  .page {
+    bottom: calc(var(--hauteur-onglets) + var(--bord-bas));
+  }
 }
 
 /* Un texte pour les lecteurs d'écran seulement. */
@@ -52,4 +121,50 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/*
+ * US-0907 : la carte ouverte pour choisir la destination d'une Expédition : un écriteau de verre en haut, au milieu,
+ * cerclé de cuivre clair, le médaillon des Expéditions et « Choisir une destination » en Bree Serif. Il laisse la carte se
+ * manier au travers. Entre 821 et 1 100 px, il se pose à droite de la place de la fiche d'une Case (330 px, en haut à
+ * gauche) ; sur un téléphone, en haut à gauche, à côté du bouton de la légende.
+ */
+.choix {
+  position: absolute;
+  top: calc(var(--hauteur-barre) + 12px);
+  left: 50%;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  max-width: calc(100% - 300px);
+  min-height: 44px;
+  margin: 0;
+  padding: 6px 18px 6px 8px;
+  border: 1px solid var(--cuivre);
+  border-radius: var(--arrondi-net);
+  background: var(--fond-verre);
+  backdrop-filter: blur(6px);
+  box-shadow: var(--ombre-verre), inset 0 0 0 1px var(--cuivre-brume);
+  color: var(--creme);
+  font: 400 17px / 1.15 var(--police-titre);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+@media (min-width: 821px) and (max-width: 1099px) {
+  .choix {
+    left: calc(354px + var(--bord-gauche));
+    transform: none;
+  }
+}
+
+@media (max-width: 820px) {
+  .choix {
+    left: calc(12px + var(--bord-gauche));
+    max-width: calc(100% - 160px - var(--bord-gauche) - var(--bord-droit));
+    padding-right: 14px;
+    font-size: 15.5px;
+    transform: none;
+  }
 }

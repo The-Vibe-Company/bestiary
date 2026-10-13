@@ -1,33 +1,80 @@
-/* US-0906 : le bloc Séjour, à l'écart du bloc d'avant ; la durée, le curseur et les durées prêtes, l'un sous l'autre. */
+/* US-0906 : le panneau Séjour, sous les explorateurs et l'escorte : la durée, le curseur et les durées prêtes, l'un sous l'autre. */
 .sejour {
-  margin-top: var(--ecart);
+  min-width: 0;
 }
 
 .reglage {
   display: grid;
-  gap: 8px;
-  max-width: 560px;
 }
 
-/* La durée choisie, en grand. */
+/* La durée choisie, en grand, en crème. */
 .duree {
-  font-size: 28px;
-  font-weight: var(--graisse-titre);
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  margin-bottom: 8px;
+  color: var(--creme);
+  font: var(--graisse-titre) 32px / 1 var(--police);
+  letter-spacing: -0.01em;
 }
 
-/* Le curseur, au pouce : toute la largeur, 44 px de haut, à l'Encre. */
+/*
+ * Le curseur, au pouce : toute la largeur, 44 px de haut ; dessiné comme la maquette : un creux fin au filet de cuivre,
+ * rempli de cuivre jusqu'au losange (--part, la part de la durée choisie entre ses bornes), le losange de cuivre clair.
+ */
 .curseur {
+  --part: 0;
   width: 100%;
   height: 44px;
   margin: 0;
-  accent-color: var(--encre);
+  background: transparent;
   cursor: pointer;
+  appearance: none;
+}
+
+.curseur::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, var(--cuivre-sombre), var(--cuivre-clair)) 0 0 / calc(9px + (100% - 18px) * var(--part)) 100% no-repeat,
+    var(--creux-clair);
+  box-shadow: inset 0 0 0 1px var(--filet-cuivre);
+}
+
+.curseur::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, var(--cuivre-sombre), var(--cuivre-clair)) 0 0 / calc(9px + (100% - 18px) * var(--part)) 100% no-repeat,
+    var(--creux-clair);
+  box-shadow: inset 0 0 0 1px var(--filet-cuivre);
+}
+
+.curseur::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border: 1px solid var(--cuivre-bouton-bord);
+  border-radius: 0;
+  background: linear-gradient(135deg, var(--cuivre-pale), var(--cuivre));
+  box-shadow:
+    0 0 0 3px var(--cuivre-halo),
+    0 2px 6px var(--ombre-noire);
+  transform: rotate(45deg);
+  appearance: none;
+}
+
+.curseur::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--cuivre-bouton-bord);
+  border-radius: 0;
+  background: linear-gradient(135deg, var(--cuivre-pale), var(--cuivre));
+  box-shadow:
+    0 0 0 3px var(--cuivre-halo),
+    0 2px 6px var(--ombre-noire);
+  transform: rotate(45deg);
 }
 
 .curseur:focus-visible {
-  outline: 2px solid var(--encre);
+  outline: 2px solid var(--cuivre-clair);
   outline-offset: 2px;
 }
 
@@ -35,52 +82,25 @@
 .bornes {
   display: flex;
   justify-content: space-between;
-  margin-top: -4px;
-  color: var(--texte-discret);
-  font-size: 13px;
+  margin-top: -8px;
+  color: var(--lichen);
+  font: var(--graisse-moyenne) 12px / 1 var(--police-etroite);
+  letter-spacing: 0.04em;
 }
 
-/* Les durées toutes prêtes : quatre boutons de 44 px qui se partagent la largeur, la choisie pressée à l'Encre. */
+/* Les durées toutes prêtes : quatre segments qui se partagent la largeur, la choisie au cuivre plein (kit.segments). */
 .prets {
-  display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 4px;
+  margin-top: 14px;
 }
 
 .pret {
-  min-height: 44px;
-  padding: 0 8px;
-  border: 1px solid var(--trait-doux);
-  border-radius: var(--arrondi-petit);
-  background: var(--bloc-2);
-  color: var(--texte-2);
-  font: inherit;
-  font-weight: var(--graisse-titre);
   cursor: pointer;
 }
 
-.pret[aria-pressed="true"] {
-  border-color: var(--encre);
-  background: var(--encre);
-  color: var(--ivoire);
-}
-
-@media (hover: hover) {
-  .pret[aria-pressed="false"]:hover {
-    border-color: var(--galet);
-    background: var(--bloc-3);
-  }
-}
-
-.pret:focus-visible {
-  outline: 2px solid var(--encre);
-  outline-offset: 2px;
-}
-
-/* Sur mobile, l'écart des blocs de mobile. */
+/* US-0906 : au pouce, sur un téléphone : chaque durée toute prête a 44 px de haut. */
 @media (max-width: 820px), (max-height: 500px) {
-  .sejour {
-    margin-top: var(--ecart-mobile);
+  .prets > .pret {
+    min-height: 44px;
   }
 }

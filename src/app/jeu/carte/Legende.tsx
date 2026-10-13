@@ -1,6 +1,7 @@
 "use client";
 
 import { type CSSProperties, type ReactNode, useEffect, useId, useRef, useState } from "react";
+import kit from "@/components/kit.module.css";
 import { BROUILLARD, couleur } from "@/monde/couleurs-de-la-carte";
 import type { Coordonnees } from "@/monde/hex";
 import { ZONE_COEUR, ZONE_COURONNE } from "@/monde/zones";
@@ -41,22 +42,38 @@ const MOBILE = "(max-width: 820px)";
 export const LEGENDE_MONTREE = "bestia:legende-montree";
 
 /**
- * US-0426 : publie sur la page (--hauteur-legende) la hauteur du panneau ouvert en bas de la carte, sur mobile : les
- * boutons de la carte et la flèche du Foyer restent au-dessus. Rien quand il est fermé, ni sur ordinateur.
+ * US-0426 : la bande du bas de la carte que prend un panneau posé en bas de l'écran, la légende ou la fiche d'une Case :
+ * sa hauteur, et la marge qui le sépare du bas de la carte ; rien d'un panneau fermé.
+ */
+export function bandeDuBas(panneau: Element): number {
+  const { height } = panneau.getBoundingClientRect();
+  return height > 0 ? height + (parseFloat(getComputedStyle(panneau).marginBottom) || 0) : 0;
+}
+
+/**
+ * US-0426 : publie sur la page (--hauteur-legende) la bande du bas de la carte que prend le panneau ouvert, sur mobile :
+ * les boutons de la carte et la flèche du Foyer restent au-dessus. Rien quand il est fermé, ni sur ordinateur.
  */
 function publierLaHauteur(panneau: HTMLElement): void {
-  const hauteur = matchMedia(MOBILE).matches ? panneau.getBoundingClientRect().height : 0;
+  const hauteur = matchMedia(MOBILE).matches ? bandeDuBas(panneau) : 0;
   if (hauteur > 0) document.documentElement.style.setProperty("--hauteur-legende", `${hauteur}px`);
   else document.documentElement.style.removeProperty("--hauteur-legende");
 }
 
 /** Les couleurs de la carte en CSS, que le SVG comprend telles quelles : celles que CarteDuJeu donne au <canvas> (un test le vérifie). */
 const PEINTURE: Omit<Peinture, "fonds"> = {
-  bord: "color-mix(in oklch, var(--encre) 14%, transparent)",
-  motifSombre: "color-mix(in oklch, var(--encre) 26%, transparent)",
-  motifClair: "color-mix(in oklch, var(--ivoire) 45%, transparent)",
+  bord: "color-mix(in oklch, var(--bois-sombre) 38%, transparent)",
+  motifSombre: "color-mix(in oklch, var(--bois-sombre) 30%, transparent)",
+  motifClair: "color-mix(in oklch, var(--ivoire) 50%, transparent)",
   encre: "var(--encre)",
   repere: "var(--citron)",
+  // Aucune Case n'est choisie dans la légende.
+  surlignage: {
+    voile: "color-mix(in oklch, var(--cuivre-pale) 22%, transparent)",
+    halo: "color-mix(in oklch, var(--cuivre) 65%, transparent)",
+    trait: "var(--cuivre-pale)",
+    anneau: "color-mix(in oklch, var(--cuivre-clair) 75%, transparent)",
+  },
 };
 
 /** La Case d'un échantillon, et un Foyer assez loin pour ne pas y paraître. */
@@ -117,7 +134,7 @@ function Echantillon({ teinte, cases = UNE_CASE, foyer = AILLEURS, foyers = [] }
 function Groupe({ titre, uneColonne = false, children }: { titre: string; uneColonne?: boolean; children: ReactNode }) {
   return (
     <div className={styles.groupe}>
-      <h2 className={styles.titre}>{titre}</h2>
+      <h2 className={`${kit.etiquette} ${styles.titre}`}>{titre}</h2>
       <ul className={`${styles.liste} ${uneColonne ? styles.uneColonne : ""}`}>{children}</ul>
     </div>
   );
@@ -127,8 +144,9 @@ function Groupe({ titre, uneColonne = false, children }: { titre: string; uneCol
  * US-0432 : la légende de la carte, derrière un bouton « Légende » en haut à droite : chaque Biome de terre et chaque
  * eau, dans leur ordre, chacun dans une Case dessinée comme sur la carte, puis le repère de son Foyer et les Foyers des
  * autres chefs ; US-0433 : et les liserés des limites de la Couronne et du Cœur sauvage ; US-0437 : enfin le brouillard.
- * Un geste l'ouvre, un autre la ferme ; l'appareil retient si elle était ouverte. Sur ordinateur, un
- * panneau flottant sous le bouton ; sur mobile, un panneau en bas, au-dessus des onglets, qui laisse voir la carte.
+ * Un geste l'ouvre, un autre la ferme ; l'appareil retient si elle était ouverte. Le bouton et le panneau sont du verre
+ * du kit, comme la fiche d'une Case. Sur ordinateur, un panneau flottant sous le bouton ; sur mobile, un panneau en bas,
+ * au-dessus des onglets, qui laisse voir la carte.
  * US-0426 : elle se déclare posée sur la carte, et publie la hauteur de son panneau ouvert en bas. US-0431 : sur
  * mobile, elle cède sa place en bas à la fiche d'une Case, et la reprend dès qu'on touche son bouton.
  */
@@ -170,9 +188,13 @@ export function Legende({ terre, eaux }: { terre: TeinteNommee[]; eaux: TeinteNo
   return (
     <div className={styles.legende} data-sur-la-carte="">
       <button type="button" className={styles.bouton} aria-expanded={ouverte} aria-controls={panneau} onClick={basculer}>
+        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <path d="M8 2 14.5 5.4 8 8.8 1.5 5.4z" />
+          <path d="M2.6 8.2 8 11l5.4-2.8M2.6 10.9 8 13.7l5.4-2.8" />
+        </svg>
         Légende
       </button>
-      <div id={panneau} ref={refPanneau} className={styles.panneau} hidden={!ouverte}>
+      <div id={panneau} ref={refPanneau} className={`${kit.panneau} ${kit.verre} ${styles.panneau}`} hidden={!ouverte}>
         <Groupe titre="Terre">
           {terre.map(({ teinte, nom }) => (
             <li key={teinte}>

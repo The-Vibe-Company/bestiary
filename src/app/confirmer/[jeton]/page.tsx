@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { confirmerAdresse, type ResultatConfirmation } from "@/comptes/confirmation";
 import { entreeDuJeuOuverte } from "@/comptes/ouverture";
-import { PageEntree } from "@/components/PageEntree";
+import { BOUTON_ENTREE, PageEntree } from "@/components/PageEntree";
 import { getPool } from "@/db";
 import { LIEN_CONFIRMATION_HEURES } from "@/reglages";
 import styles from "../../entree.module.css";
@@ -48,7 +48,7 @@ export default async function ConfirmerAdresse({ params }: { params: Promise<{ j
       ) : (
         <div className={styles.confirmation}>
           <p className={styles.texte}>Merci : votre adresse e-mail est vérifiée.</p>
-          <Link href="/jeu" className={styles.envoyer}>
+          <Link href="/jeu" className={`${BOUTON_ENTREE} ${styles.envoyer}`}>
             Aller au jeu
           </Link>
         </div>

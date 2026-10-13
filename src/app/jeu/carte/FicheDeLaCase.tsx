@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type PointerEvent, type ReactNode, type RefObject, useCallback, useEffect, useRef, useState } from "react";
+import kit from "@/components/kit.module.css";
 import { CASE_D_UN_TERRITOIRE, CASE_HORS_DE_PORTEE, versLEcran } from "@/expeditions/choix-de-destination";
 import type { Fiche, FicheInconnue } from "@/monde/fiche";
 import type { Coordonnees } from "@/monde/hex";
@@ -10,7 +11,8 @@ import { CARTE_FICHE_FERMETURE_PIXELS, PORTEE_D_EXPLORATION_CASES } from "@/regl
 import { ficheDeLaCase } from "./actions";
 import type { Cadre } from "./dessin";
 import styles from "./FicheDeLaCase.module.css";
-import { LEGENDE_MONTREE } from "./Legende";
+import { bandeDuBas, LEGENDE_MONTREE } from "./Legende";
+import { bandeauDuBiome } from "./peintures";
 
 /** US-0429 : où est la Case dans le Monde, selon sa zone. US-0923 : entre la Couronne et le Cœur sauvage, son Anneau suffit. */
 const ZONES: Record<number, string> = { [ZONE_COURONNE]: "Couronne · ", [ZONE_COEUR]: "Cœur sauvage · ", 0: "" };
@@ -74,16 +76,18 @@ function fermerVersLaCarte(fermer: () => void, carte: RefObject<HTMLCanvasElemen
 
 /**
  * Le panneau d'une fiche posée sur la carte, celle d'une Case (US-0428) ou, avec US-0913, celle d'une Expédition : `nom`,
- * ce qu'il est pour les lecteurs d'écran, et ce qu'il montre (`children`). Sur ordinateur, un bloc flottant en haut à
- * gauche de la carte (la légende est à droite) : à l'ouverture, à chaque Case `laCase` et chaque fois que sa taille
+ * ce qu'il est pour les lecteurs d'écran, et ce qu'il montre (`children` : un bandeau peint, Bandeau, puis son corps).
+ * Un panneau du kit, ses coins de cuivre, d'un seul ton. Sur ordinateur, flottant en haut à gauche de la carte (la légende est
+ * à droite) : à l'ouverture, à chaque Case `laCase` et chaque fois que sa taille
  * change, il demande à la carte de montrer cette Case hors de lui (`montrer`). Rempli par le serveur (`remplie`), les
  * lecteurs d'écran l'entendent une fois rempli ; sans `remplie`, rien n'y est annoncé. Il se déclare posé sur la carte :
  * la flèche du Foyer le contourne. US-0430 : il se ferme (`fermer`) par sa croix, ou par Échap, le regard sur la carte,
  * ses boutons ou la fiche (ailleurs, Échap revient à ce qui l'a, comme le menu du chef) ; la main revient alors à la
  * carte. US-0431 : sur mobile, un panneau en bas de l'écran, comme celui de la légende, qu'on ferme en le faisant glisser
- * vers le bas au-delà de CARTE_FICHE_FERMETURE_PIXELS (en deçà, il revient) ; tant qu'il est ouvert, il publie sa hauteur
- * dans --hauteur-fiche, sur la racine de la page, pour les boutons de la carte et la flèche du Foyer. Un seul panneau en
- * bas à la fois : la légende qui s'y montre le ferme. Le doigt qui touche un lien ou un bouton ne le fait pas glisser.
+ * vers le bas au-delà de CARTE_FICHE_FERMETURE_PIXELS (en deçà, il revient) ; tant qu'il est ouvert, il publie la bande
+ * du bas de la carte qu'il prend (bandeDuBas) dans --hauteur-fiche, sur la racine de la page, pour les boutons de la
+ * carte et la flèche du Foyer. Un seul panneau en bas à la fois : la légende qui s'y montre le ferme. Le doigt qui
+ * touche un lien ou un bouton ne le fait pas glisser.
  */
 export function PanneauSurLaCarte({
   nom,
@@ -128,7 +132,7 @@ export function PanneauSurLaCarte({
     const racine = document.documentElement.style;
     const suivi = new ResizeObserver(() => {
       // US-0431 : en bas de l'écran, elle dit sa hauteur aux boutons de la carte, qui restent au-dessus d'elle.
-      if (enBas(element)) racine.setProperty("--hauteur-fiche", `${element.getBoundingClientRect().height}px`);
+      if (enBas(element)) racine.setProperty("--hauteur-fiche", `${bandeDuBas(element)}px`);
       else racine.removeProperty("--hauteur-fiche");
       montrer(montree.current, surLaCarte(element, carte.current));
     });
@@ -162,7 +166,7 @@ export function PanneauSurLaCarte({
   return (
     <section
       ref={panneau}
-      className={styles.fiche}
+      className={`${kit.panneau} ${styles.fiche}`}
       aria-label={nom}
       aria-live={remplie === undefined ? undefined : "polite"}
       aria-busy={remplie === undefined ? undefined : !remplie}
@@ -216,27 +220,31 @@ export function FicheDeLaCase({
     <PanneauSurLaCarte nom="Fiche de la Case" laCase={laCase} carte={carte} montrer={montrer} fermer={fermer} remplie={Boolean(fiche) || echec}>
       {fiche && "inconnue" in fiche ? (
         <>
-          <h2 className={styles.biome}>Case inconnue</h2>
-          <p className={styles.distance}>{aDistance(fiche.distance)}</p>
-          <p className={styles.expedition}>Une Expédition pourra la découvrir.</p>
-          <VersLExpedition vers={laCase} destination={destination} refus={horsDePortee(fiche)} />
+          <Bandeau biome={null} titre="Case inconnue" />
+          <div className={styles.corps}>
+            <Distance cases={fiche.distance} />
+            <p className={kit.note}>Une Expédition pourra la découvrir.</p>
+            <VersLExpedition vers={laCase} destination={destination} refus={horsDePortee(fiche)} />
+          </div>
         </>
       ) : fiche ? (
         <>
-          <h2 className={styles.biome}>{fiche.biome}</h2>
-          <dl className={styles.details}>
-            <div>
-              <dt>Propriétaire</dt>
-              <dd>{fiche.aVous ? "Votre Foyer" : (fiche.chef ?? "Libre")}</dd>
-            </div>
-            <div>
-              <dt>Zone</dt>
-              <dd>{`${ZONES[fiche.zone]}Anneau ${fiche.anneau}`}</dd>
-            </div>
-          </dl>
-          {fiche.distance > 0 ? <p className={styles.distance}>{aDistance(fiche.distance)}</p> : null}
-          {fiche.zone === ZONE_COEUR ? <p className={styles.rares}>Les Espèces les plus rares vivent ici.</p> : null}
-          <VersLExpedition vers={laCase} destination={destination} refus={fiche.chef !== null || fiche.distance === 0 ? CASE_D_UN_TERRITOIRE : horsDePortee(fiche)} />
+          <Bandeau biome={fiche.biome} titre={fiche.biome} />
+          <div className={styles.corps}>
+            <dl className={styles.details}>
+              <div>
+                <dt>Propriétaire</dt>
+                <dd>{fiche.aVous ? "Votre Foyer" : (fiche.chef ?? "Libre")}</dd>
+              </div>
+              <div>
+                <dt>Zone</dt>
+                <dd>{`${ZONES[fiche.zone]}Anneau ${fiche.anneau}`}</dd>
+              </div>
+            </dl>
+            {fiche.distance > 0 ? <Distance cases={fiche.distance} /> : null}
+            {fiche.zone === ZONE_COEUR ? <p className={styles.rares}>Les Espèces les plus rares vivent ici.</p> : null}
+            <VersLExpedition vers={laCase} destination={destination} refus={fiche.chef !== null || fiche.distance === 0 ? CASE_D_UN_TERRITOIRE : horsDePortee(fiche)} />
+          </div>
         </>
       ) : echec ? (
         <p className={styles.echec}>La fiche n&apos;a pas pu s&apos;ouvrir.</p>
@@ -244,9 +252,37 @@ export function FicheDeLaCase({
         <div className={styles.attente} aria-hidden="true">
           <span />
           <span />
+          <span />
         </div>
       )}
     </PanneauSurLaCarte>
+  );
+}
+
+/**
+ * Le bandeau peint en tête d'une fiche sur la carte, d'un bord à l'autre : le paysage du Biome `biome` (bandeauDuBiome),
+ * la mer du soir d'une eau sans paysage, ou la brume d'une Case inconnue (null) ; fondu vers le panneau en bas, où se
+ * pose son titre (`titre`), en Marcellus. US-0913 : aussi celui de la fiche d'une Expédition, du Biome de sa destination.
+ */
+export function Bandeau({ biome, titre }: { biome: string | null; titre?: string }) {
+  const bandeau = bandeauDuBiome(biome);
+  const fond = "fond" in bandeau && bandeau.fond ? styles[bandeau.fond] : "";
+  return (
+    <div className={`${styles.bandeau} ${fond}`} style={"peinture" in bandeau ? { backgroundImage: `url(${bandeau.peinture})` } : undefined}>
+      {titre ? <h2 className={styles.biome}>{titre}</h2> : null}
+    </div>
+  );
+}
+
+/** US-0429 : « À 7 Cases de votre Foyer », après une petite Case de cuivre, sous un filet. */
+function Distance({ cases }: { cases: number }) {
+  return (
+    <p className={styles.distance}>
+      <svg viewBox="-9 -10 18 20" aria-hidden="true">
+        <path d="M0-9 7.8-4.5v9L0 9-7.8 4.5v-9z" />
+      </svg>
+      {aDistance(cases)}
+    </p>
   );
 }
 
@@ -263,7 +299,7 @@ const horsDePortee = ({ distance }: { distance: number }) => (distance > PORTEE_
 function VersLExpedition({ vers, refus, destination }: { vers: Coordonnees; refus: string | null; destination: string | null }) {
   if (refus) return destination === null ? null : <p className={styles.refus}>{refus}</p>;
   return (
-    <Link href={versLEcran(vers, destination ?? "")} className={styles.envoyer}>
+    <Link href={versLEcran(vers, destination ?? "")} className={`${kit.bouton} ${kit.principal} ${kit.grand} ${styles.envoyer}`}>
       {destination === null ? "Envoyer une Expédition" : "Choisir cette destination"}
     </Link>
   );

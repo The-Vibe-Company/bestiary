@@ -4,6 +4,7 @@ import Link from "next/link";
 import { type RefObject, useEffect, useRef } from "react";
 import type { BeteReperee } from "@/expeditions/betes-reperees";
 import { versLEcran } from "@/expeditions/choix-de-destination";
+import kit from "@/components/kit.module.css";
 import type { Coordonnees } from "@/monde/hex";
 import { jusquAEnviron } from "@/temps/affichage";
 import { useHeureDuJeu } from "@/temps/heure-du-jeu";
@@ -28,6 +29,27 @@ export function placerLesBetes(reperes: readonly RepereDeBete[], vue: Vue): void
 }
 
 /**
+ * US-0948 : le dessin du repère d'une Bête : une pastille pêche, et l'empreinte d'une patte au milieu ; autour, le halo
+ * de sa fiche ouverte. Il ne sert qu'aux yeux : le repère et sa fiche le disent en mots.
+ */
+function Empreinte({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 32 32" focusable="false" aria-hidden="true" className={className}>
+      <circle className={styles.halo} cx="16" cy="16" r="14" />
+      <circle className={styles.pastille} cx="16" cy="16" r="9.5" />
+      {/* Une empreinte : quatre doigts au-dessus d'un coussinet. */}
+      <g className={styles.empreinte}>
+        <ellipse cx="16" cy="18.6" rx="3.3" ry="2.7" />
+        <circle cx="11.9" cy="14.9" r="1.35" />
+        <circle cx="14.4" cy="12.6" r="1.35" />
+        <circle cx="17.6" cy="12.6" r="1.35" />
+        <circle cx="20.1" cy="14.9" r="1.35" />
+      </g>
+    </svg>
+  );
+}
+
+/**
  * US-0948 : les Bêtes repérées du joueur sur la carte, les siennes seulement (la page ne lui donne qu'elles) : l'heure du
  * jeu, partie de `maintenant` à l'affichage de la page, qui avance au rythme du jeu (`vitesse`, useHeureDuJeu) ; le
  * repère « Bête repérée » de chacune encore sur sa Case, un bouton par-dessus la carte, qui dit son Espèce et jusqu'à
@@ -38,6 +60,8 @@ export function placerLesBetes(reperes: readonly RepereDeBete[], vue: Vue): void
  * US-0949 : sa fiche finit sur « Revenir la chercher », vers l'écran d'Expédition avec sa Case pour destination, comme
  * « Envoyer une Expédition » au pied de la fiche d'une Case ; sur la carte ouverte pour choisir la destination
  * (`destination`, son adresse), avec les autres choix que l'écran y a gardés, comme « Choisir cette destination ».
+ * Sa fiche, dans le panneau des fiches de la carte : l'empreinte en tête, « Bête repérée » en petite étiquette verte, son
+ * Espèce en Bree Serif, jusqu'à quand elle devrait rester, et « Revenir la chercher », le bouton principal collé au pied.
  */
 export function BetesRepereesSurLaCarte({
   betes,
@@ -96,28 +120,24 @@ export function BetesRepereesSurLaCarte({
           aria-expanded={bete.id === regardee}
           onClick={() => regarder(bete.id)}
         >
-          <svg viewBox="0 0 32 32" focusable="false" aria-hidden="true">
-            <circle className={styles.halo} cx="16" cy="16" r="14" />
-            <circle className={styles.pastille} cx="16" cy="16" r="9.5" />
-            {/* Une empreinte : quatre doigts au-dessus d'un coussinet. */}
-            <g className={styles.empreinte}>
-              <ellipse cx="16" cy="18.6" rx="3.3" ry="2.7" />
-              <circle cx="11.9" cy="14.9" r="1.35" />
-              <circle cx="14.4" cy="12.6" r="1.35" />
-              <circle cx="17.6" cy="12.6" r="1.35" />
-              <circle cx="20.1" cy="14.9" r="1.35" />
-            </g>
-          </svg>
+          <Empreinte />
         </button>
       ))}
       {ouverte && jusqua ? (
         <PanneauSurLaCarte nom="Fiche de la Bête repérée" laCase={ouverte.laCase} carte={carte} montrer={montrer} fermer={fermer}>
-          <h2 className={styles.titre}>Bête repérée</h2>
-          <p className={styles.espece}>{ouverte.espece}</p>
-          <p className={styles.jusqua}>{jusqua[0].toUpperCase() + jusqua.slice(1)}</p>
-          <Link href={versLEcran(ouverte.laCase, destination ?? "")} className={ficheStyles.envoyer}>
-            Revenir la chercher
-          </Link>
+          <div className={`${ficheStyles.corps} ${styles.corps}`}>
+            <div className={styles.tete}>
+              <Empreinte className={styles.marque} />
+              <div className={styles.nommee}>
+                <h2 className={`${kit.etiquette} ${styles.titre}`}>Bête repérée</h2>
+                <p className={styles.espece}>{ouverte.espece}</p>
+              </div>
+            </div>
+            <p className={styles.jusqua}>{jusqua[0].toUpperCase() + jusqua.slice(1)}</p>
+            <Link href={versLEcran(ouverte.laCase, destination ?? "")} className={`${kit.bouton} ${kit.principal} ${kit.grand} ${ficheStyles.envoyer}`}>
+              Revenir la chercher
+            </Link>
+          </div>
         </PanneauSurLaCarte>
       ) : null}
     </>

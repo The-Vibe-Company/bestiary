@@ -1,0 +1,59 @@
+{
+  "url": "http://aeom.localhost:3171",
+  "start": "PORT=3171 node .aeom/demarrer.mjs",
+  "reset": "psql -q -v ON_ERROR_STOP=1 postgres://bestia@127.0.0.1:5433/bestia_aeom -f /Users/antoinedewez/Dev/MyProjects/bestia-aeom/.aeom/donnees-reset.sql",
+  "login": {
+    "path": "/connexion",
+    "account": ".aeom/compte-essai.json",
+    "submit": "Se connecter"
+  },
+  "protected": [
+    "drizzle/**",
+    "scripts/**",
+    "donnees/**",
+    "public/illustrations/**",
+    "src/db/**",
+    "src/bestiaire/**",
+    "src/chefs/**",
+    "src/comptes/**",
+    "src/controle/**",
+    "src/donnees/**",
+    "src/emails/**/*.ts",
+    "src/emails/**/*.tsx",
+    "src/expeditions/**",
+    "src/monde/**",
+    "src/temps/**",
+    "src/test/**",
+    "src/env.ts",
+    "src/proxy.ts",
+    "src/reglages.ts",
+    "src/health.ts",
+    "src/instrumentation.ts",
+    "src/app/**/actions.ts",
+    "src/app/**/actions-*.ts",
+    "src/app/**/route.ts",
+    "src/app/controle/**",
+    "package.json",
+    "package-lock.json",
+    "next.config.ts",
+    "vercel.json"
+  ],
+  "home": "/jeu",
+  "pages": [
+    "/jeu",
+    "/jeu/carte",
+    "/jeu/carte?choix=destination",
+    "/jeu/expeditions",
+    "/jeu/expeditions/nouvelle",
+    "/jeu/habitants",
+    "/jeu/habitants/voyageurs",
+    "/jeu/recits",
+    "/jeu/reserve",
+    "/jeu/betes"
+  ],
+  "public": [
+    "/",
+    "/connexion",
+    "/inscription"
+  ]
+}

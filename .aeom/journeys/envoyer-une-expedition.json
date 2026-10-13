@@ -1,0 +1,10 @@
+{
+  "name": "Envoyer une Expédition chercher des Bêtes",
+  "steps": [
+    { "do": "open", "path": "/jeu/expeditions/nouvelle?q=34&r=21" },
+    { "do": "click", "target": { "role": "button", "name": "Un explorateur de plus" } },
+    { "do": "click", "target": { "role": "button", "name": "4 h" } },
+    { "do": "click", "target": { "role": "button", "name": "Partir" }, "lands": "/jeu/expeditions" },
+    { "do": "see", "text": "Expéditions en cours" }
+  ]
+}

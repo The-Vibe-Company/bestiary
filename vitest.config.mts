@@ -1,6 +1,11 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
+// Vite lit NODE_ENV après ce fichier pour décider du mode production : sous NODE_ENV=production (un build Vercel), il
+// réduirait un module Node importé dans un test jsdom à un module vide et sans nom (« No such built-in module: node: »).
+// Les tests tournent toujours en mode test (voir `env` plus bas).
+Object.assign(process.env, { NODE_ENV: "test" });
+
 export default defineConfig({
   resolve: {
     // Le même raccourci que tsconfig.json : « @/… » désigne src/.

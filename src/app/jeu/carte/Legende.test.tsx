@@ -47,11 +47,12 @@ const uneCase = (teinte: string, foyer = { q: 1000, r: 0 }, foyers: { q: number;
   enSvg((p) =>
     dessinerLaCarte(p, { teintes: [teinte], cases, foyer, foyers }, vueSurLeFoyer({ q: 0, r: 0 }, 120, 120), {
       fonds: [couleur(teinte)],
-      bord: "color-mix(in oklch, var(--encre) 14%, transparent)",
-      motifSombre: "color-mix(in oklch, var(--encre) 26%, transparent)",
-      motifClair: "color-mix(in oklch, var(--ivoire) 45%, transparent)",
+      bord: "color-mix(in oklch, var(--bois-sombre) 38%, transparent)",
+      motifSombre: "color-mix(in oklch, var(--bois-sombre) 30%, transparent)",
+      motifClair: "color-mix(in oklch, var(--ivoire) 50%, transparent)",
       encre: "var(--encre)",
       repere: "var(--citron)",
+      surlignage: { voile: "voile", halo: "halo", trait: "trait", anneau: "anneau" },
     }),
   ).traits.map((t) => ({ d: t.d, couleur: t.couleur }));
 
@@ -117,7 +118,7 @@ describe("la légende de la carte (US-0432)", () => {
       expect(chemins(nom), nom).toEqual(uneCase(teinte));
       // Le fond de sa couleur, puis son motif dans le ton de sa teinte.
       expect(chemins(nom)[0].couleur).toBe(couleur(teinte));
-      expect(chemins(nom)[1].couleur).toContain(MOTIFS[teinte].ton === "sombre" ? "var(--encre)" : "var(--ivoire)");
+      expect(chemins(nom)[1].couleur).toContain(MOTIFS[teinte].ton === "sombre" ? "var(--bois-sombre)" : "var(--ivoire)");
     }
   });
 

@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { exigerCompte, PAGE_ARRIVEE } from "@/comptes/garde";
 import { entreeDuJeuOuverte } from "@/comptes/ouverture";
-import { PageEntree } from "@/components/PageEntree";
+import { BOUTON_ENTREE, PageEntree } from "@/components/PageEntree";
 import { getPool } from "@/db";
 import { betesDeNaissancePresentes } from "@/monde/betes-de-naissance";
 import { foyerDuTerritoire } from "@/monde/territoire";
@@ -33,7 +33,7 @@ export default async function Arrivee() {
     <PageEntree titre={`${nomDeChef}.`} illustration={{ chemin: "accueil/plateau.webp", alt: "Le monde de Bestia, sculpté comme un plateau de jeu" }}>
       <p className={styles.recit}>{recitDArrivee(foyer.monde, betes > 0)}</p>
       <form action={entrerDansLeFoyer} className={styles.action}>
-        <button type="submit" className={styles.envoyer}>
+        <button type="submit" className={`${BOUTON_ENTREE} ${styles.envoyer}`}>
           Entrer dans mon Foyer
         </button>
       </form>

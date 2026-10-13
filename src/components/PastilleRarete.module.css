@@ -1,4 +1,7 @@
-/* Une Rareté : un fond pastel et son ton foncé pour le texte, de la plus banale à la plus rare. */
+/*
+ * Une Rareté : un fond pastel et son ton foncé pour le texte, de la plus banale à la plus rare (hors du jeu : le
+ * contrôle). Chacune pose aussi sa teinte (--teinte-rarete), le point de sa puce dans le jeu (voir en bas).
+ */
 .pastille {
   display: inline-block;
   padding: 2px 10px;
@@ -12,29 +15,61 @@
 .pastille[data-rarete="commune"] {
   background: var(--rarete-commune);
   color: var(--rarete-commune-texte);
+  --teinte-rarete: var(--rarete-commune);
 }
 
 .pastille[data-rarete="peu_commune"] {
   background: var(--rarete-peu-commune);
   color: var(--rarete-peu-commune-texte);
+  --teinte-rarete: var(--rarete-peu-commune);
 }
 
 .pastille[data-rarete="rare"] {
   background: var(--rarete-rare);
   color: var(--rarete-rare-texte);
+  --teinte-rarete: var(--rarete-rare);
 }
 
 .pastille[data-rarete="epique"] {
   background: var(--rarete-epique);
   color: var(--rarete-epique-texte);
+  --teinte-rarete: var(--rarete-epique);
 }
 
 .pastille[data-rarete="legendaire"] {
   background: var(--rarete-legendaire);
   color: var(--rarete-legendaire-texte);
+  --teinte-rarete: var(--rarete-legendaire);
 }
 
 .pastille[data-rarete="mythique"] {
   background: var(--rarete-mythique);
   color: var(--rarete-mythique-texte);
+  --teinte-rarete: var(--rarete-mythique);
+}
+
+/*
+ * Dans le jeu, la puce du kit : un creux sombre au filet vert, le nom de la Rareté en parchemin, et devant lui un point
+ * de sa teinte, qu'aucune autre ne partage : le mot le dit toujours, jamais la couleur seule.
+ */
+:global(body:has([data-onglets])) .pastille {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 22px;
+  padding: 0 10px 0 8px;
+  border: 1px solid var(--filet-cuivre);
+  background: var(--creux);
+  color: var(--parchemin);
+  font: var(--graisse-titre) 12px / 1 var(--police);
+  white-space: nowrap;
+}
+
+:global(body:has([data-onglets])) .pastille::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--teinte-rarete, var(--lichen));
 }

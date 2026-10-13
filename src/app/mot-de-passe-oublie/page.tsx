@@ -12,7 +12,7 @@ export default function MotDePasseOublie() {
   return (
     <PageEntree
       titre="Mot de passe oublié"
-      illustration={{ chemin: "entree/connexion.webp", alt: "Une hutte au toit de chaume, éclairée au crépuscule, au bout d'un chemin fleuri" }}
+      illustration={{ chemin: "entree/connexion.webp", alt: "Une hutte au toit de chaume, éclairée au crépuscule, au bout d'un chemin fleuri", cadrage: "50% 30%" }}
     >
       <FormulaireOubli />
     </PageEntree>

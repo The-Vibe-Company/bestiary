@@ -11,6 +11,7 @@ import {
   verifierCaracteresDuNom,
   verifierNomDeChef,
 } from "@/chefs/nom";
+import { BOUTON_ENTREE } from "@/components/PageEntree";
 import { NOM_DE_CHEF_MAX, NOM_DE_CHEF_PAUSE_MS } from "@/reglages";
 import styles from "../../entree.module.css";
 import { validerNomDeChef, verifierNomLibre } from "./actions";
@@ -148,7 +149,7 @@ export function FormulaireNomDeChef() {
           </div>
         ) : null}
       </div>
-      <button type="submit" className={styles.envoyer} disabled={!peutValider}>
+      <button type="submit" className={`${BOUTON_ENTREE} ${styles.envoyer}`} disabled={!peutValider}>
         {enAttente ? (
           <>
             <span className={styles.roue} aria-hidden="true" />

@@ -16,6 +16,7 @@
   border: 0;
   border-radius: 50%;
   background: none;
+  cursor: pointer;
   pointer-events: none;
 }
 
@@ -40,10 +41,10 @@
   fill: var(--encre);
 }
 
-/* Sa fiche ouverte, il est cerné de citron bordé d'Encre, comme la Case choisie. */
+/* Sa fiche ouverte, il est cerné de crème bordé de cuivre, comme la Case choisie. */
 .halo {
-  fill: var(--citron);
-  stroke: var(--encre);
+  fill: var(--cuivre-pale);
+  stroke: var(--cuivre);
   stroke-width: 1.5;
   visibility: hidden;
 }
@@ -53,19 +54,21 @@
 }
 
 .repere:focus-visible {
-  outline: 2px solid var(--encre);
+  outline: 2px solid var(--cuivre-clair);
   outline-offset: -2px;
 }
 
-/* Le titre de sa fiche, à côté de la croix, comme le Biome de la fiche d'une Case. */
-.titre {
-  margin-bottom: 10px;
-  padding-right: 32px;
-  font-size: 18px;
-  font-weight: var(--graisse-titre);
+/*
+ * Son détail, celui de la liste des Expéditions, sous le bandeau de la fiche, dans sa place étroite : il s'y range
+ * (DetailDeLExpedition.module.css).
+ */
+.detail {
+  padding: 12px 18px 18px;
+  container-type: inline-size;
 }
 
-/* Son détail, celui de la liste des Expéditions, dans la place étroite de la fiche : il s'y range (DetailDeLExpedition.module.css). */
-.detail {
-  container-type: inline-size;
+@media (max-width: 820px) {
+  .detail {
+    padding: 10px 14px 14px;
+  }
 }

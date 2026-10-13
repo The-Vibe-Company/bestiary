@@ -9,7 +9,11 @@ vi.mock("@/comptes/cookie-session", () => cookie);
 const session = vi.hoisted(() => ({ compteDeLaSession: vi.fn() }));
 vi.mock("@/comptes/session", () => session);
 const chefs = vi.hoisted(() => ({
-  chefDuCompte: vi.fn<() => Promise<{ nom: string; territoireId: number | null; recitLu: boolean }>>(async () => ({ nom: "Ourse", territoireId: 12, recitLu: true })),
+  chefDuCompte: vi.fn<() => Promise<{ nom: string; territoireId: number | null; recitLu: boolean }>>(async () => ({
+    nom: "Ourse",
+    territoireId: 12,
+    recitLu: true,
+  })),
   naitreSurLaCouronne: vi.fn(async (): Promise<number | null> => null),
 }));
 vi.mock("@/chefs/chef", () => chefs);
@@ -47,9 +51,26 @@ describe("page Récits (US-0324)", () => {
     session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
     recits.recitsDuTerritoire.mockResolvedValue(lesRecits);
   };
-  /** Le texte de chaque ligne de Récit, ses morceaux séparés par « · ». */
+  /** Le HTML sans ce qui ne sert qu'aux yeux (aria-hidden="true") : ce qu'entend un lecteur d'écran. */
+  const entendu = (html: string): string => {
+    const debut = /<(\w+)[^>]*aria-hidden="true"[^>]*>/.exec(html);
+    if (!debut) return html;
+    const balises = new RegExp(`<${debut[1]}[\\s>]|</${debut[1]}>`, "g");
+    balises.lastIndex = debut.index + debut[0].length;
+    let profondeur = 1;
+    for (let balise = balises.exec(html); balise && profondeur > 0; balise = profondeur > 0 ? balises.exec(html) : null)
+      profondeur += balise[0].startsWith("</") ? -1 : 1;
+    return entendu(html.slice(0, debut.index) + html.slice(balises.lastIndex));
+  };
+  /** Le texte de chaque ligne de Récit, tel qu'un lecteur d'écran l'entend, ses morceaux séparés par « · ». */
   const lignes = (html: string) =>
-    [...html.matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(([, ligne]) => ligne.replace(/<[^>]+>/g, "|").split("|").filter(Boolean).join(" · "));
+    [...entendu(html).matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(([, ligne]) =>
+      ligne
+        .replace(/<[^>]+>/g, "|")
+        .split("|")
+        .filter(Boolean)
+        .join(" · "),
+    );
 
   it("titre la page « Récits », dans l'onglet comme sur la page", async () => {
     connecte();
@@ -57,10 +78,10 @@ describe("page Récits (US-0324)", () => {
     expect(renderToStaticMarkup(await Recits())).toMatch(/<main[^>]*><h1[^>]*>Récits<\/h1>/);
   });
 
-  it("sans aucun Récit, dit « Rien à raconter pour l'instant. », dans un bloc Bento, sans liste", async () => {
+  it("sans aucun Récit, dit « Rien à raconter pour l'instant. », dans un panneau, sans liste", async () => {
     connecte([]);
     const html = renderToStaticMarkup(await Recits());
-    expect(html).toMatch(/<section[^>]*><p[^>]*>Rien à raconter pour l(&#x27;|')instant\.<\/p><\/section>/);
+    expect(html).toMatch(/<section[^>]*>(?:(?!<\/section>).)*<p[^>]*>Rien à raconter pour l(&#x27;|')instant\.<\/p><\/section>/);
     expect(html).not.toContain("<ul");
   });
 
@@ -91,15 +112,23 @@ describe("page Récits (US-0324)", () => {
   it("garde le texte de chaque Récit replié, à déplier d'un toucher sur sa ligne", async () => {
     connecte();
     const html = renderToStaticMarkup(await Recits());
-    const lignesRepliees = [...html.matchAll(/<button[^>]*aria-expanded="false"[^>]*aria-controls="([^"]+)"[^>]*>.*?<\/button><p id="([^"]+)"[^>]*hidden=""/g)];
+    const lignesRepliees = [
+      ...html.matchAll(/<button[^>]*aria-expanded="false"[^>]*aria-controls="([^"]+)"[^>]*>.*?<\/button><div id="([^"]+)"[^>]*hidden="">(.*?)<\/li>/g),
+    ];
     expect(lignesRepliees).toHaveLength(3);
     for (const [, controle, id] of lignesRepliees) expect(controle).toBe(id);
+    expect(lignesRepliees.map(([, , , recit]) => recit.match(/<p[^>]*>([^<]*)<\/p><\/div>$/)?.[1])).toEqual(TROIS_RECITS.map((r) => r.texte));
   });
 
   it("n'ajoute aucune phrase d'explication : le titre, puis les Récits", async () => {
     connecte([TROIS_RECITS[1]]);
     const html = renderToStaticMarkup(await Recits());
-    expect(html.replace(/<[^>]+>/g, "|").split("|").filter(Boolean)).toEqual(["Récits", "Retour de Récolte", "7 octobre 2026 à 00:30", "Du Bois."]);
+    expect(
+      entendu(html)
+        .replace(/<[^>]+>/g, "|")
+        .split("|")
+        .filter(Boolean),
+    ).toEqual(["Récits", "Retour de Récolte", "7 octobre 2026 à 00:30", "Du Bois."]);
   });
 
   it("joint au retour d'une Expédition ses Rencontres, chacune à son heure dans le fuseau du joueur, repliées avec son texte (US-0940)", async () => {
@@ -127,9 +156,17 @@ describe("page Récits (US-0324)", () => {
     ]);
     const html = renderToStaticMarkup(await Recits());
     const liste = html.match(/<ol [^>]*aria-label="Rencontres"[^>]*>.*?<\/ol>/)?.[0] ?? "";
-    expect(liste).toMatch(/^<ol [^>]*hidden=""/);
+    // Repliées avec le Récit qui les tient, que la ligne du retour contrôle.
+    expect(html).toMatch(
+      /aria-controls="([^"]+)"[^>]*>(?:(?!<button).)*<\/button><div id="\1"[^>]*hidden="">(?:(?!<button).)*<ol [^>]*aria-label="Rencontres"/,
+    );
     expect(liste).toMatch(/<time[^>]* datetime="2026-10-09T12:05:00.000Z"[^>]*>14:05<\/time>/i);
-    expect(liste.replace(/<[^>]+>/g, "|").split("|").filter(Boolean)).toEqual(["14:05", "Souris grise", "Commune", "Apprivoisée, femelle", "Nouvelle Espèce au Bestiaire"]);
+    expect(
+      liste
+        .replace(/<[^>]+>/g, "|")
+        .split("|")
+        .filter(Boolean),
+    ).toEqual(["14:05", "Souris grise", "Commune", "Apprivoisée, femelle", "Nouvelle Espèce au Bestiaire"]);
     expect(liste).toContain('alt="Souris grise"');
     // Un seul retour a des Rencontres : les autres Récits restent du texte.
     expect(html.match(/aria-label="Rencontres"/g)).toHaveLength(1);
@@ -280,7 +317,12 @@ describe("page Récits (US-0324)", () => {
     ]);
     const html = renderToStaticMarkup(await Recits());
     const entetes = [...html.matchAll(/<button[^>]*>(.*?)<\/button>/g)].map(([, entete]) => entete);
-    const morceaux = (entete: string) => entete.replace(/&#x27;/g, "'").replace(/<[^>]+>/g, "|").split("|").filter(Boolean);
+    const morceaux = (entete: string) =>
+      entete
+        .replace(/&#x27;/g, "'")
+        .replace(/<[^>]+>/g, "|")
+        .split("|")
+        .filter(Boolean);
     // Le titre et la date, puis le résumé.
     expect(entetes.map((entete) => morceaux(entete.split("</time>")[0]))).toEqual([
       ...Array(3).fill(["Retour d'Expédition", "nouveau", "9 octobre 2026 à 18:05"]),
@@ -330,8 +372,8 @@ describe("page Récits (US-0324)", () => {
     ]);
     const html = renderToStaticMarkup(await Recits());
     const [avec, ...sans] = [...html.matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(([, ligne]) => ligne);
-    // Sous la ligne du récit, son titre, sa date et son résumé, avant son texte replié.
-    const annonce = avec.match(/<\/button>(.*?)<p id="[^"]+"[^>]*hidden=""/)?.[1] ?? "";
+    // Sous la ligne du récit, son titre, sa date et son résumé, avant sa lecture repliée.
+    const annonce = avec.match(/<\/button>(.*?)<div id="[^"]+"[^>]*hidden=""/)?.[1] ?? "";
     expect(annonce).toMatch(/^<div[^>]*><figure[^>]*>.*<\/figure><\/div>$/);
     expect(annonce).not.toContain("hidden");
     expect(annonce).toContain('alt="Souris grise"');

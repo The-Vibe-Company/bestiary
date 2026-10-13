@@ -23,10 +23,11 @@ describe("compter les Cases découvertes (US-0443)", () => {
 
   it("garde chaque nombre collé à son unité, et se déclare posé sur la carte : la flèche du Foyer ne passe pas dessous", () => {
     const html = renderToStaticMarkup(<CasesDecouvertes nombre={1_234} total={10_981} />);
-    expect(html).toContain("1 234 Cases");
-    expect(html).toContain("11,2 %");
+    // Le nombre en crème, collé à son unité par une espace insécable, même hors de son <b>.
+    expect(html).toContain("<b>1 234</b> Cases");
+    expect(html).toContain("<em>11,2 %</em>");
     expect(html).toMatch(/^<p[^>]* data-sur-la-carte=""/);
     // Le nombre de Cases et la part du Monde, chacun d'un tenant (CasesDecouvertes.module.css).
-    expect(html).toMatch(/<span>1 234 Cases découvertes<\/span> · <span>11,2 % du Monde<\/span>/);
+    expect(html).toMatch(/<span><b>1 234<\/b> Cases découvertes<\/span> · <span><em>11,2 %<\/em> du Monde<\/span>/);
   });
 });

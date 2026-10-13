@@ -15,10 +15,10 @@ const FUSEAU = "Europe/Paris";
 const AUCUNE = "—";
 
 /** US-0911 : la phase d'une Expédition, telle que la liste la dit. */
-const PHASES: Record<Phase, string> = { aller: "Aller", sejour: "Séjour", retour: "Retour" };
+export const PHASES: Record<Phase, string> = { aller: "Aller", sejour: "Séjour", retour: "Retour" };
 
 /** US-0918 : ce qu'annonce la fin de chaque phase : l'arrivée sur la Case, le départ de la Case, la rentrée au Foyer. */
-const FIN_DE_LA_PHASE: Record<Phase, string> = { aller: "arrive dans", sejour: "repart dans", retour: "rentre dans" };
+export const FIN_DE_LA_PHASE: Record<Phase, string> = { aller: "arrive dans", sejour: "repart dans", retour: "rentre dans" };
 
 /**
  * « Souris grise × 3 » : une Espèce de l'escorte et ses Bêtes parties, comme le récapitulatif l'écrit (US-0910), que le

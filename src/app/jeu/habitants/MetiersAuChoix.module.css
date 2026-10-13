@@ -1,0 +1,195 @@
+/*
+ * Le choix d'un Métier (MetiersAuChoix.tsx), sur la ligne d'un Habitant comme sur celle d'un Voyageur : la pastille du
+ * Métier, et dessous, dépliés, les Métiers au choix, chacun son médaillon au-dessus de son nom.
+ */
+
+/* La pastille : le médaillon du Métier, son nom, la flèche ; un filet de cuivre au survol, et tant qu'elle est dépliée. */
+.choisir {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  height: 26px;
+  padding: 0 7px 0 4px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: none;
+  color: var(--parchemin);
+  font: var(--graisse-moyenne) 13px / 1 var(--police);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.choisir:hover {
+  border-color: var(--filet-cuivre);
+}
+
+.choisir:focus-visible {
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: 2px;
+}
+
+.texte {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fleche {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  color: var(--lichen);
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+/* Un Métier reste à choisir (« Choisir un Métier ») : la pastille au cuivre, cerclée. */
+.choisir[data-a-choisir] {
+  padding-left: 3px;
+  border-color: var(--cuivre-trace);
+  background: var(--cuivre-survol);
+  color: var(--cuivre-clair);
+}
+
+.choisir[data-a-choisir] .fleche {
+  color: var(--cuivre-clair);
+}
+
+/* Dépliée : cerclée de cuivre clair, la flèche retournée. */
+.choisir[aria-expanded="true"] {
+  border-color: var(--cuivre-clair);
+  background: var(--cuivre-survol);
+}
+
+.choisir[aria-expanded="true"] .fleche {
+  color: var(--cuivre-clair);
+  transform: rotate(180deg);
+}
+
+/* Les Métiers au choix : quatre par rangée, chacun son médaillon au-dessus de son nom. */
+.choix {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.metierAuChoix {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px 2px 7px;
+  border: 1px solid transparent;
+  border-radius: var(--arrondi-net);
+  background: none;
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 11.5px / 1.1 var(--police-etroite);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.metierAuChoix:enabled:hover {
+  border-color: var(--filet-cuivre-doux);
+  background: var(--lumiere-haut);
+  color: var(--parchemin);
+}
+
+.metierAuChoix:focus-visible,
+.sansMetierAuChoix:focus-visible {
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: -2px;
+}
+
+/* US-0310 : le Métier qu'il exerce, cerclé de cuivre clair et coché ; il ne se rechoisit pas. */
+.metierAuChoix[aria-pressed="true"] {
+  border-color: var(--cuivre-lueur);
+  background: var(--cuivre-survol);
+  color: var(--cuivre-clair);
+  cursor: default;
+}
+
+.medaillonAuChoix {
+  position: relative;
+  display: inline-flex;
+}
+
+.medaillonAuChoix > span {
+  --taille: 36px;
+}
+
+.coche {
+  position: absolute;
+  right: -5px;
+  bottom: -3px;
+  width: 16px;
+  height: 16px;
+  padding: 3px;
+  border-radius: 50%;
+  background: var(--cuivre-clair);
+  box-shadow: 0 0 0 2px var(--panneau-haut);
+  color: var(--sur-cuivre);
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.nomAuChoix {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* US-0311 : « Sans Métier », un médaillon vide devant, en contour : il retire le Métier, il n'en est pas un. */
+.sansMetierAuChoix {
+  display: inline-flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--filet-cuivre);
+  border-radius: var(--arrondi-net);
+  background: none;
+  color: var(--parchemin);
+  font: var(--graisse-titre) 13px / 1 var(--police);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.sansMetierAuChoix:hover {
+  border-color: var(--cuivre);
+  background: var(--cuivre-survol);
+}
+
+.sansMetierAuChoix > span {
+  --taille: 16px;
+}
+
+@media (max-width: 760px) {
+  .choisir {
+    height: 30px;
+    border-color: var(--filet-cuivre-doux);
+  }
+
+  .sansMetierAuChoix {
+    min-height: 36px;
+  }
+}

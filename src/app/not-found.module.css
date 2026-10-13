@@ -1,79 +1,8 @@
-/* La page introuvable, dans le style de la vitrine. */
-.page {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 40px;
-  align-items: center;
-  max-width: 960px;
-  min-height: var(--hauteur-utile);
-  margin: 0 auto;
-  padding: 48px 40px;
-}
-
-.image {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: 14px;
-  overflow: hidden;
-}
-
-/* L'illustration remplit son cadre carré. */
-.image .remplir {
-  position: absolute;
-  inset: 0;
-}
-
+/* La page introuvable, dans le panneau des pages d'entrée : l'étiquette du code au-dessus du titre, le retour au cuivre. */
 .code {
-  color: var(--texte-discret);
-  font-size: var(--taille-etiquette);
-  font-weight: var(--graisse-titre);
-  letter-spacing: var(--espacement-etiquette);
-  text-transform: uppercase;
-}
-
-.titre {
-  margin-top: 10px;
-  font-size: clamp(32px, 4vw, 48px);
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-}
-
-.texte {
-  margin-top: 14px;
-  color: var(--texte-2);
-  font-size: 18px;
+  margin-bottom: 14px;
 }
 
 .retour {
-  display: inline-flex;
-  align-items: center;
-  min-height: 48px;
   margin-top: 28px;
-  padding: 0 22px;
-  border-radius: var(--arrondi-moyen);
-  background: var(--encre);
-  color: var(--blanc-chaud);
-  font-weight: var(--graisse-titre);
-  text-decoration: none;
-}
-
-.retour:hover {
-  background: var(--encre-survol);
-}
-
-.retour:focus-visible {
-  outline: 2px solid var(--encre);
-  outline-offset: 3px;
-}
-
-@media (max-width: 820px) {
-  .page {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
-    min-height: 0;
-    padding: 28px 12px 40px;
-  }
-  .image {
-    max-width: 420px;
-  }
 }

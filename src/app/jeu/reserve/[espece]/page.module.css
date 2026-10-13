@@ -1,8 +1,10 @@
-/* US-0803 : la fiche d'une Espèce de la Réserve, dans la largeur de l'écran du Foyer, comme la Réserve. */
+/* US-0803 : la fiche d'une Espèce de la Réserve, sur le fond du jeu, à la place de la Réserve ; le bloc « Élever » dessous. */
 .page {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 24px;
+  padding: 16px 18px 28px;
+}
+
+.page > * {
+  max-width: 1040px;
 }
 
 /*
@@ -15,46 +17,53 @@
   grid-template-columns: minmax(0, min(480px, 55%)) minmax(0, 1fr);
   grid-template-areas: "illustration entete" "illustration fermer";
   grid-template-rows: auto 1fr;
-  gap: var(--ecart) 24px;
-  padding: var(--marge-bloc);
-  border-radius: var(--arrondi);
-  background: var(--bloc);
+  gap: var(--ecart) 28px;
+  padding: 12px 24px 12px 12px;
 }
 
+/* La peinture de l'Espèce, dans son filet vert ; ou la tête de loup. */
 .illustration {
   grid-area: illustration;
-  border-radius: var(--arrondi-petit);
 }
 
 .entete {
   grid-area: entete;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   align-content: start;
   justify-items: start;
   min-width: 0;
+  padding-top: 12px;
 }
 
+/* Son nom en Bree Serif, en crème, comme le titre d'un écran. */
 .nom {
-  font-size: 28px;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  color: var(--creme);
+  font: 400 34px / 1.1 var(--police-titre);
+  letter-spacing: 0.01em;
   overflow-wrap: anywhere;
 }
 
-/* US-0810 : l'effectif de l'Espèce, sous sa Rareté : le mot, puis le nombre en grand. */
+/* US-0810 : l'effectif de l'Espèce, sous sa Rareté : le mot en petite étiquette verte, puis le nombre en grand. */
 .effectif {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: baseline;
-  margin-top: 4px;
-  color: var(--texte-2);
+  margin-top: 6px;
+}
+
+.effectif > span {
+  color: var(--cuivre);
+  font: var(--graisse-moyenne) var(--taille-etiquette) / 1 var(--police-etroite);
+  letter-spacing: var(--espacement-etiquette);
+  text-transform: uppercase;
 }
 
 .nombre {
-  color: var(--encre);
-  font-size: 22px;
+  color: var(--creme);
+  font: var(--graisse-titre) 28px / 1 var(--police);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 /*
@@ -64,8 +73,12 @@
 .caracteristiques {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
-  gap: 6px 24px;
-  margin-top: 8px;
+  gap: 9px 28px;
+  align-self: stretch;
+  align-items: baseline;
+  margin: 8px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--filet-cuivre-doux);
 }
 
 .caracteristiques > div {
@@ -73,40 +86,29 @@
 }
 
 .caracteristiques dt {
-  color: var(--texte-discret);
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 13.5px / 1.25 var(--police);
 }
 
 .caracteristiques dd {
-  color: var(--encre);
-  font-weight: var(--graisse-titre);
+  margin: 0;
+  color: var(--creme);
+  font: var(--graisse-titre) 15px / 1.25 var(--police);
   font-variant-numeric: tabular-nums;
 }
 
-/* « Fermer », au pouce : 44 px de haut, discret, comme une action secondaire. */
+/* « Fermer », au pouce : 44 px de haut, le bouton au contour vert d'une action secondaire. */
 .fermer {
   grid-area: fermer;
   align-self: start;
   justify-self: start;
-  display: inline-flex;
-  align-items: center;
   min-height: 44px;
-  padding: 0 16px;
-  border: 1px solid var(--trait);
-  border-radius: var(--arrondi-moyen);
-  color: var(--encre);
-  font-weight: var(--graisse-titre);
-  text-decoration: none;
+  padding: 0 18px;
   cursor: pointer;
 }
 
-@media (hover: hover) {
-  .fermer:hover {
-    background: var(--bloc-2);
-  }
-}
-
 .fermer:focus-visible {
-  outline: 2px solid var(--encre);
+  outline: 2px solid var(--cuivre-clair);
   outline-offset: 2px;
 }
 
@@ -116,7 +118,7 @@
   }
 
   .nom {
-    font-size: 24px;
+    font-size: 28px;
   }
 }
 
@@ -152,6 +154,11 @@
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "illustration" "entete" "fermer";
     grid-template-rows: auto;
+    padding: 10px 10px 14px;
+  }
+
+  .entete {
+    padding: 4px 6px 0;
   }
 
   .fermer {

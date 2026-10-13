@@ -1,5 +1,5 @@
 /*
- * US-0443 : le nombre de Cases découvertes, une petite ligne discrète en bas à gauche de la carte, à l'écart de ses
+ * US-0443 : le nombre de Cases découvertes, une petite ligne de verre en bas à gauche de la carte, à l'écart de ses
  * boutons (en bas à droite) et de la fiche d'une Case (en haut à gauche, qui passe par-dessus si elle descend jusque-là) ;
  * sur mobile, au-dessus du panneau ouvert en bas, comme les boutons. Elle laisse la carte se manier au travers.
  */
@@ -8,19 +8,61 @@
   bottom: calc(12px + max(var(--hauteur-legende, 0px), var(--hauteur-fiche, 0px)));
   left: calc(12px + var(--bord-gauche));
   z-index: 9;
-  /* Jamais sous la colonne des boutons, de 44 px, à 12 px du bord droit : elle passe plutôt à la ligne. */
+  /* Jamais sous la colonne des boutons, de 54 px, à 12 px du bord droit : elle passe plutôt à la ligne. */
   max-width: calc(100% - 80px - var(--bord-gauche) - var(--bord-droit));
   margin: 0;
-  padding: 3px 9px;
-  border-radius: var(--arrondi-petit);
-  background: color-mix(in oklch, var(--bloc) 85%, transparent);
-  color: var(--texte-2);
-  font-size: var(--taille-etiquette);
-  line-height: 1.5;
+  padding: 9px 16px 9px 12px;
+  border: 1px solid var(--filet-cuivre);
+  border-radius: var(--arrondi-net);
+  background: var(--fond-verre);
+  backdrop-filter: blur(6px);
+  box-shadow: var(--ombre-verre);
+  color: var(--parchemin);
+  font-size: 13.5px;
+  font-weight: var(--graisse-moyenne);
+  line-height: 18px;
   pointer-events: none;
+}
+
+/* La boussole, en cuivre clair, devant. */
+.compteur svg {
+  width: 16px;
+  height: 16px;
+  margin-right: 10px;
+  vertical-align: -3px;
+  fill: currentColor;
+  color: var(--cuivre-clair);
+}
+
+.compteur circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
 }
 
 /* Le nombre de Cases, et la part du Monde, chacun d'un tenant : la ligne ne se coupe qu'entre les deux. */
 .compteur span {
   white-space: nowrap;
+}
+
+.compteur b {
+  color: var(--creme);
+  font-weight: var(--graisse-titre);
+}
+
+.compteur em {
+  color: var(--cuivre-clair);
+  font-style: normal;
+  font-weight: var(--graisse-titre);
+}
+
+@media (max-width: 760px) {
+  .compteur {
+    padding: 7px 12px 7px 10px;
+    font-size: 12.5px;
+  }
+
+  .compteur svg {
+    margin-right: 8px;
+  }
 }

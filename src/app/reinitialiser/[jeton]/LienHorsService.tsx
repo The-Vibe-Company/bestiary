@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TitreEntree } from "@/components/PageEntree";
+import { BOUTON_ENTREE, TitreEntree } from "@/components/PageEntree";
 import styles from "../../entree.module.css";
 import { LIEN_HORS_SERVICE, type LienHorsService as Raison } from "./etat";
 
@@ -9,7 +9,7 @@ export function LienHorsService({ raison }: { raison: Raison }) {
   return (
     <div className={styles.confirmation} role="alert">
       <TitreEntree>{titre}</TitreEntree>
-      <Link href={bouton.lien} className={styles.envoyer}>
+      <Link href={bouton.lien} className={`${BOUTON_ENTREE} ${styles.envoyer}`}>
         {bouton.texte}
       </Link>
     </div>

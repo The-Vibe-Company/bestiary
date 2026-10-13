@@ -104,7 +104,15 @@ const milieu = (tous: Point[]) => {
 };
 const cle = (p: Point) => `${Math.round(p.x)},${Math.round(p.y)}`;
 /** Des couleurs d'essai, nommées pour se reconnaître. */
-const peinture = (fonds: string[]): Peinture => ({ fonds, bord: "bord", motifSombre: "encre", motifClair: "ivoire", encre: "Encre", repere: "citron" });
+const peinture = (fonds: string[]): Peinture => ({
+  fonds,
+  bord: "bord",
+  motifSombre: "encre",
+  motifClair: "ivoire",
+  encre: "Encre",
+  repere: "citron",
+  surlignage: { voile: "voile crème", halo: "halo de cuivre", trait: "crème", anneau: "anneau de cuivre" },
+});
 /** Une teinte que la carte ne connaît pas : sans motif, pour regarder les hexagones seuls. */
 const SANS_MOTIF = ["inconnue"];
 /** Un Foyer loin de l'écran, sans autre Foyer : pour regarder les Cases seules. */
@@ -600,25 +608,37 @@ describe("la Case choisie, surlignée (US-0428)", () => {
   const cernent = (peints: Peint[], c: Coordonnees) =>
     peints.filter((p) => p.geste === "border" && p.traces.length === 1 && p.traces[0].length === 6 && cle(milieu(p.traces[0])) === cle(aLEcran(c, vue)));
 
-  it("cerne la Case choisie d'un trait citron bordé d'Encre, plus épais que tout autre trait de la carte, à sa taille", () => {
+  it("cerne la Case choisie d'un trait crème sur un halo de cuivre, plus épais que tout autre trait de la carte, sous un voile crème, dans un anneau de tirets", () => {
     const choisie = { q: FOYER.q + 2, r: FOYER.r - 1 };
     const { pinceau, peints } = pinceauDEssai();
     dessinerLaCarte(pinceau, carte, vue, peinture(["vert"]), HUTTE, choisie);
-    const [bord, trait] = cernent(peints, choisie);
-    expect([bord.couleur, trait.couleur]).toEqual(["Encre", "citron"]);
-    expect(bord.traces).toBe(trait.traces);
-    expect(bord.epaisseur).toBeGreaterThan(trait.epaisseur);
-    expect(trait.epaisseur).toBeGreaterThan(Math.max(...peints.filter((p) => p.geste === "border" && p !== bord && p !== trait).map((p) => p.epaisseur)));
-    // Sur le bord même de la Case : son premier sommet est sa pointe du haut.
+    const [anneau, halo, trait] = cernent(peints, choisie);
+    expect([anneau.couleur, halo.couleur, trait.couleur]).toEqual(["anneau de cuivre", "halo de cuivre", "crème"]);
+    expect(halo.traces).toBe(trait.traces);
+    expect(halo.epaisseur).toBeGreaterThan(trait.epaisseur);
+    expect(trait.epaisseur).toBeGreaterThan(Math.max(...peints.filter((p) => p.geste === "border" && p !== halo && p !== trait).map((p) => p.epaisseur)));
+    // La Case elle-même sous un voile crème.
+    expect(peints.find((p) => p.geste === "remplir" && p.couleur === "voile crème")!.traces).toBe(halo.traces);
+    // Sur le bord même de la Case : son premier sommet est sa pointe du haut ; l'anneau, en tirets, un peu au-dessus.
     const { x, y } = aLEcran(choisie, vue);
-    expect(cle(bord.traces[0][0])).toBe(cle({ x, y: y - vue.rayon }));
+    expect(cle(halo.traces[0][0])).toBe(cle({ x, y: y - vue.rayon }));
+    expect(anneau.tirets).toHaveLength(2);
+    expect(anneau.traces[0][0].y).toBeLessThan(y - vue.rayon);
   });
 
   it("surligne le Foyer choisi par-dessus sa hutte et son contour, sous son repère", () => {
     const { pinceau, peints } = pinceauDEssai();
     dessinerLaCarte(pinceau, carte, vue, peinture(["vert"]), HUTTE, FOYER);
-    expect(cernent(peints, FOYER).map((p) => p.couleur)).toEqual(["Encre", "Encre", "citron"]);
-    expect(peints.slice(-5).map((p) => `${p.geste} ${p.couleur}`)).toEqual(["border Encre", "border citron", "remplir citron", "border Encre", "remplir Encre"]);
+    expect(cernent(peints, FOYER).map((p) => p.couleur)).toEqual(["Encre", "anneau de cuivre", "halo de cuivre", "crème"]);
+    expect(peints.slice(-7).map((p) => `${p.geste} ${p.couleur}`)).toEqual([
+      "border anneau de cuivre",
+      "remplir voile crème",
+      "border halo de cuivre",
+      "border crème",
+      "remplir citron",
+      "border Encre",
+      "remplir Encre",
+    ]);
   });
 
   it("ne surligne rien sans Case choisie, ni une Case loin de l'écran", () => {
@@ -627,7 +647,7 @@ describe("la Case choisie, surlignée (US-0428)", () => {
     const loin = pinceauDEssai();
     dessinerLaCarte(loin.pinceau, carte, vue, peinture(["vert"]), HUTTE, { q: 0, r: 0 });
     expect(loin.peints).toEqual(sans.peints);
-    expect(sans.peints.filter((p) => p.geste === "border" && p.couleur === "citron")).toEqual([]);
+    expect(sans.peints.filter((p) => p.geste === "border" && p.couleur === "crème")).toEqual([]);
   });
 });
 

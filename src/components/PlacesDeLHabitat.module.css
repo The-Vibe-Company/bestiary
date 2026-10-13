@@ -1,10 +1,12 @@
-/* US-0822 : le compteur des Places de l'Habitat du Foyer : « Places : », puis les nombres en gras, en chiffres de même largeur. */
+/* US-0822 : le compteur des Places de l'Habitat du Foyer : « Places : » en mousse, puis les nombres en crème, en chiffres
+   de même largeur. */
 .places {
-  color: var(--texte-2);
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 13.5px / 1.3 var(--police);
 }
 
 .nombres {
-  color: var(--encre);
+  color: var(--creme);
   font-weight: var(--graisse-titre);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;

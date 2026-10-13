@@ -144,6 +144,12 @@ describe("navigation du jeu (US-0302)", () => {
     expect(marquees()).toEqual(["Expéditions"]);
   });
 
+  it("marque le Foyer sur la page Bêtes, qu'ouvre son bloc « Bêtes » (US-0810)", () => {
+    adresse.page = "/jeu/betes";
+    render(<Navigation />);
+    expect(marquees()).toEqual(["Foyer"]);
+  });
+
   it("ne marque pas le Foyer sur une autre page du jeu", () => {
     adresse.page = "/jeu/arrivee";
     render(<Navigation />);

@@ -1,29 +1,77 @@
-/* Le bloc Bento du prototype : blanc, coins de 12 px, sans bordure ni ombre. */
+/*
+ * Le panneau orné (voir Bloc.tsx et le kit, src/components/kit.module.css) : un filet de cuivre, des coins nets, un fond
+ * plus clair en haut avec une lumière à peine visible, une ombre longue dessous ; à chaque coin, son petit ornement de
+ * cuivre, par-dessus le contenu (le ::before ; le ::after reste libre pour la page). Ses couleurs sont celles de l'écran
+ * (--bloc, --bloc-2, --trait, --ombre, --arrondi) : la sarcelle et le cuivre dans le jeu, le papier hors du jeu.
+ */
 .bloc {
+  position: relative;
   min-width: 0;
-  padding: var(--marge-bloc);
+  padding: 15px 18px 16px;
+  border: 1px solid var(--trait);
   border-radius: var(--arrondi);
-  background: var(--bloc);
+  background:
+    linear-gradient(180deg, var(--lumiere-haut), transparent 120px),
+    linear-gradient(180deg, var(--bloc-2), var(--bloc));
+  box-shadow: var(--ombre);
   overflow-wrap: anywhere;
+}
+
+.bloc::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  background: var(--cuivre);
+  pointer-events: none;
+  mask: var(--masque-coins);
 }
 
 .bloc img {
   display: block;
   max-width: 100%;
   height: auto;
-  border-radius: var(--arrondi-petit);
 }
 
+/* Le titre : la petite étiquette de cuivre, en capitales espacées. */
 .titre {
-  margin-bottom: 10px;
-  color: var(--texte-discret);
-  font-size: var(--taille-etiquette);
-  font-weight: var(--graisse-titre);
+  margin-bottom: 12px;
+  color: var(--cuivre);
+  font: var(--graisse-moyenne) var(--taille-etiquette) / 1 var(--police-etroite);
   letter-spacing: var(--espacement-etiquette);
   text-transform: uppercase;
 }
 
-/* Plein : le contenu (une illustration) touche les bords du bloc. */
+/* Le titre en Marcellus, pour un panneau qui porte le nom de l'écran. */
+.titreServif {
+  margin-bottom: 12px;
+  color: var(--encre);
+  font: 400 27px / 1 var(--police-titre);
+  letter-spacing: 0.01em;
+}
+
+/* La rangée du titre et de son action : le titre à gauche, l'action à droite. */
+.enTete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.enTete > .titre,
+.enTete > .titreServif {
+  margin-bottom: 0;
+}
+
+/* Le verre, posé sur une peinture : translucide, flouté, l'ombre plus courte. */
+.verre {
+  background: var(--fond-verre);
+  backdrop-filter: blur(6px);
+  box-shadow: var(--ombre-verre);
+}
+
+/* Plein : le contenu (une illustration) touche les bords du panneau ; les coins restent par-dessus. */
 .plein {
   padding: 0;
   overflow: hidden;
@@ -32,31 +80,40 @@
 .plein img {
   width: 100%;
   object-fit: cover;
-  border-radius: 0;
 }
 
-.plein .titre {
-  margin: 0;
-  padding: var(--marge-bloc);
-  padding-bottom: 10px;
+.plein > .titre,
+.plein > .titreServif,
+.plein > .enTete {
+  margin: 15px 18px 12px;
 }
 
-/* Teintes : un pastel avec son titre dans le ton foncé, ou l'Encre avec un titre citron. */
-.menthe { background: var(--menthe); }
+/* Teintes, pour les pages de contrôle : un panneau de sa couleur, son titre et son texte dans son ton foncé. */
+.menthe { background: var(--menthe); color: var(--menthe-fonce); }
 .menthe .titre { color: var(--menthe-fonce); }
-.sable { background: var(--sable); }
+.sable { background: var(--sable); color: var(--sable-fonce); }
 .sable .titre { color: var(--sable-fonce); }
-.lilas { background: var(--lilas); }
+.lilas { background: var(--lilas); color: var(--lilas-fonce); }
 .lilas .titre { color: var(--lilas-fonce); }
-.ciel { background: var(--ciel); }
+.ciel { background: var(--ciel); color: var(--ciel-fonce); }
 .ciel .titre { color: var(--ciel-fonce); }
-.rose { background: var(--rose); }
+.rose { background: var(--rose); color: var(--rose-fonce); }
 .rose .titre { color: var(--rose-fonce); }
-.sarcelle { background: var(--sarcelle); }
+.sarcelle { background: var(--sarcelle); color: var(--sarcelle-fonce); }
 .sarcelle .titre { color: var(--sarcelle-fonce); }
-.peche { background: var(--peche); }
+.peche { background: var(--peche); color: var(--peche-fonce); }
 .peche .titre { color: var(--peche-fonce); }
-.citron { background: var(--citron); }
+.citron { background: var(--citron); color: var(--citron-fonce); }
 .citron .titre { color: var(--citron-fonce); }
 .encre { background: var(--encre); color: var(--ivoire); }
 .encre .titre { color: var(--citron); }
+
+@media (max-width: 760px) {
+  .bloc {
+    padding: 14px 16px;
+  }
+
+  .titreServif {
+    font-size: 23px;
+  }
+}

@@ -1,103 +1,241 @@
-/* US-0901 : l'écran d'Expédition : un titre, puis des blocs Bento, dans la largeur de l'écran du Foyer. */
+/*
+ * US-0901 : l'écran d'Expédition, posé sur le fond sarcelle du jeu : son titre et le lien vers les Expéditions en cours,
+ * puis les panneaux où l'on compose l'Expédition (la destination en bandeau peint, les explorateurs, l'escorte, le
+ * séjour), et le récapitulatif, qui finit sur « Partir ».
+ */
 .page {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 24px;
+  padding: 16px 18px 18px;
 }
 
-.titre {
-  margin-bottom: 16px;
-  font-size: 28px;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+/* Le lien vers les Expéditions déjà parties, à droite du titre : un contour de cuivre sur un creux, ses deux signes. */
+.enCours {
+  min-height: 36px;
+  padding: 0 12px 0 14px;
+  gap: 9px;
+  background: var(--creux);
+  font-size: 13.5px;
+  letter-spacing: 0;
 }
 
-/* La destination : chaque ligne, sa petite étiquette, puis ce qu'elle dit. */
+.enCours svg {
+  width: 13px;
+  height: 13px;
+  color: var(--cuivre-clair);
+}
+
+.boussole circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+}
+
+.boussole path {
+  fill: currentColor;
+}
+
+.fleche path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Ce qu'on compose, l'un sous l'autre ; les explorateurs et l'escorte côte à côte. */
+.composition {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ecart);
+  min-width: 0;
+  margin-bottom: var(--ecart);
+}
+
+.equipage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ecart);
+}
+
+/* Une escorte à choisir, Espèce par Espèce, prend toute la largeur, sous les explorateurs. */
+.equipage:has(ul) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/*
+ * La destination, en bandeau : à gauche son étiquette, son Biome en grand, sa distance et de quoi la changer ; à droite
+ * son paysage peint, qui se fond dans le panneau vers la gauche.
+ */
+.destination {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  min-height: 168px;
+  padding: 18px 50% 18px 20px;
+  overflow: hidden;
+}
+
+.destination > * {
+  position: relative;
+  z-index: 1;
+}
+
+.destination > h2 {
+  margin: 0;
+}
+
+.destination > .paysage {
+  --inconnu-x: 71%;
+  --inconnu-y: 50%;
+  position: absolute;
+  inset: 0 0 0 38%;
+  z-index: 0;
+  mask-image: linear-gradient(90deg, transparent, var(--noir) 40%);
+}
+
+/* Son ombre, qui assombrit le paysage vers le bas, sous les mots. */
+.destination::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 0 38%;
+  background: linear-gradient(180deg, var(--voile-sarcelle-leger), var(--voile-sarcelle));
+  mask-image: linear-gradient(90deg, transparent, var(--noir) 40%);
+  pointer-events: none;
+}
+
+/* Les explorateurs en route, sous la brume d'une destination inconnue ou en attendant d'en choisir une : éteints. */
+.paysage.enRoute img {
+  filter: saturate(0.55) brightness(0.85);
+  transform: none;
+}
+
+/* Le Biome en grand, sous sa petite étiquette ; la distance dessous, son libellé à côté. */
 .details {
   display: grid;
-  gap: 6px;
-}
-
-.details > div {
-  display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
-  gap: 12px;
-  align-items: baseline;
-}
-
-.details dt {
-  color: var(--texte-discret);
+  gap: 14px;
+  margin: 0;
 }
 
 .details dd {
   margin: 0;
-  font-weight: var(--graisse-titre);
 }
 
+.details > :first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.details > :first-child dt {
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 12px / 1 var(--police-etroite);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.details > :first-child dd {
+  color: var(--creme);
+  font: 400 36px / 1 var(--police-titre);
+}
+
+.details > div + div {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: baseline;
+}
+
+.details > div + div dt {
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 13px / 1.25 var(--police);
+}
+
+.details > div + div dd {
+  color: var(--creme);
+  font: var(--graisse-titre) 14px / 1.3 var(--police);
+}
+
+/* Pas encore de destination : le mot en grand, discret. */
 .aucune {
-  color: var(--texte-discret);
+  color: var(--mousse);
+  font: 400 30px / 1.1 var(--police-titre);
 }
 
-/* US-0907 : le refus d'une Case d'un Territoire, à la place de la destination, dans la couleur d'alerte. */
+/* US-0907 : le refus d'une Case d'un Territoire, à la place de la destination, dans la braise. */
 .refus {
-  color: var(--mauvais);
+  color: var(--braise);
   font-weight: var(--graisse-titre);
 }
 
-/* Au pouce : un lien de 44 px de haut, sur l'Encre ; toute la largeur sur mobile. */
+/* « Choisir sur la carte » au cuivre plein, « Changer de destination » en contour : de la largeur de leur mot. */
 .choisir {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  margin-top: 12px;
-  padding: 0 18px;
-  border-radius: var(--arrondi-moyen);
-  background: var(--encre);
-  color: var(--blanc-chaud);
-  font-weight: var(--graisse-titre);
-  text-align: center;
-  text-decoration: none;
-  cursor: pointer;
+  align-self: flex-start;
 }
 
-@media (hover: hover) {
-  .choisir:hover {
-    background: var(--encre-survol);
+/*
+ * Sur ordinateur, deux colonnes sous le titre : ce qu'on compose à gauche, le récapitulatif à droite. L'écran tient
+ * la hauteur de la fenêtre : la destination s'étire jusqu'au pied du récapitulatif ; une escorte plus longue fait
+ * défiler la page, et le récapitulatif reste en vue.
+ */
+@media (min-width: 1024px) {
+  .preparation {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: minmax(0, 1fr) 372px;
+    column-gap: var(--ecart);
+  }
+
+  .preparation > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .composition {
+    margin-bottom: 0;
   }
 }
 
-.choisir:focus-visible {
-  outline: 2px solid var(--encre);
-  outline-offset: 2px;
-}
-
-/* US-0907 : une destination déjà choisie se change d'un lien secondaire, de la même taille, cerné d'un trait. */
-.changer {
-  background: var(--bloc);
-  color: var(--encre);
-  box-shadow: inset 0 0 0 1px var(--trait);
-}
-
-@media (hover: hover) {
-  .changer:hover {
-    background: var(--bloc-3);
+@media (min-width: 1024px) and (min-height: 600px) {
+  .preparation {
+    min-height: var(--hauteur-utile);
   }
 }
 
-/* Sur mobile, une seule colonne, sans rien qui dépasse sur le côté. */
-@media (max-width: 820px), (max-height: 500px) {
+/* Sur un téléphone : l'escorte sous les explorateurs, le paysage plus étroit, chaque choix au pouce. */
+@media (max-width: 760px) {
   .page {
-    padding: 12px;
+    padding: 12px 12px 24px;
   }
 
-  .titre {
-    margin: 8px 0 12px;
+  .equipage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .destination {
+    min-height: 0;
+    padding: 16px 110px 16px 16px;
+  }
+
+  .destination > .paysage,
+  .destination::after {
+    inset: 0 0 0 45%;
+  }
+
+  .destination > .paysage {
+    --inconnu-x: 70%;
+  }
+
+  .details > :first-child dd {
+    font-size: 30px;
+  }
+
+  .aucune {
     font-size: 24px;
   }
+}
 
+@media (max-width: 820px), (max-height: 500px) {
   .choisir {
-    display: flex;
-    width: 100%;
+    min-height: 44px;
   }
 }

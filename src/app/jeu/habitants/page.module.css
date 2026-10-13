@@ -1,582 +1,222 @@
-/* La page Habitants (US-0302) : un titre, puis des blocs Bento, dans la largeur de l'écran du Foyer. */
+/*
+ * L'écran des Habitants (US-0302), l'écran de stratégie (maquette strategie, index.html, 1280.png, 390.png) : posé sur le
+ * fond sarcelle, en trois zones. À gauche le rail des Métiers, au centre le registre des Habitants (ListeDesHabitants,
+ * qui prend les places « rail » et « registre »), à droite la colonne de contexte : les Voyageurs aux portes, la place du
+ * Territoire, l'Entretien et la Nourriture. Sur ordinateur, l'écran tient dans la fenêtre sous la barre du haut et le
+ * registre défile dans son panneau ; sur une tablette et un téléphone, tout s'empile, le rail en bande, la colonne de
+ * contexte au-dessus du registre, et la page défile.
+ */
 .page {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 24px;
-}
-
-.titre {
-  margin-bottom: 16px;
-  font-size: 28px;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-
-/* US-0306 : au pouce, chaque bouton de la page offre une surface de toucher d'au moins 44 px de côté. */
-.page button {
-  min-width: 44px;
-  min-height: 44px;
-}
-
-/*
- * US-0313 : sous le titre, au-dessus des blocs, le bandeau des Habitants sans Métier, sobre, sur le sable :
- * leur nombre en gras, puis « Voir », un lien au pouce qui filtre la liste sur eux.
- */
-.sansMetier {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0 12px;
-  margin-bottom: var(--ecart);
-  padding: 2px 4px 2px 16px;
-  border-radius: var(--arrondi);
-  background: var(--sable);
-  color: var(--encre);
-}
-
-.nombreSansMetier {
-  padding: 10px 0;
-  font-weight: var(--graisse-titre);
-}
-
-.voirSansMetier {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 12px;
-  border-radius: var(--arrondi-moyen);
-  color: var(--encre);
-  font-weight: var(--graisse-titre);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-@media (hover: hover) {
-  .voirSansMetier:hover {
-    background: var(--survol);
-  }
-}
-
-.voirSansMetier:focus-visible {
-  outline: 2px solid var(--encre);
-  outline-offset: -2px;
-}
-
-/*
- * US-0305 : le nombre d'Habitants sur la place du Territoire, et « Plus de place » à côté quand elle est
- * toute prise. US-0306 : quand on fait défiler la liste, cet en-tête reste collé sous la barre du haut
- * (bande des ressources et encoche comprises, voir formes.css) ; la liste passe dessous, sur le fond du
- * bloc. Il garde un peu d'air au-dessus une fois collé, et reste à sa place au repos.
- */
-.entete {
-  position: sticky;
-  top: var(--hauteur-barre);
-  z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 12px;
-  margin-top: -8px;
-  padding: 8px 0 12px;
-  background: var(--bloc);
-}
-
-.nombre {
-  font-size: 24px;
-  font-weight: var(--graisse-titre);
-  font-variant-numeric: tabular-nums;
-}
-
-.plein {
-  padding: 2px 10px;
-  border-radius: 999px;
-  background: var(--sable);
-  color: var(--sable-fonce);
-  font-size: 13px;
-  font-weight: var(--graisse-titre);
-}
-
-/*
- * US-0309 : sous l'en-tête, hors de la partie collée, les effectifs : « Sans Métier » puis un compteur par
- * Métier, son icône, son nom et son nombre en gras ; ils passent à la ligne sur un écran étroit.
- * US-0314 : chacun est un bouton qui filtre la liste, après « Tous » ; le filtre pressé passe en Encre.
- */
-.effectifs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
-  padding: 0;
-  list-style: none;
-}
-
-.effectif {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 10px;
-  border: 1px solid var(--trait-doux);
-  border-radius: var(--arrondi-petit);
-  background: var(--bloc-2);
-  color: var(--texte-2);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.effectif[aria-pressed="true"] {
-  border-color: var(--encre);
-  background: var(--encre);
-  color: var(--ivoire);
-}
-
-@media (hover: hover) {
-  .effectif[aria-pressed="false"]:hover {
-    border-color: var(--galet);
-    background: var(--bloc-3);
-  }
-}
-
-.effectif:focus-visible {
-  outline: 2px solid var(--encre);
-  outline-offset: 2px;
-}
-
-.iconeEffectif {
-  width: 22px;
-  height: 22px;
-}
-
-.nombreEffectif {
-  color: var(--encre);
-  font-weight: var(--graisse-titre);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Un Métier que personne n'exerce garde son compteur, son 0 en discret. */
-.effectif[data-personne] .nombreEffectif {
-  color: var(--texte-discret);
-}
-
-/* US-0314 : sur l'Encre du filtre pressé, le nombre en citron, 0 compris. */
-.effectif[aria-pressed="true"] .nombreEffectif {
-  color: var(--citron);
-}
-
-/* US-0314 : un filtre qui ne trouve personne le dit à la place de la liste. */
-.personne {
-  padding: 12px;
-  border-radius: var(--arrondi-petit);
-  background: var(--bloc-2);
-  color: var(--texte-discret);
-}
-
-/* US-0303 : une ligne par Habitant ; prénom, Métier et état côte à côte sur ordinateur. */
-.habitants {
   display: grid;
-  gap: 6px;
-  padding: 0;
-  list-style: none;
+  grid-template-areas: "rail registre contexte";
+  grid-template-columns: 218px minmax(0, 1fr) 296px;
+  gap: var(--ecart);
+  padding: 16px 18px 18px;
 }
 
-.habitant {
-  display: grid;
-  grid-template-columns: minmax(0, 160px) minmax(0, 1fr) auto;
-  gap: 4px 12px;
-  align-items: center;
-  min-height: 44px;
-  padding: 8px 12px;
-  border-radius: var(--arrondi-petit);
-  background: var(--bloc-2);
-}
-
-.prenom {
-  font-weight: var(--graisse-titre);
-}
-
-.metier {
-  color: var(--texte-2);
-}
-
-.metier[data-sans-metier] {
-  color: var(--texte-discret);
-}
-
-.etat {
-  padding: 2px 10px;
-  border-radius: 999px;
-  background: var(--menthe);
-  color: var(--menthe-fonce);
-  font-size: 13px;
-  font-weight: var(--graisse-titre);
-}
-
-/* US-0911 : un explorateur parti en Expédition, dans le ton de la phase de son Expédition (liste des Expéditions en cours). */
-.etat[data-absent] {
-  background: var(--ciel);
-  color: var(--ciel-fonce);
-}
-
-/*
- * US-0308 : sur la ligne d'un Habitant sans Métier, à la place de « sans Métier », le bouton qui déplie
- * les Métiers au choix ; sa flèche se retourne tant qu'ils sont dépliés. US-0310 : sur celle d'un Habitant
- * qui a un Métier, le même bouton, à son nom.
- */
-.choisir {
-  display: inline-flex;
-  justify-self: start;
-  align-items: center;
-  gap: 8px;
-  padding: 0 12px;
-  border: 1px solid var(--trait);
-  border-radius: var(--arrondi-petit);
-  background: var(--bloc);
-  color: var(--encre);
-  font: inherit;
-  font-weight: var(--graisse-titre);
-  cursor: pointer;
-}
-
-.fleche {
-  width: 12px;
-  height: 12px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.choisir[aria-expanded="true"] .fleche {
-  transform: rotate(180deg);
-}
-
-/*
- * US-0308 : sous la ligne, sur toute sa largeur, les Métiers au choix : une grille de quatre colonnes
- * qui passe à la ligne, deux sur un petit écran ; chaque Métier, son icône au-dessus de son nom.
- */
-.choix {
-  display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
-  gap: 6px;
-  margin-top: 4px;
-}
-
-.metierAuChoix {
+/* La colonne de contexte : ses panneaux empilés, chacun à sa hauteur. */
+.contexte {
   display: flex;
+  grid-area: contexte;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 8px 6px;
-  border: 1px solid var(--trait-doux);
-  border-radius: var(--arrondi-petit);
-  background: var(--bloc);
-  color: var(--encre);
-  font: inherit;
-  font-size: 13px;
-  font-weight: var(--graisse-titre);
-  line-height: 1.2;
-  cursor: pointer;
-}
-
-.iconeAuChoix {
-  width: 28px;
-  height: 28px;
-}
-
-/* US-0310 : dans le dépliant d'un Habitant qui a un Métier, le sien, pressé en Encre comme un filtre, hors d'atteinte. */
-.metierAuChoix[aria-pressed="true"] {
-  border-color: var(--encre);
-  background: var(--encre);
-  color: var(--ivoire);
-  cursor: default;
-}
-
-/*
- * US-0311 : dans le dépliant d'un Habitant qui a un Métier, « Sans Métier », en dernier, sur toute la largeur de
- * la grille : sans icône et en pointillés, pour ne pas le confondre avec un Métier.
- */
-.sansMetierAuChoix {
-  display: flex;
-  grid-column: 1 / -1;
-  align-items: center;
-  justify-content: center;
-  padding: 0 12px;
-  border: 1px dashed var(--galet);
-  border-radius: var(--arrondi-petit);
-  background: transparent;
-  color: var(--texte-2);
-  font: inherit;
-  font-size: 13px;
-  font-weight: var(--graisse-titre);
-  cursor: pointer;
-}
-
-/*
- * US-0330 : sous les Métiers au choix, à part et à droite, « Renvoyer », discret : du texte dans la couleur d'alerte,
- * sans cadre ; après un premier toucher, « Confirmer le renvoi », plein, dans la couleur d'alerte.
- */
-.renvoyer {
-  grid-column: 1 / -1;
-  justify-self: end;
-  margin-top: 8px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: var(--arrondi-petit);
-  background: transparent;
-  color: var(--mauvais);
-  font: inherit;
-  font-size: 13px;
-  font-weight: var(--graisse-titre);
-  cursor: pointer;
-}
-
-.renvoyer[data-confirmer] {
-  background: var(--mauvais);
-  color: var(--blanc-chaud);
-}
-
-@media (hover: hover) {
-  .choisir:hover,
-  .metierAuChoix:enabled:hover,
-  .sansMetierAuChoix:hover {
-    border-color: var(--galet);
-    background: var(--bloc-3);
-  }
-
-  .renvoyer:not([data-confirmer]):hover {
-    background: var(--mauvais-doux);
-  }
-}
-
-.choisir:focus-visible,
-.metierAuChoix:focus-visible,
-.sansMetierAuChoix:focus-visible,
-.renvoyer:focus-visible {
-  outline: 2px solid var(--encre);
-  outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fleche {
-    transition: none;
-  }
-}
-
-/*
- * US-0307 : à côté de la liste sur ordinateur, la colonne de l'Entretien (US-0318) puis des Métiers, l'un
- * sous l'autre, chacun à sa propre hauteur ; la liste garde la sienne, même quand la colonne est plus haute.
- */
-.liste {
-  align-self: start;
-}
-
-.colonne {
-  display: grid;
-  align-content: start;
   gap: var(--ecart);
   min-width: 0;
 }
 
-/* US-0318 : l'Entretien, le total en gras. */
+/* Sur un grand écran, tout tient dans la fenêtre : le registre défile, et la colonne de contexte si elle déborde. */
+@media (min-width: 1024px) and (min-height: 600px) {
+  .page {
+    grid-template-rows: minmax(0, 1fr);
+    height: var(--hauteur-utile);
+  }
+
+  .contexte {
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-color: var(--anneau-cuivre-fort) transparent;
+    scrollbar-width: thin;
+  }
+}
+
+/* Entre 1 024 et 1 200 px, le rail et la colonne de contexte se resserrent pour laisser sa place au registre. */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .page {
+    grid-template-columns: 204px minmax(0, 1fr) 268px;
+  }
+}
+
+/* Les signes devant une phrase : le triangle d'alerte, la coche. */
+.signe {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.3;
+}
+
+.signe circle {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* Pour un lecteur d'écran seulement. */
+.annonce {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- US-0305 : la place ---------- */
+
+.place {
+  display: grid;
+  flex: none;
+  gap: 10px;
+  padding: 13px 16px 14px;
+}
+
+.hautDeLaPlace {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.compteDesPlaces {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 17px / 1 var(--police);
+}
+
+.place[data-plein] .compteDesPlaces > span {
+  color: var(--braise);
+}
+
+.nombre {
+  margin-top: -1px;
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 13px / 1.2 var(--police);
+}
+
+/* ---------- US-0318, US-0320 : l'Entretien et la Nourriture ---------- */
+
+.entretien {
+  flex: none;
+  padding: 13px 16px 14px;
+}
+
+.entretien > h2 {
+  margin-bottom: 8px;
+}
+
+.entretien[data-alerte] {
+  border-color: var(--braise-filet);
+}
+
 .ligneEntretien {
-  color: var(--texte-2);
-  font-variant-numeric: tabular-nums;
+  margin-bottom: 10px;
+  color: var(--mousse);
+  font: var(--graisse-texte) 13px / 1.45 var(--police);
 }
 
 .totalEntretien {
-  color: var(--encre);
+  color: var(--creme);
   font-weight: var(--graisse-titre);
+  white-space: nowrap;
 }
 
-/* US-0320 : dessous, combien de temps la Nourriture tiendra : assurée, ou dans la couleur d'alerte quand elle baisse. */
-.tenue {
-  margin-top: 6px;
-  color: var(--bon);
-  font-weight: var(--graisse-titre);
-}
-
-.tenue[data-baisse] {
-  color: var(--mauvais);
-}
-
-/*
- * US-0307 : une ligne par Métier : son icône peinte, puis son nom en gras, et dessous sa phrase puis, en discret,
- * quand il servira. US-0312 : au bout de la première ligne, l'effectif du Métier entre « − » et « + » ; la phrase
- * et « Servira » passent dessous, sur toute la largeur qui reste.
- */
-.metiers {
-  display: grid;
-  gap: 12px;
+.nourriture {
+  margin: 0;
   padding: 0;
+  border-top: 1px solid var(--filet-cuivre-doux);
   list-style: none;
 }
 
-.ligneMetier {
+.stock {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 2px 12px;
+  grid-template-columns: auto minmax(0, 1fr) auto 52px;
   align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--filet-cuivre-doux);
 }
 
-.iconeMetier {
-  width: 40px;
-  height: 40px;
+.nomDuStock {
+  color: var(--parchemin);
+  font: var(--graisse-moyenne) 13.5px / 1 var(--police);
 }
 
-.descriptionMetier {
-  grid-column: 2 / -1;
+.quantite {
+  color: var(--creme);
+  font: var(--graisse-titre) 15px / 1 var(--police);
+  text-align: right;
 }
 
-.phraseMetier {
-  color: var(--texte-2);
+.solde {
+  color: var(--feuille);
+  font: var(--graisse-moyenne) 12px / 1 var(--police-etroite);
+  text-align: right;
 }
 
-.nomMetier {
-  color: var(--encre);
-  font-weight: var(--graisse-titre);
+.solde[data-negatif] {
+  color: var(--braise);
 }
 
-/*
- * US-0312 : « − », l'effectif, puis « + », au pouce : chaque bouton a sa surface de 44 px (.page button), à 8 px
- * du nombre. Grisés, ils restent à leur place sans réagir.
- */
-.repartition {
+/* US-0320 : la tenue de la Nourriture, en feuille ; en braise quand elle baisse. */
+.tenue {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-top: 10px;
+  color: var(--feuille);
+  font: var(--graisse-titre) 13.5px / 1.2 var(--police);
 }
 
-.plusMoins {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 1px solid var(--trait);
-  border-radius: var(--arrondi-petit);
-  background: var(--bloc);
-  color: var(--encre);
-  font: inherit;
-  font-size: 20px;
-  font-weight: var(--graisse-titre);
-  line-height: 1;
-  cursor: pointer;
+.tenue .signe {
+  width: 15px;
+  height: 15px;
+  stroke-width: 1.6;
 }
 
-.plusMoins:disabled {
-  border-color: var(--trait-doux);
-  background: var(--bloc-2);
-  color: var(--galet);
-  cursor: default;
+.tenue[data-baisse] {
+  color: var(--braise);
 }
 
-@media (hover: hover) {
-  .plusMoins:enabled:hover {
-    border-color: var(--galet);
-    background: var(--bloc-3);
-  }
-}
+/* ---------- Tablette et téléphone : tout s'empile, la colonne de contexte au-dessus du registre ---------- */
 
-.plusMoins:focus-visible {
-  outline: 2px solid var(--encre);
-  outline-offset: 2px;
-}
-
-.effectifMetier {
-  min-width: 2ch;
-  color: var(--encre);
-  font-weight: var(--graisse-titre);
-  font-variant-numeric: tabular-nums;
-  text-align: center;
-}
-
-.servira {
-  margin-top: 2px;
-  color: var(--texte-discret);
-  font-size: 13px;
-}
-
-/* US-0306 : sur mobile, une seule colonne dans la largeur de l'écran, sans défilement de côté. */
-@media (max-width: 820px), (max-height: 500px) {
+@media (max-width: 1023px) {
   .page {
-    padding: 12px;
+    grid-template-areas:
+      "rail"
+      "contexte"
+      "registre";
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ecart-mobile);
+    padding: 12px 12px 24px;
   }
-  .titre {
-    margin: 8px 0 12px;
-    font-size: 24px;
-  }
-  .colonne {
+
+  .contexte {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
     gap: var(--ecart-mobile);
   }
-  /* Sur mobile, le Métier, ou le bouton qui en choisit un (US-0308), passe sous le prénom ; l'état reste à droite. */
-  .habitant {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-  .metier,
-  .choisir {
-    grid-row: 2;
-  }
-  .etat {
-    grid-row: 1 / span 2;
-    grid-column: 2;
-  }
-}
 
-/* US-0308 : sur un petit écran, deux Métiers au choix par ligne. */
-@media (max-width: 540px) {
-  .choix {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-
-  /*
-   * US-0309 : un compteur de Métier ne montre que son icône et son nombre : avec les noms, la rangée passerait
-   * sur six lignes. Le nom, réduit à rien, reste lu par un lecteur d'écran ; « Tous » et « Sans Métier »,
-   * sans icône, gardent le leur.
-   */
-  .effectif:has(.iconeEffectif) {
-    gap: 4px;
-    font-size: 0;
-  }
-
-  .effectif:has(.iconeEffectif) .nombreEffectif {
-    font-size: 13px;
-  }
-}
-
-/*
- * US-0312 : sur les plus petits écrans (320 px), l'icône d'un Métier rapetisse et les écarts de sa ligne se
- * resserrent : le plus long nom, « Explorateur », tient en entier à côté de « − » et « + ».
- */
-@media (max-width: 380px) {
-  .ligneMetier {
-    column-gap: 8px;
-  }
-  .iconeMetier {
-    width: 32px;
-    height: 32px;
-  }
-}
-
-/*
- * US-0332 : dès que la colonne passe sous la liste, ses blocs se rangent dans la grille de la page, chacun à
- * la place qu'elle leur donnait : une demi-ligne sur tablette, toute la largeur sur mobile. « Aux portes »
- * peut ainsi remonter au-dessus de la liste (AuxPortes.module.css).
- */
-@media (max-width: 1100px) {
-  .colonne {
-    display: contents;
-  }
-  .colonne > * {
-    grid-column: 1 / span 6;
-  }
-}
-
-@media (max-width: 820px) {
-  .colonne > * {
+  .contexte > :first-child {
     grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .contexte {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

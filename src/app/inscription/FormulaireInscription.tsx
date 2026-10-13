@@ -6,7 +6,7 @@ import { retenirAdresse } from "@/comptes/adresse-retenue";
 import { EMAIL_DEJA_UTILISEE, normaliserEmail, verifierEmail } from "@/comptes/email";
 import { REGLE_MOT_DE_PASSE, verifierMotDePasse } from "@/comptes/mot-de-passe";
 import { LOUP_TETE, LOUP_VIEWBOX } from "@/components/loup";
-import { TitreEntree } from "@/components/PageEntree";
+import { BOUTON_ENTREE, TitreEntree } from "@/components/PageEntree";
 import { INSCRIPTION_DELAI_MAX_MS, MOT_DE_PASSE_MAX, MOT_DE_PASSE_MIN } from "@/reglages";
 import { ChampMotDePasse } from "../ChampMotDePasse";
 import styles from "../entree.module.css";
@@ -183,7 +183,7 @@ function Formulaire({ etat, envoyer, enAttente, motDePasse, setMotDePasse }: For
         </p>
       ) : null}
       {/* US-0110 : pendant l'envoi, le bouton est désactivé et montre qu'il travaille. */}
-      <button type="submit" className={styles.envoyer} disabled={enAttente}>
+      <button type="submit" className={`${BOUTON_ENTREE} ${styles.envoyer}`} disabled={enAttente}>
         {enAttente ? (
           <>
             <span className={styles.roue} aria-hidden="true" />
@@ -232,7 +232,7 @@ function CompteCree({ email }: { email: string }) {
         </p>
         <p className={styles.adresse}>{email}</p>
       </div>
-      <Link href="/jeu" className={styles.envoyer}>
+      <Link href="/jeu" className={`${BOUTON_ENTREE} ${styles.envoyer}`}>
         Entrer dans le jeu
       </Link>
     </div>

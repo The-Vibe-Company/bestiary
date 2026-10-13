@@ -1,37 +1,126 @@
-/* US-0910 : le récapitulatif, au pied de l'écran d'Expédition, à l'écart des autres blocs. */
+/*
+ * US-0910 : le récapitulatif de l'écran d'Expédition, à côté de ce qu'on compose : les explorateurs en route peints en
+ * tête, ce qui a été choisi, la frise des durées, le retour prévu, puis « Partir ».
+ */
 .recap {
-  margin-top: var(--ecart);
+  display: flex;
+  flex-direction: column;
 }
 
-/* Chaque ligne : sa petite étiquette, puis ce qu'elle dit, alignées sur les lignes des autres blocs. */
+/* Plus précis que la pièce qui le porte (components/Bloc.module.css), dont il resserre le bord. */
+section.recap {
+  padding: 14px 16px 16px;
+}
+
+.recap > h2 {
+  margin-bottom: 10px;
+}
+
+.defilant {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Les explorateurs en route, en bandeau, fondus dans le panneau vers le bas. */
+.peinture {
+  flex: none;
+  height: 160px;
+  margin: 0 -2px 14px;
+}
+
+.peinture img {
+  object-position: 50% 28%;
+}
+
+.peinture::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, transparent 55%, var(--panneau-voile));
+  box-shadow: inset 0 0 0 1px var(--anneau-cuivre);
+}
+
+/* Chaque ligne : son libellé, puis ce qu'elle dit, alignés en deux colonnes. */
 .lignes {
   display: grid;
-  gap: 6px;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px 16px;
+  align-items: baseline;
+  margin: 0;
 }
 
 .lignes > div {
-  display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
-  gap: 12px;
-  align-items: baseline;
+  display: contents;
 }
 
-.lignes dt {
-  color: var(--texte-discret);
+.lignes dt,
+.retourPrevu dt {
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 13px / 1.25 var(--police);
 }
 
 .lignes dd {
   margin: 0;
-  font-weight: var(--graisse-titre);
+  color: var(--creme);
+  font: var(--graisse-titre) 14px / 1.3 var(--police);
   font-variant-numeric: tabular-nums;
 }
 
-/* Ceux qui partent mangent toujours : un rappel, d'un trait sous les lignes. */
+.frise {
+  margin: 16px 0 2px;
+}
+
+/* US-0949 : l'escorte face à la Bête repérée : « Assez forte » en feuille, « Trop faible : il manque… » en braise. */
+.lignes [data-force="assez"] {
+  color: var(--feuille);
+}
+
+.lignes [data-force="manque"] {
+  color: var(--braise);
+}
+
+/* Le retour prévu, entre deux filets : son libellé à gauche, l'heure en cuivre clair à droite. */
+.retourPrevu {
+  margin: 14px 0 0;
+  padding: 11px 0;
+  border-top: 1px solid var(--filet-cuivre-doux);
+  border-bottom: 1px solid var(--filet-cuivre-doux);
+}
+
+.retourPrevu div {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.retourPrevu dd {
+  margin: 0;
+  color: var(--cuivre-clair);
+  font: var(--graisse-titre) 16px / 1 var(--police);
+  font-variant-numeric: tabular-nums;
+}
+
+/* US-0949 : une Bête repérée qui ne sera plus là à l'arrivée, en braise, au-dessus du retour prévu. */
+.retourPrevu [data-partie] {
+  margin-bottom: 9px;
+}
+
+.retourPrevu [data-partie] dd {
+  color: var(--braise);
+  font-size: 14px;
+  line-height: 1.25;
+  text-align: right;
+}
+
+/* Ceux qui partent mangent toujours : un rappel discret, sous le retour prévu. */
 .manger {
   margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--trait);
-  color: var(--texte-discret);
+  color: var(--mousse);
+  font: var(--graisse-texte) 12.5px / 1.45 var(--police);
 }
 
 /* Sur ordinateur, tout se lit : rien à déplier. */
@@ -40,9 +129,31 @@
 }
 
 /*
- * Sur mobile, le récapitulatif reste en bas de l'écran, au-dessus des onglets, pendant qu'on compose l'Expédition :
- * replié sur l'heure de retour prévue et le départ ; son bouton, en haut à droite, au pouce, déplie tout, sans dépasser
- * l'écran : déplié, seules ses lignes défilent, entre le titre et « Partir ».
+ * Sur ordinateur, il tient la hauteur de l'écran sous le titre, la peinture prenant ce qui reste, et reste en vue quand
+ * une longue escorte fait défiler la page.
+ */
+@media (min-width: 1024px) {
+  .recap {
+    align-self: start;
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 600px) {
+  .recap {
+    min-height: calc(var(--hauteur-utile) - 90px);
+  }
+
+  .peinture {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 96px;
+  }
+}
+
+/*
+ * Sur mobile, le récapitulatif reste en bas de l'écran pendant qu'on compose l'Expédition : replié sur l'heure de
+ * retour prévue et le départ ; son bouton, en haut à droite, au pouce, déplie tout, sans dépasser l'écran : déplié,
+ * seul ce qu'il dit défile, entre le titre et « Partir ».
  */
 @media (max-width: 820px), (max-height: 500px) {
   .recap {
@@ -52,13 +163,29 @@
     display: flex;
     flex-direction: column;
     max-height: calc(var(--hauteur-utile) - 24px);
-    padding: 12px 14px;
-    box-shadow: var(--ombre);
+  }
+
+  /*
+   * Sur un téléphone, le récapitulatif replié est le quai du départ : de bord à bord, son ombre comblant l'écart
+   * jusqu'au bas de l'écran. Ce qu'on compose défile dessous.
+   */
+  section.recap {
+    margin-right: calc(-1 * max(12px, var(--bord-droit)));
+    margin-left: calc(-1 * max(12px, var(--bord-gauche)));
+    padding: 12px max(16px, var(--bord-droit)) 14px max(16px, var(--bord-gauche));
+    border-width: 1px 0 0;
+    box-shadow:
+      0 12px 0 var(--panneau),
+      0 -12px 28px var(--ombre-profonde);
   }
 
   .defilant {
-    min-height: 0;
+    flex: 0 1 auto;
     overflow-y: auto;
+  }
+
+  .peinture {
+    height: 120px;
   }
 
   /* Ce que le clavier atteint ne passe jamais sous le récapitulatif replié. */
@@ -66,37 +193,24 @@
     scroll-padding-bottom: calc(var(--hauteur-onglets) + var(--bord-bas) + 176px);
   }
 
-  /* La première ligne qu'on voit, sous le bouton, lui laisse sa place. */
-  .lignes > :first-child,
-  .recap:not(.deplie) [data-essentiel] {
-    padding-right: 30px;
-  }
-
   .deplier {
     position: absolute;
     top: 0;
     right: 0;
+    z-index: 7;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 44px;
     height: 44px;
     border: 0;
-    border-radius: var(--arrondi);
     background: transparent;
-    color: var(--texte-discret);
+    color: var(--cuivre-clair);
     cursor: pointer;
   }
 
-  @media (hover: hover) {
-    .deplier:hover {
-      background: var(--survol);
-      color: var(--encre);
-    }
-  }
-
   .deplier:focus-visible {
-    outline: 2px solid var(--encre);
+    outline: 2px solid var(--cuivre-clair);
     outline-offset: -4px;
   }
 
@@ -116,8 +230,47 @@
     transform: none;
   }
 
-  .recap:not(.deplie) .lignes > :not([data-essentiel]),
+  /*
+   * Replié, le quai tient en deux rangées : l'étiquette et l'heure de retour prévue côte à côte, puis « Partir » et ce
+   * qui lui manque. Le reste attend qu'on le déplie.
+   */
+  .recap:not(.deplie) .peinture,
+  .recap:not(.deplie) .lignes,
+  .recap:not(.deplie) .frise,
   .recap:not(.deplie) .manger {
     display: none;
+  }
+
+  .recap:not(.deplie) {
+    flex-flow: row wrap;
+    align-items: center;
+    column-gap: 12px;
+  }
+
+  .recap:not(.deplie) > h2 {
+    margin-bottom: 0;
+  }
+
+  .recap:not(.deplie) .defilant {
+    flex: 1 1 0;
+  }
+
+  /* L'heure de retour prévue, à côté de l'étiquette, laisse sa place au bouton. */
+  .recap:not(.deplie) .retourPrevu {
+    margin: 0;
+    padding: 0 30px 0 0;
+    border: 0;
+  }
+
+  .recap:not(.deplie) > :last-child {
+    flex: 1 1 100%;
+    margin-top: 8px;
+  }
+}
+
+/* Le chevron tourne sans animation quand le joueur réduit les animations. */
+@media (prefers-reduced-motion: reduce) {
+  .fleche {
+    transition: none;
   }
 }

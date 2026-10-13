@@ -22,7 +22,7 @@ export default async function NouveauMotDePasse({ params }: { params: Promise<{ 
   if (!entreeDuJeuOuverte()) notFound();
   const { jeton } = await params;
   const lien = await etatDuLien(getPool(), jeton);
-  const illustration = { chemin: "entree/connexion.webp", alt: "Une hutte au toit de chaume, éclairée au crépuscule, au bout d'un chemin fleuri" };
+  const illustration = { chemin: "entree/connexion.webp", alt: "Une hutte au toit de chaume, éclairée au crépuscule, au bout d'un chemin fleuri", cadrage: "50% 30%" };
   if (lien.etat !== "valable") {
     return (
       <PageEntree illustration={illustration}>

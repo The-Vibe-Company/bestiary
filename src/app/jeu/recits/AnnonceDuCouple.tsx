@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { IllustrationEspece } from "@/components/IllustrationEspece";
+import kit from "@/components/kit.module.css";
 import styles from "./AnnonceDuCouple.module.css";
 
 /**
@@ -12,17 +13,18 @@ export type CoupleAffiche = { especeId: string; nom: string; illustration: strin
  * US-0958 : l'annonce du Couple réuni, en tête du Récit du retour qui l'a réuni, visible sans le déplier : l'illustration
  * de l'Espèce en grand, « Couple réuni » et son nom ; une par Couple quand un même retour en réunit plusieurs. Sur un
  * téléphone, elle tient sur un seul écran. US-0812 : le lien « Élever » mène au bloc « Élever » de la fiche de l'Espèce
- * (/jeu/reserve/<Espèce>#elever) ; un lecteur d'écran l'entend avec le nom de l'Espèce.
+ * (/jeu/reserve/<Espèce>#elever) ; un lecteur d'écran l'entend avec le nom de l'Espèce. Aux couleurs du kit : la
+ * peinture dans son filet vert, « Couple réuni » sur le ruban, le nom en Bree Serif, « Élever » au contour vert.
  */
 export function AnnonceDuCouple({ couples }: { couples: CoupleAffiche[] }) {
   return (
     <div className={styles.annonce} data-plusieurs={couples.length > 1 ? "" : undefined}>
       {couples.map((couple) => (
         <figure key={couple.especeId} className={styles.couple}>
-          <IllustrationEspece espece={couple} format="moyen" className={styles.illustration} />
+          <IllustrationEspece espece={couple} format="moyen" className={`${kit.vignette} ${styles.illustration}`} />
           <figcaption className={styles.legende}>
-            <span className={styles.etiquette}>Couple réuni</span> <strong className={styles.espece}>{couple.nom}</strong>{" "}
-            <Link href={`/jeu/reserve/${couple.especeId}#elever`} className={styles.elever} aria-label={`Élever : ${couple.nom}`}>
+            <span className={`${kit.ruban} ${styles.etiquette}`}>Couple réuni</span> <strong className={styles.espece}>{couple.nom}</strong>{" "}
+            <Link href={`/jeu/reserve/${couple.especeId}#elever`} className={`${kit.bouton} ${kit.secondaire} ${styles.elever}`} aria-label={`Élever : ${couple.nom}`}>
               Élever
             </Link>
           </figcaption>

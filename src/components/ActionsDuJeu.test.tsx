@@ -160,14 +160,15 @@ describe("actions du joueur dans la barre, sur les pages du jeu", () => {
     expect(habitants?.[2]).toMatch(/^<span[^>]*>Habitants<\/span><span[^>]*aria-hidden="true"[^>]*><\/span>$/);
   });
 
-  it("dessine le repère en petit point citron, le même dans la barre sur ordinateur et dans l'onglet sur mobile (US-0332)", () => {
+  it("dessine le repère en petit point de braise qui luit, le même dans la barre sur ordinateur et dans l'onglet sur mobile (US-0332)", () => {
     const css = readFileSync(join(process.cwd(), "src/components/BarreHaut.module.css"), "utf8");
     const repere = css.match(/\n\.repere \{([^}]*)\}/)?.[1] ?? "";
-    expect(repere).toContain("background: var(--citron);");
+    expect(repere).toContain("background: var(--braise);");
     expect(repere).toContain("border-radius: 999px;");
-    expect(repere).toMatch(/width: 8px;[^}]*height: 8px;/);
-    // Rien ne le cache ni ne le change sur mobile : il suit le nom de l'onglet.
-    expect(css.slice(css.indexOf("@media (max-width: 820px)"))).not.toContain(".repere");
+    expect(repere).toMatch(/width: 9px;[^}]*height: 9px;/);
+    // Rien ne le cache ni ne le change sur mobile : il suit le médaillon, passé au-dessus du nom.
+    const mobile = css.slice(css.indexOf("@media (max-width: 1023px) {")).match(/\n\s*\.repere \{([^}]*)\}/)?.[1] ?? "";
+    expect(mobile.trim().split(/;\s*/).filter(Boolean).map((declaration) => declaration.split(":")[0])).toEqual(["top", "left"]);
   });
 
   it("ne met pas de repère quand personne n'attend aux portes (US-0332)", async () => {

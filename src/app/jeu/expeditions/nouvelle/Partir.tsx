@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useId } from "react";
+import kit from "@/components/kit.module.css";
 import type { Coordonnees } from "@/monde/hex";
 import { type EtatDuDepart, partir } from "./actions";
 import { FORMULAIRE_DE_DEPART } from "./formulaire";
@@ -18,7 +19,7 @@ function ceQuiManque(destination: boolean, explorateurs: number): string | null 
 const SANS_REFUS: EtatDuDepart = { refus: null };
 
 /**
- * US-0902 : le bouton de départ, au pied de l'écran d'Expédition. Il faut au moins un explorateur : à zéro, il reste
+ * US-0902 : le bouton de départ, l'action de l'écran d'Expédition, au cuivre plein. Il faut au moins un explorateur : à zéro, il reste
  * grisé et dit pourquoi, juste dessous (lu aussi par un lecteur d'écran). US-0910 : il finit le récapitulatif, et il faut
  * aussi une `destination` : tant qu'un choix manque, il reste grisé et le nomme.
  *
@@ -42,8 +43,16 @@ export function Partir({ destination, explorateurs, escorte }: { destination: Co
       ) : null}
       <input type="hidden" name="explorateurs" value={explorateurs} />
       {[...escorte].map(([especeId, nombre]) => (nombre > 0 ? <input key={especeId} type="hidden" name="escorte" value={`${especeId}.${nombre}`} /> : null))}
-      <button type="submit" className={styles.partir} disabled={raison !== null || enCours} aria-describedby={dit ? idRaison : undefined}>
+      <button
+        type="submit"
+        className={`${kit.bouton} ${kit.principal} ${kit.large}`}
+        disabled={raison !== null || enCours}
+        aria-describedby={dit ? idRaison : undefined}
+      >
         Partir
+        <svg viewBox="0 0 12 12" aria-hidden="true" className={styles.fleche}>
+          <path d="M2 6h7.5M6.5 3l3 3-3 3" />
+        </svg>
       </button>
       {dit ? (
         <p id={idRaison} className={raison ? styles.raison : styles.refus} role={raison ? undefined : "alert"}>

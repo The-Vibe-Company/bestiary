@@ -1,8 +1,9 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { type CSSProperties, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { Bloc } from "@/components/Bloc";
+import kit from "@/components/kit.module.css";
 import { SEJOUR_PAR_DEFAUT_MINUTES, sejourChoisi } from "@/expeditions/sejour";
 import { SEJOUR_MINUTES, SEJOURS_TOUT_PRETS_MINUTES } from "@/reglages";
 import { formaterMinutes } from "@/temps/affichage";
@@ -57,11 +58,12 @@ function garderDansLAdresse(minutes: number) {
 
 /**
  * US-0906 : le bloc Séjour de l'écran d'Expédition : la durée choisie, en grand ; un curseur de la plus courte à la plus
- * longue, par pas réguliers ; puis, d'un doigt, les durées toutes prêtes, la choisie pressée. Il suit la durée de
- * l'adresse, sinon la première toute prête, et l'adresse la garde, pour un rechargement ou un retour arrière : aussitôt
- * pour une durée toute prête ; au curseur, une fois le geste fini (l'évènement natif « change », au lâcher ou à chaque
- * flèche du clavier, ou la perte de la main), jamais plus tard, où l'écriture annulerait un lien touché entre-temps. Le
- * curseur porte la durée au formulaire de départ (US-0911, attribut form), où le séjour ne commencera qu'à l'arrivée.
+ * longue, par pas réguliers, rempli de cuivre jusqu'à son losange ; puis, d'un doigt, les durées toutes prêtes en
+ * segments, la choisie pressée. Il suit la durée de l'adresse, sinon la première toute prête, et l'adresse la garde,
+ * pour un rechargement ou un retour arrière : aussitôt pour une durée toute prête ; au curseur, une fois le geste fini
+ * (l'évènement natif « change », au lâcher ou à chaque flèche du clavier, ou la perte de la main), jamais plus tard, où
+ * l'écriture annulerait un lien touché entre-temps. Le curseur porte la durée au formulaire de départ (US-0911, attribut
+ * form), où le séjour ne commencera qu'à l'arrivée.
  */
 export function Sejour() {
   const dansLAdresse = useSearchParams()?.get(PARAMETRE_DU_SEJOUR) ?? null;
@@ -102,6 +104,8 @@ export function Sejour() {
           ref={champ}
           id={curseur}
           className={styles.curseur}
+          // Le cuivre du curseur, de sa borne à son losange : la part de la durée choisie, de la plus courte à la plus longue.
+          style={{ "--part": (minutes - SEJOUR_MINUTES.min) / (SEJOUR_MINUTES.max - SEJOUR_MINUTES.min) } as CSSProperties}
           type="range"
           name={PARAMETRE_DU_SEJOUR}
           form={FORMULAIRE_DE_DEPART}
@@ -118,7 +122,7 @@ export function Sejour() {
           <span>{formaterMinutes(SEJOUR_MINUTES.min)}</span>
           <span>{formaterMinutes(SEJOUR_MINUTES.max)}</span>
         </div>
-        <div className={styles.prets} role="group" aria-label="Durées toutes prêtes">
+        <div className={`${kit.segments} ${styles.prets}`} role="group" aria-label="Durées toutes prêtes">
           {SEJOURS_TOUT_PRETS_MINUTES.map((m) => (
             <button key={m} type="button" className={styles.pret} aria-pressed={m === minutes} onClick={() => choisir(m)}>
               {formaterMinutes(m)}

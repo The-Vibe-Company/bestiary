@@ -1,25 +1,43 @@
-/* Le logo validé du prototype : tête de loup géométrique citron, « BESTIA » en capitales espacées. */
+/*
+ * Le logo : le blason du loup (la tête citron, une lueur autour, sur un rond d'Encre plus clair au cœur, cerclé de cuivre
+ * sombre puis de cuivre) et, hors du jeu, « BESTIA » en Marcellus, en capitales espacées, en crème. Dans le jeu, le nom
+ * du chef suit le blason : le nom du jeu s'efface (le lien garde son nom « Bestia »).
+ */
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   /* Zone de toucher d'au moins 44 px, même quand le dessin est plus petit. */
   min-height: 44px;
   min-width: 44px;
-  color: var(--blanc-chaud);
+  border-radius: var(--arrondi-net);
+  color: var(--creme);
   text-decoration: none;
-  border-radius: var(--arrondi-petit);
 }
 
 .logo:focus-visible {
-  outline: 2px solid var(--citron);
+  outline: 2px solid var(--cuivre-clair);
   outline-offset: 4px;
 }
 
-.loup {
-  width: 32px;
-  height: 32px;
+.blason {
+  display: grid;
   flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, var(--encre-claire), var(--encre));
+  box-shadow:
+    0 0 0 1px var(--cuivre-sombre),
+    0 0 0 2px var(--anneau-cuivre-fort),
+    0 3px 10px var(--ombre-noire);
+}
+
+.loup {
+  width: 28px;
+  height: 28px;
+  filter: drop-shadow(0 0 6px var(--citron-lueur));
 }
 
 .tete {
@@ -31,29 +49,46 @@
 }
 
 .nom {
-  font-size: 17px;
-  font-weight: var(--graisse-titre);
-  letter-spacing: 0.16em;
+  font: 400 19px / 1 var(--police-titre);
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
-@media (max-width: 820px), (max-height: 500px) {
-  .logo {
-    gap: 8px;
-  }
-  .loup {
-    width: 26px;
-    height: 26px;
-  }
-  .nom {
-    font-size: 15px;
-  }
+.logo:hover .nom {
+  color: var(--creme-vive);
 }
 
-/* US-0302 : sur un petit écran d'ordinateur ou un téléphone couché, la navigation du jeu se place à
-   côté du logo : la tête du loup suffit, le lien garde son nom « Bestia ». */
-@media (min-width: 821px) and (max-width: 960px) {
-  :root:has([data-onglets]) .nom {
-    display: none;
+/* Dans le jeu, le blason seul, au début de la barre du haut. */
+:root:has([data-onglets]) .logo {
+  justify-content: center;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+}
+
+:root:has([data-onglets]) .nom {
+  display: none;
+}
+
+/* Hors du jeu, sur un téléphone, le blason se resserre un peu. */
+@media (max-width: 820px), (max-height: 500px) {
+  :root:not(:has([data-onglets])) .logo {
+    gap: 10px;
+  }
+
+  :root:not(:has([data-onglets])) .blason {
+    width: 36px;
+    height: 36px;
+  }
+
+  :root:not(:has([data-onglets])) .loup {
+    width: 25px;
+    height: 25px;
+  }
+
+  .nom {
+    font-size: 17px;
   }
 }

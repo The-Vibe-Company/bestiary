@@ -1,0 +1,29 @@
+{
+  "name": "Suivre ses Expéditions en cours",
+  "steps": [
+    {
+      "do": "open",
+      "path": "/jeu"
+    },
+    {
+      "do": "click",
+      "target": {
+        "role": "link",
+        "name": "Expéditions"
+      },
+      "lands": "/jeu/expeditions/nouvelle"
+    },
+    {
+      "do": "click",
+      "target": {
+        "role": "link",
+        "name": "Expéditions en cours"
+      },
+      "lands": "/jeu/expeditions"
+    },
+    {
+      "do": "see",
+      "text": "arrive dans"
+    }
+  ]
+}

@@ -1,0 +1,307 @@
+# The standard of Bestia
+What the front holds to from now on: its direction, its tokens and its kit, each where it lives in the code, and its own rules.
+
+## Direction
+« L'écran de stratégie », en noir profond et vert sapin : l'écran de gestion d'un jeu de stratégie (Civilization, Northgard, Anno), où le chef d'un Territoire voit d'un coup d'œil son Foyer, ses Habitants, ses Expéditions et ses Récits, panneaux ornés de fins coins sapin posés sur le noir ; les peintures du jeu (la hutte, les Biomes, les Bêtes, les icônes des Métiers et des Ressources) portent la couleur, l'interface se tait autour d'elles. Choisi par Antoine parmi six maquettes, puis repeint en noir et sapin, avec Bree Serif et Nunito Sans (directions/choix.md).
+
+## Tokens
+- `--sarcelle-nuit: oklch(0.147 0.001 164.9)` in `src/styles/palette.css`
+- `--sarcelle-abysse: oklch(0.133 0.001 165.2)` in `src/styles/palette.css`
+- `--sarcelle-lumiere: oklch(0.273 0.004 164.8 / 0.35)` in `src/styles/palette.css`
+- `--barre-haut: oklch(0.161 0.002 164.9)` in `src/styles/palette.css`
+- `--barre-bas: oklch(0.139 0.001 165.2)` in `src/styles/palette.css`
+- `--panneau: oklch(0.173 0.002 164.9)` in `src/styles/palette.css`
+- `--panneau-haut: oklch(0.186 0.002 164.9)` in `src/styles/palette.css`
+- `--panneau-releve: oklch(0.208 0.003 164.8)` in `src/styles/palette.css`
+- `--panneau-choisi: oklch(0.228 0.003 164.8)` in `src/styles/palette.css`
+- `--entete-tableau: oklch(0.163 0.002 164.9)` in `src/styles/palette.css`
+- `--entete-groupe: oklch(0.179 0.002 164.9)` in `src/styles/palette.css`
+- `--panneau-voile: oklch(0.173 0.002 164.9 / 0.9)` in `src/styles/palette.css`
+- `--panneau-fondu: oklch(0.173 0.002 164.9 / 0.97)` in `src/styles/palette.css`
+- `--verre-haut: oklch(0.186 0.002 164.9 / 0.93)` in `src/styles/palette.css`
+- `--verre-bas: oklch(0.163 0.002 164.9 / 0.93)` in `src/styles/palette.css`
+- `--pastille-sombre: oklch(0.141 0.001 165.2 / 0.82)` in `src/styles/palette.css`
+- `--voile-sarcelle-fort: oklch(0.133 0.001 165.2 / 0.82)` in `src/styles/palette.css`
+- `--voile-sarcelle: oklch(0.133 0.001 165.2 / 0.55)` in `src/styles/palette.css`
+- `--voile-sarcelle-leger: oklch(0.133 0.001 165.2 / 0.35)` in `src/styles/palette.css`
+- `--encre-claire: oklch(0.220 0.001 165.0)` in `src/styles/palette.css`
+- `--noir: oklch(0.000 0 0)` in `src/styles/palette.css`
+- `--creme: oklch(0.902 0 0)` in `src/styles/palette.css`
+- `--parchemin: oklch(0.879 0 0)` in `src/styles/palette.css`
+- `--creme-vive: oklch(0.948 0 0)` in `src/styles/palette.css`
+- `--mousse: oklch(0.716 0.001 165.1)` in `src/styles/palette.css`
+- `--lichen: oklch(0.558 0.002 165.1)` in `src/styles/palette.css`
+- `--eteint: oklch(0.285 0.002 165.0)` in `src/styles/palette.css`
+- `--cuivre: oklch(0.600 0.095 158.0)` in `src/styles/palette.css`
+- `--cuivre-clair: oklch(0.792 0.132 160.9)` in `src/styles/palette.css`
+- `--cuivre-sombre: oklch(0.285 0.046 160.2)` in `src/styles/palette.css`
+- `--cuivre-pale: oklch(0.864 0 0)` in `src/styles/palette.css`
+- `--cuivre-bouton-haut: oklch(0.463 0.078 159.3)` in `src/styles/palette.css`
+- `--cuivre-bouton: oklch(0.371 0.063 159.7)` in `src/styles/palette.css`
+- `--cuivre-bouton-bas: oklch(0.302 0.050 160.8)` in `src/styles/palette.css`
+- `--cuivre-bouton-bord: oklch(0.513 0.079 163.4)` in `src/styles/palette.css`
+- `--sur-cuivre: oklch(0.959 0.007 151.9)` in `src/styles/palette.css`
+- `--filet-cuivre: oklch(0.401 0.067 160.8 / 0.26)` in `src/styles/palette.css`
+- `--filet-cuivre-doux: oklch(0.401 0.067 160.8 / 0.12)` in `src/styles/palette.css`
+- `--anneau-cuivre: oklch(0.401 0.067 160.8 / 0.35)` in `src/styles/palette.css`
+- `--anneau-cuivre-fort: oklch(0.401 0.067 160.8 / 0.45)` in `src/styles/palette.css`
+- `--cuivre-trace: oklch(0.401 0.067 160.8 / 0.55)` in `src/styles/palette.css`
+- `--cuivre-brume: oklch(0.401 0.067 160.8 / 0.1)` in `src/styles/palette.css`
+- `--cuivre-voile: oklch(0.792 0.132 160.9 / 0.14)` in `src/styles/palette.css`
+- `--cuivre-survol: oklch(0.792 0.132 160.9 / 0.07)` in `src/styles/palette.css`
+- `--cuivre-halo: oklch(0.792 0.132 160.9 / 0.18)` in `src/styles/palette.css`
+- `--cuivre-lueur: oklch(0.792 0.132 160.9 / 0.5)` in `src/styles/palette.css`
+- `--feuille: oklch(0.807 0.100 135.8)` in `src/styles/palette.css`
+- `--feuille-halo: oklch(0.807 0.100 135.8 / 0.12)` in `src/styles/palette.css`
+- `--braise: oklch(0.716 0.142 35.1)` in `src/styles/palette.css`
+- `--braise-claire: oklch(0.747 0.125 34.9)` in `src/styles/palette.css`
+- `--braise-sombre: oklch(0.648 0.148 35.2)` in `src/styles/palette.css`
+- `--braise-filet: oklch(0.716 0.142 35.1 / 0.45)` in `src/styles/palette.css`
+- `--braise-voile: oklch(0.716 0.142 35.1 / 0.1)` in `src/styles/palette.css`
+- `--braise-lueur: oklch(0.716 0.142 35.1 / 0.8)` in `src/styles/palette.css`
+- `--eau-claire: oklch(0.715 0.002 165.1)` in `src/styles/palette.css`
+- `--eau: oklch(0.569 0.003 165.0)` in `src/styles/palette.css`
+- `--citron-lueur: oklch(0.940 0.080 100.0 / 0.25)` in `src/styles/palette.css`
+- `--brume-coeur: oklch(0.895 0 0 / 0.4)` in `src/styles/palette.css`
+- `--brume-bord: oklch(0.895 0 0 / 0.12)` in `src/styles/palette.css`
+- `--brume-haut: oklch(0.741 0.001 165.1 / 0.25)` in `src/styles/palette.css`
+- `--disque-coeur: oklch(0.325 0.012 160)` in `src/styles/palette.css`
+- `--disque: oklch(0.262 0.009 160)` in `src/styles/palette.css`
+- `--disque-bord: oklch(0.218 0.007 160)` in `src/styles/palette.css`
+- `--lumiere-haut: oklch(1.000 0 0 / 0.025)` in `src/styles/palette.css`
+- `--lumiere-trait: oklch(1.000 0 0 / 0.03)` in `src/styles/palette.css`
+- `--lumiere-bouton: oklch(1.000 0 0 / 0.12)` in `src/styles/palette.css`
+- `--creux-clair: oklch(1.000 0 0 / 0.06)` in `src/styles/palette.css`
+- `--creux: oklch(0.000 0 0 / 0.2)` in `src/styles/palette.css`
+- `--creux-fort: oklch(0.000 0 0 / 0.34)` in `src/styles/palette.css`
+- `--ombre-medaillon: oklch(0.000 0 0 / 0.45)` in `src/styles/palette.css`
+- `--ombre-creux: oklch(0.000 0 0 / 0.55)` in `src/styles/palette.css`
+- `--ombre-noire: oklch(0.000 0 0 / 0.6)` in `src/styles/palette.css`
+- `--ombre-profonde: oklch(0.000 0 0 / 0.7)` in `src/styles/palette.css`
+- `--ombre-barre: oklch(0.000 0 0 / 0.8)` in `src/styles/palette.css`
+- `--fond: oklch(0.955 0.008 90)` in `src/styles/palette.css`
+- `--galet: oklch(0.78 0.03 70)` in `src/styles/palette.css`
+- `--bloc: oklch(0.972 0.02 86)` in `src/styles/palette.css`
+- `--bloc-2: oklch(0.93 0.034 82)` in `src/styles/palette.css`
+- `--bloc-3: oklch(0.89 0.045 80)` in `src/styles/palette.css`
+- `--ivoire: oklch(0.975 0.012 88)` in `src/styles/palette.css`: le texte clair, sur le bois et l'Encre
+- `--trait: oklch(0.8 0.045 72)` in `src/styles/palette.css`
+- `--trait-doux: oklch(0.875 0.035 78)` in `src/styles/palette.css`
+- `--encre: oklch(0.22 0.02 270)` in `src/styles/palette.css`
+- `--encre-survol: oklch(0.33 0.025 270)` in `src/styles/palette.css`
+- `--texte-2: oklch(0.37 0.04 52)` in `src/styles/palette.css`
+- `--texte-discret: oklch(0.45 0.045 55)` in `src/styles/palette.css`
+- `--texte-pale: oklch(0.6 0.035 62)` in `src/styles/palette.css`
+- `--voile: oklch(0.15 0.02 270)` in `src/styles/palette.css`
+- `--encre-douce: oklch(0.22 0.02 270 / 0.07)` in `src/styles/palette.css`
+- `--survol: oklch(0.36 0.06 55 / 0.08)` in `src/styles/palette.css`
+- `--blanc-chaud: oklch(0.99 0.003 90)` in `src/styles/palette.css`
+- `--sur-encre-discret: oklch(0.86 0.03 80)` in `src/styles/palette.css`
+- `--sur-encre-pale: oklch(0.385 0.02 252)` in `src/styles/palette.css`
+- `--sur-encre-survol: oklch(1 0 0 / 0.12)` in `src/styles/palette.css`
+- `--sur-encre-trait: oklch(1 0 0 / 0.22)` in `src/styles/palette.css`
+- `--sur-encre-eteint: oklch(1 0 0 / 0.3)` in `src/styles/palette.css`
+- `--sur-image-doux: oklch(0.93 0.01 90)` in `src/styles/palette.css`
+- `--nuit: oklch(0.235 0.022 258)` in `src/styles/palette.css`
+- `--nuit-survol: oklch(0.3 0.024 258)` in `src/styles/palette.css`
+- `--filet: oklch(1 0 0 / 0.09)` in `src/styles/palette.css`
+- `--gris-clair: oklch(0.85 0.014 255)` in `src/styles/palette.css`
+- `--gris: oklch(0.73 0.016 255)` in `src/styles/palette.css`
+- `--miel: oklch(0.84 0.15 84)` in `src/styles/palette.css`
+- `--miel-survol: oklch(0.89 0.13 88)` in `src/styles/palette.css`
+- `--mer-du-soir: oklch(0.36 0.07 232)` in `src/styles/palette.css`
+- `--mer-profonde: oklch(0.25 0.055 245)` in `src/styles/palette.css`
+- `--bois-sombre: oklch(0.24 0.04 44)` in `src/styles/palette.css`
+- `--soleil: oklch(0.86 0.13 72 / 0.3)` in `src/styles/palette.css`
+- `--ombre-du-soir: oklch(0.14 0.025 258 / 0.5)` in `src/styles/palette.css`
+- `--nuage: oklch(0.97 0.03 78 / 0.2)` in `src/styles/palette.css`
+- `--bon: oklch(0.5 0.12 155)` in `src/styles/palette.css`
+- `--mauvais: oklch(0.53 0.19 28)` in `src/styles/palette.css`
+- `--mauvais-doux: oklch(0.53 0.19 28 / 0.1)` in `src/styles/palette.css`
+- `--attention: oklch(0.52 0.12 70)` in `src/styles/palette.css`
+- `--menthe: oklch(0.92 0.06 150)` in `src/styles/palette.css`
+- `--menthe-fonce: oklch(0.43 0.1 155)` in `src/styles/palette.css`
+- `--menthe-vive: oklch(0.8 0.12 160)` in `src/styles/palette.css`
+- `--sable: oklch(0.925 0.065 82)` in `src/styles/palette.css`
+- `--sable-fonce: oklch(0.46 0.1 66)` in `src/styles/palette.css`
+- `--lilas: oklch(0.915 0.05 300)` in `src/styles/palette.css`
+- `--lilas-fonce: oklch(0.47 0.12 300)` in `src/styles/palette.css`
+- `--ciel: oklch(0.89 0.06 228)` in `src/styles/palette.css`
+- `--ciel-fonce: oklch(0.46 0.11 240)` in `src/styles/palette.css`
+- `--rose: oklch(0.92 0.055 30)` in `src/styles/palette.css`
+- `--rose-fonce: oklch(0.5 0.15 28)` in `src/styles/palette.css`
+- `--sarcelle: oklch(0.92 0.045 195)` in `src/styles/palette.css`
+- `--sarcelle-fonce: oklch(0.44 0.08 200)` in `src/styles/palette.css`
+- `--peche: oklch(0.915 0.06 58)` in `src/styles/palette.css`
+- `--peche-fonce: oklch(0.49 0.12 50)` in `src/styles/palette.css`
+- `--citron: oklch(0.94 0.08 100)` in `src/styles/palette.css`
+- `--citron-fonce: oklch(0.44 0.1 85)` in `src/styles/palette.css`
+- `--rarete-commune: var(--bloc-3)` in `src/styles/palette.css`
+- `--rarete-commune-texte: var(--ardoise)` in `src/styles/palette.css`
+- `--rarete-peu-commune: var(--menthe)` in `src/styles/palette.css`
+- `--rarete-peu-commune-texte: var(--menthe-fonce)` in `src/styles/palette.css`
+- `--rarete-rare: var(--ciel)` in `src/styles/palette.css`
+- `--rarete-rare-texte: var(--ciel-fonce)` in `src/styles/palette.css`
+- `--rarete-epique: var(--lilas)` in `src/styles/palette.css`
+- `--rarete-epique-texte: var(--lilas-fonce)` in `src/styles/palette.css`
+- `--rarete-legendaire: var(--sable)` in `src/styles/palette.css`
+- `--rarete-legendaire-texte: var(--sable-fonce)` in `src/styles/palette.css`
+- `--rarete-mythique: var(--rose)` in `src/styles/palette.css`
+- `--rarete-mythique-texte: var(--rose-fonce)` in `src/styles/palette.css`
+- `--ardoise: oklch(0.47 0.025 255)` in `src/styles/palette.css`
+- `--violet: oklch(0.5 0.16 300)` in `src/styles/palette.css`
+- `--or: oklch(0.56 0.14 80)` in `src/styles/palette.css`
+- `--biome-prairie: oklch(0.76 0.14 120)` in `src/styles/palette.css`
+- `--biome-foret: oklch(0.53 0.12 145)` in `src/styles/palette.css`
+- `--biome-jungle: oklch(0.44 0.12 156)` in `src/styles/palette.css`
+- `--biome-savane: oklch(0.81 0.13 90)` in `src/styles/palette.css`
+- `--biome-desert: oklch(0.67 0.14 50)` in `src/styles/palette.css`
+- `--biome-montagne: oklch(0.6 0.04 48)` in `src/styles/palette.css`
+- `--biome-toundra: oklch(0.84 0.04 172)` in `src/styles/palette.css`
+- `--biome-banquise: oklch(0.95 0.022 225)` in `src/styles/palette.css`
+- `--biome-eau: oklch(0.62 0.11 215)` in `src/styles/palette.css`
+- `--ombre: 0 2px 4px oklch(0.14 0.025 258 / 0.18), 0 10px 24px oklch(0.14 0.025 258 / 0.22)` in `src/styles/palette.css`
+- `--ombre-forte: 0 4px 8px oklch(0.14 0.025 258 / 0.2), 0 20px 48px oklch(0.14 0.025 258 / 0.32)` in `src/styles/palette.css`
+- `--arrondi: 18px` in `src/styles/formes.css`
+- `--arrondi-moyen: 14px` in `src/styles/formes.css`
+- `--arrondi-petit: 10px` in `src/styles/formes.css`
+- `--arrondi-net: 3px` in `src/styles/formes.css`
+- `--arrondi-image: 2px` in `src/styles/formes.css`
+- `--marge-bloc: 16px 18px` in `src/styles/formes.css`
+- `--ecart: 14px` in `src/styles/formes.css`
+- `--ecart-mobile: 12px` in `src/styles/formes.css`
+- `--coin-haut-gauche: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M.5 15V5.5L5.5.5H15' fill='none' stroke='%23000' stroke-opacity='.8'/%3E%3Cpath d='M4.5 2.6 6.4 4.5 4.5 6.4 2.6 4.5z'/%3E%3C/svg%3E")` in `src/styles/formes.css`
+- `--coin-haut-droit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M15.5 15V5.5L10.5.5H1' fill='none' stroke='%23000' stroke-opacity='.8'/%3E%3Cpath d='M11.5 2.6 13.4 4.5 11.5 6.4 9.6 4.5z'/%3E%3C/svg%3E")` in `src/styles/formes.css`
+- `--coin-bas-gauche: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M.5 1v9.5l5 5H15' fill='none' stroke='%23000' stroke-opacity='.8'/%3E%3Cpath d='M4.5 9.6 6.4 11.5 4.5 13.4 2.6 11.5z'/%3E%3C/svg%3E")` in `src/styles/formes.css`
+- `--coin-bas-droit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M15.5 1v9.5l-5 5H1' fill='none' stroke='%23000' stroke-opacity='.8'/%3E%3Cpath d='M11.5 9.6 13.4 11.5 11.5 13.4 9.6 11.5z'/%3E%3C/svg%3E")` in `src/styles/formes.css`
+- `--masque-coins: var(--coin-haut-gauche) left 4px top 4px / 16px 16px no-repeat, var(--coin-haut-droit) right 4px top 4px / 16px 16px no-repeat, var(--coin-bas-gauche) left 4px bottom 4px / 16px 16px no-repeat, var(--coin-bas-droit) right 4px bottom 4px / 16px 16px no-repeat` in `src/styles/formes.css`
+- `--grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` in `src/styles/formes.css`
+- `--fond-du-jeu: radial-gradient(1200px 600px at 18% -10%, var(--sarcelle-lumiere), transparent 60%), radial-gradient(900px 500px at 105% 110%, var(--cuivre-brume), transparent 60%), linear-gradient(180deg, var(--sarcelle-nuit), var(--sarcelle-abysse))` in `src/styles/formes.css`
+- `--fond-panneau: linear-gradient(180deg, var(--lumiere-haut), transparent 120px), linear-gradient(180deg, var(--panneau-haut), var(--panneau))` in `src/styles/formes.css`
+- `--fond-verre: linear-gradient(180deg, var(--verre-haut), var(--verre-bas))` in `src/styles/formes.css`
+- `--fond-bouton-principal: linear-gradient(180deg, var(--cuivre-bouton-haut), var(--cuivre-bouton) 60%, var(--cuivre-bouton-bas))` in `src/styles/formes.css`
+- `--fond-cuivre: linear-gradient(180deg, var(--cuivre-clair), var(--cuivre))` in `src/styles/formes.css`
+- `--fond-jauge: linear-gradient(180deg, var(--cuivre-clair), var(--cuivre) 70%, var(--cuivre-sombre))` in `src/styles/formes.css`
+- `--fond-disque: radial-gradient(circle at 50% 38%, var(--disque-coeur) 0%, var(--disque) 62%, var(--disque-bord) 100%)` in `src/styles/formes.css`
+- `--fond-choisi: linear-gradient(90deg, var(--cuivre-voile), var(--cuivre-survol) 70%, transparent)` in `src/styles/formes.css`
+- `--ombre-panneau: inset 0 1px 0 var(--lumiere-trait), 0 18px 40px -18px var(--ombre-profonde)` in `src/styles/formes.css`
+- `--ombre-verre: 0 10px 30px -10px var(--ombre-profonde)` in `src/styles/formes.css`
+- `--anneau-medaillon: 0 0 0 1px var(--cuivre-sombre), 0 0 0 2px var(--anneau-cuivre), 0 2px 6px var(--ombre-medaillon)` in `src/styles/formes.css`
+- `--anneau-medaillon-vif: 0 0 0 1px var(--cuivre-sombre), 0 0 0 2px var(--cuivre), 0 0 14px var(--cuivre-lueur)` in `src/styles/formes.css`
+- `--anneau-medaillon-action: 0 0 0 1px var(--cuivre-sombre), 0 0 0 2px var(--cuivre), 0 2px 6px var(--ombre-medaillon)` in `src/styles/formes.css`
+- `--ombre-bouton-principal: inset 0 1px 0 var(--lumiere-bouton), 0 4px 14px -4px var(--cuivre-lueur)` in `src/styles/formes.css`
+- `--ombre-texte-peinture: 0 2px 14px var(--ombre-noire)` in `src/styles/formes.css`
+- `--bord-haut: env(safe-area-inset-top, 0px)` in `src/styles/formes.css`
+- `--bord-droit: env(safe-area-inset-right, 0px)` in `src/styles/formes.css`
+- `--bord-bas: env(safe-area-inset-bottom, 0px)` in `src/styles/formes.css`
+- `--bord-gauche: env(safe-area-inset-left, 0px)` in `src/styles/formes.css`
+- `--hauteur-ligne: 64px` in `src/styles/formes.css`
+- `--hauteur-bande: 0px` in `src/styles/formes.css`
+- `--hauteur-nav: 0px` in `src/styles/formes.css`
+- `--hauteur-alerte: 0px` in `src/styles/formes.css`
+- `--hauteur-barre: calc(var(--hauteur-ligne) + var(--hauteur-bande) + var(--hauteur-nav) + var(--hauteur-alerte) + var(--bord-haut))` in `src/styles/formes.css`
+- `--hauteur-onglets: 0px` in `src/styles/formes.css`
+- `--hauteur-utile: calc(100dvh - var(--hauteur-barre) - var(--hauteur-onglets) - var(--bord-bas))` in `src/styles/formes.css`
+- `--hauteur-legende: 0px` in `src/styles/formes.css`
+- `--hauteur-fiche: 0px` in `src/styles/formes.css`
+- `--hauteur-bande: 52px` in `src/styles/formes.css`, under `@media (min-width: 1024px) and (max-width: 1199px) :root:has([data-bande-ressources])`
+- `--hauteur-ligne: 56px` in `src/styles/formes.css`, under `@media (max-width: 1023px) :root:has([data-onglets])`
+- `--hauteur-nav: 58px` in `src/styles/formes.css`, under `@media (max-width: 1023px) :root:has([data-onglets])`
+- `--hauteur-bande: 51px` in `src/styles/formes.css`, under `@media (max-width: 1023px) :root:has([data-bande-ressources])`
+- `--hauteur-ligne: 56px` in `src/styles/formes.css`, under `@media (max-width: 820px), (max-height: 500px)`
+- `--hauteur-alerte: 46px` in `src/styles/formes.css`, under `:root:has([data-alerte-famine])`
+- `--hauteur-alerte: 60px` in `src/styles/formes.css`, under `@media (max-width: 540px) :root:has([data-alerte-famine])`
+- `--police: var(--font-nunito-sans), "Helvetica Neue", Arial, sans-serif` in `src/styles/typographie.css`
+- `--police-titre: var(--font-bree), Georgia, serif` in `src/styles/typographie.css`
+- `--police-capitales: var(--font-bree), Georgia, serif` in `src/styles/typographie.css`
+- `--police-etroite: var(--font-nunito-sans), sans-serif` in `src/styles/typographie.css`
+- `--taille-texte: 14px` in `src/styles/typographie.css`
+- `--graisse-texte: 400` in `src/styles/typographie.css`
+- `--graisse-moyenne: 500` in `src/styles/typographie.css`
+- `--graisse-titre: 600` in `src/styles/typographie.css`
+- `--taille-etiquette: 11px` in `src/styles/typographie.css`
+- `--espacement-etiquette: 0.16em` in `src/styles/typographie.css`
+- `--bloc: var(--panneau)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--bloc-2: var(--panneau-haut)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--bloc-3: var(--panneau-releve)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--nuit: var(--panneau)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--nuit-survol: var(--panneau-releve)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--trait: var(--filet-cuivre)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--trait-doux: var(--filet-cuivre-doux)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--filet: var(--filet-cuivre-doux)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--encre: var(--creme)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--encre-survol: var(--creme-vive)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--ivoire: var(--sur-cuivre)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--blanc-chaud: var(--sur-cuivre)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--voile: var(--sur-cuivre)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--texte-2: var(--parchemin)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--texte-discret: var(--mousse)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--texte-pale: var(--lichen)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--sur-image-doux: var(--creme)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--gris-clair: var(--parchemin)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--gris: var(--mousse)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--survol: var(--cuivre-survol)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--miel: var(--cuivre-clair)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--miel-survol: var(--cuivre-pale)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--galet: var(--eteint)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--mauvais: var(--braise)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--mauvais-doux: var(--braise-voile)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--bon: var(--feuille)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--menthe-vive: var(--feuille)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--ombre: var(--ombre-panneau)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--ombre-forte: var(--ombre-verre)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--arrondi: var(--arrondi-net)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--arrondi-moyen: var(--arrondi-net)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+- `--arrondi-petit: var(--arrondi-net)` in `src/app/globals.css`, under `body:has([data-onglets]) main:not([data-carte]), [data-fiche-de-la-case]`
+
+## Components
+- `src/styles/fonts.ts`
+- `.panneau` in `src/components/kit.module.css`
+- `.verre` in `src/components/kit.module.css`
+- `.etiquette` in `src/components/kit.module.css`
+- `.enTete` in `src/components/kit.module.css`
+- `.enTeteEcran` in `src/components/kit.module.css`
+- `.titreEcran` in `src/components/kit.module.css`
+- `.titreServif` in `src/components/kit.module.css`
+- `.lien` in `src/components/kit.module.css`
+- `.bouton` in `src/components/kit.module.css`
+- `.principal` in `src/components/kit.module.css`
+- `.secondaire` in `src/components/kit.module.css`
+- `.discret` in `src/components/kit.module.css`
+- `.danger` in `src/components/kit.module.css`
+- `.grand` in `src/components/kit.module.css`
+- `.large` in `src/components/kit.module.css`
+- `.pas` in `src/components/kit.module.css`
+- `.pasBouton` in `src/components/kit.module.css`
+- `.pasValeur` in `src/components/kit.module.css`
+- `.pasGrand` in `src/components/kit.module.css`
+- `.segments` in `src/components/kit.module.css`
+- `.badge` in `src/components/kit.module.css`
+- `.nouveau` in `src/components/kit.module.css`
+- `.repere` in `src/components/kit.module.css`
+- `.alerte` in `src/components/kit.module.css`
+- `.marque` in `src/components/kit.module.css`
+- `.puce` in `src/components/kit.module.css`
+- `.ruban` in `src/components/kit.module.css`
+- `.cles` in `src/components/kit.module.css`
+- `.note` in `src/components/kit.module.css`
+- `.nombre` in `src/components/kit.module.css`
+- `.choisie` in `src/components/kit.module.css`
+- `.vignette` in `src/components/kit.module.css`
+- `src/components/Bloc.tsx` : le panneau orné du jeu, son titre en petite étiquette sapin ou en Bree Serif
+- `src/components/Medaillon.tsx` : une icône peinte sur son disque sombre, cerclé de sapin
+- `src/components/Jauge.tsx` : une jauge (places, Nourriture), en cases ou continue
+- `src/components/Etat.tsx` : l'état d'un Habitant (libre, en Expédition)
+- `src/components/Frise.tsx` : la frise aller / séjour / retour d'une Expédition
+- `src/components/Paysage.tsx` : la peinture d'un Biome, ou la brume d'une Case inconnue
+
+## Rules
+Le menu est toujours en haut de l'écran, jamais au pied ; seule la page affichée y paraît choisie (texte clair, trait et losange sapin).
+L'action principale d'un écran est un aplat sapin profond au texte clair ; les autres actions sont en contour ; « Renvoyer » et les alertes sont en braise.
+Seuls le Foyer et la Carte sont des scènes peintes plein écran ; ailleurs, l'écran est sur le noir et les peintures vont dans les bandeaux des panneaux.
+Les icônes peintes sont détourées sur fond transparent et posées sur un disque sombre, jamais sur un disque clair.
+Le vert clair ne sert qu'aux textes mis en avant ; les aplats sont en sapin profond.
+Titres en Bree Serif, sans gras ; texte, nombres, boutons et étiquettes en Nunito Sans ; étiquettes en capitales espacées.
+Pages sobres : aucune phrase d'explication quand titres, champs et boutons suffisent ; un état vide dit une seule phrase, avec une peinture.
+Le jeu ne met jamais un combat en avant dans ses mots, et n'étiquette pas « mâle et femelle ».
+Les pages de contrôle (/controle) gardent leur papier clair, hors du jeu.

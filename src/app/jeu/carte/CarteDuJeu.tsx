@@ -13,13 +13,14 @@ import { BetesRepereesSurLaCarte, placerLesBetes, type RepereDeBete } from "./Be
 import { BoutonsDeLaCarte } from "./BoutonsDeLaCarte";
 import { CasesDecouvertes } from "./CasesDecouvertes";
 import { nombreDeDecouvertes, useDecouvertes } from "./decouvertes";
-import { type Cadre, dessinerLaCarte, vueSurLeFoyer, type Hutte, type Vue } from "./dessin";
+import { type Cadre, dessinerLaCarte, type Peinture, vueSurLeFoyer, type Hutte, type Vue } from "./dessin";
 import { ExpeditionsSurLaCarte, placerLesReperes, type Repere, reperesSous, repereTouche } from "./ExpeditionsSurLaCarte";
 import { FicheDeLaCase, useFicheDeLaCase } from "./FicheDeLaCase";
 import { FlecheDuFoyer, placerLaFleche } from "./FlecheDuFoyer";
 import { suivreLesGestes } from "./gestes";
 import { LEGENDE_MONTREE } from "./Legende";
 import { glisser } from "./mouvement";
+import { reliefDesCases } from "./relief";
 import styles from "./page.module.css";
 import { avancer, cadrer, caseSous, deplacer, devoiler, limiteDeLaCarte, retourAuFoyer, zoomer, zoomPossible } from "./vue";
 import { retenirLaVue, vueRetenue } from "./vue-retenue";
@@ -47,7 +48,7 @@ function couleurCalculee(element: HTMLElement, expression: string): string {
  * US-0417 : la carte du Monde, dessinée sur un <canvas> (10 981 hexagones en SVG pèseraient trop sur une page de
  * jeu), dans toute la place que la page lui donne et nette sur les écrans haute densité. Elle s'ouvre le Foyer au
  * milieu. US-0418 : chaque teinte de la carte peinte de la couleur CSS que la page lui donne (`fonds`, dans l'ordre
- * de ses teintes), ses motifs d'Encre ou d'Ivoire légers, et un bord d'Encre à peine marqué entre les Cases.
+ * de ses teintes), ses motifs de bois sombre ou d'Ivoire légers, et un bord de bois sombre entre les Cases, comme des pièces taillées.
  * US-0419 : son Foyer marqué d'un repère citron dès l'ouverture, la hutte du chef posée dessus une fois
  * l'illustration chargée ; les Foyers des autres chefs en Encre. US-0420 : on la fait glisser (gestes.ts), dans les
  * limites de la vue (vue.ts) ; chaque geste change la vue aussitôt, mais la carte n'est redessinée qu'au rythme de
@@ -177,14 +178,31 @@ export function CarteDuJeu({
     const canvas = toile.current;
     const pinceau = canvas?.getContext("2d");
     if (!canvas || !pinceau) return;
-    const peinture = {
+    const peinture: Peinture = {
       fonds: fonds.map((fond) => couleurCalculee(canvas, fond)),
-      bord: couleurCalculee(canvas, "color-mix(in oklch, var(--encre) 14%, transparent)"),
-      motifSombre: couleurCalculee(canvas, "color-mix(in oklch, var(--encre) 26%, transparent)"),
-      motifClair: couleurCalculee(canvas, "color-mix(in oklch, var(--ivoire) 45%, transparent)"),
+      bord: couleurCalculee(canvas, "color-mix(in oklch, var(--bois-sombre) 38%, transparent)"),
+      motifSombre: couleurCalculee(canvas, "color-mix(in oklch, var(--bois-sombre) 30%, transparent)"),
+      motifClair: couleurCalculee(canvas, "color-mix(in oklch, var(--ivoire) 50%, transparent)"),
       encre: couleurCalculee(canvas, "var(--encre)"),
       repere: couleurCalculee(canvas, "var(--citron)"),
+      // US-0428 : la Case choisie, au cuivre et à la crème du kit.
+      surlignage: {
+        voile: couleurCalculee(canvas, "color-mix(in oklch, var(--cuivre-pale) 22%, transparent)"),
+        halo: couleurCalculee(canvas, "color-mix(in oklch, var(--cuivre) 65%, transparent)"),
+        trait: couleurCalculee(canvas, "var(--cuivre-pale)"),
+        anneau: couleurCalculee(canvas, "color-mix(in oklch, var(--cuivre-clair) 75%, transparent)"),
+      },
     };
+    // Le relief peint des Cases, comme les pièces du plateau peint : la lumière du soir en haut, l'ombre des bords ; une
+    // brume qui moutonne sous le brouillard. À la densité de l'écran, lue à chaque dessin.
+    const lumiere = couleurCalculee(canvas, "color-mix(in oklch, var(--blanc-chaud) 34%, transparent)");
+    const ombre = couleurCalculee(canvas, "color-mix(in oklch, var(--bois-sombre) 42%, transparent)");
+    const brumeClaire = couleurCalculee(canvas, "color-mix(in oklch, var(--sur-image-doux) 22%, transparent)");
+    const brumeSombre = couleurCalculee(canvas, "color-mix(in oklch, var(--mer-profonde) 40%, transparent)");
+    const terre = reliefDesCases(pinceau, "terre", { lumiere, ombre });
+    const nuages = reliefDesCases(pinceau, "brume", { lumiere: brumeClaire, ombre: brumeSombre });
+    const densite = () => window.devicePixelRatio || 1;
+    peinture.relief = { terre: (vue, origine) => terre(vue, origine, densite()), brume: (vue, origine) => nuages(vue, origine, densite()) };
     // US-0908 : le voile qui grise ce qui est au-delà de la portée d'exploration.
     const voile = couleurCalculee(canvas, "color-mix(in oklch, var(--galet) 70%, transparent)");
     // US-0913 : le fanion des destinations, du ton de l'état « en Expédition ».

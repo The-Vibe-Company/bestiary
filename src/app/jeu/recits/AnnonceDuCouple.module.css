@@ -1,37 +1,39 @@
 /*
- * US-0958 : l'annonce du Couple réuni, sous la ligne du récit du retour qui l'a réuni : l'illustration de l'Espèce en
- * grand, puis « Couple réuni » sur une pastille citron, comme sur la vitrine, et son nom en grand, sur l'Encre.
+ * US-0958 : l'annonce du Couple réuni, sous la ligne du récit du retour qui l'a réuni : une carte mise en avant, comme
+ * une Rencontre apprivoisée (un filet vert plus vif, un voile vert) ; la peinture de l'Espèce en grand dans son filet,
+ * « Couple réuni » sur le ruban, son nom en Bree Serif, et « Élever ».
  */
 .annonce {
+  container-type: inline-size;
   display: grid;
   justify-items: start;
   gap: 8px;
   max-width: 760px;
-  padding: 0 12px 12px;
+  padding: 0 16px 14px;
 }
 
 /*
- * Aussi large que son contenu, l'illustration à gauche du nom. Le côté de l'illustration : 220 px, moins sur un écran bas,
- * pour que l'annonce tienne entre la barre du haut et le bas de l'écran.
+ * Aussi large que son contenu, la peinture à gauche du nom. Le côté de la peinture : 220 px, moins dans une liste
+ * étroite (la colonne des Récits d'un ordinateur) et sur un écran bas, pour que l'annonce tienne entre la barre du haut
+ * et le bas de l'écran.
  */
 .couple {
-  --cote: min(220px, calc(var(--hauteur-utile) - 48px));
+  --cote: min(220px, 38cqi, calc(var(--hauteur-utile) - 48px));
   display: grid;
   grid-template-columns: var(--cote) minmax(0, 1fr);
-  gap: 20px;
+  gap: 16px;
   align-items: center;
   min-width: 0;
   max-width: 100%;
   margin: 0;
-  padding: 12px 48px 12px 12px;
-  border-radius: var(--arrondi);
-  background: var(--encre);
-  color: var(--blanc-chaud);
+  padding: 10px 16px 10px 10px;
+  border: 1px solid var(--anneau-cuivre-fort);
+  border-radius: var(--arrondi-net);
+  background: linear-gradient(90deg, var(--cuivre-voile), var(--cuivre-survol));
 }
 
 .illustration {
   width: 100%;
-  border-radius: var(--arrondi-moyen);
 }
 
 .legende {
@@ -41,49 +43,33 @@
   min-width: 0;
 }
 
+/* « Couple réuni » sur le ruban vert ; il passe à la ligne plutôt que de déborder. */
 .etiquette {
   max-width: 100%;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--citron);
-  color: var(--encre);
-  font-size: var(--taille-etiquette);
-  font-weight: var(--graisse-titre);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 .espece {
   max-width: 100%;
-  font-size: clamp(28px, 3.4vw, 44px);
-  font-weight: var(--graisse-titre);
-  letter-spacing: -0.035em;
-  line-height: 1.05;
+  color: var(--creme-vive);
+  font: 400 clamp(22px, 2.6vw, 30px) / 1.05 var(--police-titre);
   overflow-wrap: anywhere;
 }
 
-/* US-0812 : le lien « Élever », vers le bloc « Élever » de la fiche, au pouce, sur la pastille citron de la vitrine. */
+/* US-0812 : le lien « Élever », vers le bloc « Élever » de la fiche, au pouce : le bouton au contour vert. */
 .elever {
-  display: inline-flex;
-  align-items: center;
   min-height: 44px;
   padding: 0 18px;
-  border-radius: var(--arrondi-moyen);
-  background: var(--citron);
-  color: var(--encre);
-  font-weight: var(--graisse-titre);
-  text-decoration: none;
   cursor: pointer;
 }
 
 .elever:focus-visible {
-  outline: 2px solid var(--citron);
+  outline: 2px solid var(--cuivre-clair);
   outline-offset: 2px;
 }
 
 /*
- * Plusieurs Couples réunis par un même retour : chacun plus petit, l'illustration à gauche de son nom, côte à côte tant
- * qu'il y a la place, l'un sous l'autre sur un téléphone.
+ * Plusieurs Couples réunis par un même retour : chacun plus petit, la peinture à gauche de son nom, côte à côte tant
+ * qu'il y a la place, l'un sous l'autre dans une liste étroite.
  */
 .annonce[data-plusieurs] {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
@@ -91,36 +77,25 @@
 }
 
 .annonce[data-plusieurs] .couple {
-  --cote: 104px;
-  grid-template-columns: var(--cote) minmax(0, 1fr);
-  justify-items: stretch;
+  --cote: 88px;
   gap: 14px;
-  padding: 10px;
-  text-align: left;
-}
-
-.annonce[data-plusieurs] .illustration {
-  width: 100%;
-}
-
-.annonce[data-plusieurs] .legende {
-  justify-items: start;
+  padding: 8px 12px 8px 8px;
 }
 
 .annonce[data-plusieurs] .espece {
-  font-size: 22px;
+  font-size: 21px;
 }
 
 /*
- * Sur un téléphone en portrait, l'illustration au-dessus de son nom, aussi large que l'annonce : un seul écran suffit à
+ * Sur un téléphone en portrait, la peinture au-dessus de son nom, aussi large que l'annonce : un seul écran suffit à
  * tout voir, entre la barre du haut et les onglets, la place de « Couple réuni », d'un nom sur deux lignes et, US-0812,
- * du lien « Élever » gardée sous elle ; jamais moins de 96 px. Couché, le téléphone garde l'illustration à côté du nom,
+ * du lien « Élever » gardée sous elle ; jamais moins de 96 px. Couché, le téléphone garde la peinture à côté du nom,
  * bornée par la hauteur utile.
  */
 @media (max-width: 540px) and (orientation: portrait) {
   .annonce {
     justify-items: stretch;
-    padding: 0 8px 8px;
+    padding: 0 12px 12px;
   }
 
   .couple {
@@ -128,7 +103,7 @@
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
     gap: 14px;
-    padding: 16px 12px 20px;
+    padding: 12px 12px 16px;
     text-align: center;
   }
 
@@ -141,6 +116,6 @@
   }
 
   .espece {
-    font-size: 30px;
+    font-size: 28px;
   }
 }

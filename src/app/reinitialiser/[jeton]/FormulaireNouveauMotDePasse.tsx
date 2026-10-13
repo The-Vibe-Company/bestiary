@@ -2,7 +2,7 @@
 
 import { useActionState, useState, type FormEvent } from "react";
 import { REGLE_MOT_DE_PASSE, verifierMotDePasse } from "@/comptes/mot-de-passe";
-import { TitreEntree } from "@/components/PageEntree";
+import { BOUTON_ENTREE, TitreEntree } from "@/components/PageEntree";
 import { MOT_DE_PASSE_MAX, MOT_DE_PASSE_MIN } from "@/reglages";
 import { ChampMotDePasse } from "../../ChampMotDePasse";
 import styles from "../../entree.module.css";
@@ -74,7 +74,7 @@ export function FormulaireNouveauMotDePasse({ email, choisir }: Props) {
             </p>
           )}
         </div>
-        <button type="submit" className={styles.envoyer} disabled={enAttente}>
+        <button type="submit" className={`${BOUTON_ENTREE} ${styles.envoyer}`} disabled={enAttente}>
           {enAttente ? (
             <>
               <span className={styles.roue} aria-hidden="true" />

@@ -24,19 +24,19 @@
 .fleche svg {
   width: 28px;
   height: 28px;
-  filter: drop-shadow(0 1px 2px color-mix(in oklch, var(--encre) 35%, transparent));
+  filter: drop-shadow(0 0 6px var(--cuivre-lueur)) drop-shadow(0 2px 4px var(--ombre-noire));
 }
 
-/* Une pastille citron cernée d'Encre, comme le repère du Foyer, et sa pointe d'Encre tournée vers lui. */
+/* Une pastille de verre sombre au filet de cuivre clair, comme le bouton du Foyer, et sa pointe de cuivre tournée vers lui. */
 .fleche circle {
-  fill: var(--citron);
-  stroke: var(--encre);
-  stroke-width: 2;
+  fill: var(--verre-haut);
+  stroke: var(--cuivre-clair);
+  stroke-width: 1.5;
 }
 
 .fleche path {
   fill: none;
-  stroke: var(--encre);
+  stroke: var(--cuivre-clair);
   stroke-width: 2.5;
   stroke-linecap: round;
   stroke-linejoin: round;

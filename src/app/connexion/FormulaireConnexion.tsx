@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 import { lireAdresseRetenue, retenirAdresse } from "@/comptes/adresse-retenue";
 import { normaliserEmail } from "@/comptes/email";
+import { BOUTON_ENTREE } from "@/components/PageEntree";
 import { ChampMotDePasse } from "../ChampMotDePasse";
 import styles from "../entree.module.css";
 import { seConnecter } from "./actions";
@@ -84,7 +85,7 @@ export function FormulaireConnexion({ suite = "/jeu", sessionExpiree = false }: 
           ) : null}
         </p>
       ) : null}
-      <button type="submit" className={styles.envoyer} disabled={enAttente}>
+      <button type="submit" className={`${BOUTON_ENTREE} ${styles.envoyer}`} disabled={enAttente}>
         {enAttente ? (
           <>
             <span className={styles.roue} aria-hidden="true" />

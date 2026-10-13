@@ -1,76 +1,116 @@
-/* Les pages d'entrée : deux blocs Bento côte à côte, l'illustration un peu plus large. */
+/*
+ * Les pages d'entrée (PageEntree.tsx) : un seul panneau orné du kit, au milieu de la sarcelle. À gauche, la peinture, qui
+ * touche les bords du panneau et s'y fond vers la droite, la devise du jeu en Marcellus à son pied ; à droite, le titre
+ * et le formulaire. Sur un téléphone, la peinture en tête du panneau, fondue vers le bas, le titre posé sur son pied.
+ */
 .page {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  gap: var(--ecart);
-  max-width: 1180px;
+  place-items: center;
   min-height: var(--hauteur-utile);
-  margin: 0 auto;
-  padding: 24px;
+  padding: 32px 24px 40px;
 }
 
-.image {
-  position: relative;
-  min-height: 560px;
-  border-radius: var(--arrondi);
+.panneau {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1fr);
+  width: min(1000px, 100%);
+  min-height: min(620px, calc(var(--hauteur-utile) - 72px));
   overflow: hidden;
 }
 
-/* Sélecteur double pour passer devant le cadre du composant Illustration. */
-.image .remplir {
+/* Le cadrage de la peinture : au milieu, sauf quand la page en donne un autre (PageEntree.tsx). */
+.image {
+  --cadrage: 50% 50%;
+  position: relative;
+  min-height: 100%;
+}
+
+/* La peinture remplit sa moitié du panneau, fondue vers le formulaire (sélecteur double : devant le cadre du composant). */
+.image .peinture {
   position: absolute;
   inset: 0;
+  background: var(--panneau-releve);
+  mask-image: linear-gradient(90deg, var(--noir) 60%, transparent);
 }
 
-/* La devise du jeu, posée en bas de l'image sur un voile qui la rend lisible. */
+.peinture img {
+  object-position: var(--cadrage);
+}
+
+/* Un voile sarcelle à son pied, sous la devise. */
+.image .peinture::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, var(--voile-sarcelle-fort), transparent 42%);
+  pointer-events: none;
+}
+
+/* La devise du jeu, en Marcellus, en crème vive, posée au pied de la peinture. */
 .devise {
   position: absolute;
-  inset: auto 0 0;
-  padding: 72px 32px 28px;
-  background: linear-gradient(to top, color-mix(in oklch, var(--voile) 72%, transparent), transparent);
-  color: var(--blanc-chaud);
-  font-size: clamp(22px, 2.2vw, 30px);
-  font-weight: var(--graisse-titre);
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-
-.bloc {
-  display: grid;
-  place-items: center;
-  padding: 48px 40px;
-  border-radius: var(--arrondi);
-  background: var(--bloc);
+  right: 18%;
+  bottom: 30px;
+  left: 32px;
+  margin: 0;
+  color: var(--creme-vive);
+  font: 400 clamp(21px, 2.1vw, 26px) / 1.2 var(--police-titre);
+  text-shadow: var(--ombre-texte-peinture);
 }
 
 .contenu {
-  width: 100%;
-  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: 48px 52px 44px 36px;
 }
 
 .titre {
-  font-size: clamp(30px, 3vw, 40px);
-  letter-spacing: -0.03em;
-  line-height: 1.05;
+  color: var(--creme);
+  font: 400 36px / 1.08 var(--police-titre);
+  letter-spacing: 0.01em;
 }
 
-/* Mobile : l'illustration en bandeau au-dessus, sans devise ; le formulaire juste en dessous. */
+/* Sur une tablette et un téléphone : la peinture en bandeau en tête du panneau, sans la devise ; le titre sur son pied. */
 @media (max-width: 820px) {
   .page {
+    place-items: start center;
+    min-height: 0;
+    padding: 12px 12px 32px;
+  }
+
+  .panneau {
     grid-template-columns: minmax(0, 1fr);
-    align-content: start;
+    width: min(560px, 100%);
     min-height: 0;
-    padding: 12px;
-    gap: var(--ecart-mobile);
   }
+
   .image {
+    height: clamp(180px, 32dvh, 270px);
     min-height: 0;
-    height: clamp(140px, 28dvh, 240px);
   }
+
+  .image .peinture {
+    mask-image: linear-gradient(180deg, var(--noir) 45%, transparent);
+  }
+
+  .image .peinture::after {
+    content: none;
+  }
+
   .devise {
     display: none;
   }
-  .bloc {
-    padding: 28px 20px 24px;
+
+  .contenu {
+    position: relative;
+    margin-top: -46px;
+    padding: 0 20px 24px;
+  }
+
+  .titre {
+    font-size: 30px;
+    text-shadow: var(--ombre-texte-peinture);
   }
 }

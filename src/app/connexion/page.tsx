@@ -19,7 +19,7 @@ export default async function Connexion({ searchParams }: { searchParams: Promis
   return (
     <PageEntree
       titre="Se connecter"
-      illustration={{ chemin: "entree/connexion.webp", alt: "Une hutte au toit de chaume, éclairée au crépuscule, au bout d'un chemin fleuri" }}
+      illustration={{ chemin: "entree/connexion.webp", alt: "Une hutte au toit de chaume, éclairée au crépuscule, au bout d'un chemin fleuri", cadrage: "50% 30%" }}
     >
       <FormulaireConnexion suite={cheminSur} sessionExpiree={expiree === "1"} />
     </PageEntree>

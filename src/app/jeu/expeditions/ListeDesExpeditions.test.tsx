@@ -11,6 +11,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => routeur }));
 vi.mock("./actions", () => ({ rappeler: vi.fn() }));
 
 import { ListeDesExpeditions } from "./ListeDesExpeditions";
+import panneau from "./PanneauDeLExpedition.module.css";
 
 afterEach(() => {
   cleanup();
@@ -37,8 +38,8 @@ const vers = (id: number, partLe: Date, autre: Partial<ExpeditionEnCours> = {}):
   ...autre,
 });
 
-/** Chaque Expédition de la liste : sa phase et son temps restant. */
-const comptes = () => [...document.querySelectorAll("li [data-ligne]")].map((l) => [...l.children].slice(2, 4).map((m) => m.textContent));
+/** Chaque Expédition de la liste : sa phase et son temps restant, dans la pastille posée sur son paysage. */
+const comptes = () => [...document.querySelectorAll("li [data-ligne]")].map((l) => [...l.children[2].children].map((m) => m.textContent));
 
 describe("la liste des Expéditions en cours, en direct (US-0918)", () => {
   it("montre chaque Expédition, dans l'ordre de la lecture, chacune avec son temps restant", () => {
@@ -85,6 +86,14 @@ describe("la liste des Expéditions en cours, en direct (US-0918)", () => {
     // Relue 10 minutes du jeu plus tard : le temps déjà écoulé dans le navigateur ne compte plus.
     rerender(<ListeDesExpeditions expeditions={[vers(5, avant(18))]} maintenant={new Date(MAINTENANT.getTime() + 10 * MINUTE_MS)} />);
     expect(comptes()).toEqual([["Aller", "arrive dans 32 min"]]);
+  });
+
+  it("serre les panneaux au-delà de deux Expéditions, pour en voir plus d'un coup d'œil", () => {
+    const { rerender } = render(<ListeDesExpeditions expeditions={[vers(5, avant(18)), vers(6, avant(90))]} maintenant={MAINTENANT} />);
+    const serres = () => [...document.querySelectorAll("li > article")].map((a) => a.classList.contains(panneau.serre));
+    expect(serres()).toEqual([false, false]);
+    rerender(<ListeDesExpeditions expeditions={[vers(5, avant(18)), vers(6, avant(90)), vers(7, avant(100))]} maintenant={MAINTENANT} />);
+    expect(serres()).toEqual([true, true, true]);
   });
 
   it("se déplie Expédition par Expédition sur un téléphone, et se replie de même", async () => {

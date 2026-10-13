@@ -1,0 +1,9 @@
+{
+  "name": "Voir ce qu'une Expédition a ramené",
+  "steps": [
+    { "do": "open", "path": "/jeu" },
+    { "do": "click", "target": { "role": "link", "name": "Récits, 3 non lus" }, "lands": "/jeu/recits" },
+    { "do": "click", "target": { "role": "button", "name": "Retour d'Expédition nouveau 8 octobre 2026 à 20:29 1 Bête ramenée · 1 nouvelle Espèce au Bestiaire" } },
+    { "do": "see", "text": "Bête ramenée au Foyer" }
+  ]
+}

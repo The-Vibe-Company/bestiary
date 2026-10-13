@@ -1,10 +1,12 @@
-/* US-0434 : l'attente et l'échec de la carte, dans un bloc Bento qui prend sa place. */
+/*
+ * US-0434 : l'attente et l'échec de la carte, dans un petit panneau de verre (kit.panneau, kit.verre) au milieu de sa
+ * place, sur la mer du soir de la page.
+ */
 .etat {
   display: grid;
-  place-content: center;
   justify-items: center;
-  gap: 14px;
-  height: 100%;
+  gap: 16px;
+  padding: 26px 34px;
   text-align: center;
 }
 
@@ -15,6 +17,9 @@
   right: var(--bord-droit);
   bottom: calc(var(--hauteur-onglets) + var(--bord-bas));
   left: var(--bord-gauche);
+  z-index: 2;
+  display: grid;
+  place-items: center;
   padding: var(--ecart);
 }
 
@@ -23,10 +28,20 @@ main:has(canvas[width]) .attente {
   display: none;
 }
 
-/* L'échec, à la place de la carte. */
+/* L'échec, à la place de la carte, sous la barre du haut. */
 .erreur {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
   height: 100%;
-  padding: var(--ecart);
+  padding: calc(var(--hauteur-barre) + var(--ecart)) var(--ecart) var(--ecart);
+}
+
+.texte {
+  max-width: 28ch;
+  color: var(--creme);
+  font: 400 20px / 1.25 var(--police-titre);
 }
 
 /* Trois Cases qui palpitent l'une après l'autre. */

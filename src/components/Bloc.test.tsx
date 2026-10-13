@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Bloc } from "./Bloc";
 
-describe("bloc Bento", () => {
+describe("panneau orné", () => {
   it("affiche son titre au-dessus du contenu", () => {
     const html = renderToStaticMarkup(
       <Bloc titre="Réserve">
@@ -35,5 +35,21 @@ describe("bloc Bento", () => {
   it("prend une teinte du prototype", () => {
     const html = renderToStaticMarkup(<Bloc teinte="menthe" titre="Apprivoiser">x</Bloc>);
     expect(html).toMatch(/^<section class="[^"]+ [^"]+"/);
+  });
+
+  it("pose une action à droite de son titre, sur la même rangée", () => {
+    const html = renderToStaticMarkup(
+      <Bloc titre="Aux portes" action={<button type="button">Historique</button>}>
+        <p>Sael</p>
+      </Bloc>,
+    );
+    expect(html).toMatch(/^<section[^>]*><div[^>]*><h2[^>]*>Aux portes<\/h2><button type="button">Historique<\/button><\/div><p>Sael<\/p><\/section>$/);
+  });
+
+  it("met son titre en Marcellus pour un panneau qui porte le nom de l'écran", () => {
+    const etiquette = renderToStaticMarkup(<Bloc titre="Habitants">x</Bloc>).match(/<h2 class="([^"]+)"/)?.[1];
+    const serif = renderToStaticMarkup(<Bloc titre="Habitants" serif>x</Bloc>).match(/<h2 class="([^"]+)"/)?.[1];
+    expect(serif).toBeTruthy();
+    expect(serif).not.toBe(etiquette);
   });
 });

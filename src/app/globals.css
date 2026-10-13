@@ -1,4 +1,57 @@
-/* Base commune à toutes les pages. */
+/*
+ * LE KIT DU JEU — comment les pages s'en servent. « L'écran de stratégie » : encre sarcelle, filets de cuivre, coins ornés
+ * fins, Marcellus pour les titres, Barlow pour les données, médaillons peints sur disque crème.
+ *
+ * 1. Les noms. Couleurs, formes et polices sont des noms (src/styles/palette.css, formes.css, typographie.css) : une page
+ *    n'écrit jamais une couleur en clair. Dans le jeu : --panneau (et --panneau-haut, --panneau-releve, --panneau-choisi),
+ *    --creme pour les titres et les nombres, --parchemin pour le texte, --mousse pour le secondaire, --lichen pour le
+ *    discret ; --cuivre pour les étiquettes et les ornements, --cuivre-clair pour ce qui est choisi et les liens ;
+ *    --filet-cuivre pour un bord, --filet-cuivre-doux entre deux lignes ; --feuille pour ce qui monte, --braise pour ce
+ *    qui alerte. Les titres en --police-titre (Marcellus, toujours en 400 : elle n'a pas de gras), le texte et les nombres
+ *    en --police (Barlow : 500 pour l'interface, 600 pour ce qui compte), les étiquettes en --police-etroite.
+ * 2. Le cadre. La barre du haut est la même sur chaque écran, et aucune page ne la refait (components/BarreHaut et ses
+ *    pièces) : le blason du loup, le nom du chef et son menu, les six entrées et leurs médaillons (Foyer, Carte,
+ *    Expéditions, Réserve, Habitants, Récits), les quatre Stocks et le compteur d'Habitants ; dessous, l'avertissement de
+ *    famine.
+ *    Elle est en haut sur toutes les tailles, jamais au pied de l'écran ; la page commence sous elle (--hauteur-barre).
+ * 3. Le fond. Chaque écran du jeu est posé sur le dégradé sarcelle et son grain (la règle « body » ci-dessous) : plus de
+ *    peinture derrière les pages. Deux écrans seulement sont des scènes pleines : le Foyer (la hutte, d'un bord à
+ *    l'autre) et la Carte (le Monde lui-même, main[data-carte]). Ailleurs, une peinture se montre en bandeau dans un
+ *    panneau (un Voyageur, une destination, une Bête, un lieu), fondue dans le panneau vers le bas ou vers la gauche.
+ *    Les pages d'entrée (main[data-entree] : l'accueil, la connexion et ses suites, le nom de chef, le récit d'arrivée,
+ *    les pages d'erreur) sont posées sur le même fond, sous la même barre ; l'accueil est une scène peinte, les autres
+ *    un panneau orné dont la peinture remplit un côté.
+ * 4. Les pièces, dans src/components, chacune documentée chez elle :
+ *    - Bloc : le panneau orné (un filet de cuivre, les quatre petits coins de cuivre, une lumière en haut) ; son titre en
+ *      petite étiquette de cuivre, ou en Marcellus (serif) ; « action » à droite du titre ; « verre » sur une peinture ;
+ *      « plein » pour une image qui touche les bords.
+ *    - Medaillon : une icône peinte sur son disque crème, l'anneau de cuivre ; tailles xs, sm, md, lg, xl ; « plein »
+ *      pour une peinture qui remplit le rond (le Monde, une Bête) ; « vide » pour un emplacement libre.
+ *    - Jauge : la barre de cuivre (épaisse, ou fine sous une ligne), en cases (une par place), rayée de braise quand elle
+ *      déborde.
+ *    - Etat : « libre » (un point de feuille) ou « en Expédition » (un point de cuivre qui luit).
+ *    - kit (`import kit from "@/components/kit.module.css"`) : les classes à poser sur ses propres éléments.
+ *      kit.panneau (+ kit.verre) : un panneau qui n'est pas un Bloc (une carte, un écriteau, un bouton) ; kit.etiquette :
+ *      la petite étiquette de cuivre ; kit.enTete : la petite rangée d'un panneau, l'étiquette à gauche, un lien à
+ *      droite ; kit.titreEcran dans kit.enTeteEcran : le titre d'un écran en Marcellus, et à droite son lien fort ;
+ *      kit.titreServif : le nom en Marcellus d'une ligne (un Métier, un Récit) ; kit.lien : un lien de cuivre souligné ;
+ *      kit.bouton avec kit.principal (le cuivre plein : « Accueillir », « Partir »), kit.secondaire (le contour),
+ *      kit.discret (le texte seul) ou kit.danger (« Renvoyer »), et kit.grand, kit.large ; kit.pas, kit.pasBouton,
+ *      kit.pasValeur (+ kit.pasGrand) : « − 6 + » ; kit.segments : un choix en segments (1 h | 4 h | 8 h | 12 h) ;
+ *      kit.badge (un nombre sur le cuivre), kit.nouveau (« NOUVEAU »), kit.repere (le point de braise), kit.alerte (un
+ *      avertissement court sur un filet de braise), kit.marque (« Plus de place »), kit.puce (une rareté, un gain),
+ *      kit.ruban (« NOUVELLE ESPÈCE AU BESTIAIRE ») ; kit.cles : une liste libellé / valeur (dl) ; kit.note : une phrase
+ *      discrète ; kit.nombre : un grand nombre ; kit.choisie : la ligne choisie d'une liste (un voile et un trait de
+ *      cuivre à gauche) ; kit.vignette : une peinture en bandeau dans un panneau.
+ * 5. Les règles. Un panneau n'en contient jamais un autre : dedans, des filets doux (--filet-cuivre-doux) séparent les
+ *    lignes. Le ::before d'un panneau porte ses coins ; son ::after est libre. Une seule action principale par écran, au
+ *    cuivre. Ce qui est choisi passe en cuivre clair et se marque d'un trait (à gauche dans une liste, dessous dans un
+ *    onglet) : jamais la couleur seule. Les nombres en chiffres alignés. Des coins nets (--arrondi-net), des pastilles
+ *    rondes. Pas de phrase d'explication quand un titre, un champ ou un bouton suffit.
+ * 6. Les anciens noms. Les pages pas encore refaites emploient --bloc, --encre, --texte-2, --miel… : dans un écran du jeu,
+ *    la règle « main » ci-dessous leur donne leur sens sarcelle et cuivre, pour qu'elles se lisent sur le fond. Une page
+ *    refaite emploie les noms du jeu (1) et les pièces (4).
+ */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -6,15 +59,116 @@
 
 body {
   min-height: 100dvh;
-  /* En bas, l'encoche, et les onglets de la navigation quand ils sont là (US-0302). */
+  /* En bas, l'encoche, et la rangée des onglets si elle y revenait (US-0302). */
   padding: 0 var(--bord-droit) calc(var(--hauteur-onglets) + var(--bord-bas)) var(--bord-gauche);
   background: var(--fond);
   color: var(--encre);
   font-family: var(--police);
   font-size: var(--taille-texte);
   font-weight: var(--graisse-texte);
+  -webkit-font-smoothing: antialiased;
 }
 
-h1 {
-  font-weight: var(--graisse-titre);
+/* Dans le jeu et sur les pages d'entrée, l'encre sarcelle borde tout, et la barre de défilement prend le cuivre. */
+html:has([data-onglets]),
+html:has([data-entree]) {
+  background: var(--sarcelle-abysse);
+  scrollbar-color: var(--anneau-cuivre-fort) var(--sarcelle-abysse);
+}
+
+/*
+ * Le fond d'un écran du jeu et d'une page d'entrée : le dégradé sarcelle de la maquette (une lumière froide en haut à
+ * gauche, une brume de cuivre en bas à droite). Dans le jeu, la page commence sous la barre du haut, fixe ; hors du jeu,
+ * la barre reste dans le flux.
+ */
+body:has([data-onglets]),
+body:has([data-entree]) {
+  position: relative;
+  background: var(--fond-du-jeu);
+  color: var(--parchemin);
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+body:has([data-onglets]) {
+  padding-top: var(--hauteur-barre);
+}
+
+/* Son grain, très fin, par-dessus le dégradé et sous les panneaux, sur toute la hauteur de la page. */
+body:has([data-onglets])::before,
+body:has([data-entree])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--grain);
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+/*
+ * Un écran du jeu, hors de la carte, et la fiche posée sur la carte (pour le détail d'une Expédition, qu'elle reprend) :
+ * les anciens noms des couleurs et des coins y prennent leur sens sarcelle et cuivre (voir 6 ci-dessus). La carte et
+ * ses pièces, refaites, gardent les leurs : la légende dessine ses Cases des couleurs mêmes de la carte.
+ */
+body:has([data-onglets]) main:not([data-carte]),
+[data-fiche-de-la-case] {
+  --bloc: var(--panneau);
+  --bloc-2: var(--panneau-haut);
+  --bloc-3: var(--panneau-releve);
+  --nuit: var(--panneau);
+  --nuit-survol: var(--panneau-releve);
+  --trait: var(--filet-cuivre);
+  --trait-doux: var(--filet-cuivre-doux);
+  --filet: var(--filet-cuivre-doux);
+  --encre: var(--creme);
+  --encre-survol: var(--creme-vive);
+  --ivoire: var(--sur-cuivre);
+  --blanc-chaud: var(--sur-cuivre);
+  --voile: var(--sur-cuivre);
+  --texte-2: var(--parchemin);
+  --texte-discret: var(--mousse);
+  --texte-pale: var(--lichen);
+  --sur-image-doux: var(--creme);
+  --gris-clair: var(--parchemin);
+  --gris: var(--mousse);
+  --survol: var(--cuivre-survol);
+  --miel: var(--cuivre-clair);
+  --miel-survol: var(--cuivre-pale);
+  --galet: var(--eteint);
+  --mauvais: var(--braise);
+  --mauvais-doux: var(--braise-voile);
+  --bon: var(--feuille);
+  --menthe-vive: var(--feuille);
+  --ombre: var(--ombre-panneau);
+  --ombre-forte: var(--ombre-verre);
+  --arrondi: var(--arrondi-net);
+  --arrondi-moyen: var(--arrondi-net);
+  --arrondi-petit: var(--arrondi-net);
+  color: var(--parchemin);
+}
+
+body:has([data-onglets]) main:not([data-carte]),
+main[data-entree] {
+  position: relative;
+  isolation: isolate;
+}
+
+h1,
+h2 {
+  font-family: var(--police-titre);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* Dans le jeu et sur les pages d'entrée, les titres en crème ; une page leur donne une autre couleur sans effort (aucune
+   priorité). */
+:where(body:has([data-onglets], [data-entree])) :where(h1, h2, h3) {
+  color: var(--creme);
+}
+
+button,
+input,
+select {
+  font-family: inherit;
 }

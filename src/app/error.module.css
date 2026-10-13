@@ -1,40 +1,45 @@
-/* La page d'erreur : jamais un état périmé, un message clair et de quoi réessayer. */
+/*
+ * La page d'erreur : jamais un état périmé, un message clair et de quoi réessayer. Un panneau orné du kit, au milieu de
+ * la sarcelle, dans le jeu comme hors du jeu.
+ */
 .page {
   display: grid;
-  place-content: center;
-  gap: 14px;
-  max-width: 560px;
+  place-items: center;
   min-height: var(--hauteur-utile);
-  margin: 0 auto;
   padding: 40px 16px;
+}
+
+.panneau {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  width: min(500px, 100%);
+  padding: 36px 32px 32px;
   text-align: center;
 }
 
 .titre {
-  font-size: clamp(28px, 4vw, 40px);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  color: var(--creme);
+  font: 400 clamp(26px, 3vw, 32px) / 1.15 var(--police-titre);
 }
 
 .texte {
-  color: var(--texte-2);
-  font-size: 17px;
+  color: var(--parchemin);
+  font: var(--graisse-texte) 16px / 1.5 var(--police);
 }
 
 .reessayer {
-  justify-self: center;
-  min-height: 48px;
+  min-width: 180px;
   margin-top: 8px;
-  padding: 0 22px;
-  border: 0;
-  border-radius: var(--arrondi-moyen);
-  background: var(--encre);
-  color: var(--blanc-chaud);
-  font: inherit;
-  font-weight: var(--graisse-titre);
-  cursor: pointer;
 }
 
-.reessayer:hover {
-  background: var(--encre-survol);
+@media (max-width: 820px) {
+  .page {
+    place-items: start center;
+    padding: 24px 12px;
+  }
+
+  .panneau {
+    padding: 28px 20px 24px;
+  }
 }

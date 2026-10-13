@@ -208,16 +208,16 @@ describe("la carte du Monde (US-0417)", () => {
 });
 
 describe("les Biomes sur la carte (US-0418)", () => {
-  it("peint chaque teinte de la couleur que la page lui donne, ses motifs d'Encre ou d'Ivoire légers, et un bord d'Encre à peine marqué", () => {
+  it("peint chaque teinte de la couleur que la page lui donne, ses motifs de bois sombre ou d'Ivoire légers, et un bord de bois sombre, comme des pièces taillées", () => {
     const carte: CarteDuJoueur = { ...CARTE, teintes: ["prairie", "mer"], cases: { ...CARTE.cases, teinte: AUTOUR.map((c) => (c.r === FOYER.r ? 0 : 1)) } };
     render(<CarteDuJeu carte={carte} fonds={["var(--biome-prairie)", "var(--biome-eau)"]} />);
     expect(toile.gestes.slice(1, 6)).toEqual([
       "remplir var(--biome-prairie)",
       "remplir var(--biome-eau)",
       // La prairie a un motif sombre, la mer un motif clair.
-      "border color-mix(in oklch, var(--encre) 26%, transparent)",
-      "border color-mix(in oklch, var(--ivoire) 45%, transparent)",
-      "border color-mix(in oklch, var(--encre) 14%, transparent)",
+      "border color-mix(in oklch, var(--bois-sombre) 30%, transparent)",
+      "border color-mix(in oklch, var(--ivoire) 50%, transparent)",
+      "border color-mix(in oklch, var(--bois-sombre) 38%, transparent)",
     ]);
   });
 });
@@ -701,8 +701,8 @@ const cliquer = (c: { q: number; r: number }) => {
   pointeur("pointerdown", x, y);
   pointeur("pointerup", x, y);
 };
-/** US-0428 : si la carte surligne une Case : un trait citron, que seul le surlignage trace (le repère du Foyer est rempli). */
-const surlignee = () => toile.gestes.includes("border var(--citron)");
+/** US-0428 : si la carte surligne une Case : un trait crème, que seul le surlignage trace. */
+const surlignee = () => toile.gestes.includes("border var(--cuivre-pale)");
 const fiche = () => screen.queryByRole("region", { name: "Fiche de la Case" });
 
 describe("ouvrir la fiche d'une Case (US-0428)", () => {

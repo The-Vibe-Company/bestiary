@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { exigerCompte } from "@/comptes/garde";
 import { entreeDuJeuOuverte } from "@/comptes/ouverture";
-import { Bloc } from "@/components/Bloc";
+import kit from "@/components/kit.module.css";
+import { Paysage } from "@/components/Paysage";
 import { getPool } from "@/db";
 import { expeditionsEnCours } from "@/expeditions/en-cours";
 import { maintenant, vitesse } from "@/temps/horloge";
@@ -18,10 +19,11 @@ export const metadata: Metadata = { title: "Expéditions en cours" };
  * destination (son Biome, ou « Case inconnue » sous le brouillard) et sa distance au Foyer ; sa phase se lit à l'heure du
  * jeu. Sans session, la garde mène à la connexion, qui ramène ici.
  *
- * US-0918 : toutes les Expéditions en cours au même endroit, chacune avec son détail (DetailDeLExpedition) : sa phase,
- * son temps restant, ses explorateurs, son escorte et son retour prévu, lus à l'heure du jeu, puis en direct, au rythme
- * du jeu, sans recharger la page (ListeDesExpeditions). Sans Expédition en cours, « Aucune Expédition en cours » et un
- * bouton vers l'écran d'Expédition pour en préparer une.
+ * US-0918 : toutes les Expéditions en cours au même endroit, chacune son grand panneau illustré (PanneauDeLExpedition) :
+ * le paysage de sa destination, sa phase, son temps restant, ses explorateurs, son escorte et son retour prévu, lus à
+ * l'heure du jeu, puis en direct, au rythme du jeu, sans recharger la page (ListeDesExpeditions). Sans Expédition en
+ * cours, un panneau : les explorateurs en route, « Aucune Expédition en cours » et un bouton vers l'écran d'Expédition
+ * pour en préparer une.
  */
 export default async function ExpeditionsEnCours() {
   await connection();
@@ -33,19 +35,20 @@ export default async function ExpeditionsEnCours() {
   const expeditions = territoireId === null ? [] : await expeditionsEnCours(getPool(), territoireId, instant);
   return (
     <main className={styles.page}>
-      <h1 className={styles.titre}>Expéditions en cours</h1>
-      <Bloc>
-        {expeditions.length === 0 ? (
-          <>
-            <p className={styles.vide}>Aucune Expédition en cours</p>
-            <Link href="/jeu/expeditions/nouvelle" className={styles.preparer}>
-              Préparer une Expédition
-            </Link>
-          </>
-        ) : (
-          <ListeDesExpeditions expeditions={expeditions} maintenant={instant} vitesse={vitesse()} />
-        )}
-      </Bloc>
+      <div className={kit.enTeteEcran}>
+        <h1 className={kit.titreEcran}>Expéditions en cours</h1>
+      </div>
+      {expeditions.length === 0 ? (
+        <section className={`${kit.panneau} ${styles.aucune}`}>
+          <Paysage peinture="accueil/explorateurs.webp" sizes="(max-width: 760px) 100vw, 640px" className={styles.paysage} />
+          <p className={styles.vide}>Aucune Expédition en cours</p>
+          <Link href="/jeu/expeditions/nouvelle" className={`${kit.bouton} ${kit.principal} ${kit.grand} ${styles.preparer}`}>
+            Préparer une Expédition
+          </Link>
+        </section>
+      ) : (
+        <ListeDesExpeditions expeditions={expeditions} maintenant={instant} vitesse={vitesse()} />
+      )}
     </main>
   );
 }

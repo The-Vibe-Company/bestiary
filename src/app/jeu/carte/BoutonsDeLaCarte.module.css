@@ -1,8 +1,9 @@
 /*
  * US-0425 : « + » au-dessus de « − », en bas à droite de la carte, à portée de pouce sur mobile, où la carte s'arrête
- * au-dessus des onglets ; à l'écart de l'encoche d'un téléphone tourné. US-0426 : le bouton du Foyer au-dessus d'eux ;
- * sur mobile, tous au-dessus du panneau ouvert en bas, la légende ou la fiche d'une Case, qui publient leur hauteur ;
- * sur un écran d'ordinateur peu haut, par-dessus le panneau flottant de la légende quand il descend jusqu'à eux.
+ * au-dessus de la rangée des médaillons ; à l'écart de l'encoche d'un téléphone tourné. US-0426 : le bouton du Foyer
+ * au-dessus d'eux ; sur mobile, tous au-dessus du panneau ouvert en bas, la légende ou la fiche d'une Case, qui publient
+ * leur hauteur ; sur un écran d'ordinateur peu haut, par-dessus le panneau flottant de la légende quand il descend
+ * jusqu'à eux. Une colonne de verre, comme les autres pièces posées sur la carte, ses boutons séparés de filets.
  */
 .boutons {
   position: absolute;
@@ -11,10 +12,16 @@
   z-index: 11;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--filet-cuivre);
+  border-radius: var(--arrondi-net);
+  background: var(--fond-verre);
+  backdrop-filter: blur(6px);
+  box-shadow: var(--ombre-verre);
 }
 
-/* Chacun sa surface de 44 px, comme les « − » et « + » des Métiers ; grisé, il reste à sa place sans réagir. */
+/* Chacun sa surface de 44 px ; grisé, il reste à sa place sans réagir. */
 .bouton {
   display: inline-flex;
   align-items: center;
@@ -22,50 +29,53 @@
   width: 44px;
   height: 44px;
   padding: 0;
-  border: 1px solid var(--trait);
-  border-radius: var(--arrondi-petit);
-  background: var(--bloc);
-  box-shadow: var(--ombre);
-  color: var(--encre);
+  border: 0;
+  border-radius: var(--arrondi-image);
+  background: none;
+  color: var(--creme);
   font: inherit;
-  font-size: 22px;
-  font-weight: var(--graisse-titre);
+  font-size: 24px;
+  font-weight: var(--graisse-moyenne);
   line-height: 1;
   cursor: pointer;
+  transition: background 0.15s;
 }
 
 .bouton:disabled {
-  border-color: var(--trait-doux);
-  background: var(--bloc-2);
-  color: var(--galet);
+  color: var(--eteint);
   cursor: default;
 }
 
 @media (hover: hover) {
   .bouton:enabled:hover {
-    border-color: var(--galet);
-    background: var(--bloc-3);
+    background: var(--cuivre-brume);
   }
 }
 
 .bouton:focus-visible {
-  outline: 2px solid var(--encre);
-  outline-offset: 2px;
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: -2px;
 }
 
-/* US-0426 : le repère du Foyer, comme sur la carte : une épingle citron cernée d'Encre, un œil d'Encre au milieu. */
-.repere {
-  width: 24px;
-  height: 24px;
+/* US-0426 : le Foyer, en tête de la colonne, sous un filet : une hutte de cuivre clair. */
+.foyer {
+  border-bottom: 1px solid var(--filet-cuivre-doux);
+  border-radius: var(--arrondi-image) var(--arrondi-image) 0 0;
 }
 
-.repere path {
-  fill: var(--citron);
-  stroke: var(--encre);
-  stroke-width: 1.6;
+.hutte {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--cuivre-clair);
+  stroke-width: 1.3;
+  stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.repere circle {
-  fill: var(--encre);
+/* Le filet entre « + » et « − ». */
+.filet {
+  height: 1px;
+  margin: 0 6px;
+  background: var(--filet-cuivre-doux);
 }

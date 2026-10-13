@@ -30,10 +30,19 @@ describe("la Réserve sur un téléphone (US-0801)", () => {
     expect(regle(".betes")).toContain("grid-template-columns: 1fr 1fr;");
   });
 
+  it("sans Couple, prend toute la largeur et presque toute la hauteur de l'écran, les castors peints dedans (US-0809)", () => {
+    expect(regle(".aucun")).not.toContain("max-width");
+    expect(regle(".aucun")).toContain("min-height: clamp(320px, calc(var(--hauteur-utile) - 104px), 640px);");
+    expect(regle(".aucun > .paysage")).toContain("position: absolute;");
+    // Sur un téléphone, les castors en bandeau en haut du panneau, à la hauteur du mot et du bouton.
+    expect(regle(".aucun", mobile)).toContain("min-height: 0;");
+    expect(regle(".aucun > .paysage", mobile)).toContain("position: relative;");
+  });
+
   it("sans Couple, met le bouton « Envoyer une Expédition » au pouce : 44 px de haut, toute la largeur sur mobile (US-0809)", () => {
     expect(regle(".envoyer")).toContain("min-height: 44px;");
     expect(regle(".envoyer")).toContain("cursor: pointer;");
-    expect(regle(".envoyer:focus-visible")).toContain("outline: 2px solid var(--encre);");
+    expect(regle(".envoyer:focus-visible")).toContain("outline: 2px solid var(--cuivre-clair);");
     expect(regle(".envoyer", mobile)).toMatch(/display: flex;[^}]*width: 100%;/);
   });
 });

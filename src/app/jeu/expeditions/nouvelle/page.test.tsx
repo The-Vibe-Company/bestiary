@@ -67,6 +67,9 @@ const lien = (html: string, nom: string) => html.match(new RegExp(`<a [^>]*href=
 const confie = (html: string, nom: string) =>
   JSON.parse(html.match(new RegExp(`<i data-${nom}="([^"]*)"></i>`))![1].replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&amp;/g, "&"));
 
+/** Le titre de l'écran, puis à côté le lien vers les Expéditions en cours. */
+const TETE = ["Nouvelle Expédition", "Expéditions en cours"];
+
 /** US-0906 : les textes du bloc Séjour, après la destination : la durée choisie, les bornes du curseur, les durées toutes prêtes. */
 const SEJOUR = ["Séjour", "1 h", formaterMinutes(SEJOUR_MINUTES.min), formaterMinutes(SEJOUR_MINUTES.max), "1 h", "4 h", "8 h", "12 h"];
 
@@ -90,7 +93,22 @@ describe("l'écran d'Expédition (US-0901)", () => {
   it("titre la page « Nouvelle Expédition », dans l'onglet comme sur la page", async () => {
     connecte();
     expect(metadata.title).toBe("Nouvelle Expédition");
-    expect(await ouvrir()).toMatch(/<main[^>]*><h1[^>]*>Nouvelle Expédition<\/h1>/);
+    expect(await ouvrir()).toMatch(/<main[^>]*><div[^>]*><h1[^>]*>Nouvelle Expédition<\/h1>/);
+  });
+
+  it("mène, à côté de son titre, aux Expéditions déjà parties", async () => {
+    connecte();
+    expect(await ouvrir()).toMatch(/<h1[^>]*>Nouvelle Expédition<\/h1><a[^>]*href="\/jeu\/expeditions"[^>]*>(?:(?!<\/a>).)*Expéditions en cours(?:(?!<\/a>).)*<\/a>/);
+  });
+
+  it("peint le paysage de la destination : son Biome, ou la brume et son « ? » sous le brouillard", async () => {
+    connecte();
+    destinations.destinationDUneCase.mockResolvedValue({ fiche: FORET });
+    const foret = await ouvrir({ q: "3", r: "-5" });
+    expect(foret).toContain(encodeURIComponent("/illustrations/prototype/biomes/forest-1.webp"));
+    expect(foret).not.toContain('<path d="M0-36');
+    destinations.destinationDUneCase.mockResolvedValue({ fiche: { q: 3, r: -5, inconnue: true, distance: 12 } });
+    expect(await ouvrir({ q: "3", r: "-5" })).toContain('<path d="M0-36');
   });
 
   it("a pour destination la Case de son adresse, touchée sur la carte : son Biome et sa distance au Foyer", async () => {
@@ -99,7 +117,7 @@ describe("l'écran d'Expédition (US-0901)", () => {
     const html = await ouvrir({ q: "3", r: "-5" });
     // Le Monde vient du Territoire de la garde, jamais de l'adresse, qui ne dit que la Case.
     expect(destinations.destinationDUneCase).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, { q: 3, r: -5 });
-    expect(textes(html)).toEqual(["Nouvelle Expédition", "Destination", "Biome", "Forêt", "Distance", "7 Cases de votre Foyer", "Changer de destination", ...SEJOUR]);
+    expect(textes(html)).toEqual([...TETE, "Destination", "Biome", "Forêt", "Distance", "7 Cases de votre Foyer", "Changer de destination", ...SEJOUR]);
   });
 
   it("accorde la distance : « 1 Case de votre Foyer »", async () => {
@@ -112,7 +130,7 @@ describe("l'écran d'Expédition (US-0901)", () => {
     connecte();
     destinations.destinationDUneCase.mockResolvedValue({ fiche: { q: 3, r: -5, inconnue: true, distance: 12 } });
     expect(textes(await ouvrir({ q: "3", r: "-5" }))).toEqual([
-      "Nouvelle Expédition",
+      ...TETE,
       "Destination",
       "Biome",
       "inconnu",
@@ -127,7 +145,7 @@ describe("l'écran d'Expédition (US-0901)", () => {
     connecte();
     const html = await ouvrir();
     expect(destinations.destinationDUneCase).not.toHaveBeenCalled();
-    expect(textes(html)).toEqual(["Nouvelle Expédition", "Destination", "Aucune destination", "Choisir sur la carte", ...SEJOUR]);
+    expect(textes(html)).toEqual([...TETE, "Destination", "Aucune destination", "Choisir sur la carte", ...SEJOUR]);
     expect(lien(html, "Choisir sur la carte")).toBe("/jeu/carte?choix=destination");
   });
 
@@ -142,19 +160,21 @@ describe("l'écran d'Expédition (US-0901)", () => {
 
   it("n'a pas de destination pour une Case que le Monde du joueur n'a pas", async () => {
     connecte();
-    expect(textes(await ouvrir({ q: "999", r: "0" }))).toEqual(["Nouvelle Expédition", "Destination", "Aucune destination", "Choisir sur la carte", ...SEJOUR]);
+    expect(textes(await ouvrir({ q: "999", r: "0" }))).toEqual([...TETE, "Destination", "Aucune destination", "Choisir sur la carte", ...SEJOUR]);
   });
 
-  it("n'ajoute aucune phrase d'explication : le titre, la destination et de quoi la changer, puis le séjour", async () => {
+  it("n'ajoute aucune phrase d'explication : le titre et son lien, la destination et de quoi la changer, puis le séjour", async () => {
     connecte();
     destinations.destinationDUneCase.mockResolvedValue({ fiche: FORET });
-    expect(textes(await ouvrir({ q: "3", r: "-5" }))).toHaveLength(7 + SEJOUR.length);
+    expect(textes(await ouvrir({ q: "3", r: "-5" }))).toHaveLength(8 + SEJOUR.length);
   });
 
   it("propose la durée du séjour, avec ou sans destination, entre les explorateurs et le départ (US-0906)", async () => {
     connecte();
-    // Le bloc Séjour, seul entre les blocs Explorateurs et Escorte (US-0904) et le départ (réduits ici à ce que la page leur donne).
-    const entreExplorateursEtDepart = /<i data-explorateurs="[^"]*"><\/i><i data-escorte="[^"]*"><\/i><section[^>]*><h2[^>]*>Séjour<\/h2>((?!<section).)*<\/section><i data-recapitulatif="[^"]*"><\/i><\/main>$/;
+    // Le bloc Séjour, seul entre les blocs Explorateurs et Escorte (US-0904), côte à côte, et le départ (réduits ici à ce
+    // que la page leur donne).
+    const entreExplorateursEtDepart =
+      /<i data-explorateurs="[^"]*"><\/i><i data-escorte="[^"]*"><\/i><\/div><section[^>]*><h2[^>]*>Séjour<\/h2>((?!<section).)*<\/section><\/div><i data-recapitulatif="[^"]*"><\/i><\/main>$/;
     const sansDestination = await ouvrir();
     expect(sansDestination).toMatch(/<input [^>]*type="range"[^>]*name="sejour"/);
     expect(sansDestination).toMatch(entreExplorateursEtDepart);
@@ -205,8 +225,8 @@ describe("les explorateurs de l'écran d'Expédition (US-0902)", () => {
     destinations.destinationDUneCase.mockResolvedValue({ fiche: FORET });
     const html = await ouvrir({ q: "3", r: "-5" });
     expect(explorateurs.explorateursDuTerritoire).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12);
-    // US-0907 : le bloc Destination finit sur le lien qui la change.
-    expect(html).toMatch(new RegExp(`7 Cases de votre Foyer</dd></div></dl><a [^>]*>Changer de destination</a></section>${donne("explorateurs", { libres: 2, total: 3 })}`));
+    // US-0907 : le bloc Destination finit sur le lien qui la change ; les explorateurs le suivent, à côté de l'escorte.
+    expect(html).toMatch(new RegExp(`7 Cases de votre Foyer</dd></div></dl><a [^>]*>Changer de destination</a></section><div[^>]*>${donne("explorateurs", { libres: 2, total: 3 })}`));
   });
 
   it("finit sur le récapitulatif et son départ, qui savent combien d'explorateurs sont libres, avec ou sans destination (US-0910)", async () => {
@@ -246,7 +266,7 @@ describe("aucun explorateur libre sur l'écran d'Expédition (US-0903)", () => {
     explorateurs.explorateursDuTerritoire.mockResolvedValueOnce({ libres: 0, total: 0 });
     destinations.destinationDUneCase.mockResolvedValue({ fiche: FORET });
     const html = await ouvrir({ q: "3", r: "-5" });
-    expect(html).toMatch(new RegExp(`<main[^>]*><h1[^>]*>Nouvelle Expédition</h1>${donne({ total: 0, prochainRetour: null })}</main>$`));
+    expect(html).toMatch(new RegExp(`<main[^>]*><div[^>]*><h1[^>]*>Nouvelle Expédition</h1><a [^>]*>(?:(?!</a>).)*</a></div>${donne({ total: 0, prochainRetour: null })}</main>$`));
     // Personne n'est parti : aucun retour à attendre, rien à demander à la base.
     expect(explorateurs.prochainRetourDUnExplorateur).not.toHaveBeenCalled();
   });
@@ -258,7 +278,7 @@ describe("aucun explorateur libre sur l'écran d'Expédition (US-0903)", () => {
     explorateurs.prochainRetourDUnExplorateur.mockResolvedValueOnce(new Date("2026-10-09T12:05:00Z"));
     const html = await ouvrir();
     expect(explorateurs.prochainRetourDUnExplorateur).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12);
-    expect(html).toMatch(new RegExp(`<h1[^>]*>Nouvelle Expédition</h1>${donne({ total: 2, prochainRetour: "2026-10-09T12:05:00.000Z" })}</main>$`));
+    expect(html).toMatch(new RegExp(`<h1[^>]*>Nouvelle Expédition</h1><a [^>]*>(?:(?!</a>).)*</a></div>${donne({ total: 2, prochainRetour: "2026-10-09T12:05:00.000Z" })}</main>$`));
     expect(html).not.toContain("data-recapitulatif");
   });
 
@@ -267,7 +287,7 @@ describe("aucun explorateur libre sur l'écran d'Expédition (US-0903)", () => {
     const html = await ouvrir();
     expect(explorateurs.prochainRetourDUnExplorateur).not.toHaveBeenCalled();
     expect(html).not.toContain("data-aucun");
-    expect(textes(html).slice(0, 4)).toEqual(["Nouvelle Expédition", "Destination", "Aucune destination", "Choisir sur la carte"]);
+    expect(textes(html).slice(0, 5)).toEqual([...TETE, "Destination", "Aucune destination", "Choisir sur la carte"]);
     expect(html).toContain(donne({ libres: 2, total: 3 }).replace("data-aucun", "data-explorateurs"));
     expect(html).toMatch(/<i data-recapitulatif="[^"]*"><\/i><\/main>$/);
   });
@@ -317,7 +337,7 @@ describe("choisir la destination depuis l'écran d'Expédition (US-0907)", () =>
     connecte();
     destinations.destinationDUneCase.mockResolvedValue({ refus: "Cette Case appartient à un Territoire." });
     const html = await ouvrir({ q: "0", r: "0" });
-    expect(textes(html)).toEqual(["Nouvelle Expédition", "Destination", "Cette Case appartient à un Territoire.", "Choisir sur la carte", ...SEJOUR]);
+    expect(textes(html)).toEqual([...TETE, "Destination", "Cette Case appartient à un Territoire.", "Choisir sur la carte", ...SEJOUR]);
     expect(html).not.toMatch(/Biome|Distance|Aucune destination/);
     expect(lien(html, "Choisir sur la carte")).toBe("/jeu/carte?choix=destination");
   });
@@ -326,7 +346,7 @@ describe("choisir la destination depuis l'écran d'Expédition (US-0907)", () =>
     connecte();
     destinations.destinationDUneCase.mockResolvedValue({ refus: "Cette Case est hors de portée." });
     const html = await ouvrir({ q: "0", r: "0" });
-    expect(textes(html)).toEqual(["Nouvelle Expédition", "Destination", "Cette Case est hors de portée.", "Choisir sur la carte", ...SEJOUR]);
+    expect(textes(html)).toEqual([...TETE, "Destination", "Cette Case est hors de portée.", "Choisir sur la carte", ...SEJOUR]);
     expect(lien(html, "Choisir sur la carte")).toBe("/jeu/carte?choix=destination");
   });
 });
@@ -352,7 +372,7 @@ describe("l'escorte de l'écran d'Expédition (US-0904)", () => {
     expect(effectif.betesDisponibles).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12);
     const [avant, apres] = html.split(donne("escorte", { especes: [SOURIS] }));
     expect(avant).toMatch(new RegExp(`${donne("explorateurs", { libres: 2, total: 3 })}$`));
-    expect(apres).toMatch(/^<section[^>]*><h2[^>]*>Séjour<\/h2>/);
+    expect(apres).toMatch(/^<\/div><section[^>]*><h2[^>]*>Séjour<\/h2>/);
   });
 
   it("ne propose pas d'escorte sans explorateur libre, ni à un chef sans Territoire : le message d'US-0903 remplace tout le formulaire", async () => {
@@ -385,7 +405,7 @@ describe("partir sans escorte (US-0909)", () => {
   it("sans Bête disponible, dit l'Expédition sans escorte à la place du bloc Escorte, entre les explorateurs et le séjour, avec ou sans destination", async () => {
     connecte();
     effectif.betesDisponibles.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
-    const aLaPlaceDeLEscorte = /<i data-explorateurs="[^"]*"><\/i><i data-sans-escorte=""><\/i><section[^>]*><h2[^>]*>Séjour<\/h2>/;
+    const aLaPlaceDeLEscorte = /<i data-explorateurs="[^"]*"><\/i><i data-sans-escorte=""><\/i><\/div><section[^>]*><h2[^>]*>Séjour<\/h2>/;
     const sansDestination = await ouvrir();
     expect(sansDestination).toMatch(aLaPlaceDeLEscorte);
     expect(sansDestination).not.toContain("data-escorte");
@@ -417,7 +437,7 @@ describe("le récapitulatif avant le départ (US-0910)", () => {
     connecte();
     destinations.destinationDUneCase.mockResolvedValue({ fiche: FORET });
     const html = await ouvrir({ q: "3", r: "-5" });
-    expect(html).toMatch(/<h2[^>]*>Séjour<\/h2>((?!<section).)*<\/section><i data-recapitulatif="[^"]*"><\/i><\/main>$/);
+    expect(html).toMatch(/<h2[^>]*>Séjour<\/h2>((?!<section).)*<\/section><\/div><i data-recapitulatif="[^"]*"><\/i><\/main>$/);
     // De la destination, seulement ce que le récapitulatif en montre, son Biome et sa distance au Foyer, et sa Case, que « Partir » envoie.
     expect(confie(html, "recapitulatif")).toEqual({
       libres: 2,

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { JEU_INJOIGNABLE } from "@/app/inscription/etat";
+import { BOUTON_ENTREE } from "@/components/PageEntree";
 import styles from "../../entree.module.css";
 
 type Etat = "pret" | "parti" | "injoignable";
@@ -31,7 +32,7 @@ export function NouveauLien({ demander }: { demander: () => Promise<void> }) {
           {JEU_INJOIGNABLE}
         </p>
       ) : null}
-      <button type="submit" className={styles.envoyer} disabled={enAttente}>
+      <button type="submit" className={`${BOUTON_ENTREE} ${styles.envoyer}`} disabled={enAttente}>
         {enAttente ? (
           <>
             <span className={styles.roue} aria-hidden="true" />

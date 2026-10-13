@@ -20,13 +20,13 @@ describe("le repère d'une Expédition sur la carte (US-0913)", () => {
     expect(regle(".repere")).toContain("pointer-events: none;");
   });
 
-  it("est une pastille du ton de l'état « en Expédition », cernée d'Encre, cernée de citron quand sa fiche est ouverte", () => {
+  it("est une pastille du ton de l'état « en Expédition », cernée d'Encre, cernée de crème et de cuivre quand sa fiche est ouverte, comme la Case choisie", () => {
     expect(regle(".pastille")).toMatch(/fill: var\(--ciel\);[^}]*stroke: var\(--encre\);/);
-    expect(regle(".halo")).toMatch(/fill: var\(--citron\);[^}]*visibility: hidden;/);
+    expect(regle(".halo")).toMatch(/fill: var\(--cuivre-pale\);[^}]*stroke: var\(--cuivre\);[^}]*visibility: hidden;/);
     expect(regle('.repere[aria-expanded="true"] .halo')).toContain("visibility: visible;");
   });
 
   it("se voit au clavier", () => {
-    expect(regle(".repere:focus-visible")).toContain("outline: 2px solid var(--encre);");
+    expect(regle(".repere:focus-visible")).toContain("outline: 2px solid var(--cuivre-clair);");
   });
 });

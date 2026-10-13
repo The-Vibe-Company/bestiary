@@ -1,6 +1,6 @@
 /*
- * La grille Bento du prototype : 12 colonnes sur ordinateur. Chaque bloc prend toute
- * la largeur, sauf s'il en demande moins (largeur, de 1 à 12).
+ * La grille des planches d'un écran : 12 colonnes sur ordinateur. Chaque planche prend toute la largeur, sauf si elle
+ * en demande moins (largeur, de 1 à 12).
  */
 .grille {
   display: grid;
@@ -15,7 +15,7 @@
   min-width: 0;
 }
 
-/* Tablette : deux colonnes au plus. Un bloc large prend toute la ligne, les autres une moitié. */
+/* Tablette : deux colonnes au plus. Une partie large prend toute la ligne, les autres une moitié. */
 @media (max-width: 1100px) {
   .grille > * {
     grid-column: 1 / -1;

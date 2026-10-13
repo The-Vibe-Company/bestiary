@@ -1,8 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { type MouseEvent, useEffect, useId, useOptimistic, useRef, useState, useTransition } from "react";
 import { Bloc } from "@/components/Bloc";
+import { iconeDeRessource } from "@/components/icone-de-ressource";
+import { Jauge } from "@/components/Jauge";
+import kit from "@/components/kit.module.css";
+import { Medaillon } from "@/components/Medaillon";
 import { quantiteExacte } from "@/monde/quantite";
 import { ENTRETIEN_HABITANT_PAR_HEURE, VOYAGEUR_ALERTE_MINUTES } from "@/reglages";
 import { formaterDuree } from "@/temps/affichage";
@@ -12,6 +17,12 @@ import { BoutonDuMetier, type MetierAuChoix, MetiersAuChoix } from "./MetiersAuC
 
 /** US-0340 : ce que mangera un Habitant de plus, en Nourriture par heure, à la française : « 2 ». */
 const ENTRETIEN_EN_PLUS = quantiteExacte(String(ENTRETIEN_HABITANT_PAR_HEURE));
+
+/** Le portrait d'un Voyageur, peint en bandeau en tête de sa carte : un voyageur et son chameau. */
+const PORTRAIT = "/illustrations/prototype/misc/merchant.webp";
+
+/** La Nourriture qu'il mangera, devant ce qu'il en coûtera : la Viande et les Végétaux. */
+const NOURRITURE = [iconeDeRessource("viande"), iconeDeRessource("vegetaux")];
 
 /** US-0340 : « de Joran », « d'Ines ». */
 const de = (prenom: string) => (/^[aeiouyhàâäéèêëîïôöùûüœæ]/i.test(prenom) ? `d'${prenom}` : `de ${prenom}`);
@@ -34,17 +45,17 @@ function depuisQuand(ms: number): string {
 }
 
 /**
- * US-0332 : la partie « Aux portes » de la page Habitants : une ligne par Voyageur qui attend, dans l'ordre
- * de la lecture, du premier arrivé au dernier, avec son prénom et depuis quand il attend, à l'heure du jeu
- * `maintenant` ; « Personne aux portes pour l'instant. » quand personne n'attend. En tête de la colonne sur
- * ordinateur ; au-dessus de la liste quand la colonne passe dessous (AuxPortes.module.css), car un Voyageur
+ * US-0332 : la partie « Aux portes » de la page Habitants : une carte par Voyageur qui attend, dans l'ordre
+ * de la lecture, du premier arrivé au dernier, avec son prénom posé sur son portrait et depuis quand il attend, à
+ * l'heure du jeu `maintenant` ; « Personne aux portes pour l'instant. » quand personne n'attend. En tête de la colonne
+ * de contexte, à droite du registre sur ordinateur, au-dessus de lui sur une tablette et un téléphone, car un Voyageur
  * n'attend pas toujours.
  *
- * US-0333 : au bout de la ligne, le temps qui lui reste avant son départ, à la minute supérieure (« repart
- * dans 11 h 42 »), qui diminue en direct au rythme du jeu (`vitesse`, donnée par le serveur), sur l'horloge du
- * navigateur comme la barre des ressources ; sous VOYAGEUR_ALERTE_MINUTES minutes, dans la couleur d'alerte, et
- * « sur le départ » une fois le compte à zéro. Aucune zone annoncée : un lecteur d'écran lit le compte quand on
- * y passe, sans qu'il soit répété à chaque minute. Quand la page est relue, tout repart de la nouvelle heure.
+ * US-0333 : en face de son arrivée, le temps qui lui reste avant son départ, à la minute supérieure (« repart dans
+ * 11 h 42 »), et dessous sa jauge, qui diminuent en direct au rythme du jeu (`vitesse`, donnée par le serveur), sur
+ * l'horloge du navigateur comme la barre des ressources ; sous VOYAGEUR_ALERTE_MINUTES minutes, dans la couleur d'alerte,
+ * et « sur le départ » une fois le compte à zéro. Aucune zone annoncée : un lecteur d'écran lit le compte quand on y
+ * passe, sans qu'il soit répété à chaque minute. Quand la page est relue, tout repart de la nouvelle heure.
  *
  * US-0334 : sous chaque ligne, « Accueillir » : la ligne disparaît aussitôt, le temps que l'action serveur fasse
  * du Voyageur un Habitant et relise la page, qui fait alors foi. US-0336 : à côté, « Refuser », qui le fait
@@ -57,7 +68,9 @@ function depuisQuand(ms: number): string {
  *
  * US-0342 : en tête de la partie, « Historique » mène aux Voyageurs passés, que quelqu'un attende ou non.
  *
- * US-0340 : sous les boutons, l'Entretien qu'un Habitant de plus coûtera (« Mangera 2 Nourriture par heure » : pas « +2 », que la barre emploie pour une production). Quand
+ * US-0340 : l'Entretien qu'un Habitant de plus coûtera, devant la Viande et les Végétaux (« Mangera 2 Nourriture par
+ * heure » : pas « +2 », que la barre emploie pour une production) : le dernier de la carte pour un lecteur d'écran, juste
+ * au-dessus des boutons pour les yeux (AuxPortes.module.css). Quand
  * l'avertissement « famine imminente » est actif (`famineImminente`, compté par le serveur), l'accueil se confirme
  * sur place : le premier toucher sur « Accueillir » ne fait que changer sa ligne, le bouton devient « Confirmer
  * l'accueil », dans la couleur d'alerte, et une phrase, annoncée, dit ce que l'Habitant mangera ; le second toucher
@@ -198,9 +211,19 @@ export function AuxPortes({
 
   const instant = base + (ecoule?.base === base ? vitesse * ecoule.ms : 0);
   return (
-    <Bloc titre="Aux portes" className={styles.auxPortes}>
+    <Bloc
+      titre={
+        <>
+          <svg viewBox="0 0 12 12" aria-hidden="true">
+            <path d="M2.5 10.5V4.5a3.5 3.5 0 0 1 7 0v6M1.5 10.5h9" />
+          </svg>
+          Aux portes
+        </>
+      }
+      className={affiches.length > 0 ? `${styles.auxPortes} ${styles.attendent}` : styles.auxPortes}
+    >
       {/* US-0342 : les Voyageurs passés, à droite du titre. */}
-      <Link href="/jeu/habitants/voyageurs" className={styles.historique}>
+      <Link href="/jeu/habitants/voyageurs" className={`${kit.lien} ${styles.historique}`}>
         Historique
       </Link>
       {annonce ? (
@@ -210,6 +233,11 @@ export function AuxPortes({
       ) : null}
       {plein && affiches.length > 0 ? (
         <p id={phrasePlace} className={styles.plusDePlace}>
+          <svg viewBox="0 0 12 12" className={styles.signe} aria-hidden="true">
+            <path d="M6 1.4 11 10.4H1z" />
+            <path d="M6 4.6v2.8" />
+            <circle cx="6" cy="8.9" r=".75" />
+          </svg>
           Plus de place au Foyer. Des huttes en ajouteront quand les constructions seront là.
         </p>
       ) : null}
@@ -225,19 +253,33 @@ export function AuxPortes({
             // US-0335 : le Métier choisi pour lui, et si les Métiers sont dépliés sous sa ligne.
             const metier = choisis.get(v.id);
             const ouvert = metiers.length > 0 && deplie === v.id;
+            // La part de son attente qui lui reste, pour la jauge.
+            const attente = v.departLe.getTime() - v.arriveLe.getTime();
             return (
               <li key={v.id} className={styles.voyageur}>
+                {/* Son portrait, peint, et son prénom posé dessus : le prénom suffit à un lecteur d'écran. */}
+                <div className={`${kit.vignette} ${styles.portrait}`} aria-hidden="true">
+                  <Image src={PORTRAIT} alt="" fill sizes="(max-width: 1023px) 180px, 270px" className={styles.peinture} />
+                  <span className={styles.surtitre}>Voyageur</span>
+                </div>
                 <span className={styles.prenom}>{v.prenom}</span>
                 <span className={styles.arrivee}>{depuisQuand(instant - v.arriveLe.getTime())}</span>
                 <span className={styles.depart} data-alerte={alerte ? "" : undefined}>
+                  <svg viewBox="0 0 12 12" className={styles.sablier} aria-hidden="true">
+                    <path d="M3 1.5h6M3 10.5h6M3.6 1.5c0 2.6 4.8 2.6 4.8 4.5S3.6 7.9 3.6 10.5M8.4 1.5c0 2.6-4.8 2.6-4.8 4.5s4.8 1.9 4.8 4.5" />
+                  </svg>
                   {reste > 0 ? `repart dans ${formaterDuree(reste / 3_600_000)}` : "sur le départ"}
                 </span>
+                <div className={styles.temps}>
+                  <Jauge valeur={Math.max(0, reste)} max={attente} fine inverse />
+                </div>
                 {/* US-0335 : le Métier qu'il aura, au choix ; un lecteur d'écran entend aussi de qui il s'agit. */}
                 {metiers.length > 0 ? (
                   <BoutonDuMetier
                     id={idBouton(v.id)}
                     texte={metier?.nom ?? "Sans Métier"}
                     etiquette={`Métier ${de(v.prenom)} : ${metier?.nom ?? "Sans Métier"}`}
+                    icone={metier?.icone ?? null}
                     deplie={ouvert}
                     depliant={idDepliant(v.id)}
                     className={styles.metier}
@@ -259,7 +301,7 @@ export function AuxPortes({
                   <button
                     ref={confirmer ? boutonDeConfirmation : undefined}
                     type="button"
-                    className={styles.accueillir}
+                    className={`${kit.bouton} ${kit.principal} ${styles.accueillir}`}
                     aria-label={confirmer ? `Confirmer l'accueil ${de(v.prenom)}` : `Accueillir ${v.prenom}`}
                     data-confirmer={confirmer ? "" : undefined}
                     disabled={plein}
@@ -268,7 +310,7 @@ export function AuxPortes({
                   >
                     {confirmer ? "Confirmer l'accueil" : "Accueillir"}
                   </button>
-                  <button type="button" className={styles.refuser} aria-label={`Refuser ${v.prenom}`} onClick={() => decider(v, false)}>
+                  <button type="button" className={`${kit.bouton} ${kit.secondaire} ${styles.refuser}`} aria-label={`Refuser ${v.prenom}`} onClick={() => decider(v, false)}>
                     Refuser
                   </button>
                 </div>
@@ -277,7 +319,14 @@ export function AuxPortes({
                     {`Famine imminente : un Habitant de plus mangera ${ENTRETIEN_EN_PLUS} Nourriture par heure.`}
                   </p>
                 ) : (
-                  <p className={styles.entretien}>{`Mangera ${ENTRETIEN_EN_PLUS} Nourriture par heure`}</p>
+                  <p className={styles.entretien}>
+                    <span className={styles.duo} aria-hidden="true">
+                      {NOURRITURE.map((icone) => (
+                        <Medaillon key={icone} src={icone} taille="xs" />
+                      ))}
+                    </span>
+                    {`Mangera ${ENTRETIEN_EN_PLUS} Nourriture par heure`}
+                  </p>
                 )}
               </li>
             );

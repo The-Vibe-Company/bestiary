@@ -1,0 +1,9 @@
+{
+  "name": "Accueillir un Voyageur aux portes",
+  "steps": [
+    { "do": "open", "path": "/jeu" },
+    { "do": "click", "target": { "role": "link", "name": "Habitants, un Voyageur attend" }, "lands": "/jeu/habitants" },
+    { "do": "click", "target": { "role": "button", "name": "Accueillir Sael" } },
+    { "do": "see", "text": "5 Habitants sur 5 places" }
+  ]
+}

@@ -25,8 +25,8 @@ describe("les styles de la carte du Monde", () => {
     expect(regle(".carte")).toContain("-webkit-touch-callout: none;");
   });
 
-  it("montrent la carte sélectionnée au clavier d'un contour d'Encre, tracé dedans : la page coupe ce qui dépasse (US-0422)", () => {
-    expect(regle(".carte:focus-visible")).toContain("outline: 2px solid var(--encre);");
+  it("montrent la carte sélectionnée au clavier d'un contour de cuivre clair, tracé dedans : la page coupe ce qui dépasse (US-0422)", () => {
+    expect(regle(".carte:focus-visible")).toContain("outline: 2px solid var(--cuivre-clair);");
     expect(regle(".carte:focus-visible")).toContain("outline-offset: -2px;");
   });
 
@@ -39,16 +39,18 @@ describe("les styles de la carte du Monde", () => {
     expect(boutons).toMatch(/right: calc\(\d+px \+ var\(--bord-droit\)\);/);
     expect(boutons).toMatch(/bottom: calc\(\d+px /);
     expect(boutons).toContain("flex-direction: column;");
-    expect(Number(boutons.match(/gap: (\d+)px;/)?.[1])).toBeGreaterThanOrEqual(8);
+    // Dans une même colonne de verre, « + » et « − » séparés d'un filet.
+    expect(boutons).toContain("background: var(--fond-verre);");
+    expect(regle(".filet", zoom)).toContain("height: 1px;");
     const bouton = regle(".bouton", zoom);
     expect(bouton).toContain("width: 44px;");
     expect(bouton).toContain("height: 44px;");
     expect(bouton).toContain("cursor: pointer;");
     expect(bouton).toContain("font: inherit;");
     const grise = regle(".bouton:disabled", zoom);
-    expect(grise).toContain("color: var(--galet);");
+    expect(grise).toContain("color: var(--eteint);");
     expect(grise).toContain("cursor: default;");
-    expect(regle(".bouton:focus-visible", zoom)).toContain("outline: 2px solid var(--encre);");
+    expect(regle(".bouton:focus-visible", zoom)).toContain("outline: 2px solid var(--cuivre-clair);");
   });
 
   it("gardent les boutons de la carte en vue au-dessus du panneau ouvert en bas sur mobile, légende ou fiche d'une Case (US-0426)", () => {
@@ -57,12 +59,12 @@ describe("les styles de la carte du Monde", () => {
     // Sur un écran d'ordinateur peu haut, au-dessus du panneau flottant de la légende quand il descend jusqu'à eux.
     const legende = lire("Legende.module.css");
     expect(Number(regle(".boutons", zoom).match(/z-index: (\d+);/)?.[1])).toBeGreaterThan(Number(regle(".legende", legende).match(/z-index: (\d+);/)?.[1]));
-    // Le repère du Foyer pour icône : citron cerné d'Encre, comme sur la carte.
-    expect(regle(".repere path", zoom)).toContain("fill: var(--citron);");
-    expect(regle(".repere path", zoom)).toContain("stroke: var(--encre);");
+    // Une hutte de cuivre clair pour icône, en tête de la colonne, sous un filet.
+    expect(regle(".hutte", zoom)).toContain("stroke: var(--cuivre-clair);");
+    expect(regle(".foyer", zoom)).toContain("border-bottom: 1px solid var(--filet-cuivre-doux);");
   });
 
-  it("posent une petite pastille citron cernée d'Encre, sa pointe d'Encre, à toucher du doigt, et rien quand le Foyer se voit (US-0426)", () => {
+  it("posent une petite pastille de verre cernée de cuivre, sa pointe de cuivre, à toucher du doigt, et rien quand le Foyer se voit (US-0426)", () => {
     const bouton = regle(".fleche", fleche);
     expect(bouton).toContain("position: absolute;");
     expect(bouton).toContain("width: 44px;");
@@ -71,9 +73,9 @@ describe("les styles de la carte du Monde", () => {
     expect(bouton).toContain("margin: -22px 0 0 -22px;");
     expect(bouton).toContain("cursor: pointer;");
     expect(regle(".fleche[hidden]", fleche)).toContain("display: none;");
-    expect(regle(".fleche circle", fleche)).toContain("fill: var(--citron);");
-    expect(regle(".fleche circle", fleche)).toContain("stroke: var(--encre);");
-    expect(regle(".fleche path", fleche)).toContain("stroke: var(--encre);");
+    expect(regle(".fleche circle", fleche)).toContain("fill: var(--verre-haut);");
+    expect(regle(".fleche circle", fleche)).toContain("stroke: var(--cuivre-clair);");
+    expect(regle(".fleche path", fleche)).toContain("stroke: var(--cuivre-clair);");
     expect(Number(regle(".fleche svg", fleche).match(/width: (\d+)px;/)?.[1])).toBeLessThanOrEqual(28);
   });
 
@@ -88,7 +90,7 @@ describe("les styles de la carte du Monde", () => {
     // Discret, sous la fiche et la légende, et la carte se manie au travers.
     const fiche = lire("FicheDeLaCase.module.css");
     expect(Number(compteur.match(/z-index: (\d+);/)?.[1])).toBeLessThan(Number(regle(".fiche", fiche).match(/z-index: (\d+);/)?.[1]));
-    expect(compteur).toContain("font-size: var(--taille-etiquette);");
+    expect(Number(compteur.match(/font-size: ([\d.]+)px;/)?.[1])).toBeLessThanOrEqual(14);
     expect(compteur).toContain("pointer-events: none;");
     // Faute de place, elle ne passe à la ligne qu'entre le nombre de Cases et la part du Monde.
     expect(regle(".compteur span", lire("CasesDecouvertes.module.css"))).toContain("white-space: nowrap;");

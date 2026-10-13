@@ -28,6 +28,10 @@ const stocks = vi.hoisted(() => ({
 vi.mock("@/monde/stocks", () => stocks);
 const famine = vi.hoisted(() => ({ departsNonLus: vi.fn(async (): Promise<{ recitId: number; habitants: number } | null> => null) }));
 vi.mock("@/monde/famine", async (original) => ({ ...(await original<object>()), departsNonLus: famine.departsNonLus }));
+// Ce que la navigation signale déjà, posé aussi sur la scène du Foyer : les Voyageurs aux portes, les Récits non lus.
+const signales = vi.hoisted(() => ({ nombreDeVoyageurs: vi.fn(async () => 0), nombreDeRecitsNonLus: vi.fn(async () => 0) }));
+vi.mock("@/monde/voyageurs", async (original) => ({ ...(await original<object>()), nombreDeVoyageurs: signales.nombreDeVoyageurs }));
+vi.mock("@/monde/recits", async (original) => ({ ...(await original<object>()), nombreDeRecitsNonLus: signales.nombreDeRecitsNonLus }));
 // US-0810 : le total des Bêtes du Territoire, lu sur base (src/monde/effectif.db.test.ts).
 const effectif = vi.hoisted(() => ({ nombreDeBetes: vi.fn(async () => 16) }));
 vi.mock("@/monde/effectif", () => effectif);
@@ -36,6 +40,9 @@ vi.mock("@/db", () => ({ getPool: () => ({}) }));
 vi.mock("next/server", async (original) => ({ ...(await original<object>()), connection: async () => {} }));
 
 import Foyer from "./page";
+
+/** Le médaillon peint d'un écriteau, devant sa phrase : il ne sert qu'aux yeux. */
+const MEDAILLON = '<span[^>]*aria-hidden="true"[^>]*><img[^>]*alt=""[^>]*/></span>';
 
 describe("écran du Foyer (US-0157)", () => {
   afterEach(() => {
@@ -54,7 +61,8 @@ describe("écran du Foyer (US-0157)", () => {
     const html = renderToStaticMarkup(await Foyer());
     expect(html).toMatch(/<img[^>]*alt="La hutte du chef, au toit de chaume et à la tête de loup, dans la prairie au petit matin"/);
     expect(html).toContain("foyer%2Fprairie.webp");
-    expect(html).toMatch(/<h1[^>]*>Foyer · prairie<\/h1>/);
+    // Le Biome dans son ton (cuivre), le titre se lit d'un trait : « Foyer · prairie ».
+    expect(html.match(/<h1[^>]*>(.*?)<\/h1>/)?.[1].replace(/<[^>]+>/g, "")).toBe("Foyer · prairie");
     expect(territoire.foyerDuTerritoire).toHaveBeenCalledWith(expect.anything(), 12);
   });
 
@@ -117,9 +125,21 @@ describe("écran du Foyer (US-0157)", () => {
     famine.departsNonLus.mockResolvedValueOnce({ recitId: 41, habitants: 3 });
     const html = renderToStaticMarkup(await Foyer());
     expect(famine.departsNonLus).toHaveBeenCalledWith(expect.anything(), 12);
-    expect(html).toMatch(/<p[^>]*><strong[^>]*>3 Habitants sont partis pendant votre absence<\/strong> ?<a[^>]*href="\/jeu\/recits"[^>]*>Lire<\/a><\/p>/);
-    // En haut de la page, avant l'illustration.
-    expect(html.indexOf("partis pendant votre absence")).toBeLessThan(html.indexOf("<img"));
+    expect(html).toMatch(new RegExp(`<p[^>]*>${MEDAILLON}<strong[^>]*>3 Habitants sont partis pendant votre absence</strong> ?<a[^>]*href="/jeu/recits"[^>]*>Lire</a></p>`));
+    // En haut de la page, avant l'illustration de la hutte.
+    expect(html.indexOf("partis pendant votre absence")).toBeLessThan(html.indexOf('alt="La hutte'));
+  });
+
+  it("pose sur la scène les Voyageurs aux portes et les Récits non lus, que la navigation signale, chacun avec son lien", async () => {
+    connecte();
+    signales.nombreDeVoyageurs.mockResolvedValueOnce(2);
+    signales.nombreDeRecitsNonLus.mockResolvedValueOnce(1);
+    const html = renderToStaticMarkup(await Foyer());
+    expect(signales.nombreDeVoyageurs).toHaveBeenCalledWith(expect.anything(), 12);
+    expect(html).toMatch(new RegExp(`<p[^>]*>${MEDAILLON}<strong[^>]*>2 Voyageurs aux portes</strong> ?<a[^>]*href="/jeu/habitants"[^>]*>Voir</a></p>`));
+    expect(html).toMatch(new RegExp(`<p[^>]*>${MEDAILLON}<strong[^>]*>1 Récit non lu</strong> ?<a[^>]*href="/jeu/recits"[^>]*>Lire</a></p>`));
+    signales.nombreDeVoyageurs.mockResolvedValueOnce(1);
+    expect(renderToStaticMarkup(await Foyer())).toContain("Un Voyageur aux portes");
   });
 
   it("montre « Foyer » seul pour un chef toujours sans Foyer (Monde complet)", async () => {

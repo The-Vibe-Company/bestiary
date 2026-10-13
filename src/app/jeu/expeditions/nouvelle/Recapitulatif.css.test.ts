@@ -16,10 +16,11 @@ describe("le récapitulatif sur un téléphone (US-0910)", () => {
     expect(recap).toContain("position: sticky;");
     expect(recap).toContain("bottom: calc(var(--hauteur-onglets) + var(--bord-bas) + 12px);");
     expect(recap).toContain("max-height: calc(var(--hauteur-utile) - 24px);");
-    // Déplié, seules les lignes défilent : le titre, son bouton et « Partir » restent en vue.
+    // Déplié, seul ce qu'il dit défile : le titre, son bouton et « Partir » restent en vue.
     expect(recap).toMatch(/display: flex;[^}]*flex-direction: column;/);
-    expect(regle(".defilant", mobile)).toMatch(/min-height: 0;[^}]*overflow-y: auto;/);
-    // Sur ordinateur, il reste à sa place, au pied de l'écran.
+    expect(regle(".defilant", RECAP)).toContain("min-height: 0;");
+    expect(regle(".defilant", mobile)).toContain("overflow-y: auto;");
+    // Sur ordinateur, il reste à sa place, à côté de ce qu'on compose.
     expect(regle(".recap", RECAP)).not.toContain("position");
   });
 
@@ -28,18 +29,17 @@ describe("le récapitulatif sur un téléphone (US-0910)", () => {
   });
 
   it("y est replié sur l'heure de retour prévue et le départ : son bouton, au pouce, déplie tout, sans rien cacher dessous", () => {
-    expect(regle(".recap:not(.deplie) .lignes > :not([data-essentiel]),\n  .recap:not(.deplie) .manger", mobile)).toContain("display: none;");
-    expect(regle(".lignes > :first-child,\n  .recap:not(.deplie) [data-essentiel]", mobile)).toContain("padding-right: 30px;");
+    expect(regle(".recap:not(.deplie) .peinture,\n  .recap:not(.deplie) .lignes,\n  .recap:not(.deplie) .frise,\n  .recap:not(.deplie) .manger", mobile)).toContain("display: none;");
+    expect(regle(".recap:not(.deplie) .retourPrevu", mobile)).toContain("padding: 0 30px 0 0;");
     expect(regle(".deplier", mobile)).toMatch(/width: 44px;[^}]*height: 44px;/);
     expect(regle(".deplier", mobile)).toContain("cursor: pointer;");
-    expect(regle(".deplier:focus-visible", mobile)).toContain("outline: 2px solid var(--encre);");
+    expect(regle(".deplier:focus-visible", mobile)).toContain("outline: 2px solid var(--cuivre-clair);");
     // Sur ordinateur, tout se lit : rien à déplier.
     expect(regle(".deplier", RECAP)).toContain("display: none;");
   });
 
-  it("tient sans défilement de côté : rien n'y a de largeur fixe plus grande que l'écran, à l'écart des autres blocs", () => {
+  it("tient sans défilement de côté : rien n'y a de largeur fixe plus grande que l'écran, ses lignes dans la largeur qui reste", () => {
     expect(RECAP).not.toMatch(/(?:^|[^-])width: \d{3,}px/);
-    expect(regle(".lignes > div", RECAP)).toContain("grid-template-columns: 96px minmax(0, 1fr);");
-    expect(regle(".recap", RECAP)).toContain("margin-top: var(--ecart);");
+    expect(regle(".lignes", RECAP)).toContain("grid-template-columns: auto minmax(0, 1fr);");
   });
 });

@@ -8,9 +8,9 @@ import { Attente } from "./Attente";
 const CSS = readFileSync(join(process.cwd(), "src/app/jeu/carte/etats.module.css"), "utf8");
 
 describe("l'attente de la carte (US-0434)", () => {
-  it("se tient dans un bloc Bento, et le dit aux lecteurs d'écran sans phrase de plus", () => {
+  it("se tient dans un petit panneau de verre du kit, et le dit aux lecteurs d'écran sans phrase de plus", () => {
     const html = renderToStaticMarkup(<Attente />);
-    expect(html).toMatch(/^<div class="[^"]*attente[^"]*"><section class="[^"]*bloc[^"]*">/);
+    expect(html).toMatch(/^<div class="[^"]*attente[^"]*"><section class="[^"]*panneau[^"]*verre[^"]*">/);
     expect(html).toMatch(/<p role="status" class="[^"]*annonce[^"]*">Chargement de la carte<\/p>/);
     // Rien d'autre à lire : quelques Cases qui palpitent, en attendant les autres.
     expect(html.replace(/<p[^>]*>[^<]*<\/p>/g, "").replace(/<[^>]+>/g, "")).toBe("");

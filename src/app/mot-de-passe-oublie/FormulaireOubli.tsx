@@ -5,6 +5,7 @@ import { useActionState, useEffect, useState } from "react";
 import { JEU_INJOIGNABLE } from "@/app/inscription/etat";
 import { lireAdresseRetenue, retenirAdresse } from "@/comptes/adresse-retenue";
 import { normaliserEmail, verifierEmail } from "@/comptes/email";
+import { BOUTON_ENTREE } from "@/components/PageEntree";
 import { LIEN_REINITIALISATION_MINUTES } from "@/reglages";
 import styles from "../entree.module.css";
 import { demanderLien } from "./actions";
@@ -41,7 +42,7 @@ export function FormulaireOubli() {
         <p className={styles.aide}>
           Le lien reste valable {LIEN_REINITIALISATION_MINUTES} minutes. Pensez à regarder aussi dans les indésirables.
         </p>
-        <Link href="/connexion" className={styles.envoyer} onClick={() => retenirAdresse(normaliserEmail(email))}>
+        <Link href="/connexion" className={`${BOUTON_ENTREE} ${styles.envoyer}`} onClick={() => retenirAdresse(normaliserEmail(email))}>
           Revenir à la connexion
         </Link>
       </div>
@@ -88,7 +89,7 @@ export function FormulaireOubli() {
           </p>
         ) : null}
       </div>
-      <button type="submit" className={styles.envoyer} disabled={enAttente}>
+      <button type="submit" className={`${BOUTON_ENTREE} ${styles.envoyer}`} disabled={enAttente}>
         {enAttente ? (
           <>
             <span className={styles.roue} aria-hidden="true" />

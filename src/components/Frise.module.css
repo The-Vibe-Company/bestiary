@@ -1,0 +1,106 @@
+/*
+ * La frise d'une Expédition (Frise.tsx) : l'aller, le séjour et le retour côte à côte, chacun son trait (le ::before de
+ * son temps) au-dessus de son nom, en petite étiquette.
+ */
+.frise {
+  display: flex;
+  gap: 3px;
+  margin: 0;
+}
+
+.frise > * {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* Le trait garde toute la largeur de son temps, même quand son nom s'aligne au milieu ou à droite. */
+.frise > ::before {
+  content: "";
+  display: block;
+  align-self: stretch;
+  border-radius: 1px;
+}
+
+/* ---------- Les durées : un trait à la mesure de chacune, sa durée sous son nom ---------- */
+
+.durees > * {
+  flex: 1 1 0;
+  min-width: 62px;
+}
+
+/* Le trait : épais, l'aller et le retour en eau, le séjour en cuivre ; le nom un peu plus bas. */
+.durees > ::before {
+  height: 10px;
+  margin-bottom: 4px;
+  background: linear-gradient(180deg, var(--eau-claire), var(--eau));
+}
+
+.durees > [data-temps="sejour"]::before {
+  background: var(--fond-cuivre);
+}
+
+.durees dt {
+  color: var(--lichen);
+  font: var(--graisse-moyenne) var(--taille-etiquette) / 1 var(--police-etroite);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.durees dd {
+  margin: 0;
+  color: var(--creme);
+  font: var(--graisse-titre) 14px / 1 var(--police);
+  white-space: nowrap;
+}
+
+/* L'aller à gauche, le séjour au milieu, le retour à droite. */
+.durees > [data-temps="sejour"] {
+  align-items: center;
+}
+
+.durees > [data-temps="retour"] {
+  align-items: flex-end;
+}
+
+/* ---------- La progression : trois traits égaux, fins, celui de la phase en cours qui se remplit ---------- */
+
+.progression {
+  gap: 4px;
+}
+
+.progression > * {
+  flex: 1 1 0;
+  gap: 7px;
+  color: var(--lichen);
+  font: var(--graisse-moyenne) var(--taille-etiquette) / 1 var(--police-etroite);
+  letter-spacing: var(--espacement-etiquette);
+  text-transform: uppercase;
+}
+
+.progression > ::before {
+  height: 5px;
+  background: var(--creux-clair);
+}
+
+/* Un temps passé : plein d'eau, son nom en mousse. */
+.progression > [data-etat="fait"] {
+  color: var(--mousse);
+}
+
+.progression > [data-etat="fait"]::before {
+  background: linear-gradient(90deg, var(--eau), var(--eau-claire));
+}
+
+/* La phase en cours : le cuivre jusqu'où elle en est (--part), le creux au-delà ; son nom en cuivre clair. */
+.progression > [data-etat="en-cours"] {
+  --part: 0%;
+  color: var(--cuivre-clair);
+}
+
+.progression > [data-etat="en-cours"]::before {
+  background:
+    linear-gradient(90deg, var(--cuivre-sombre), var(--cuivre-clair)) 0 0 / var(--part) 100% no-repeat,
+    var(--creux-clair);
+}

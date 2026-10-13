@@ -20,14 +20,14 @@ describe("le repère d'une Bête repérée sur la carte (US-0948)", () => {
     expect(regle(".repere")).toContain("pointer-events: none;");
   });
 
-  it("est une pastille pêche cernée d'Encre, autre que le ciel des Expéditions, cernée de citron quand sa fiche est ouverte", () => {
+  it("est une pastille pêche cernée d'Encre, autre que le ciel des Expéditions, cernée de crème et de vert quand sa fiche est ouverte", () => {
     expect(regle(".pastille")).toMatch(/fill: var\(--peche\);[^}]*stroke: var\(--encre\);/);
     expect(regle(".empreinte")).toContain("fill: var(--encre);");
-    expect(regle(".halo")).toMatch(/fill: var\(--citron\);[^}]*visibility: hidden;/);
+    expect(regle(".halo")).toMatch(/fill: var\(--cuivre-pale\);[^}]*stroke: var\(--cuivre\);[^}]*visibility: hidden;/);
     expect(regle('.repere[aria-expanded="true"] .halo')).toContain("visibility: visible;");
   });
 
   it("se voit au clavier", () => {
-    expect(regle(".repere:focus-visible")).toContain("outline: 2px solid var(--encre);");
+    expect(regle(".repere:focus-visible")).toContain("outline: 2px solid var(--cuivre-clair);");
   });
 });

@@ -1,10 +1,20 @@
-/* La typographie du prototype : Plus Jakarta Sans partout, 800 pour les titres et les nombres. */
+/*
+ * La typographie du jeu (choisie le 2026-10-13) : Bree Serif pour les titres, franche et chaleureuse, sans gras ; Nunito
+ * Sans pour le texte, les nombres, les boutons et les étiquettes en capitales espacées. Les polices viennent de
+ * src/styles/fonts.ts.
+ */
 :root {
-  --police: var(--font-jakarta), system-ui, sans-serif;
-  --taille-texte: 14.5px;
-  --graisse-texte: 500;
-  --graisse-titre: 800;
-  /* Les étiquettes : titres de blocs, en petites capitales espacées */
-  --taille-etiquette: 12px;
-  --espacement-etiquette: 0.06em;
+  --police: var(--font-nunito-sans), "Helvetica Neue", Arial, sans-serif;
+  --police-titre: var(--font-bree), Georgia, serif;
+  --police-capitales: var(--font-bree), Georgia, serif;
+  --police-etroite: var(--font-nunito-sans), sans-serif;
+  --taille-texte: 14px;
+  /* Le texte courant ; l'interface (un onglet, un libellé) ; ce qui compte (un nombre, un bouton, un nom). Les titres en
+     Bree Serif restent en 400 : la police n'a qu'une graisse. */
+  --graisse-texte: 400;
+  --graisse-moyenne: 500;
+  --graisse-titre: 600;
+  /* Les étiquettes : en Nunito Sans, petites, en capitales très espacées (au vert sapin dans le jeu). */
+  --taille-etiquette: 11px;
+  --espacement-etiquette: 0.16em;
 }

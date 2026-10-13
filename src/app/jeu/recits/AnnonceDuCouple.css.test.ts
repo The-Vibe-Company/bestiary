@@ -22,8 +22,9 @@ describe("l'annonce du Couple réuni sur un téléphone (US-0958)", () => {
     expect(CSS.match(/@media [^{]*\{/g)).toEqual(["@media (max-width: 540px) and (orientation: portrait) {"]);
   });
 
-  it("garde l'illustration sous la hauteur utile sur un écran bas, à côté de son nom", () => {
-    expect(regle(".couple")).toContain("--cote: min(220px, calc(var(--hauteur-utile) - 48px));");
+  it("garde l'illustration sous la hauteur utile sur un écran bas, et dans une liste étroite, à côté de son nom", () => {
+    expect(regle(".annonce")).toContain("container-type: inline-size;");
+    expect(regle(".couple")).toContain("--cote: min(220px, 38cqi, calc(var(--hauteur-utile) - 48px));");
     expect(regle(".couple")).toContain("grid-template-columns: var(--cote) minmax(0, 1fr);");
   });
 
@@ -37,6 +38,6 @@ describe("l'annonce du Couple réuni sur un téléphone (US-0958)", () => {
 
   it("met le lien « Élever » au pouce : 44 px de haut, avec un contour au clavier (US-0812)", () => {
     expect(regle(".elever")).toContain("min-height: 44px;");
-    expect(regle(".elever:focus-visible")).toContain("outline: 2px solid var(--citron);");
+    expect(regle(".elever:focus-visible")).toContain("outline: 2px solid var(--cuivre-clair);");
   });
 });

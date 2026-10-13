@@ -1,4 +1,27 @@
-/* US-0909 : le bloc sans escorte, sous les Explorateurs, à l'écart des blocs Bento. */
+/* US-0909 : le panneau sans escorte, à côté des Explorateurs (page.module.css les range). */
 .bloc {
-  margin-top: var(--ecart);
+  min-width: 0;
+}
+
+/* Deux places vides d'escorte, puis la phrase, à côté. */
+.sans {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.places {
+  display: inline-flex;
+  flex: none;
+  gap: 6px;
+}
+
+/* Plus grandes que le médaillon « md » du kit. */
+.places > .place {
+  --taille: 38px;
+}
+
+.note {
+  color: var(--mousse);
+  font: var(--graisse-texte) 12.5px / 1.45 var(--police);
 }

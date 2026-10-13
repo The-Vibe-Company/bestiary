@@ -1,26 +1,74 @@
-/* Les formes du prototype Bento : coins arrondis, marges intérieures et écarts. */
+/*
+ * Les formes du jeu : les coins, les ornements et les ombres des pièces du kit (src/components/kit.module.css), et la
+ * place que prend la barre du haut (le blason, le nom du chef, la navigation, les Stocks, l'avertissement de famine).
+ * Hors du jeu, des coins ronds ; dans un écran du jeu, des coins nets de 3 px (globals.css les reprend).
+ */
 :root {
-  --arrondi: 12px;
-  --arrondi-moyen: 10px;
-  --arrondi-petit: 6px;
+  --arrondi: 18px;
+  --arrondi-moyen: 14px;
+  --arrondi-petit: 10px;
+  /* Le coin net du jeu : panneaux, boutons, champs ; 2 px pour une peinture dans un panneau. */
+  --arrondi-net: 3px;
+  --arrondi-image: 2px;
   --marge-bloc: 16px 18px;
-  --ecart: 12px;
-  --ecart-mobile: 10px;
-  /* Ouvert depuis l'écran d'accueil d'un iPhone, le jeu passe sous l'heure et l'encoche : la barre du
-     haut descend d'autant, et la page laisse libres les bords de l'écran (US-0164). */
+  --ecart: 14px;
+  --ecart-mobile: 12px;
+
+  /*
+   * Les ornements d'un panneau, des formes seules que le cuivre colore (un masque, voir .panneau dans le kit) : à chaque
+   * coin, un filet qui suit le bord, cassé en biais, et un petit losange plein.
+   */
+  --coin-haut-gauche: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M.5 15V5.5L5.5.5H15' fill='none' stroke='%23000' stroke-opacity='.8'/%3E%3Cpath d='M4.5 2.6 6.4 4.5 4.5 6.4 2.6 4.5z'/%3E%3C/svg%3E");
+  --coin-haut-droit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M15.5 15V5.5L10.5.5H1' fill='none' stroke='%23000' stroke-opacity='.8'/%3E%3Cpath d='M11.5 2.6 13.4 4.5 11.5 6.4 9.6 4.5z'/%3E%3C/svg%3E");
+  --coin-bas-gauche: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M.5 1v9.5l5 5H15' fill='none' stroke='%23000' stroke-opacity='.8'/%3E%3Cpath d='M4.5 9.6 6.4 11.5 4.5 13.4 2.6 11.5z'/%3E%3C/svg%3E");
+  --coin-bas-droit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M15.5 1v9.5l-5 5H1' fill='none' stroke='%23000' stroke-opacity='.8'/%3E%3Cpath d='M11.5 9.6 13.4 11.5 11.5 13.4 9.6 11.5z'/%3E%3C/svg%3E");
+  /* Les quatre ornements ensemble, à 4 px des coins : le masque du ::before d'un panneau. */
+  --masque-coins:
+    var(--coin-haut-gauche) left 4px top 4px / 16px 16px no-repeat,
+    var(--coin-haut-droit) right 4px top 4px / 16px 16px no-repeat,
+    var(--coin-bas-gauche) left 4px bottom 4px / 16px 16px no-repeat,
+    var(--coin-bas-droit) right 4px bottom 4px / 16px 16px no-repeat;
+  /* Le grain du fond du jeu : un bruit fin, posé à 5 % sur le dégradé sarcelle. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  /* Les fonds et les ombres du kit, faits des couleurs de la palette. */
+  --fond-du-jeu:
+    radial-gradient(1200px 600px at 18% -10%, var(--sarcelle-lumiere), transparent 60%),
+    radial-gradient(900px 500px at 105% 110%, var(--cuivre-brume), transparent 60%),
+    linear-gradient(180deg, var(--sarcelle-nuit), var(--sarcelle-abysse));
+  --fond-panneau: linear-gradient(180deg, var(--lumiere-haut), transparent 120px), linear-gradient(180deg, var(--panneau-haut), var(--panneau));
+  --fond-verre: linear-gradient(180deg, var(--verre-haut), var(--verre-bas));
+  --fond-bouton-principal: linear-gradient(180deg, var(--cuivre-bouton-haut), var(--cuivre-bouton) 60%, var(--cuivre-bouton-bas));
+  --fond-cuivre: linear-gradient(180deg, var(--cuivre-clair), var(--cuivre));
+  --fond-jauge: linear-gradient(180deg, var(--cuivre-clair), var(--cuivre) 70%, var(--cuivre-sombre));
+  --fond-disque: radial-gradient(circle at 50% 38%, var(--disque-coeur) 0%, var(--disque) 62%, var(--disque-bord) 100%);
+  --fond-choisi: linear-gradient(90deg, var(--cuivre-voile), var(--cuivre-survol) 70%, transparent);
+  --ombre-panneau: inset 0 1px 0 var(--lumiere-trait), 0 18px 40px -18px var(--ombre-profonde);
+  --ombre-verre: 0 10px 30px -10px var(--ombre-profonde);
+  --anneau-medaillon: 0 0 0 1px var(--cuivre-sombre), 0 0 0 2px var(--anneau-cuivre), 0 2px 6px var(--ombre-medaillon);
+  --anneau-medaillon-vif: 0 0 0 1px var(--cuivre-sombre), 0 0 0 2px var(--cuivre), 0 0 14px var(--cuivre-lueur);
+  /* L'anneau de l'action du jeu (l'entrée « Expéditions ») : le cuivre plein, sans la lueur de ce qui est choisi. */
+  --anneau-medaillon-action: 0 0 0 1px var(--cuivre-sombre), 0 0 0 2px var(--cuivre), 0 2px 6px var(--ombre-medaillon);
+  --ombre-bouton-principal: inset 0 1px 0 var(--lumiere-bouton), 0 4px 14px -4px var(--cuivre-lueur);
+  --ombre-texte-peinture: 0 2px 14px var(--ombre-noire);
+
+  /* Ouvert depuis l'écran d'accueil d'un iPhone, le jeu passe sous l'heure et l'encoche : le haut descend d'autant, et
+     la page laisse libres les bords de l'écran (US-0164). */
   --bord-haut: env(safe-area-inset-top, 0px);
   --bord-droit: env(safe-area-inset-right, 0px);
   --bord-bas: env(safe-area-inset-bottom, 0px);
   --bord-gauche: env(safe-area-inset-left, 0px);
-  /* La barre du haut : sa ligne, la bande des ressources sous elle sur mobile (US-0203), l'avertissement de
-     famine à son pied (US-0321), et l'encoche. */
+  /* Le haut de l'écran : sa ligne (le blason, le nom du chef, la navigation, les Stocks), la rangée des Stocks dessous
+     quand elle n'y tient pas (US-0203), la rangée de la navigation sur un téléphone (US-0302), l'avertissement de famine
+     à son pied (US-0321), et l'encoche. */
   --hauteur-ligne: 64px;
   --hauteur-bande: 0px;
+  --hauteur-nav: 0px;
   --hauteur-alerte: 0px;
-  --hauteur-barre: calc(var(--hauteur-ligne) + var(--hauteur-bande) + var(--hauteur-alerte) + var(--bord-haut));
-  /* Les onglets de la navigation, en bas de l'écran sur mobile (US-0302), au-dessus de l'encoche du bas. */
+  --hauteur-barre: calc(var(--hauteur-ligne) + var(--hauteur-bande) + var(--hauteur-nav) + var(--hauteur-alerte) + var(--bord-haut));
+  /* Rien au pied de l'écran : la navigation est en haut, sur toutes les tailles. */
   --hauteur-onglets: 0px;
-  /* La hauteur de l'écran entre la barre du haut et le bas de l'écran (ou ses onglets). */
+  /* La hauteur de l'écran sous les pièces du haut. */
   --hauteur-utile: calc(100dvh - var(--hauteur-barre) - var(--hauteur-onglets) - var(--bord-bas));
   /* US-0426 : les panneaux ouverts en bas de la carte sur mobile, la légende et la fiche d'une Case, publient ici leur
      hauteur sur la page ; rien tant qu'ils sont fermés, et sur ordinateur. */
@@ -28,44 +76,44 @@
   --hauteur-fiche: 0px;
 }
 
-/* Sur mobile, en portrait comme en paysage, la barre du haut reste basse pour laisser la place au jeu. */
+/* Sous 1 200 px, les Stocks ne tiennent plus à coup sûr à côté des onglets : ils passent en rangée dessous. */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  :root:has([data-bande-ressources]) {
+    --hauteur-bande: 52px;
+  }
+}
+
+/*
+ * Sur une tablette et un téléphone (comme la maquette, sous 1 024 px), le haut s'empile : la ligne du blason, du nom et
+ * du compteur d'Habitants ; la rangée des Stocks, chacun son solde sous sa quantité (US-0319) ; la rangée des six
+ * onglets (US-0302). Toujours en haut, jamais au pied de l'écran.
+ */
+@media (max-width: 1023px) {
+  :root:has([data-onglets]) {
+    --hauteur-ligne: 56px;
+    --hauteur-nav: 58px;
+  }
+
+  :root:has([data-bande-ressources]) {
+    --hauteur-bande: 51px;
+  }
+}
+
+/* Hors du jeu, sur mobile, en portrait comme en paysage, le haut reste bas pour laisser la place à la page. */
 @media (max-width: 820px), (max-height: 500px) {
   :root {
-    --hauteur-ligne: 48px;
+    --hauteur-ligne: 56px;
   }
 }
 
-/* Sous 1490 px, les ressources ne tiennent plus à coup sûr sur la ligne avec la navigation (US-0324, US-0901,
-   US-0801) : elles passent en bande sous la barre, qui grandit d'autant. */
-@media (max-width: 1489px) {
-  :root:has([data-bande-ressources]) {
-    --hauteur-bande: 44px;
-  }
-}
-
-/* US-0319 : sur mobile, le solde horaire passe sous la quantité, sur une troisième ligne : la bande grandit d'autant. */
-@media (max-width: 820px) {
-  :root:has([data-bande-ressources]) {
-    --hauteur-bande: 56px;
-  }
-}
-
-/* Sur un téléphone en portrait, la navigation passe en onglets en bas de l'écran : la page s'arrête
-   au-dessus (voir globals.css). */
-@media (max-width: 820px) {
-  :root:has([data-onglets]) {
-    --hauteur-onglets: 52px;
-  }
-}
-
-/* US-0321 : l'avertissement « famine imminente », au pied de la barre du haut, qui grandit d'autant. */
+/* US-0321 : l'avertissement « famine imminente », sous les pièces du haut, qui descendent d'autant. */
 :root:has([data-alerte-famine]) {
-  --hauteur-alerte: 36px;
+  --hauteur-alerte: 46px;
 }
 
 /* Sur un téléphone, il passe sur deux lignes : « Famine imminente », puis le temps qui reste. */
 @media (max-width: 540px) {
   :root:has([data-alerte-famine]) {
-    --hauteur-alerte: 52px;
+    --hauteur-alerte: 60px;
   }
 }

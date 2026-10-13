@@ -1,0 +1,68 @@
+/*
+ * La jauge (Jauge.tsx) : un creux au filet de cuivre, le remplissage en cuivre dégradé ; fine sous une ligne ; rayée de
+ * braise quand elle déborde ; en cases, une par unité.
+ */
+.jauge {
+  --part: 0%;
+  position: relative;
+  display: flex;
+  height: 12px;
+  overflow: hidden;
+  border-radius: var(--arrondi-image);
+  background: var(--creux-clair);
+  box-shadow: inset 0 0 0 1px var(--filet-cuivre);
+}
+
+.remplissage {
+  display: block;
+  width: var(--part);
+  height: 100%;
+  background: var(--fond-jauge);
+}
+
+/* Fine : 4 px, sans filet, le cuivre de plus en plus clair vers sa pointe. */
+.fine {
+  height: 4px;
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+.fine .remplissage {
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--cuivre-sombre), var(--cuivre-clair));
+}
+
+/* Ce qui reste : remplie depuis la droite. */
+.inverse {
+  justify-content: flex-end;
+}
+
+/* Elle déborde : rayée de braise. */
+.trop .remplissage {
+  background: repeating-linear-gradient(-45deg, var(--braise-claire) 0 6px, var(--braise-sombre) 6px 12px);
+}
+
+/* En cases : une par unité, les prises en cuivre, celles de trop en braise. */
+.cases {
+  --cases: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--cases), minmax(0, 1fr));
+  gap: 2px;
+  height: 12px;
+}
+
+.cases > i {
+  border-radius: 1px;
+  background: var(--creux-clair);
+  box-shadow: inset 0 0 0 1px var(--anneau-cuivre);
+}
+
+.cases > .casePrise {
+  background: var(--fond-jauge);
+  box-shadow: none;
+}
+
+.cases > .caseDeTrop {
+  background: var(--braise);
+  box-shadow: none;
+}

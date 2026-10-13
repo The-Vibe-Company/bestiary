@@ -2,6 +2,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import kit from "@/components/kit.module.css";
 
 /**
  * Next.js relie window.history.replaceState à useSearchParams ; la simulation fait de même : l'écran relit
@@ -66,6 +67,12 @@ describe("choisir les explorateurs (US-0902)", () => {
   it("propose les explorateurs libres avec le compteur « libres / total », puis combien partent, entre « − » et « + »", () => {
     ecran(2, 3);
     expect(textes()).toEqual(["Explorateurs", "Libres", "2 / 3", "Partent", "−", "0", "+"]);
+  });
+
+  it("choisit entre « − » et « + » du pas du kit, au pouce", () => {
+    ecran(2, 3);
+    expect(plus().parentElement!.className.split(" ")).toContain(kit.pas);
+    expect([moins(), plus()].map((b) => b.className.split(" ").includes(kit.pasBouton))).toEqual([true, true]);
   });
 
   it("part de zéro : le bouton de départ est grisé et dit pourquoi", () => {

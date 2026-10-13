@@ -1,0 +1,35 @@
+/* L'état d'un Habitant (Etat.tsx) : un point de 7 px devant son mot. */
+.etat {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: var(--graisse-moyenne) 13.5px / 1 var(--police);
+  white-space: nowrap;
+}
+
+.point {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+/* Libre : la mousse, un point de feuille et son halo. */
+.libre {
+  color: var(--mousse);
+}
+
+.libre .point {
+  background: var(--feuille);
+  box-shadow: 0 0 0 3px var(--feuille-halo);
+}
+
+/* En Expédition : le cuivre clair, un point qui luit. */
+.expedition {
+  color: var(--cuivre-clair);
+}
+
+.expedition .point {
+  background: var(--cuivre-clair);
+  box-shadow: 0 0 0 3px var(--cuivre-halo), 0 0 8px var(--cuivre-lueur);
+}

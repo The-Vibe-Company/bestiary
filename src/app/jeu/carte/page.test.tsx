@@ -166,9 +166,9 @@ describe("page Carte (US-0417)", () => {
     expect(betes).toEqual([{ ...bete, jusquA: bete.jusquA.toISOString() }]);
   });
 
-  it("prend toute la place sous la barre du haut, sans défiler", () => {
+  it("prend tout l'écran, sous les pièces du haut et la rangée des médaillons posées sur elle, sans défiler", () => {
     const css = readFileSync(join(process.cwd(), "src/app/jeu/carte/page.module.css"), "utf8");
-    expect(css).toMatch(/\.page \{[^}]*height: var\(--hauteur-utile\);[^}]*overflow: hidden;/);
+    expect(css).toMatch(/\n\.page \{[^}]*position: fixed;[^}]*inset: 0;[^}]*overflow: hidden;/);
     expect(css).toMatch(/\.carte \{[^}]*display: block;[^}]*width: 100%;[^}]*height: 100%;/);
   });
 
@@ -208,6 +208,15 @@ describe("la carte ouverte pour choisir la destination d'une Expédition (US-090
     connecte();
     expect(proprietes(renderToStaticMarkup(await Carte(ouverte({ choix: "destination" })))).destination).toBe("choix=destination");
     expect(proprietes(renderToStaticMarkup(await Carte(ouverte({ choix: "destination", sejour: "60" })))).destination).toBe("choix=destination&sejour=60");
+  });
+
+  it("le dit aussi au joueur, d'un écriteau en haut de la carte : « Choisir une destination », sans autre phrase", async () => {
+    connecte();
+    const html = renderToStaticMarkup(await Carte(ouverte({ choix: "destination", sejour: "60" })));
+    expect(html).toMatch(/^<main[^>]*><h1[^>]*>Carte<\/h1><p[^>]*>(?:(?!<\/p>).)*Choisir une destination<\/p><canvas/);
+    // Ouverte depuis la navigation, ou pour un autre choix, la carte n'a pas d'écriteau.
+    expect(renderToStaticMarkup(await Carte(ouverte()))).not.toContain("Choisir une destination");
+    expect(renderToStaticMarkup(await Carte(ouverte({ choix: "autre" })))).not.toContain("Choisir une destination");
   });
 
   it("ouverte depuis la navigation, ou pour un autre choix, ne choisit pas de destination", async () => {

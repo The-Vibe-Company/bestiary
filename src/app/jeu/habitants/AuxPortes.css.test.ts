@@ -5,116 +5,106 @@ import { describe, expect, it } from "vitest";
 /** La feuille de style de la partie « Aux portes », lue telle qu'elle est écrite. */
 const CSS = readFileSync(join(process.cwd(), "src/app/jeu/habitants/AuxPortes.module.css"), "utf8");
 
-/** Les déclarations de la règle `selecteur`, écrite en tête de ligne, et seule (pas à la suite d'un autre sélecteur). */
-const regle = (selecteur: string) => CSS.match(new RegExp(`(?<!,)\\n${selecteur.replace(/[.*+?^${}()|[\]\\:,]/g, "\\$&")} \\{([^}]*)\\}`))?.[1] ?? "";
+/** Les déclarations de la règle `selecteur`, écrite en tête de ligne, et seule (pas à la suite d'un autre sélecteur), dans `texte`. */
+const regle = (selecteur: string, texte = CSS) => texte.match(new RegExp(`(?<!,)\\n\\s*${selecteur.replace(/[.*+?^${}()|[\]\\:,>]/g, "\\$&")} \\{([^}]*)\\}`))?.[1] ?? "";
 
 /** Le nombre de pixels d'une déclaration de la règle `selecteur` (« gap: 12px; »), ou NaN. */
-const pixels = (selecteur: string, propriete: string) => Number(regle(selecteur).match(new RegExp(`\\b${propriete}: (\\d+)px;`))?.[1]);
+const pixels = (selecteur: string, propriete: string, texte = CSS) => Number(regle(selecteur, texte).match(new RegExp(`\\b${propriete}: (\\d+)px;`))?.[1]);
 
-describe("la partie « Aux portes » sur mobile (US-0343)", () => {
-  it("met chaque Voyageur dans un bloc à lui, les uns sous les autres, sur une seule colonne", () => {
+/** Ce que dit la carte quand elle a la place : le bloc @container. */
+const LARGE = CSS.slice(CSS.indexOf("@container (min-width: 320px)"));
+
+describe("la carte d'un Voyageur aux portes (US-0332, US-0343)", () => {
+  it("met chaque Voyageur dans une carte à lui, les unes sous les autres, séparées d'un filet doux", () => {
     expect(regle(".voyageurs")).toContain("display: grid;");
     expect(regle(".voyageurs")).not.toContain("grid-template-columns");
-    expect(regle(".voyageur")).toMatch(/border-radius: var\(--arrondi-petit\);[^}]*background: var\(--bloc-2\);/);
+    expect(regle(".voyageur + .voyageur")).toContain("border-top: 1px solid var(--filet-cuivre-doux);");
   });
 
-  it("passe le bloc en une colonne quand la ligne est trop étroite pour le compte à rebours à côté : le prénom, depuis quand, puis le compte", () => {
+  it("pose dans la colonne étroite le portrait au-dessus, son prénom dessus, puis l'arrivée et le départ, la jauge, le Métier, ce qu'il mangera et les boutons", () => {
+    expect(regle(".voyageur")).toMatch(
+      /grid-template-areas:\s*"portrait portrait"\s*"arrivee depart"\s*"temps temps"\s*"metier metier"\s*"metiers metiers"\s*"entretien entretien"\s*"choix choix";/,
+    );
+    expect(regle(".voyageur")).toContain("grid-template-columns: minmax(0, 1fr) auto;");
+    // Le prénom se pose sur le pied du portrait, en Marcellus, au-dessus de son voile.
+    expect(regle(".prenom")).toMatch(/z-index: 1;[^}]*grid-area: portrait;[^}]*align-self: end;/);
+    expect(regle(".prenom")).toContain("font: 400 30px / 1 var(--police-titre);");
+  });
+
+  it("met le portrait à gauche dès que la carte a la place, comme sur un téléphone, sans largeur qui pousse la page de côté", () => {
     expect(regle(".voyageurs")).toContain("container-type: inline-size;");
-    const etroit = CSS.match(/@container \(max-width: (\d+)px\) \{([\s\S]*?)\n\}/);
-    // Sous 280 px de ligne, comme sur un téléphone de 320 px ; 375 px et la colonne de l'ordinateur gardent le compte à côté.
-    expect(Number(etroit?.[1])).toBe(279);
-    expect(etroit?.[2]).toMatch(/\.voyageur \{[^}]*grid-template-columns: minmax\(0, 1fr\);/);
-    expect(etroit?.[2]).toMatch(/\.depart \{[^}]*grid-row: auto;[^}]*grid-column: auto;[^}]*text-align: left;/);
+    expect(regle(".voyageur", LARGE)).toMatch(/grid-template-areas:\s*"portrait arrivee"\s*"portrait depart"/);
+    expect(regle(".voyageur", LARGE)).toContain("grid-template-columns: clamp(112px, 30%, 180px) minmax(0, 1fr);");
+    // Les Métiers dépliés prennent alors toute la largeur, sous le bouton du Métier.
+    expect(regle(".voyageur:has(> .metiers)", LARGE)).toMatch(/"portrait metier"\s*"metiers metiers"/);
   });
 
-  it("donne à « Accueillir » et « Refuser » au moins 44 px de haut et au moins 12 px d'écart, sur toute la largeur du bloc", () => {
-    expect(pixels(".accueillir,\n.refuser", "min-height")).toBeGreaterThanOrEqual(44);
-    expect(pixels(".choix", "gap")).toBeGreaterThanOrEqual(12);
-    expect(regle(".choix")).toContain("grid-column: 1 / -1;");
-    expect(regle(".accueillir,\n.refuser")).toMatch(/flex: 1 1 0;[^}]*min-width: 0;/);
+  it("tient dans la colonne d'un grand écran : le portrait prend la hauteur qui reste, de 84 à 220 px, moins quand une phrase s'ajoute ou que plusieurs attendent", () => {
+    const grand = CSS.slice(CSS.indexOf("@media (min-width: 1024px) and (min-height: 600px)"));
+    expect(regle(".portrait", grand)).toContain("height: clamp(84px, calc(var(--hauteur-utile) - 600px), 220px);");
+    expect(regle(".auxPortes:has(> .plusDePlace, > .famine, > .annonce) .portrait", grand)).toContain("height: clamp(84px, calc(var(--hauteur-utile) - 650px), 220px);");
+    expect(regle(".voyageurs:has(> li + li) .portrait", grand)).toContain("height: 96px;");
   });
 
-  it("fait de « Refuser » le bouton secondaire : cerné d'un trait sur le fond du bloc, quand « Accueillir » est plein, en Encre", () => {
-    expect(regle(".accueillir")).toMatch(/background: var\(--encre\);[^}]*color: var\(--blanc-chaud\);/);
-    expect(regle(".refuser")).toMatch(/background: var\(--bloc\);[^}]*box-shadow: inset 0 0 0 1px var\(--trait\);/);
-  });
-
-  it("ne pousse jamais la page de côté : ni largeur fixe, ni texte qui refuse d'aller à la ligne", () => {
-    expect(CSS).not.toMatch(/[^-]width: \d/);
-    expect(CSS).not.toMatch(/min-width: [1-9]/);
+  it("ne pousse jamais la page de côté : pas d'autre largeur fixe que celle des petits signes, aucun texte qui refuse d'aller à la ligne", () => {
+    // (Hors de la condition du bloc @container, qui n'impose rien.)
+    for (const [, largeur] of CSS.matchAll(/(?<![\w(-])(?:min-)?width: (\d+)px/g)) expect(Number(largeur)).toBeLessThanOrEqual(14);
     expect(CSS).not.toContain("nowrap");
+    // Les boutons vont à la ligne plutôt que de déborder (le kit les garde sur une ligne).
+    expect(regle(".accueillir,\n.refuser")).toMatch(/min-width: 0;[^}]*white-space: normal;/);
   });
 });
 
-describe("la partie « Aux portes », le Métier choisi à l'accueil (US-0335)", () => {
-  it("pose le bouton du Métier sur sa propre ligne, sous le prénom et le compte à rebours, sur mobile aussi", () => {
-    // Plus précis que la règle de la liste qui, sur mobile, le range sous le prénom (page.module.css).
-    expect(regle(".voyageur > .metier")).toMatch(/grid-row: auto;[^}]*grid-column: 1 \/ -1;/);
+describe("accueillir ou refuser (US-0334, US-0336, US-0340)", () => {
+  it("met « Accueillir » et « Refuser » côte à côte, au moins 36 px de haut, « Accueillir » plus large dans la colonne étroite", () => {
+    expect(regle(".choix")).toMatch(/display: grid;[^}]*grid-area: choix;[^}]*grid-template-columns: minmax\(0, 1.4fr\) minmax\(0, 1fr\);/);
+    expect(pixels(".choix", "gap")).toBeGreaterThanOrEqual(8);
+    expect(pixels(".accueillir,\n.refuser", "min-height")).toBeGreaterThanOrEqual(36);
+    expect(regle(".choix", LARGE)).toContain("grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);");
   });
 
-  it("déplie les Métiers sur deux colonnes dans une ligne trop étroite pour quatre, comme sur un petit écran", () => {
-    const etroit = [...CSS.matchAll(/@container \(max-width: (\d+)px\) \{([\s\S]*?)\n\}/g)].find(([, , regles]) => regles.includes(".metiers"));
-    expect(Number(etroit?.[1])).toBe(479);
-    expect(etroit?.[2]).toMatch(/\.voyageur > \.metiers \{[^}]*grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\);/);
+  it("met ce qu'il mangera juste au-dessus des boutons, pour les yeux, quand il vient après eux pour un lecteur d'écran ; la confirmation à sa place", () => {
+    expect(regle(".entretien,\n.confirmation")).toContain("grid-area: entretien;");
+    const zones = regle(".voyageur").match(/grid-template-areas:([^;]*);/)?.[1] ?? "";
+    expect(zones.indexOf('"entretien entretien"')).toBeLessThan(zones.indexOf('"choix choix"'));
+  });
+
+  it("met « Confirmer l'accueil » dans la couleur d'alerte, qu'il garde au survol, et la phrase de la famine imminente en alerte (US-0340)", () => {
+    expect(regle(".accueillir[data-confirmer]")).toMatch(/border-color: var\(--braise\);[^}]*background: var\(--braise\);[^}]*color: var\(--sur-cuivre\);/);
+    expect(regle(".accueillir[data-confirmer]:hover")).toContain("background: var(--braise-claire);");
+    expect(regle(".confirmation")).toMatch(/color: var\(--braise\);[^}]*font-weight: var\(--graisse-titre\);/);
   });
 });
 
-describe("la partie « Aux portes », quand la place manque (US-0338)", () => {
-  it("grise visiblement « Accueillir » éteint, qui ne change plus au survol", () => {
-    expect(regle(".accueillir:disabled")).toMatch(/background: var\(--bloc-3\);[^}]*color: var\(--texte-pale\);[^}]*cursor: not-allowed;/);
-    expect(CSS).toContain(".accueillir:not(:disabled):hover {");
-    expect(CSS).not.toMatch(/\.accueillir:hover/);
+describe("le temps qui reste (US-0333)", () => {
+  it("met le compte à rebours en cuivre clair, en chiffres alignés, et celui qui s'achève dans la couleur d'alerte", () => {
+    expect(regle(".depart")).toMatch(/color: var\(--cuivre-clair\);[^}]*font-variant-numeric: tabular-nums;/);
+    expect(regle(".depart[data-alerte]")).toContain("color: var(--braise);");
+    expect(regle(".temps")).toContain("grid-area: temps;");
+  });
+});
+
+describe("la partie « Aux portes », quand la place manque et pendant une Famine (US-0338, US-0341)", () => {
+  it("met la phrase de la place manquante en braise, son triangle devant", () => {
+    expect(regle(".annonce,\n.plusDePlace")).toMatch(/display: flex;[^}]*color: var\(--braise\);/);
   });
 
-  it("met la phrase de la place manquante aux couleurs de « Plus de place »", () => {
-    expect(regle(".plusDePlace")).toMatch(/background: var\(--sable\);[^}]*color: var\(--sable-fonce\);/);
+  it("met la phrase de la Famine en discret, comme quand personne n'attend", () => {
+    expect(regle(".famine,\n.personne")).toContain("color: var(--mousse);");
   });
 });
 
 describe("la partie « Aux portes », son lien vers l'historique (US-0342)", () => {
-  it("pose « Historique » à droite du titre de la partie, sur sa ligne ; tout le reste prend toute la largeur, dessous", () => {
-    expect(regle(".auxPortes")).toMatch(/display: grid;[^}]*grid-template-columns: minmax\(0, 1fr\) auto;/);
-    expect(regle(".auxPortes > *")).toContain("grid-column: 1 / -1;");
-    expect(regle(".auxPortes > h2")).toContain("grid-column: 1;");
-    expect(regle(".historique")).toMatch(/grid-row: 1;[^}]*grid-column: 2;/);
-  });
-
-  it("en fait un lien discret, souligné, au pouce : au moins 44 px de haut, sans grandir la ligne du titre", () => {
-    const historique = regle(".historique");
-    expect(historique).toContain("color: var(--texte-discret);");
-    expect(historique).toContain("text-decoration: underline;");
-    expect(pixels(".historique", "min-height")).toBeGreaterThanOrEqual(44);
-    expect(historique).toMatch(/margin: -\d+px/);
-    expect(regle(".historique:focus-visible")).toContain("outline: 2px solid var(--encre);");
+  it("pose « Historique » à droite du titre, sur sa rangée, sa surface de toucher plus grande que lui", () => {
+    expect(regle(".historique")).toMatch(/position: absolute;[^}]*top: 16px;[^}]*right: 16px;/);
+    expect(regle(".historique::after")).toMatch(/position: absolute;[^}]*inset: -12px -10px;/);
+    expect(regle(".historique:focus-visible")).toContain("outline: 2px solid var(--cuivre-clair);");
   });
 });
 
-describe("la partie « Aux portes », l'Entretien en plus et la confirmation (US-0340)", () => {
-  /** Les déclarations de la règle `selecteur` dans le bloc « @media (hover: hover) », écrite en retrait. */
-  const auSurvol = (selecteur: string) =>
-    [...CSS.matchAll(/@media \(hover: hover\) \{([\s\S]*?)\n\}/g)]
-      .map(([, bloc]) => bloc.match(new RegExp(`\\n  ${selecteur.replace(/[.*+?^${}()|[\]\\:]/g, "\\$&")} \\{([^}]*)\\}`))?.[1])
-      .find(Boolean) ?? "";
-
-  it("met le rappel de l'Entretien sous les boutons, sur toute la largeur de la ligne, en discret", () => {
-    const entretien = regle(".entretien");
-    expect(entretien).toContain("grid-column: 1 / -1;");
-    expect(entretien).toContain("color: var(--texte-discret);");
-    expect(pixels(".entretien", "font-size")).toBeLessThanOrEqual(13);
-  });
-
-  it("met « Confirmer l'accueil » dans la couleur d'alerte, qu'il garde au survol, et la phrase de la famine imminente en alerte, à la place du rappel", () => {
-    expect(regle(".accueillir[data-confirmer]")).toMatch(/background: var\(--mauvais\);[^}]*color: var\(--blanc-chaud\);/);
-    expect(auSurvol(".accueillir[data-confirmer]:hover")).toContain("background: var(--mauvais);");
-    // Plus loin dans la feuille que le survol des autres « Accueillir », pour l'emporter sur lui.
-    expect(CSS.indexOf(".accueillir[data-confirmer]:hover")).toBeGreaterThan(CSS.indexOf(".accueillir:not(:disabled):hover"));
-    const confirmation = regle(".confirmation");
-    expect(confirmation).toContain("grid-column: 1 / -1;");
-    expect(confirmation).toMatch(/color: var\(--mauvais\);[^}]*font-weight: var\(--graisse-titre\);/);
-  });
-
-  it("met la phrase de la Famine en discret, comme quand personne n'attend, à l'écart des Voyageurs qui attendaient déjà (US-0341)", () => {
-    expect(regle(".famine")).toContain("color: var(--texte-discret);");
-    expect(pixels(".famine:not(:last-child)", "margin-bottom")).toBeGreaterThanOrEqual(8);
+describe("la partie « Aux portes », sur le kit", () => {
+  it("n'écrit aucune couleur en clair, ni aucun des anciens noms : seulement ceux du kit", () => {
+    expect(CSS).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(|oklch\(/i);
+    expect(CSS).not.toMatch(/var\(--(bloc|bloc-2|bloc-3|encre|miel|texte-2|texte-discret|texte-pale|trait|galet|mauvais|bon|sable|sable-fonce|voile|blanc-chaud)\)/);
   });
 });

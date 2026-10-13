@@ -10,7 +10,7 @@ import type { Coordonnees } from "@/monde/hex";
 import { useHeureDuJeu } from "@/temps/heure-du-jeu";
 import { aLEcran, type Cadre, type Vue } from "./dessin";
 import styles from "./ExpeditionsSurLaCarte.module.css";
-import { PanneauSurLaCarte } from "./FicheDeLaCase";
+import { Bandeau, PanneauSurLaCarte } from "./FicheDeLaCase";
 
 /** US-0913 : la moitié de la place d'un repère, 44 px pour le doigt, comme la flèche du Foyer : un toucher à moins de tant de pixels de son centre le touche. */
 const DEMI_PLACE = 22;
@@ -97,12 +97,16 @@ export function repereTouche<T>(reperes: readonly Pick<RepereSurLaCarte<T>, "id"
 const versOu = ({ destination }: ExpeditionEnCours) =>
   `Expédition vers ${"inconnue" in destination ? "une Case inconnue" : destination.biome}, à ${casesDuFoyer(destination.distance)}`;
 
+/** Le Biome de la destination d'une Expédition, pour le bandeau de sa fiche ; null tant qu'elle est inconnue. */
+const biomeDeLaDestination = ({ destination }: ExpeditionEnCours) => ("inconnue" in destination ? null : destination.biome);
+
 /**
  * US-0913 : les Expéditions en cours du joueur sur la carte, seulement les siennes (la page ne lui donne qu'elles) :
  * l'heure du jeu, partie de `maintenant` à l'affichage de la page, qui avance au rythme du jeu (`vitesse`,
  * useHeureDuJeu) ; le repère de chacune encore dehors, un bouton par-dessus la carte, que la carte pose sur son chemin
  * (`poser`), à chaque seconde comme à chaque dessin ; et la fiche de l'Expédition suivie (`suivie`) : son détail, celui
- * de la liste des Expéditions, avec sa phase, son temps restant, ses explorateurs et son escorte. Toucher un repère, ou
+ * de la liste des Expéditions, avec sa phase, son temps restant, ses explorateurs et son escorte, sous le bandeau peint du
+ * Biome de sa destination (la brume, si elle est inconnue). Toucher un repère, ou
  * l'appuyer au clavier, la suit (`suivre`). Sa fiche se ferme (`fermer`) comme celle d'une Case ; à son ouverture, la
  * carte glisse pour qu'elle ne cache pas la Case la plus proche du repère (`montrer`), puis ne bouge plus d'elle-même
  * quand l'Expédition avance. Une Expédition rentrée au Foyer n'a plus ni repère ni chemin : elle n'est plus dehors,
@@ -189,7 +193,7 @@ export function ExpeditionsSurLaCarte({
           montrer={montrer}
           fermer={fermer}
         >
-          <h2 className={styles.titre}>Expédition</h2>
+          <Bandeau biome={biomeDeLaDestination(expeditions[rang].expedition)} titre="Expédition" />
           <div className={styles.detail}>
             <DetailDeLExpedition expedition={expeditions[rang].expedition} instant={instant} />
           </div>

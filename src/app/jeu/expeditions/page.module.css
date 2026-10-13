@@ -1,55 +1,62 @@
-/* US-0911 : la liste des Expéditions en cours : un titre, puis un bloc Bento, dans la largeur de l'écran du Foyer. */
+/*
+ * US-0911 : la liste des Expéditions en cours, posée sur le fond sarcelle du jeu : son titre, puis un grand panneau
+ * illustré par Expédition (PanneauDeLExpedition), en grille.
+ */
 .page {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 24px;
+  padding: 16px 18px 18px;
 }
 
-.titre {
-  margin-bottom: 16px;
-  font-size: 28px;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+/*
+ * US-0918 : les Expéditions côte à côte, autant par rangée que la largeur en tient (deux sur un ordinateur), et les
+ * suivantes dessous ; une par rangée sur un téléphone.
+ */
+.expeditions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  gap: var(--ecart);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.expeditions > li {
+  min-width: 0;
+}
+
+/* Sans Expédition : les explorateurs en route en bandeau, le mot, et le bouton pour en préparer une. */
+.aucune {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 640px;
+  padding-bottom: 24px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.paysage {
+  align-self: stretch;
+  height: 240px;
+  margin-bottom: 20px;
+}
+
+.paysage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, var(--panneau-voile));
 }
 
 .vide {
-  color: var(--texte-discret);
+  color: var(--creme);
+  font: 400 24px / 1.15 var(--police-titre);
 }
 
-/* US-0918 : sans Expédition, au pouce : un lien de 44 px de haut, sur l'Encre, vers l'écran d'Expédition ; toute la largeur sur mobile. */
+/* US-0918 : au pouce : 44 px de haut, toute la largeur sur mobile. */
 .preparer {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   min-height: 44px;
-  margin-top: 12px;
-  padding: 0 18px;
-  border-radius: var(--arrondi-moyen);
-  background: var(--encre);
-  color: var(--blanc-chaud);
-  font-weight: var(--graisse-titre);
-  text-align: center;
-  text-decoration: none;
+  margin-top: 16px;
   cursor: pointer;
-}
-
-@media (hover: hover) {
-  .preparer:hover {
-    background: var(--encre-survol);
-  }
-}
-
-.preparer:focus-visible {
-  outline: 2px solid var(--encre);
-  outline-offset: 2px;
-}
-
-/* Une Expédition par ligne (DetailDeLExpedition), l'une sous l'autre. */
-.expeditions {
-  display: grid;
-  gap: 6px;
-  padding: 0;
-  list-style: none;
 }
 
 @media (max-width: 820px), (max-height: 500px) {
@@ -57,9 +64,13 @@
     padding: 12px;
   }
 
-  .titre {
-    margin: 8px 0 12px;
-    font-size: 24px;
+  .aucune {
+    padding: 0 16px 16px;
+  }
+
+  .paysage {
+    height: 180px;
+    margin: 0 -16px 16px;
   }
 
   .preparer {

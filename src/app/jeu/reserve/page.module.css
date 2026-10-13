@@ -1,73 +1,137 @@
-/* US-0801 : la Réserve : un titre, puis un bloc Bento, dans la largeur de l'écran du Foyer, comme les Expéditions en cours. */
+/*
+ * US-0801 : la Réserve, posée sur le fond du jeu : le titre de l'écran, puis un panneau orné qui la présente et dit
+ * combien de Couples elle abrite ; dessous, une carte ornée par Couple (US-0802). Vide (US-0809), le même panneau, le
+ * mot et le bouton principal, comme les Expéditions en cours.
+ */
 .page {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 24px;
+  padding: 16px 18px 28px;
 }
 
 .titre {
-  margin-bottom: 16px;
-  font-size: 28px;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-
-.lieu {
-  color: var(--texte-discret);
-}
-
-/* Le nombre de Couples qu'elle abrite, en grand, comme la durée d'un séjour (US-0906), son nom à côté. */
-.couples {
   display: flex;
-  gap: 8px;
-  align-items: baseline;
-  margin-top: 12px;
-  font-weight: var(--graisse-titre);
-}
-
-.nombre {
-  font-size: 28px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-}
-
-/* US-0809 : la Réserve vide : le message, puis, au pouce, un lien de 44 px de haut sur l'Encre vers l'écran d'Expédition,
-   comme celui des Expéditions en cours ; toute la largeur sur mobile. */
-.vide {
-  color: var(--texte-discret);
-}
-
-.envoyer {
-  display: inline-flex;
   align-items: center;
+  min-height: 40px;
+  margin: 2px 2px 14px;
+}
+
+/* ---------- Sans Couple : les castors à l'abri, en grand, le mot, et le bouton ---------- */
+
+/*
+ * Toute la largeur de l'écran, presque toute sa hauteur : les castors peints remplissent le panneau à droite et se fondent
+ * vers la gauche, où se posent le mot en grand et le bouton.
+ */
+.aucun {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
+  min-height: clamp(320px, calc(var(--hauteur-utile) - 104px), 640px);
+  padding: 40px 52% 40px 44px;
+  overflow: hidden;
+}
+
+.aucun > :not(.paysage) {
+  position: relative;
+  z-index: 1;
+}
+
+.aucun > .paysage {
+  position: absolute;
+  inset: 0 0 0 28%;
+  mask-image: linear-gradient(90deg, transparent, var(--noir) 38%);
+}
+
+.paysage img {
+  object-position: 50% 40%;
+}
+
+.paysage::after,
+.bandeau::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, var(--panneau-voile));
+}
+
+/* Le bandeau de la Réserve, à gauche du panneau, se fond vers sa droite. */
+.bandeau::after {
+  background: linear-gradient(90deg, transparent 60%, var(--panneau-voile));
+}
+
+.vide {
+  color: var(--creme);
+  font: 400 32px / 1.15 var(--police-titre);
+}
+
+/* Au pouce : 44 px de haut, toute la largeur sur mobile. */
+.envoyer {
   min-height: 44px;
-  margin-top: 12px;
-  padding: 0 18px;
-  border-radius: var(--arrondi-moyen);
-  background: var(--encre);
-  color: var(--blanc-chaud);
-  font-weight: var(--graisse-titre);
-  text-align: center;
-  text-decoration: none;
+  margin-top: 22px;
   cursor: pointer;
 }
 
-@media (hover: hover) {
-  .envoyer:hover {
-    background: var(--encre-survol);
-  }
-}
-
 .envoyer:focus-visible {
-  outline: 2px solid var(--encre);
+  outline: 2px solid var(--cuivre-clair);
   outline-offset: 2px;
 }
 
+/* ---------- La Réserve et ses Couples ---------- */
+
 /*
- * US-0802 : les Couples, une carte chacun sous le bloc de la Réserve, autant par ligne que la largeur en tient ; une seule
- * sur un téléphone.
+ * Le panneau de la Réserve : les castors en bandeau à gauche, fondus vers le panneau ; à droite la présentation, puis le
+ * nombre de Couples en grand.
+ */
+.abri {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 16px 24px;
+  align-content: center;
+  max-width: 980px;
+  min-height: 136px;
+  padding: 10px 22px 10px 10px;
+}
+
+.bandeau {
+  grid-row: 1 / -1;
+  align-self: stretch;
+  min-height: 108px;
+}
+
+.lieu {
+  max-width: 62ch;
+  color: var(--parchemin);
+  font: var(--graisse-texte) 14.5px / 1.45 var(--police);
+}
+
+/*
+ * Le nombre de Couples qu'elle abrite, comme les compteurs des Voyageurs : son nom en petite étiquette verte, au-dessus
+ * du nombre, en grand et en crème (le texte se lit toujours « 3 Couples »).
+ */
+.couples {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 9px;
+  align-items: flex-start;
+  color: var(--cuivre);
+  font: var(--graisse-moyenne) var(--taille-etiquette) / 1 var(--police-etroite);
+  letter-spacing: var(--espacement-etiquette);
+  text-transform: uppercase;
+}
+
+.nombre {
+  color: var(--creme);
+  font-family: var(--police);
+  font-size: 28px;
+  font-weight: var(--graisse-titre);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+/*
+ * US-0802 : les Couples, une carte ornée chacun sous le panneau de la Réserve, autant par ligne que la largeur en tient ;
+ * une seule sur un téléphone.
  */
 .liste {
   display: grid;
@@ -78,54 +142,52 @@
   list-style: none;
 }
 
-/* US-0803 : toute la carte est le lien vers la fiche de l'Espèce, sans soulignement ; au survol, elle se soulève. */
+.liste > li {
+  min-width: 0;
+}
+
+/* US-0803 : toute la carte est le lien vers la fiche de l'Espèce ; au survol, son filet passe au vert. */
 .lien {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   height: 100%;
-  border-radius: var(--arrondi);
-  color: inherit;
+  padding: 10px 10px 14px;
   text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
 }
 
 @media (hover: hover) {
-  .lien:hover .couple {
-    box-shadow: var(--ombre);
+  .lien:hover {
+    border-color: var(--cuivre);
   }
 }
 
 .lien:focus-visible {
-  outline: 2px solid var(--encre);
+  outline: 2px solid var(--cuivre-clair);
   outline-offset: 2px;
 }
 
-.couple {
-  height: 100%;
-}
-
-/* Les deux Bêtes du Couple, côte à côte : l'illustration de leur Espèce, deux fois. */
+/* Les deux Bêtes du Couple, côte à côte : la peinture de leur Espèce, deux fois, chacune dans son filet vert. */
 .betes {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
 }
 
-.bete {
-  border-radius: var(--arrondi-petit);
-}
-
-/* Puis le nom de l'Espèce et sa Rareté, qui passe à la ligne si le nom est long. */
+/* Puis le nom de l'Espèce en Bree Serif et sa Rareté en puce, qui passe à la ligne si le nom est long. */
 .espece {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 8px;
+  gap: 6px 10px;
   align-items: center;
-  margin-top: 10px;
+  padding: 0 4px;
 }
 
 .nom {
   min-width: 0;
-  color: var(--encre);
-  font-weight: var(--graisse-titre);
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 820px), (max-height: 500px) {
@@ -134,12 +196,58 @@
   }
 
   .titre {
-    margin: 8px 0 12px;
+    margin-bottom: 12px;
+  }
+
+  /* Sur un téléphone : les castors en bandeau en haut du panneau, fondus vers le bas, le mot et le bouton dessous. */
+  .aucun {
+    align-items: center;
+    min-height: 0;
+    padding: 0 16px 16px;
+    text-align: center;
+  }
+
+  .aucun > .paysage {
+    position: relative;
+    inset: auto;
+    align-self: stretch;
+    height: 220px;
+    margin: 0 -16px 16px;
+    mask-image: none;
+  }
+
+  .vide {
     font-size: 24px;
   }
 
   .envoyer {
     display: flex;
     width: 100%;
+    margin-top: 16px;
+  }
+}
+
+/* Sur un téléphone : le bandeau au-dessus de la présentation. */
+@media (max-width: 600px) {
+  .abri {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    gap: 12px;
+    padding: 10px 10px 16px;
+  }
+
+  .bandeau {
+    grid-row: auto;
+    height: 120px;
+    min-height: 0;
+  }
+
+  .bandeau::after {
+    background: linear-gradient(180deg, transparent 55%, var(--panneau-voile));
+  }
+
+  .lieu,
+  .couples {
+    padding: 0 6px;
   }
 }

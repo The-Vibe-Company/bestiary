@@ -1,12 +1,91 @@
 /*
- * US-0332 : la partie « Aux portes » de la page Habitants, une ligne par Voyageur qui attend : son prénom,
- * et dessous, en discret, depuis quand il attend ; US-0333 : à droite, son compte à rebours. US-0343 : chaque
- * Voyageur dans un bloc à lui, les uns sous les autres ; la liste mesure sa propre largeur, qui ne suit pas
- * celle de l'écran (colonne sur ordinateur, demi-ligne sur tablette, toute la largeur sur mobile).
+ * US-0332 : la partie « Aux portes » (AuxPortes.tsx), en tête de la colonne de contexte : la carte de l'événement. Le
+ * titre en étiquette de cuivre, « Historique » à sa droite ; pour chaque Voyageur, son portrait peint en bandeau, son
+ * prénom posé dessus ; depuis quand il attend et quand il repart, la jauge du temps qui lui reste ; le Métier qu'il aura,
+ * ce qu'il mangera ; « Accueillir », au cuivre plein, et « Refuser ». Dans la colonne étroite d'un ordinateur, le
+ * portrait au-dessus ; dès que la carte a la place (un téléphone, une tablette), le portrait à gauche, le reste à côté.
  */
+.auxPortes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}
+
+.auxPortes > h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 18px;
+  margin: 0 2px;
+}
+
+.auxPortes > h2 svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.2;
+}
+
+/* US-0342 : « Historique », à droite du titre, sur sa rangée ; sa surface de toucher déborde autour de lui. */
+.historique {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.historique::after {
+  content: "";
+  position: absolute;
+  inset: -12px -10px;
+}
+
+.historique:focus-visible {
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: 3px;
+}
+
+/* US-0337, US-0338 : ce qui ne va pas, en braise ; US-0341 et personne aux portes : en discret. */
+.annonce,
+.plusDePlace {
+  display: flex;
+  gap: 8px;
+  margin: 0 2px;
+  color: var(--braise);
+  font: var(--graisse-moyenne) 12.5px / 1.35 var(--police);
+}
+
+.signe {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.3;
+}
+
+.signe circle {
+  fill: currentColor;
+  stroke: none;
+}
+
+.famine,
+.personne {
+  margin: 0 2px;
+  color: var(--mousse);
+  font: var(--graisse-texte) 13px / 1.4 var(--police);
+}
+
+/* Une carte par Voyageur, les unes sous les autres, séparées d'un filet. */
 .voyageurs {
   display: grid;
-  gap: 6px;
+  gap: 14px;
+  margin: 0;
   padding: 0;
   list-style: none;
   container-type: inline-size;
@@ -14,253 +93,239 @@
 
 .voyageur {
   display: grid;
+  grid-template-areas:
+    "portrait portrait"
+    "arrivee depart"
+    "temps temps"
+    "metier metier"
+    "metiers metiers"
+    "entretien entretien"
+    "choix choix";
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 2px 12px;
   align-items: center;
-  min-height: 44px;
-  padding: 8px 12px;
-  border-radius: var(--arrondi-petit);
-  background: var(--bloc-2);
+  gap: 9px 10px;
+}
+
+.voyageur + .voyageur {
+  padding-top: 14px;
+  border-top: 1px solid var(--filet-cuivre-doux);
+}
+
+/* Le portrait : la peinture, assombrie vers le bas pour le prénom. */
+.portrait {
+  grid-area: portrait;
+  height: 140px;
+}
+
+.portrait::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, transparent 40%, var(--voile-sarcelle) 72%, var(--panneau-fondu));
+  box-shadow: inset 0 0 0 1px var(--anneau-cuivre);
+}
+
+.peinture {
+  object-fit: cover;
+  object-position: 50% 22%;
+}
+
+.surtitre {
+  position: absolute;
+  bottom: 46px;
+  left: 12px;
+  z-index: 1;
+  color: var(--cuivre-clair);
+  font: var(--graisse-moyenne) 10.5px / 1 var(--police-etroite);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 .prenom {
-  font-weight: var(--graisse-titre);
+  position: relative;
+  z-index: 1;
+  grid-area: portrait;
+  align-self: end;
+  margin: 0 12px 10px;
+  color: var(--creme-vive);
+  font: 400 30px / 1 var(--police-titre);
+  text-shadow: var(--ombre-texte-peinture);
+  overflow-wrap: anywhere;
 }
 
+/* US-0332, US-0333 : depuis quand il attend, et en face, quand il repart ; dessous, le temps qui lui reste. */
 .arrivee {
-  grid-row: 2;
-  color: var(--texte-discret);
-  font-size: 13px;
+  grid-area: arrivee;
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 13px / 1.2 var(--police);
 }
 
-/*
- * US-0333 : à droite, sur la hauteur des deux lignes, le compte à rebours avant son départ, en chiffres de même
- * largeur pour qu'il ne danse pas en diminuant ; sous l'heure qui reste, dans la couleur d'alerte.
- */
 .depart {
-  grid-row: 1 / span 2;
-  grid-column: 2;
-  color: var(--texte-2);
+  display: inline-flex;
+  grid-area: depart;
+  align-items: center;
+  gap: 5px;
+  color: var(--cuivre-clair);
+  font: var(--graisse-moyenne) 13px / 1.2 var(--police);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
 
+.sablier {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.1;
+}
+
+/* US-0333 : le compte à rebours qui s'achève, dans la couleur d'alerte. */
 .depart[data-alerte] {
-  color: var(--mauvais);
+  color: var(--braise);
+}
+
+.temps {
+  grid-area: temps;
+}
+
+/* US-0335 : le Métier qu'il aura, la même pastille que sur la ligne d'un Habitant ; dessous, les Métiers au choix. */
+.metier {
+  grid-area: metier;
+  justify-self: start;
+  margin-left: -4px;
+}
+
+.metiers {
+  grid-area: metiers;
+}
+
+/* US-0340 : ce qu'il mangera, devant la Viande et les Végétaux, juste au-dessus des boutons ; la confirmation à sa place. */
+.entretien,
+.confirmation {
+  display: flex;
+  grid-area: entretien;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  color: var(--parchemin);
+  font: var(--graisse-moyenne) 13.5px / 1.25 var(--police);
+}
+
+.confirmation {
+  color: var(--braise);
   font-weight: var(--graisse-titre);
 }
 
-/*
- * US-0343 : une ligne trop étroite pour mettre le compte à rebours à côté (sur un téléphone de 320 px) passe en
- * une colonne : le prénom, depuis quand, puis le compte à rebours, plutôt que de couper « 10 min » en deux.
- */
-@container (max-width: 279px) {
-  .voyageur {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .depart {
-    grid-row: auto;
-    grid-column: auto;
-    text-align: left;
-  }
+.duo {
+  display: inline-flex;
+  flex: none;
 }
 
-/*
- * US-0335 : sous la ligne, à gauche, le Métier qu'aura le Voyageur, au bouton qui choisit le Métier d'un Habitant
- * (page.module.css) ; sur sa propre ligne, même sur mobile, où ce bouton passe sinon sous le prénom.
- */
-.voyageur > .metier {
-  grid-row: auto;
-  grid-column: 1 / -1;
-  margin-top: 6px;
+.duo > :not(:first-child) {
+  margin-left: -7px;
 }
 
-/*
- * US-0335 : dessous, les Métiers dépliés ; dans une ligne trop étroite pour quatre Métiers côte à côte (la colonne de
- * l'ordinateur, un téléphone), deux par ligne, comme sur un petit écran : « Explorateur » tient en entier.
- */
-@container (max-width: 479px) {
-  .voyageur > .metiers {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-}
-
-/*
- * US-0334, US-0336 : sous la ligne, sur toute sa largeur, ce qu'on peut faire du Voyageur, en boutons d'au moins
- * 44 px de haut qui se partagent la place, écartés pour ne pas toucher l'un pour l'autre : « Accueillir », le
- * principal, en Encre ; « Refuser », le secondaire, cerné d'un trait. US-0343 : 12 px d'écart au moins, au pouce.
- */
+/* US-0334, US-0336 : « Accueillir », au cuivre plein, plus large que « Refuser », en contour. */
 .choix {
-  display: flex;
-  grid-column: 1 / -1;
-  gap: 12px;
-  margin-top: 6px;
+  display: grid;
+  grid-area: choix;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 8px;
+  padding-top: 3px;
 }
 
 .accueillir,
 .refuser {
-  flex: 1 1 0;
   min-width: 0;
-  min-height: 44px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: var(--arrondi-petit);
-  font: inherit;
-  font-weight: var(--graisse-titre);
-  cursor: pointer;
+  min-height: 36px;
+  padding: 0 10px;
+  font-size: 14px;
+  line-height: 1.1;
+  white-space: normal;
 }
 
-.accueillir {
-  background: var(--encre);
-  color: var(--blanc-chaud);
-}
-
-.refuser {
-  background: var(--bloc);
-  color: var(--encre);
-  box-shadow: inset 0 0 0 1px var(--trait);
-}
-
-/* US-0338 : sans place, « Accueillir » s'éteint : fond creux, texte pâle, et il ne réagit plus. */
-.accueillir:disabled {
-  background: var(--bloc-3);
-  color: var(--texte-pale);
-  cursor: not-allowed;
-}
-
-/* US-0340 : quand la famine est imminente, après un premier toucher, « Confirmer l'accueil », dans la couleur d'alerte. */
+/* US-0340 : « Confirmer l'accueil », dans la couleur d'alerte. */
 .accueillir[data-confirmer] {
-  background: var(--mauvais);
-  color: var(--blanc-chaud);
+  border-color: var(--braise);
+  background: var(--braise);
+  box-shadow: none;
+  color: var(--sur-cuivre);
 }
 
-@media (hover: hover) {
-  .accueillir:not(:disabled):hover {
-    background: var(--encre-survol);
-  }
-
-  .accueillir[data-confirmer]:hover {
-    background: var(--mauvais);
-  }
-
-  .refuser:hover {
-    background: var(--bloc-3);
-  }
-}
-
-.accueillir:focus-visible,
-.refuser:focus-visible {
-  outline: 2px solid var(--encre);
-  outline-offset: 2px;
-}
-
-/* US-0340 : sous les boutons, en discret, l'Entretien qu'un Habitant de plus coûtera. */
-.entretien {
-  grid-column: 1 / -1;
-  color: var(--texte-discret);
-  font-size: 12px;
-}
-
-/* US-0340 : à sa place, tant que l'accueil attend sa confirmation, ce que l'Habitant mangera, en alerte. */
-.confirmation {
-  grid-column: 1 / -1;
-  color: var(--mauvais);
-  font-size: 13px;
-  font-weight: var(--graisse-titre);
-}
-
-/* Quand personne n'attend. */
-.personne {
-  color: var(--texte-discret);
+.accueillir[data-confirmer]:hover {
+  background: var(--braise-claire);
 }
 
 /*
- * US-0341 : pendant une Famine, pourquoi personne ne vient, en discret comme quand personne n'attend, une seule fois en
- * tête de la partie ; au-dessus des Voyageurs qui attendaient déjà, un peu à l'écart.
+ * Sur un grand écran, la colonne de contexte tient dans la fenêtre : le portrait prend la hauteur que lui laissent la
+ * carte, la place et l'Entretien, de 84 px à 220 px ; moins quand une phrase s'ajoute en tête de la partie, et à
+ * plusieurs Voyageurs ; au-delà, la colonne défile.
  */
-.famine {
-  color: var(--texte-discret);
-}
+@media (min-width: 1024px) and (min-height: 600px) {
+  .portrait {
+    height: clamp(84px, calc(var(--hauteur-utile) - 600px), 220px);
+  }
 
-.famine:not(:last-child) {
-  margin-bottom: 10px;
-}
+  .auxPortes:has(> .plusDePlace, > .famine, > .annonce) .portrait {
+    height: clamp(84px, calc(var(--hauteur-utile) - 650px), 220px);
+  }
 
-/* US-0338 : en tête de la partie, une seule fois, pourquoi « Accueillir » est grisé, aux couleurs de « Plus de place ». */
-.plusDePlace {
-  margin-bottom: 10px;
-  padding: 8px 12px;
-  border-radius: var(--arrondi-petit);
-  background: var(--sable);
-  color: var(--sable-fonce);
-  font-size: 13px;
-  font-weight: var(--graisse-titre);
-}
-
-/* US-0337 : en tête de la partie, pourquoi un Voyageur n'a pas été accueilli : il était déjà reparti. */
-.annonce {
-  margin-bottom: 10px;
-  padding: 8px 12px;
-  border-radius: var(--arrondi-petit);
-  background: var(--rose);
-  color: var(--rose-fonce);
-  font-size: 13px;
-  font-weight: var(--graisse-titre);
-}
-
-/*
- * US-0342 : sur la ligne du titre de la partie, à droite, « Historique », un lien discret vers les Voyageurs passés.
- * La partie se range en grille pour l'y poser : le titre à gauche, tout le reste dessous, sur toute la largeur.
- */
-.auxPortes {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-content: start;
-}
-
-.auxPortes > * {
-  grid-column: 1 / -1;
-}
-
-.auxPortes > h2 {
-  grid-column: 1;
-}
-
-/* Au pouce, 44 px de haut, sans grandir la ligne du titre : sa surface de toucher déborde dans la marge du bloc. */
-.historique {
-  display: inline-flex;
-  grid-row: 1;
-  grid-column: 2;
-  align-items: center;
-  min-height: 44px;
-  margin: -14px -8px -4px 0;
-  padding: 0 8px;
-  border-radius: var(--arrondi-petit);
-  color: var(--texte-discret);
-  font-size: 13px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-@media (hover: hover) {
-  .historique:hover {
-    background: var(--survol);
-    color: var(--encre);
+  .voyageurs:has(> li + li) .portrait {
+    height: 96px;
   }
 }
 
-.historique:focus-visible {
-  outline: 2px solid var(--encre);
-  outline-offset: -2px;
-}
+/* Dès que la carte a la place : le portrait à gauche, sur toute sa hauteur, le reste à côté. */
+@container (min-width: 320px) {
+  .voyageur {
+    grid-template-areas:
+      "portrait arrivee"
+      "portrait depart"
+      "portrait temps"
+      "portrait metier"
+      "portrait entretien"
+      "portrait choix";
+    grid-template-columns: clamp(112px, 30%, 180px) minmax(0, 1fr);
+    gap: 8px 12px;
+  }
 
-/*
- * Sur ordinateur, en tête de la colonne, à côté de la liste. Dès que la colonne passe sous la liste, ses
- * blocs se rangent dans la grille de la page (page.module.css) : celui-ci remonte au-dessus de la liste.
- */
-@media (max-width: 1100px) {
-  .auxPortes {
-    order: -1;
+  /* Les Métiers dépliés prennent toute la largeur, sous le bouton du Métier. */
+  .voyageur:has(> .metiers) {
+    grid-template-areas:
+      "portrait arrivee"
+      "portrait depart"
+      "portrait temps"
+      "portrait metier"
+      "metiers metiers"
+      "entretien entretien"
+      "choix choix";
+  }
+
+  .voyageur .portrait {
+    align-self: stretch;
+    height: auto;
+    min-height: 140px;
+  }
+
+  .depart {
+    justify-self: start;
+  }
+
+  .surtitre {
+    bottom: 36px;
+    left: 9px;
+    font-size: 9.5px;
+  }
+
+  .prenom {
+    margin: 0 9px 8px;
+    font-size: 23px;
+  }
+
+  .choix {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }

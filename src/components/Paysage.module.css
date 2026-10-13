@@ -1,0 +1,70 @@
+/*
+ * Le paysage d'une destination (Paysage.tsx) : sa peinture remplit la place que la page lui donne (une hauteur, ou un
+ * emplacement absolu) ; sous le brouillard, la peinture éteinte et floutée, la brume par-dessus, un « ? » au milieu.
+ */
+.paysage {
+  position: relative;
+  overflow: hidden;
+}
+
+.peinture {
+  object-fit: cover;
+}
+
+/* Sous le brouillard : la terre se perd, presque grise, floue, un peu plus grande pour que le flou ne laisse pas de bord. */
+.brume .peinture {
+  filter: saturate(0.25) brightness(0.72) blur(3px);
+  transform: scale(1.06);
+}
+
+.brume::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 45%, var(--brume-coeur), var(--brume-bord) 60%, transparent 85%),
+    linear-gradient(180deg, var(--brume-haut), transparent 70%);
+}
+
+/*
+ * Le « ? » d'une Case à découvrir : dans son hexagone de cuivre, sur un voile sombre, au milieu de la brume ; une page
+ * le place ailleurs par --inconnu-x et --inconnu-y (son centre, en parts du paysage).
+ */
+.inconnu {
+  position: absolute;
+  top: var(--inconnu-y, 44%);
+  left: var(--inconnu-x, 50%);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 72px;
+  transform: translate(-50%, -50%);
+}
+
+.inconnu svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.inconnu path:first-child {
+  fill: var(--voile-sarcelle);
+  stroke: var(--cuivre-clair);
+  stroke-width: 1.6;
+}
+
+.inconnu path:last-child {
+  fill: none;
+  stroke: var(--anneau-cuivre-fort);
+  stroke-width: 1;
+}
+
+.inconnu::after {
+  content: "?";
+  position: relative;
+  color: var(--creme-vive);
+  font: 400 34px / 1 var(--police-titre);
+  text-shadow: 0 2px 10px var(--ombre-noire);
+}

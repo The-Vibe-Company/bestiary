@@ -3,6 +3,9 @@
 import { useSearchParams } from "next/navigation";
 import { Fragment, useEffect, useId, useState } from "react";
 import { Bloc } from "@/components/Bloc";
+import { Frise } from "@/components/Frise";
+import kit from "@/components/kit.module.css";
+import { Paysage } from "@/components/Paysage";
 import { dureeDuTrajetMinutes, sansEscorte } from "@/expeditions/allure";
 import { forceQuiManque } from "@/expeditions/apprivoisement";
 import { casesDuFoyer } from "@/expeditions/choix-de-destination";
@@ -10,7 +13,7 @@ import { forceDeLEscorte } from "@/expeditions/force";
 import { horaireDuSejour } from "@/expeditions/sejour";
 import type { EspeceDisponible } from "@/monde/effectif";
 import type { Coordonnees } from "@/monde/hex";
-import { formaterJourEtHeure, formaterMinutes } from "@/temps/affichage";
+import { formaterJourEtHeure } from "@/temps/affichage";
 import { entier, escorteChoisie } from "./Escorte";
 import { explorateursChoisis } from "./Explorateurs";
 import { Partir } from "./Partir";
@@ -22,7 +25,7 @@ const FUSEAU = "Europe/Paris";
 
 const MINUTE_MS = 60_000;
 
-/** Ce que le récapitulatif dit d'une durée ou d'une heure qu'il ne peut pas chiffrer sans destination. */
+/** Ce que le récapitulatif dit d'une heure qu'il ne peut pas chiffrer sans destination. */
 const AUCUNE = "—";
 
 /** « Souris grise × 3 » : une Espèce de l'escorte et ses Bêtes qui partent, que le nombre ne quitte jamais (espaces insécables). */
@@ -41,19 +44,22 @@ export type DestinationChoisie = Coordonnees & { biome: string | null; distance:
 export type BeteAChercher = { espece: string; force: number; rareteId: string; jusquA: Date };
 
 /**
- * US-0910 : le récapitulatif de l'écran d'Expédition, à son pied, à relire avant de partir. Il relit l'adresse, comme
- * les autres blocs, et suit chaque choix au fil de la composition, le séjour pas à pas au curseur : les explorateurs,
- * l'escorte Espèce par Espèce et sa force, ou « Sans escorte » à la place (US-0909) ; la destination et son Biome, ou
- * « inconnu » ; les durées de l'aller, du séjour et du retour ; l'heure de retour prévue d'un départ à l'heure du jeu :
- * celle de l'ouverture de l'écran (`maintenant`), qui avance en direct au rythme du jeu (`vitesse`, donnée par le
- * serveur) sur l'horloge du navigateur, comme le compte à rebours des Voyageurs (US-0333). Il rappelle que ceux qui
- * partent mangent toujours (US-0921), et finit sur « Partir ». Sur un téléphone, il reste en bas de l'écran pendant qu'on
- * compose, replié sur l'heure de retour prévue (data-essentiel) et le départ ; un bouton le déplie. US-0911 : « Partir »
- * envoie ce qu'il montre : la destination, les explorateurs et l'escorte. US-0912 : l'aller et le retour d'une escorte
- * vont au pas de sa Bête la plus lente, d'après la vitesse de son Espèce, ou des explorateurs s'ils sont plus lents.
+ * US-0910 : le récapitulatif de l'écran d'Expédition, à relire avant de partir. Il relit l'adresse, comme les autres
+ * blocs, et suit chaque choix au fil de la composition, le séjour pas à pas au curseur : les explorateurs, l'escorte
+ * Espèce par Espèce et sa force, ou « Sans escorte » à la place (US-0909) ; la destination et son Biome, ou « inconnu » ;
+ * les durées de l'aller, du séjour et du retour, sur leur frise (Frise) ; l'heure de retour prévue d'un départ à l'heure
+ * du jeu : celle de l'ouverture de l'écran (`maintenant`), qui avance en direct au rythme du jeu (`vitesse`, donnée par
+ * le serveur) sur l'horloge du navigateur, comme le compte à rebours des Voyageurs (US-0333). Il rappelle que ceux qui
+ * partent mangent toujours (US-0921), et finit sur « Partir ». En tête, les explorateurs en route, peints. Sur
+ * ordinateur, il tient la hauteur de l'écran à côté de ce qu'on compose, et reste en vue quand la page défile. Sur un
+ * téléphone, il reste en bas de l'écran pendant qu'on compose, replié sur l'heure de retour prévue (data-essentiel) et
+ * le départ ; un bouton le déplie. US-0911 : « Partir » envoie ce qu'il montre : la destination, les explorateurs et
+ * l'escorte. US-0912 : l'aller et le retour d'une escorte vont au pas de sa Bête la plus lente, d'après la vitesse de
+ * son Espèce, ou des explorateurs s'ils sont plus lents.
  * US-0949 : pour chaque Bête repérée sur la destination (`betes`), son Espèce et sa force, puis si l'escorte est assez
- * forte pour elle (aPortee), ou la force qui lui manque (forceQuiManque) ; et, quand elle devrait être partie à
- * l'arrivée prévue, qui avance avec l'heure du jeu, une ligne le dit en la nommant, gardée en vue même replié.
+ * forte pour elle (aPortee), en feuille, ou la force qui lui manque (forceQuiManque), en braise : les mots le disent
+ * toujours. Quand elle devrait être partie à l'arrivée prévue, qui avance avec l'heure du jeu, une ligne le dit en la
+ * nommant, en braise au-dessus du retour prévu, gardée en vue même replié.
  */
 export function Recapitulatif({
   libres,
@@ -110,6 +116,7 @@ export function Recapitulatif({
       </button>
       {/* Sur un téléphone, déplié, les lignes défilent ici, entre le titre et « Partir », qui restent en vue. */}
       <div className={styles.defilant}>
+        <Paysage peinture="accueil/explorateurs.webp" sizes="372px" className={`${kit.vignette} ${styles.peinture}`} />
         <dl id={idLignes} className={styles.lignes}>
           <div>
             <dt>Explorateurs</dt>
@@ -135,7 +142,7 @@ export function Recapitulatif({
               <dd>{destination.biome ?? "inconnu"}</dd>
             </div>
           ) : null}
-          {/* US-0949 : chaque Bête repérée sur la destination, face à l'escorte ; partie avant l'arrivée, elle ne sera plus là. */}
+          {/* US-0949 : chaque Bête repérée sur la destination, face à l'escorte. */}
           {betes.map((bete, i) => {
             const manque = forceQuiManque(force, bete);
             return (
@@ -146,29 +153,24 @@ export function Recapitulatif({
                 </div>
                 <div>
                   <dt>Votre escorte</dt>
-                  <dd>{manque > 0 ? `Trop faible : il manque ${entier(manque)} de force` : "Assez forte"}</dd>
+                  <dd data-force={manque > 0 ? "manque" : "assez"}>{manque > 0 ? `Trop faible : il manque ${entier(manque)} de force` : "Assez forte"}</dd>
                 </div>
-                {horaire && bete.jusquA <= horaire.debut ? (
-                  <div data-essentiel="">
-                    <dt>À l&apos;arrivée</dt>
-                    <dd>{`${bete.espece} ne sera plus là`}</dd>
-                  </div>
-                ) : null}
               </Fragment>
             );
           })}
-          <div>
-            <dt>Aller</dt>
-            <dd>{aller === null ? AUCUNE : formaterMinutes(aller)}</dd>
-          </div>
-          <div>
-            <dt>Séjour</dt>
-            <dd>{formaterMinutes(sejour)}</dd>
-          </div>
-          <div>
-            <dt>Retour</dt>
-            <dd>{aller === null ? AUCUNE : formaterMinutes(aller)}</dd>
-          </div>
+        </dl>
+        {/* L'aller, le séjour et le retour, chacun sa durée et son trait à sa mesure. */}
+        <Frise durees={{ aller, sejour, retour: aller }} className={styles.frise} />
+        <dl className={styles.retourPrevu}>
+          {/* US-0949 : une Bête repérée partie avant l'arrivée prévue ne sera plus là. */}
+          {betes.map((bete, i) =>
+            horaire && bete.jusquA <= horaire.debut ? (
+              <div key={i} data-essentiel="" data-partie="">
+                <dt>À l&apos;arrivée</dt>
+                <dd>{`${bete.espece} ne sera plus là`}</dd>
+              </div>
+            ) : null,
+          )}
           <div data-essentiel="">
             <dt>Retour prévu</dt>
             <dd>{retour ? <time dateTime={retour.toISOString()}>{formaterJourEtHeure(retour, FUSEAU)}</time> : AUCUNE}</dd>

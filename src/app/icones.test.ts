@@ -8,7 +8,7 @@ import manifest from "./manifest";
 import { metadata, viewport } from "./layout";
 
 // next/font ne tourne qu'avec Next : ici, une police factice suffit pour lire les métadonnées.
-vi.mock("@/styles/fonts", () => ({ jakarta: { variable: "police" } }));
+vi.mock("@/styles/fonts", () => ({ polices: "polices" }));
 
 const root = join(__dirname, "..", "..");
 const palette = readFileSync(join(root, "src/styles/palette.css"), "utf8");
@@ -45,8 +45,8 @@ describe("icônes et titre d'onglet", () => {
     expect(metadata.appleWebApp).toMatchObject({ capable: true, statusBarStyle: "black-translucent" });
     expect(viewport.viewportFit).toBe("cover");
     const formes = readFileSync(join(root, "src/styles/formes.css"), "utf8");
-    // US-0321 : l'avertissement de famine, au bas de la barre, la fait grandir aussi.
-    expect(formes).toContain("--hauteur-barre: calc(var(--hauteur-ligne) + var(--hauteur-bande) + var(--hauteur-alerte) + var(--bord-haut));");
+    // US-0321 : l'avertissement de famine, au bas de la barre, la fait grandir aussi, comme la rangée des onglets d'un téléphone.
+    expect(formes).toContain("--hauteur-barre: calc(var(--hauteur-ligne) + var(--hauteur-bande) + var(--hauteur-nav) + var(--hauteur-alerte) + var(--bord-haut));");
   });
 
   it("titre l'onglet « Bestia », que chaque page peut compléter", () => {

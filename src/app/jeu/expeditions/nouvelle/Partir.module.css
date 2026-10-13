@@ -1,53 +1,27 @@
-/* US-0902 : le départ, au pied de l'écran d'Expédition, à l'écart des blocs. */
+/* US-0902 : le départ, au pied du récapitulatif, à l'écart de ce qu'il dit. */
 .depart {
-  margin-top: var(--ecart);
+  margin-top: 14px;
 }
 
-/* Au pouce : un bouton de 44 px de haut, sur l'Encre ; toute la largeur sur mobile. */
-.partir {
-  min-height: 44px;
-  padding: 0 24px;
-  border: 0;
-  border-radius: var(--arrondi-moyen);
-  background: var(--encre);
-  color: var(--blanc-chaud);
-  font: inherit;
-  font-weight: var(--graisse-titre);
-  cursor: pointer;
+/* « Partir » : le bouton principal du kit, toute la largeur du panneau, 50 px de haut (kit.large) ; sa flèche après le mot. */
+.fleche {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-/* Grisé tant qu'il manque un explorateur ; la raison est écrite dessous. */
-.partir:disabled {
-  background: var(--bloc-3);
-  color: var(--texte-pale);
-  cursor: not-allowed;
-}
-
-@media (hover: hover) {
-  .partir:enabled:hover {
-    background: var(--encre-survol);
-  }
-}
-
-.partir:focus-visible {
-  outline: 2px solid var(--encre);
-  outline-offset: 2px;
-}
-
+/* Ce qui manque encore pour partir, juste dessous, discret. */
 .raison {
-  margin-top: 6px;
-  color: var(--texte-discret);
+  margin-top: 8px;
+  color: var(--mousse);
+  font: var(--graisse-texte) 12.5px / 1.45 var(--police);
 }
 
-/* US-0911 : un départ refusé, à la même place, dans la couleur d'alerte. */
+/* US-0911 : un départ refusé, à la même place, dans la braise. */
 .refus {
-  margin-top: 6px;
-  color: var(--mauvais);
-  font-weight: var(--graisse-titre);
-}
-
-@media (max-width: 820px), (max-height: 500px) {
-  .partir {
-    width: 100%;
-  }
+  margin-top: 8px;
+  color: var(--braise);
+  font: var(--graisse-titre) 13px / 1.4 var(--police);
 }

@@ -2,6 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import kit from "@/components/kit.module.css";
 import type { EspeceDisponible } from "@/monde/effectif";
 import { PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE, SEJOURS_TOUT_PRETS_MINUTES } from "@/reglages";
 import type { EtatDuDepart } from "./actions";
@@ -190,6 +191,11 @@ describe("le récapitulatif avant le départ (US-0910)", () => {
 });
 
 describe("partir depuis le récapitulatif (US-0910)", () => {
+  it("finit sur « Partir », l'action de l'écran : le bouton principal du kit, de toute la largeur, au pouce", () => {
+    ouvrir("?explorateurs=1");
+    expect(partir().className.split(" ")).toEqual(expect.arrayContaining([kit.bouton, kit.principal, kit.large]));
+  });
+
   it("finit sur « Partir », grisé tant qu'un choix manque, qui nomme ce qui manque", () => {
     for (const [recherche, destination, attendue] of [
       ["", null, "Il faut une destination et au moins un explorateur."],

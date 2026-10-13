@@ -16,8 +16,6 @@ const actions = vi.hoisted(() => {
 vi.mock("./actions", () => actions);
 vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams() }));
 
-import { BandeauSansMetier } from "./BandeauSansMetier";
-import { HabitantsMontres } from "./HabitantsMontres";
 import { type HabitantAffiche, ListeDesHabitants, type MetierAuChoix } from "./ListeDesHabitants";
 
 const METIERS: MetierAuChoix[] = [
@@ -32,13 +30,8 @@ const HABITANTS: HabitantAffiche[] = [
   { id: 42, prenom: "Cael", metier: "Chasseur", etat: "libre" },
 ];
 
-/** La page Habitants réduite à ce qui compte ici : le bandeau, puis la liste, sur les mêmes Habitants. */
-const page = (habitants: HabitantAffiche[]) => (
-  <HabitantsMontres habitants={habitants}>
-    <BandeauSansMetier />
-    <ListeDesHabitants habitants={habitants} metiers={METIERS} />
-  </HabitantsMontres>
-);
+/** Les Habitants de la page : le bandeau est en tête de leur registre, compté sur les lignes mêmes. */
+const page = (habitants: HabitantAffiche[]) => <ListeDesHabitants habitants={habitants} metiers={METIERS} />;
 
 /** Laisse finir les actions en suspens : React attend qu'elles aient toutes fini pour clore leurs transitions. */
 const finirLesActions = () => act(async () => actions.enCours.splice(0).forEach((finir) => finir()));
@@ -54,15 +47,20 @@ afterEach(async () => {
 /** Le bandeau, s'il est là, en ses morceaux de texte : le paragraphe qui porte le lien « Voir ». */
 function bandeau() {
   const paragraphe = screen.queryByRole("link", { name: "Voir" })?.closest("p");
-  return paragraphe ? [...paragraphe.childNodes].map((morceau) => morceau.textContent) : null;
+  return paragraphe ? [...paragraphe.childNodes].map((morceau) => morceau.textContent).filter(Boolean) : null;
 }
 /** La ligne d'un Habitant, trouvée par son prénom. */
-const ligne = (prenom: string) => screen.getByText(prenom).closest("li")!;
+const ligne = (prenom: string) => screen.getByRole("rowheader", { name: prenom }).closest("tr")!;
+/** Ce qui est déplié sous la ligne d'un Habitant. */
+const dessous = (prenom: string) => ligne(prenom).nextElementSibling as HTMLElement;
+/** Déplie les Métiers de l'Habitant `prenom`, depuis sa ligne. */
+async function deplier(prenom: string, metier = "Choisir un Métier") {
+  await userEvent.setup().click(within(ligne(prenom)).getByRole("button", { name: metier }));
+}
 /** Donne le Métier `nom` à l'Habitant `prenom`, depuis sa ligne. */
 async function donner(prenom: string, nom: string) {
-  const utilisateur = userEvent.setup();
-  await utilisateur.click(within(ligne(prenom)).getByRole("button", { name: "Choisir un Métier" }));
-  await utilisateur.click(within(ligne(prenom)).getByRole("button", { name: nom }));
+  await deplier(prenom);
+  await userEvent.setup().click(within(dessous(prenom)).getByRole("button", { name: nom }));
 }
 
 describe("le bandeau des Habitants sans Métier (US-0313)", () => {
@@ -74,6 +72,12 @@ describe("le bandeau des Habitants sans Métier (US-0313)", () => {
   it("accorde le nombre : « 1 Habitant sans Métier »", () => {
     render(page([HABITANTS[0], HABITANTS[2]]));
     expect(bandeau()).toEqual(["1 Habitant sans Métier", "Voir"]);
+  });
+
+  it("se tient en tête du registre, à côté du titre « Habitants »", () => {
+    render(page(HABITANTS));
+    const titre = screen.getByRole("heading", { level: 1, name: "Habitants" });
+    expect(titre.parentElement?.contains(screen.getByRole("link", { name: "Voir" }))).toBe(true);
   });
 
   it("propose « Voir », un raccourci vers la liste filtrée sur les Habitants sans Métier", () => {
@@ -115,9 +119,8 @@ describe("le bandeau des Habitants sans Métier (US-0313)", () => {
 
   it("monte dès qu'un Métier est retiré depuis la liste, et revient quand il était parti (US-0311)", async () => {
     render(page(HABITANTS));
-    const utilisateur = userEvent.setup();
-    await utilisateur.click(within(ligne("Cael")).getByRole("button", { name: "Chasseur" }));
-    await utilisateur.click(within(ligne("Cael")).getByRole("button", { name: "Sans Métier" }));
+    await deplier("Cael", "Chasseur");
+    await userEvent.setup().click(within(dessous("Cael")).getByRole("button", { name: "Sans Métier" }));
     expect(actions.retirerLeMetier).toHaveBeenCalledExactlyOnceWith(42);
     expect(bandeau()).toEqual(["3 Habitants sans Métier", "Voir"]);
     await finirLesActions();
@@ -125,8 +128,8 @@ describe("le bandeau des Habitants sans Métier (US-0313)", () => {
 
     render(page([{ ...HABITANTS[0], metier: "Mineur" }, HABITANTS[2]]));
     expect(bandeau()).toBeNull();
-    await utilisateur.click(within(ligne("Arno")).getByRole("button", { name: "Mineur" }));
-    await utilisateur.click(within(ligne("Arno")).getByRole("button", { name: "Sans Métier" }));
+    await deplier("Arno", "Mineur");
+    await userEvent.setup().click(within(dessous("Arno")).getByRole("button", { name: "Sans Métier" }));
     expect(bandeau()).toEqual(["1 Habitant sans Métier", "Voir"]);
   });
 
@@ -134,9 +137,9 @@ describe("le bandeau des Habitants sans Métier (US-0313)", () => {
     render(page(HABITANTS));
     const utilisateur = userEvent.setup();
     for (const prenom of ["Arno", "Brune"]) {
-      await utilisateur.click(within(ligne(prenom)).getByRole("button", { name: "Choisir un Métier" }));
-      await utilisateur.click(within(ligne(prenom)).getByRole("button", { name: `Renvoyer ${prenom}` }));
-      await utilisateur.click(within(ligne(prenom)).getByRole("button", { name: /^Confirmer le renvoi/ }));
+      await deplier(prenom);
+      await utilisateur.click(within(dessous(prenom)).getByRole("button", { name: `Renvoyer ${prenom}` }));
+      await utilisateur.click(within(dessous(prenom)).getByRole("button", { name: /^Confirmer le renvoi/ }));
       // L'action n'a pas encore répondu.
       expect(bandeau()).toEqual(prenom === "Arno" ? ["1 Habitant sans Métier", "Voir"] : null);
     }

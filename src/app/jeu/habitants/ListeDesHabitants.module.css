@@ -1,0 +1,839 @@
+/*
+ * Les Habitants (ListeDesHabitants.tsx), deux des trois zones de l'écran de stratégie (maquette strategie, index.html) :
+ * à gauche le rail des Métiers, qui filtre ; au centre le registre, un tableau dense groupé par Métier. Ils prennent les
+ * places « rail » et « registre » de la grille de la page (page.module.css). Sur ordinateur, le registre défile dans son
+ * panneau, l'en-tête des colonnes et celui de chaque groupe collés en haut, et le rail reste entier à côté ; sur une
+ * tablette et un téléphone, le rail devient une bande de pastilles qui défile de côté, et la page défile.
+ */
+
+/* ---------- Le rail des Métiers ---------- */
+
+.rail {
+  display: flex;
+  grid-area: rail;
+  flex-direction: column;
+  min-height: 0;
+  padding: 14px 0 10px;
+}
+
+.titreRail {
+  padding: 2px 18px 10px;
+}
+
+.compteurs {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.compteurs > li {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  min-height: 48px;
+  max-height: 66px;
+}
+
+/* Entre « Sans Métier » et les Métiers, un filet de cuivre qui s'efface aux deux bouts. */
+.compteurs > li:nth-child(3) {
+  margin-top: 13px;
+}
+
+.compteurs > li:nth-child(3)::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  right: 16px;
+  left: 16px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--filet-cuivre), transparent);
+}
+
+/* Un compteur : le médaillon, le nom en Marcellus (et dessous, en cuivre, ceux en Expédition), le nombre à droite. */
+.compteur {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 0 14px 0 16px;
+  border: 0;
+  background: none;
+  color: var(--parchemin);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.compteur:hover {
+  background: var(--lumiere-haut);
+}
+
+.compteur:focus-visible {
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: -2px;
+}
+
+.nomCompteur {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.nom {
+  color: var(--parchemin);
+  font: 400 16px / 1.1 var(--police-titre);
+}
+
+.repere {
+  margin-left: 8px;
+  vertical-align: 3px;
+}
+
+.partis {
+  display: block;
+  overflow: hidden;
+  color: var(--cuivre);
+  font: var(--graisse-moyenne) 11.5px / 1.15 var(--police-etroite);
+  letter-spacing: 0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nombreCompteur {
+  min-width: 22px;
+  color: var(--creme);
+  font: var(--graisse-titre) 17px / 1 var(--police);
+  text-align: right;
+}
+
+/* Sous chaque Métier, sa part du Métier le plus exercé, en un trait de cuivre. */
+.part {
+  position: absolute;
+  right: 14px;
+  bottom: 7px;
+  left: 61px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--creux-clair);
+}
+
+.part > i {
+  display: block;
+  width: var(--part);
+  height: 100%;
+  border-radius: 1px;
+  background: linear-gradient(90deg, var(--cuivre-sombre), var(--cuivre));
+  opacity: 0.85;
+}
+
+/* Un Métier que personne n'exerce : éteint. */
+.compteur[data-personne] .nom,
+.compteur[data-personne] .nombreCompteur {
+  color: var(--lichen);
+}
+
+.compteur[data-personne] .medaillonCompteur {
+  filter: saturate(0.35) brightness(0.8);
+}
+
+/* US-0314 : le filtre pressé : un voile de cuivre, un trait lumineux à gauche, le nom en cuivre clair. */
+.compteur[aria-pressed="true"] {
+  background: var(--fond-choisi);
+}
+
+.compteur[aria-pressed="true"]::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 0;
+  width: 3px;
+  background: var(--cuivre-clair);
+  box-shadow: 0 0 10px var(--cuivre-lueur);
+}
+
+.compteur[aria-pressed="true"] .nom {
+  color: var(--cuivre-clair);
+}
+
+/* ---------- Le registre ---------- */
+
+.registre {
+  display: flex;
+  grid-area: registre;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* US-0329 : sans Habitant, pas de rail : le registre en prend la place. */
+.registre[data-seul] {
+  grid-column: rail-start / registre-end;
+}
+
+/* L'en-tête : « Habitants », ce que montre le filtre, le bandeau des sans Métier ; le village peint, fondu à droite. */
+.enTete {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  min-height: 64px;
+  padding: 14px 20px 14px 22px;
+  border-bottom: 1px solid var(--filet-cuivre);
+}
+
+.decor {
+  position: absolute;
+  inset: 0 0 0 30%;
+  opacity: 0.62;
+  pointer-events: none;
+  mask-image: linear-gradient(90deg, transparent, var(--noir) 75%);
+}
+
+.peinture {
+  object-fit: cover;
+}
+
+.decor .peinture {
+  object-position: 55% 34%;
+}
+
+.enTete > :not(.decor) {
+  position: relative;
+}
+
+.titre {
+  color: var(--creme);
+  font: 400 27px / 1 var(--police-titre);
+  letter-spacing: 0.01em;
+}
+
+.vue {
+  flex: 1 0 auto;
+  padding-top: 5px;
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 13px / 1 var(--police-etroite);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.vue strong {
+  color: var(--cuivre-clair);
+  font-weight: var(--graisse-titre);
+}
+
+/* US-0313 : le bandeau des sans Métier, un avertissement court posé sur la peinture. */
+.sansMetier {
+  flex: none;
+  box-shadow: 0 4px 14px -4px var(--ombre-noire);
+}
+
+.nombreSansMetier {
+  font-weight: var(--graisse-moyenne);
+}
+
+.voirSansMetier {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding-left: 9px;
+  border-left: 1px solid var(--braise-filet);
+  color: var(--cuivre-clair);
+  font-weight: var(--graisse-titre);
+  text-decoration: none;
+}
+
+.voirSansMetier svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.voirSansMetier:hover {
+  color: var(--creme);
+}
+
+.voirSansMetier:focus-visible {
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: 3px;
+}
+
+/* US-0329, US-0314 : une phrase à la place des lignes. */
+.personne {
+  padding: 16px 22px;
+  color: var(--mousse);
+}
+
+/* Le tableau défile dans le panneau ; un voile s'épaissit à son pied. */
+.defile {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-color: var(--anneau-cuivre-fort) transparent;
+  scrollbar-width: thin;
+}
+
+.registre::after {
+  content: "";
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  left: 1px;
+  height: 34px;
+  background: linear-gradient(180deg, transparent, var(--panneau-voile));
+  pointer-events: none;
+}
+
+.tableau {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+/* L'en-tête des colonnes, collé en haut du tableau. */
+.tableau thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  height: 32px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--filet-cuivre);
+  background: var(--entete-tableau);
+  color: var(--lichen);
+  font: var(--graisse-moyenne) 10.5px / 1 var(--police-etroite);
+  letter-spacing: var(--espacement-etiquette);
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.tableau thead th:first-child,
+.habitant > :first-child {
+  padding-left: 22px;
+}
+
+.colonnePrenom {
+  width: 18%;
+}
+
+.colonneMetier {
+  width: 200px;
+}
+
+.colonneArrivee {
+  width: 132px;
+}
+
+/* L'en-tête d'un groupe : le médaillon du Métier, son nom, sa phrase, ce qu'il attend, « − N + » ; collé sous celui des
+   colonnes, son lieu de travail fondu à droite. */
+.teteDeGroupe > th {
+  position: sticky;
+  top: 32px;
+  z-index: 2;
+  padding: 0;
+  border-bottom: 1px solid var(--filet-cuivre-doux);
+  background: var(--entete-groupe);
+  font-weight: inherit;
+  text-align: left;
+}
+
+.tete {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 16px 9px 18px;
+  border-top: 1px solid var(--filet-cuivre);
+  background: linear-gradient(90deg, var(--cuivre-brume), transparent 55%);
+}
+
+.groupe:first-of-type .tete {
+  border-top: 0;
+}
+
+.groupe[data-sans-metier] .tete {
+  background: linear-gradient(90deg, var(--braise-voile), transparent 55%);
+}
+
+.lieu {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 46%;
+  opacity: 0.3;
+  pointer-events: none;
+  mask-image: linear-gradient(90deg, transparent, var(--noir) 80%);
+}
+
+.lieu .peinture {
+  object-position: 50% 45%;
+}
+
+.tete > :not(.lieu) {
+  position: relative;
+}
+
+.medaillonGroupe {
+  --taille: 30px;
+}
+
+.titreGroupe {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.nomGroupe {
+  flex: none;
+  color: var(--creme);
+  font: 400 17px / 1 var(--police-titre);
+}
+
+.phrase {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--mousse);
+  font: 400 13px / 1.2 var(--police);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.servira {
+  flex: none;
+  color: var(--cuivre);
+  font: italic var(--graisse-moyenne) 12.5px / 1.2 var(--police);
+  white-space: nowrap;
+}
+
+.effectifGroupe {
+  min-width: 92px;
+  color: var(--creme);
+  font: var(--graisse-titre) 17px / 1 var(--police);
+  text-align: center;
+}
+
+/* Une ligne par Habitant : dense, le prénom en Marcellus, la date en discret. */
+.habitant > * {
+  height: 38px;
+  padding: 0 9px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--filet-cuivre-doux);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+  transition: background 0.12s;
+}
+
+.habitant:hover > * {
+  background: var(--lumiere-haut);
+}
+
+.prenom {
+  color: var(--parchemin);
+  font: 400 16px / 1 var(--police-titre);
+  letter-spacing: 0.01em;
+  text-align: left;
+}
+
+.habitant:hover .pastille {
+  border-color: var(--filet-cuivre);
+}
+
+.metierEcrit {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding-left: 4px;
+  color: var(--parchemin);
+  font: var(--graisse-moyenne) 13px / 1 var(--police);
+}
+
+.metierEcrit[data-sans-metier] {
+  color: var(--mousse);
+}
+
+.arrivee {
+  color: var(--lichen);
+  font: 400 13px / 1 var(--police);
+}
+
+/* La ligne dépliée : un voile de cuivre, un trait lumineux à gauche, le prénom en cuivre clair. */
+.habitant[data-ouvert] > * {
+  border-bottom-color: transparent;
+  background: var(--cuivre-survol);
+}
+
+.habitant[data-ouvert] > :first-child {
+  box-shadow: inset 3px 0 0 var(--cuivre-clair);
+  color: var(--cuivre-clair);
+}
+
+/*
+ * Le dépliant : en haut l'étiquette, et à droite « Sans Métier » et « Renvoyer » ; dessous les huit Métiers, sur une
+ * rangée. Les boutons du groupe des Métiers se rangent avec les autres (display: contents) : « Sans Métier » et
+ * « Renvoyer » restent les derniers pour le clavier et un lecteur d'écran, en haut à droite pour les yeux.
+ */
+.depliant > td {
+  padding: 0;
+  border-bottom: 1px solid var(--filet-cuivre);
+  background: linear-gradient(180deg, var(--cuivre-survol), var(--creux));
+  box-shadow: inset 3px 0 0 var(--cuivre-clair);
+}
+
+.dedans {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 8px;
+  padding: 10px 16px 14px 22px;
+}
+
+/* Après « Renvoyer », la rangée des Métiers commence à la ligne. */
+.dedans::after {
+  content: "";
+  flex-basis: 100%;
+  order: 2;
+  margin-bottom: -10px;
+}
+
+.quiChoisit {
+  flex: 1 1 auto;
+}
+
+.choixDuMetier {
+  display: contents;
+}
+
+.choixDuMetier > [data-metier] {
+  flex: 0 0 calc((100% - 7 * 8px) / 8);
+  order: 3;
+}
+
+.choixDuMetier > [data-sans-metier] {
+  order: 1;
+}
+
+.renvoyer {
+  order: 2;
+}
+
+/* US-0330 : « Confirmer le renvoi », plein, dans la couleur d'alerte. */
+.renvoyer[data-confirmer] {
+  border-color: var(--braise);
+  background: var(--braise);
+  color: var(--sur-cuivre);
+}
+
+.renvoyer[data-confirmer]:hover {
+  background: var(--braise-claire);
+}
+
+/* Entre 1 024 et 1 200 px, le registre est plus étroit (page.module.css) : ses colonnes se resserrent, le rail aussi. */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .colonnePrenom {
+    width: 16%;
+  }
+
+  .colonneMetier {
+    width: 176px;
+  }
+
+  .colonneArrivee {
+    width: 112px;
+  }
+
+  .arrivee {
+    font-size: 12.5px;
+  }
+
+  .compteur {
+    gap: 9px;
+    padding: 0 12px 0 14px;
+  }
+
+  .nom {
+    font-size: 15px;
+  }
+
+  .part {
+    right: 12px;
+    left: 57px;
+  }
+}
+
+/* ---------- Tablette et téléphone : la page défile, le rail devient une bande ---------- */
+
+@media (max-width: 1023px) {
+  .rail.rail {
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .rail.rail::before {
+    display: none;
+  }
+
+  .titreRail {
+    display: none;
+  }
+
+  .compteurs {
+    flex-direction: row;
+    gap: 8px;
+    padding: 2px 2px 6px;
+    overflow-x: auto;
+    overflow-y: visible;
+    mask-image: linear-gradient(90deg, var(--noir) 88%, transparent);
+  }
+
+  .compteurs > li {
+    flex: none;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .compteurs > li:nth-child(3) {
+    margin: 0 0 0 9px;
+  }
+
+  .compteurs > li:nth-child(3)::before {
+    top: 8px;
+    right: auto;
+    bottom: 8px;
+    left: -9px;
+    width: 1px;
+    height: auto;
+    background: var(--filet-cuivre);
+  }
+
+  .compteur {
+    width: auto;
+    height: 46px;
+    padding: 0 12px 0 7px;
+    gap: 8px;
+    border: 1px solid var(--filet-cuivre);
+    border-radius: 23px;
+    background: var(--fond-panneau);
+  }
+
+  .compteur[aria-pressed="true"] {
+    border-color: var(--cuivre-clair);
+    background: linear-gradient(180deg, var(--panneau-choisi), var(--panneau-releve));
+  }
+
+  .compteur[aria-pressed="true"]::before,
+  .partis,
+  .part {
+    display: none;
+  }
+
+  .medaillonCompteur {
+    --taille: 30px;
+  }
+
+  .nom {
+    font-size: 15px;
+    white-space: nowrap;
+  }
+
+  .nombreCompteur {
+    min-width: 0;
+    font-size: 15px;
+  }
+
+  .registre {
+    overflow: visible;
+  }
+
+  .registre::after {
+    display: none;
+  }
+
+  .defile {
+    overflow: visible;
+  }
+
+  /* La page défile : l'en-tête des colonnes se colle sous la barre du haut ; les groupes défilent avec leurs lignes. */
+  .tableau thead th {
+    top: var(--hauteur-barre);
+  }
+
+  .teteDeGroupe > th {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .enTete {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .titre {
+    font-size: 23px;
+  }
+
+  .sansMetier {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .voirSansMetier {
+    margin-left: auto;
+  }
+
+  /* Plus de colonnes : chaque ligne en deux rangées, le prénom et le Métier, puis l'état et la date. */
+  .tableau,
+  .tableau tbody,
+  .teteDeGroupe,
+  .teteDeGroupe > th,
+  .depliant,
+  .depliant > td,
+  .vide,
+  .vide > td {
+    display: block;
+  }
+
+  .tableau thead {
+    display: none;
+  }
+
+  .tete {
+    align-items: flex-start;
+    gap: 11px;
+    padding: 11px 12px 11px 14px;
+  }
+
+  .medaillonGroupe {
+    --taille: 34px;
+  }
+
+  .titreGroupe {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .nomGroupe {
+    font-size: 18px;
+  }
+
+  .phrase,
+  .servira {
+    white-space: normal;
+  }
+
+  .pas,
+  .effectifGroupe {
+    margin-top: 2px;
+  }
+
+  /* « − » et « + » au pouce. */
+  .pas > button {
+    width: 36px;
+    height: 34px;
+  }
+
+  .pas > span {
+    line-height: 34px;
+  }
+
+  .effectifGroupe {
+    min-width: 0;
+    padding: 6px 10px 0 0;
+  }
+
+  .habitant {
+    display: grid;
+    grid-template-areas:
+      "prenom metier"
+      "etat arrivee";
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 5px 8px;
+    padding: 9px 12px 9px 14px;
+    border-bottom: 1px solid var(--filet-cuivre-doux);
+  }
+
+  .habitant > *,
+  .habitant > :first-child {
+    display: block;
+    height: auto;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    background: none;
+  }
+
+  .habitant:hover > *,
+  .habitant[data-ouvert] > * {
+    background: none;
+  }
+
+  .habitant[data-ouvert] {
+    background: linear-gradient(90deg, var(--cuivre-voile), var(--cuivre-survol));
+    box-shadow: inset 3px 0 0 var(--cuivre-clair);
+  }
+
+  .habitant[data-ouvert] > :first-child {
+    box-shadow: none;
+  }
+
+  .prenom {
+    grid-area: prenom;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .metier {
+    grid-area: metier;
+    justify-self: end;
+  }
+
+  .etat {
+    display: flex;
+    grid-area: etat;
+    align-items: center;
+  }
+
+  .arrivee {
+    grid-area: arrivee;
+    justify-self: end;
+    font-size: 12px;
+  }
+
+  .dedans {
+    padding: 10px 12px 14px 14px;
+  }
+
+  .quiChoisit {
+    flex-basis: 100%;
+  }
+
+  .choixDuMetier > [data-metier] {
+    flex-basis: calc((100% - 3 * 8px) / 4);
+  }
+}

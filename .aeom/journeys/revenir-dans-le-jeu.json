@@ -1,0 +1,12 @@
+{
+  "name": "Revenir dans le jeu",
+  "signedOut": true,
+  "steps": [
+    { "do": "open", "path": "/" },
+    { "do": "click", "target": { "role": "link", "name": "Se connecter" }, "lands": "/connexion" },
+    { "do": "fill", "target": { "role": "textbox", "name": "Adresse e-mail" }, "value": { "account": "Adresse e-mail" } },
+    { "do": "fill", "target": { "role": "textbox", "name": "Mot de passe" }, "value": { "account": "Mot de passe" } },
+    { "do": "click", "target": { "role": "button", "name": "Se connecter" }, "lands": "/jeu" },
+    { "do": "see", "text": "Foyer" }
+  ]
+}

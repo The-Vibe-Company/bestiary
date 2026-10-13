@@ -69,7 +69,7 @@ describe("la liste des Expéditions en cours (US-0911, US-0918)", () => {
     session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
     enCours.expeditionsEnCours.mockResolvedValue(expeditions);
   };
-  /** Le texte de chaque ligne de la liste, ses morceaux séparés par « · » (« arrive dans » à part, que mobile replie). */
+  /** Le texte du panneau de chaque Expédition de la liste, ses morceaux séparés par « · ». */
   const lignes = (html: string) =>
     [...html.matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(([, ligne]) =>
       ligne
@@ -83,7 +83,7 @@ describe("la liste des Expéditions en cours (US-0911, US-0918)", () => {
   it("titre la page « Expéditions en cours », dans l'onglet comme sur la page", async () => {
     connecte();
     expect(metadata.title).toBe("Expéditions en cours");
-    expect(renderToStaticMarkup(await ExpeditionsEnCours())).toMatch(/<main[^>]*><h1[^>]*>Expéditions en cours<\/h1>/);
+    expect(renderToStaticMarkup(await ExpeditionsEnCours())).toMatch(/<main[^>]*><div[^>]*><h1[^>]*>Expéditions en cours<\/h1><\/div>/);
   });
 
   it("montre chaque Expédition en cours du Territoire, à l'heure du jeu : sa destination, sa phase, son temps restant, ses explorateurs et son escorte", async () => {
@@ -91,15 +91,17 @@ describe("la liste des Expéditions en cours (US-0911, US-0918)", () => {
     const html = renderToStaticMarkup(await ExpeditionsEnCours());
     expect(enCours.expeditionsEnCours).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, INSTANT);
     expect(lignes(html)).toEqual([
-      // 9 h 24 à Paris, plus 1 h d'aller, 4 h de séjour et 1 h de retour ; à l'aller comme en séjour, « Rappeler » (US-0920).
-      "Forêt · 3 Cases de votre Foyer · Aller · arrive dans · 42 min · Explorateurs · Joran, Ines · Escorte · Souris grise × 2 · Retour prévu · 9 octobre à 15:24 · Rappeler",
-      "Case inconnue · 1 Case de votre Foyer · Séjour · repart dans · 50 min · Explorateurs · Mael · Escorte · Sans escorte · Retour prévu · 9 octobre à 10:52 · Rappeler",
+      // Sur son paysage, la destination, sa distance, sa phase et son temps restant ; puis sa frise (« Aller · Séjour ·
+      // Retour ») et son détail. 9 h 24 à Paris, plus 1 h d'aller, 4 h de séjour et 1 h de retour ; à l'aller comme en
+      // séjour, « Rappeler » (US-0920).
+      "Forêt · 3 Cases de votre Foyer · Aller · arrive dans 42 min · Aller · Séjour · Retour · Explorateurs · Joran · Ines · Escorte · Souris grise · ×\u00a02 · Retour prévu · 9 octobre à 15:24 · Rappeler",
+      "Case inconnue · 1 Case de votre Foyer · Séjour · repart dans 50 min · Aller · Séjour · Retour · Explorateurs · Mael · Escorte · Sans escorte · Retour prévu · 9 octobre à 10:52 · Rappeler",
     ]);
   });
 
   it("dit la phase de retour, et le temps qu'il reste avant la rentrée au Foyer", async () => {
     connecte([{ ...EXPEDITIONS[0], partLe: avant(60 + 240 + 30) }]);
-    expect(lignes(renderToStaticMarkup(await ExpeditionsEnCours()))[0]).toMatch(/^Forêt · 3 Cases de votre Foyer · Retour · rentre dans · 30 min · /);
+    expect(lignes(renderToStaticMarkup(await ExpeditionsEnCours()))[0]).toMatch(/^Forêt · 3 Cases de votre Foyer · Retour · rentre dans 30 min · /);
   });
 
   it("sans Expédition en cours, le dit, sans liste, avec un bouton pour en préparer une sur l'écran d'Expédition", async () => {

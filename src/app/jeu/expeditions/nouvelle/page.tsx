@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { exigerCompte } from "@/comptes/garde";
 import { entreeDuJeuOuverte } from "@/comptes/ouverture";
+import Link from "next/link";
 import { Bloc } from "@/components/Bloc";
+import kit from "@/components/kit.module.css";
+import { Paysage } from "@/components/Paysage";
 import { getPool } from "@/db";
 import { betesReperees } from "@/expeditions/betes-reperees";
 import { casesDuFoyer } from "@/expeditions/choix-de-destination";
@@ -40,7 +43,13 @@ function caseEnParametre(recherche: { q?: string | string[]; r?: string | string
   return q === null || r === null ? null : { q, r };
 }
 
-/** US-0901 : la destination choisie : son Biome, « inconnu » sous le brouillard (US-0907), et sa distance au Foyer. */
+/** L'Expédition qui se prépare, quand la destination n'a pas encore de Biome à peindre : les explorateurs en route. */
+const EN_ROUTE = "prototype/misc/expedition.webp";
+
+/**
+ * US-0901 : la destination choisie : son Biome, « inconnu » sous le brouillard (US-0907), et sa distance au Foyer ; le
+ * Biome en grand sous sa petite étiquette, la distance dessous.
+ */
 function Destination({ fiche }: { fiche: Fiche | FicheInconnue }) {
   return (
     <dl className={styles.details}>
@@ -53,6 +62,32 @@ function Destination({ fiche }: { fiche: Fiche | FicheInconnue }) {
         <dd>{casesDuFoyer(fiche.distance)}</dd>
       </div>
     </dl>
+  );
+}
+
+/** Le paysage de la destination, en bandeau à droite de son panneau : son Biome, la brume sous le brouillard, ou rien encore. */
+function PaysageDeLaDestination({ fiche }: { fiche: Fiche | FicheInconnue | null }) {
+  const sizes = "(max-width: 760px) 55vw, 30vw";
+  if (fiche && !("inconnue" in fiche)) return <Paysage biome={fiche.biome} sizes={sizes} prioritaire className={styles.paysage} />;
+  return <Paysage peinture={EN_ROUTE} brume={fiche !== null} sizes={sizes} prioritaire className={`${styles.paysage} ${styles.enRoute}`} />;
+}
+
+/** Le titre de l'écran, et à droite le lien vers les Expéditions déjà parties. */
+function EnTete() {
+  return (
+    <div className={kit.enTeteEcran}>
+      <h1 className={kit.titreEcran}>Nouvelle Expédition</h1>
+      <Link href="/jeu/expeditions" className={`${kit.bouton} ${kit.secondaire} ${styles.enCours}`}>
+        <svg viewBox="0 0 16 16" aria-hidden="true" className={styles.boussole}>
+          <circle cx="8" cy="8" r="6.2" />
+          <path d="M10.6 5.4 9 9 5.4 10.6 7 7z" />
+        </svg>
+        Expéditions en cours
+        <svg viewBox="0 0 12 12" aria-hidden="true" className={styles.fleche}>
+          <path d="M2 6h7.5M6.5 3l3 3-3 3" />
+        </svg>
+      </Link>
+    </div>
   );
 }
 
@@ -88,6 +123,10 @@ async function betesAChercher(territoireId: number, c: Coordonnees, instant: Dat
  * une seule colonne, et chaque choix au pouce. Sans session, la garde mène à la connexion, qui ramène ici avec la
  * même Case. US-0910 : l'écran finit sur le récapitulatif, et son départ. US-0949 : avec les Bêtes que le joueur a
  * repérées sur la Case de destination, pour qu'il compare son escorte à chacune avant de partir la chercher.
+ *
+ * Sur ordinateur, deux colonnes sous le titre : à gauche la destination en bandeau, son paysage peint, puis les
+ * explorateurs et l'escorte côte à côte, et le séjour ; à droite le récapitulatif, de toute la hauteur de l'écran, qui
+ * finit sur « Partir ». À côté du titre, un lien mène aux Expéditions déjà parties.
  */
 export default async function NouvelleExpedition({ searchParams }: PageProps<"/jeu/expeditions/nouvelle">) {
   await connection();
@@ -102,37 +141,44 @@ export default async function NouvelleExpedition({ searchParams }: PageProps<"/j
     const prochainRetour = explorateurs.total > 0 && territoireId !== null ? await prochainRetourDUnExplorateur(getPool(), territoireId) : null;
     return (
       <main className={styles.page}>
-        <h1 className={styles.titre}>Nouvelle Expédition</h1>
+        <EnTete />
         <AucunExplorateurLibre total={explorateurs.total} prochainRetour={prochainRetour} />
       </main>
     );
   }
   // US-0904 : les Bêtes disponibles pour l'escorte, par Espèce, lues à chaque affichage du formulaire.
   const escorte = territoireId !== null ? await betesDisponibles(getPool(), territoireId) : [];
+  const fiche = destination && "fiche" in destination ? destination.fiche : null;
+  const refus = destination && "refus" in destination ? destination.refus : null;
   const instant = maintenant();
-  const choisie = destination && "fiche" in destination ? destinationChoisie(destination.fiche) : null;
+  const choisie = fiche ? destinationChoisie(fiche) : null;
   // US-0949 : les Bêtes repérées sur la Case de destination ; aucune sans destination.
   const betes = choisie && territoireId !== null ? await betesAChercher(territoireId, choisie, instant) : [];
   return (
-    <main className={styles.page}>
-      <h1 className={styles.titre}>Nouvelle Expédition</h1>
-      <Bloc titre="Destination">
-        {destination && "fiche" in destination ? (
-          <>
-            <Destination fiche={destination.fiche} />
-            <VersLaCarte className={`${styles.choisir} ${styles.changer}`}>Changer de destination</VersLaCarte>
-          </>
-        ) : (
-          <>
-            {destination ? <p className={styles.refus}>{destination.refus}</p> : <p className={styles.aucune}>Aucune destination</p>}
-            <VersLaCarte className={styles.choisir}>Choisir sur la carte</VersLaCarte>
-          </>
-        )}
-      </Bloc>
-      <Explorateurs {...explorateurs} />
-      {/* US-0909 : sans Bête disponible, pas d'escorte à choisir : l'Expédition part sans, et l'écran le dit à sa place. */}
-      {escorte.length > 0 ? <Escorte especes={escorte} /> : <SansEscorte />}
-      <Sejour />
+    <main className={`${styles.page} ${styles.preparation}`}>
+      <EnTete />
+      <div className={styles.composition}>
+        <Bloc titre="Destination" className={styles.destination}>
+          <PaysageDeLaDestination fiche={fiche} />
+          {fiche ? (
+            <>
+              <Destination fiche={fiche} />
+              <VersLaCarte className={`${kit.bouton} ${kit.secondaire} ${styles.choisir}`}>Changer de destination</VersLaCarte>
+            </>
+          ) : (
+            <>
+              {refus ? <p className={styles.refus}>{refus}</p> : <p className={styles.aucune}>Aucune destination</p>}
+              <VersLaCarte className={`${kit.bouton} ${kit.principal} ${styles.choisir}`}>Choisir sur la carte</VersLaCarte>
+            </>
+          )}
+        </Bloc>
+        <div className={styles.equipage}>
+          <Explorateurs {...explorateurs} />
+          {/* US-0909 : sans Bête disponible, pas d'escorte à choisir : l'Expédition part sans, et l'écran le dit à sa place. */}
+          {escorte.length > 0 ? <Escorte especes={escorte} /> : <SansEscorte />}
+        </div>
+        <Sejour />
+      </div>
       {/* US-0910 : tout ce qui a été choisi, à relire avant de partir, à l'heure et au rythme du jeu ; rien d'une Case refusée. */}
       <Recapitulatif libres={explorateurs.libres} especes={escorte} destination={choisie} betes={betes} maintenant={instant} vitesse={vitesse()} />
     </main>

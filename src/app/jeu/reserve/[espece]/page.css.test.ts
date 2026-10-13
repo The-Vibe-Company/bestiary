@@ -24,7 +24,7 @@ describe("la fiche d'une Espèce (US-0803)", () => {
 
   it("met « Fermer » au pouce : 44 px de haut, avec un contour au clavier", () => {
     expect(regle(".fermer")).toContain("min-height: 44px;");
-    expect(regle(".fermer:focus-visible")).toContain("outline: 2px solid var(--encre);");
+    expect(regle(".fermer:focus-visible")).toContain("outline: 2px solid var(--cuivre-clair);");
   });
 
   it("pose l'illustration à côté du nom, au-dessus sur un téléphone tenu droit", () => {

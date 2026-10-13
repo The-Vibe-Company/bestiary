@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { exigerCompte } from "@/comptes/garde";
 import { entreeDuJeuOuverte } from "@/comptes/ouverture";
-import { Bloc } from "@/components/Bloc";
+import kit from "@/components/kit.module.css";
+import { Paysage } from "@/components/Paysage";
 import { getPool } from "@/db";
 import { type SortDuVoyageur, voyageursPasses } from "@/monde/voyageurs";
 import { formaterInstant } from "@/temps/affichage";
@@ -19,10 +20,12 @@ const FUSEAU = "Europe/Paris";
 const SORTS: Record<SortDuVoyageur, string> = { accueilli: "accueilli", refuse: "refusé", reparti: "reparti" };
 
 /**
- * La page Voyageurs (US-0342), ouverte par « Historique » depuis la partie « Aux portes » de la page Habitants :
- * en tête, les Voyageurs accueillis et les Voyageurs perdus, refusés ou repartis d'eux-mêmes ; puis une ligne par
- * Voyageur passé, du plus récent sort au plus ancien, avec son prénom, l'heure de son arrivée et son sort ; le tout
- * sur les HISTORIQUE_VOYAGEURS_JOURS derniers jours de jeu. Sans session, la garde mène à la connexion, qui ramène ici.
+ * La page Voyageurs (US-0342), ouverte par « Historique » depuis la partie « Aux portes » de la page Habitants : sur le
+ * fond du jeu, à la marge des autres écrans, le titre, puis un panneau orné de toute la largeur ; à gauche, la hutte au
+ * bout de son chemin, peinte en bandeau, et sous elle les Voyageurs accueillis et les Voyageurs perdus, refusés ou repartis
+ * d'eux-mêmes, en grands nombres ; à droite, une ligne par Voyageur passé, du plus récent sort au plus ancien, avec son
+ * prénom, l'heure de son arrivée et son sort, en pastille, en colonnes alignées ; le tout sur les
+ * HISTORIQUE_VOYAGEURS_JOURS derniers jours de jeu. Sans session, la garde mène à la connexion, qui ramène ici.
  */
 export default async function Voyageurs() {
   await connection();
@@ -32,16 +35,17 @@ export default async function Voyageurs() {
   const accueillis = passes.filter((v) => v.sort === "accueilli").length;
   return (
     <main className={styles.page}>
-      <h1 className={styles.titre}>Voyageurs</h1>
-      <Bloc>
+      <h1 className={`${kit.titreEcran} ${styles.titre}`}>Voyageurs</h1>
+      <section className={`${kit.panneau} ${styles.registre}`}>
+        <Paysage peinture="entree/connexion.webp" sizes="(max-width: 1023px) 100vw, 340px" className={`${kit.vignette} ${styles.portes}`} />
         <dl className={styles.compteurs}>
           <div className={styles.compteur}>
-            <dt>Accueillis</dt>
-            <dd className={styles.nombre}>{accueillis}</dd>
+            <dt className={kit.etiquette}>Accueillis</dt>
+            <dd className={kit.nombre}>{accueillis}</dd>
           </div>
           <div className={styles.compteur}>
-            <dt>Perdus</dt>
-            <dd className={styles.nombre}>{passes.length - accueillis}</dd>
+            <dt className={kit.etiquette}>Perdus</dt>
+            <dd className={kit.nombre}>{passes.length - accueillis}</dd>
           </div>
         </dl>
         {passes.length === 0 ? (
@@ -54,12 +58,12 @@ export default async function Voyageurs() {
                 <span className={styles.arrivee}>
                   arrivé le <time dateTime={v.arriveLe.toISOString()}>{formaterInstant(v.arriveLe, FUSEAU)}</time>
                 </span>
-                <span className={styles.sort}>{SORTS[v.sort]}</span>
+                <span className={`${kit.puce} ${styles.sort}`}>{SORTS[v.sort]}</span>
               </li>
             ))}
           </ul>
         )}
-      </Bloc>
+      </section>
     </main>
   );
 }

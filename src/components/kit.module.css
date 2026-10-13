@@ -1,0 +1,516 @@
+/*
+ * Le kit du jeu, en classes : ce que chaque page pose sur ses propres éléments quand une pièce toute faite (Bloc,
+ * Medaillon, Jauge, Etat) ne convient pas. `import kit from "@/components/kit.module.css"`, puis
+ * `className={kit.bouton + " " + kit.principal}`. Toutes les valeurs viennent de la maquette retenue
+ * (directions/maquettes/strategie) ; voir le mode d'emploi en tête de src/app/globals.css.
+ */
+
+/* ---------- Le panneau orné ---------- */
+
+/*
+ * Un panneau : un filet de cuivre, des coins nets, un fond sarcelle plus clair en haut, une lumière à peine visible sur
+ * son bord haut, une ombre longue dessous ; et à chaque coin, son petit ornement de cuivre (le ::before, par-dessus le
+ * contenu : une peinture qui touche les bords le garde). Le ::after reste libre pour la page.
+ */
+.panneau {
+  position: relative;
+  min-width: 0;
+  border: 1px solid var(--filet-cuivre);
+  border-radius: var(--arrondi-net);
+  background: var(--fond-panneau);
+  box-shadow: var(--ombre-panneau);
+  color: var(--parchemin);
+}
+
+.panneau::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  background: var(--cuivre);
+  pointer-events: none;
+  mask: var(--masque-coins);
+}
+
+/* Le verre : le même panneau, posé sur une peinture (le Foyer, la carte), qui la laisse deviner, floutée, dessous. */
+.verre {
+  background: var(--fond-verre);
+  backdrop-filter: blur(6px);
+  box-shadow: var(--ombre-verre);
+}
+
+/* ---------- Les titres et les étiquettes ---------- */
+
+/* La petite étiquette de cuivre : le titre d'un panneau, d'une colonne, d'un groupe (« PRODUCTION · PRAIRIE »). */
+.etiquette {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--cuivre);
+  font: var(--graisse-moyenne) var(--taille-etiquette) / 1 var(--police-etroite);
+  letter-spacing: var(--espacement-etiquette);
+  text-transform: uppercase;
+}
+
+.etiquette svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* La petite rangée en tête d'un panneau : l'étiquette à gauche, un lien ou un bouton à droite (« Historique »). */
+.enTete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* La rangée du titre d'un écran : le titre, puis à droite son lien fort (« Expéditions en cours 2 → »). */
+.enTeteEcran {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  min-height: 40px;
+  margin: 2px 2px 14px;
+}
+
+/* Le titre d'un écran, en Marcellus, en crème. */
+.titreEcran {
+  margin-right: auto;
+  color: var(--creme);
+  font: 400 30px / 1 var(--police-titre);
+  letter-spacing: 0.01em;
+}
+
+/* Le titre en Marcellus d'un panneau ou d'une ligne (un Métier, un Récit) : plus petit. */
+.titreServif {
+  color: var(--creme);
+  font: 400 17px / 1.15 var(--police-titre);
+}
+
+/* Un lien de cuivre clair, souligné d'un filet (« Historique », « Voir »). */
+.lien {
+  padding-bottom: 1px;
+  border-bottom: 1px solid var(--anneau-cuivre-fort);
+  color: var(--cuivre-clair);
+  font: var(--graisse-moyenne) 12.5px / 1 var(--police);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.lien:hover {
+  border-bottom-color: var(--cuivre-clair);
+}
+
+/* ---------- Les boutons ---------- */
+
+/*
+ * Un bouton (ou un lien qui en a l'air) : 32 px, des coins nets, Barlow en 600. Il prend une de ses façons : principal,
+ * secondaire, discret ou danger. Sur un téléphone, 36 px, pour le pouce.
+ */
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--filet-cuivre);
+  border-radius: var(--arrondi-net);
+  background: transparent;
+  color: var(--parchemin);
+  font: var(--graisse-titre) 13px / 1 var(--police);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.bouton svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
+.bouton:focus-visible {
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: 2px;
+}
+
+/* L'action principale de l'écran, au cuivre plein : « Accueillir », « Partir », « Voir ». */
+.principal {
+  border-color: var(--cuivre-bouton-bord);
+  background: var(--fond-bouton-principal);
+  box-shadow: var(--ombre-bouton-principal);
+  color: var(--sur-cuivre);
+}
+
+.principal:hover {
+  filter: brightness(1.06);
+}
+
+.principal:disabled,
+.principal[aria-disabled="true"] {
+  border-color: var(--filet-cuivre-doux);
+  background: var(--lumiere-trait);
+  box-shadow: none;
+  color: var(--lichen);
+  filter: none;
+  cursor: not-allowed;
+}
+
+/* Une action à côté : le contour de cuivre (« Refuser », « Lire », « Changer de destination »). */
+.secondaire:hover {
+  border-color: var(--cuivre);
+  background: var(--cuivre-survol);
+}
+
+/* Une action de peu : le texte seul, en cuivre clair. */
+.discret {
+  min-height: 0;
+  padding: 4px 2px;
+  border-color: transparent;
+  color: var(--cuivre-clair);
+}
+
+.discret:hover {
+  color: var(--creme);
+}
+
+/* Une action qui retire : la braise, en contour (« Renvoyer »). */
+.danger {
+  border-color: var(--braise-filet);
+  color: var(--braise);
+}
+
+.danger:hover {
+  background: var(--braise-voile);
+}
+
+.bouton:disabled:not(.principal) {
+  border-color: var(--filet-cuivre-doux);
+  color: var(--eteint);
+  cursor: not-allowed;
+}
+
+/* Plus haut, pour l'action d'un panneau (« Envoyer une Expédition ») ; toute la largeur, pour celle d'un écran (« Partir »). */
+.grand {
+  min-height: 44px;
+  padding: 0 20px;
+  font-size: 15px;
+}
+
+.large {
+  width: 100%;
+  min-height: 50px;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+
+.large svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ---------- Le pas : « − 6 + » ---------- */
+
+/* Un nombre entre « − » et « + », dans un creux au filet de cuivre ; un « − » ou un « + » qui ne peut pas s'éteint. */
+.pas {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  border: 1px solid var(--filet-cuivre);
+  border-radius: var(--arrondi-net);
+  background: var(--creux);
+}
+
+.pasBouton {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--cuivre-clair);
+  font: var(--graisse-moyenne) 17px / 1 var(--police);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pasBouton:hover:not(:disabled) {
+  background: var(--cuivre-voile);
+}
+
+.pasBouton:disabled {
+  color: var(--eteint);
+  cursor: default;
+}
+
+.pasBouton:focus-visible {
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: -2px;
+}
+
+.pasValeur {
+  min-width: 34px;
+  border-right: 1px solid var(--filet-cuivre-doux);
+  border-left: 1px solid var(--filet-cuivre-doux);
+  color: var(--creme);
+  font: var(--graisse-titre) 15.5px / 26px var(--police);
+  text-align: center;
+}
+
+/* Plus grand, quand le pas est l'action du panneau (les Explorateurs qui partent). */
+.pasGrand .pasBouton {
+  width: 34px;
+  height: 32px;
+}
+
+.pasGrand .pasValeur {
+  min-width: 40px;
+  font-size: 17px;
+  line-height: 32px;
+}
+
+/* ---------- Les segments : « 1 h | 4 h | 8 h | 12 h » ---------- */
+
+/*
+ * Un choix en segments égaux, dans un filet de cuivre ; le segment choisi passe au cuivre plein. Ses enfants sont des
+ * boutons (aria-pressed="true" pour le choisi) ou des étiquettes de boutons radio (:has(:checked)).
+ */
+.segments {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  overflow: hidden;
+  border: 1px solid var(--filet-cuivre);
+  border-radius: var(--arrondi-net);
+}
+
+.segments > * {
+  display: grid;
+  place-items: center;
+  min-height: 34px;
+  padding: 0 6px;
+  border: 0;
+  border-left: 1px solid var(--filet-cuivre-doux);
+  background: none;
+  color: var(--mousse);
+  font: var(--graisse-titre) 13.5px / 1 var(--police);
+  cursor: pointer;
+}
+
+.segments > :first-child {
+  border-left: 0;
+}
+
+.segments > :hover {
+  color: var(--creme);
+}
+
+.segments > [aria-pressed="true"],
+.segments > [aria-checked="true"],
+.segments > :has(:checked) {
+  background: linear-gradient(180deg, var(--cuivre-bouton-haut), var(--cuivre-bouton));
+  color: var(--sur-cuivre);
+}
+
+/* Un bouton radio dans une étiquette de segment : caché, l'étiquette fait le bouton. */
+.segments input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segments > :has(:focus-visible),
+.segments > :focus-visible {
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: -2px;
+}
+
+/* ---------- Les petits signes ---------- */
+
+/* Un nombre sur le cuivre (les Récits non lus, les Expéditions en cours). */
+.badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--fond-cuivre);
+  color: var(--sur-cuivre);
+  font: 700 11px / 1 var(--police);
+}
+
+/* « NOUVEAU », sur un Récit pas encore lu. */
+.nouveau {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 18px;
+  padding: 0 7px;
+  border-radius: var(--arrondi-image);
+  background: var(--fond-cuivre);
+  color: var(--sur-cuivre);
+  font: var(--graisse-titre) 10px / 1 var(--police-etroite);
+  letter-spacing: var(--espacement-etiquette);
+  text-transform: uppercase;
+}
+
+/* Le point de braise qui luit : quelque chose attend (un Voyageur, des Habitants sans Métier). */
+.repere {
+  display: inline-block;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--braise);
+  box-shadow: 0 0 6px var(--braise-lueur);
+}
+
+/* Un avertissement court, sur un filet de braise (« 2 Habitants sans Métier · Voir »). */
+.alerte {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px 7px 12px;
+  border: 1px solid var(--braise-filet);
+  border-radius: var(--arrondi-net);
+  background: linear-gradient(var(--braise-voile), var(--braise-voile)), var(--panneau-voile);
+  color: var(--parchemin);
+  font: var(--graisse-moyenne) 13px / 1 var(--police);
+}
+
+/* Une marque courte de braise, en contour : « Plus de place », « plein ». */
+.marque {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--braise-filet);
+  border-radius: var(--arrondi-net);
+  background: var(--braise-voile);
+  color: var(--braise);
+  font: var(--graisse-titre) 12px / 1 var(--police);
+}
+
+.marque svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Une puce ronde au filet de cuivre, sur un creux : une rareté (« Commune »), un gain (« 1 Bête ramenée »). */
+.puce {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 22px;
+  padding: 0 9px;
+  border: 1px solid var(--filet-cuivre);
+  border-radius: 999px;
+  background: var(--creux);
+  color: var(--mousse);
+  font: var(--graisse-titre) 12px / 1 var(--police);
+}
+
+/* Le ruban de cuivre, sa queue taillée en V : ce qu'un Récit apporte de neuf (« NOUVELLE ESPÈCE AU BESTIAIRE »). */
+.ruban {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 22px 0 10px;
+  background: var(--fond-cuivre);
+  color: var(--sur-cuivre);
+  font: var(--graisse-titre) 11.5px / 1 var(--police-etroite);
+  letter-spacing: var(--espacement-etiquette);
+  text-transform: uppercase;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 50%, 100% 100%, 0 100%);
+}
+
+.ruban svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---------- Les données ---------- */
+
+/* Une liste libellé / valeur (dl) : le libellé en mousse, la valeur en crème, alignés en deux colonnes. */
+.cles {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 9px 18px;
+  align-items: baseline;
+  margin: 0;
+}
+
+.cles dt {
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 13px / 1.25 var(--police);
+}
+
+.cles dd {
+  margin: 0;
+  color: var(--creme);
+  font: var(--graisse-titre) 14px / 1.3 var(--police);
+}
+
+/* Une phrase discrète sous une donnée (« Ceux qui partent continuent de manger pendant toute l'absence. »). */
+.note {
+  margin: 0;
+  color: var(--mousse);
+  font: var(--graisse-texte) 12.5px / 1.45 var(--police);
+}
+
+/* Un grand nombre (« 24 », « 1 h ») : en crème, serré. */
+.nombre {
+  color: var(--creme);
+  font: var(--graisse-titre) 28px / 1 var(--police);
+  letter-spacing: -0.01em;
+}
+
+/* Une ligne d'une liste dans un panneau, choisie : un voile de cuivre et un trait lumineux à gauche. */
+.choisie {
+  position: relative;
+  background: var(--fond-choisi);
+}
+
+.choisie::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 0;
+  width: 3px;
+  background: var(--cuivre-clair);
+  box-shadow: 0 0 10px var(--cuivre-lueur);
+}
+
+/* Une peinture dans un panneau, en bandeau : coins de 2 px, un filet de cuivre dedans. */
+.vignette {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--arrondi-image);
+  box-shadow: inset 0 0 0 1px var(--anneau-cuivre);
+}
+
+@media (max-width: 760px) {
+  .bouton:not(.discret) {
+    min-height: 36px;
+  }
+
+  .titreEcran {
+    font-size: 26px;
+  }
+}

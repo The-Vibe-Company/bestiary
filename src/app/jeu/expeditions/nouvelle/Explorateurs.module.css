@@ -1,84 +1,68 @@
-/* US-0902 : le bloc Explorateurs, sous la destination, à l'écart des blocs Bento. */
+/* US-0902 : le panneau Explorateurs, sous la destination, à côté de l'escorte (page.module.css les range). */
 .bloc {
-  margin-top: var(--ecart);
+  min-width: 0;
 }
 
-/* Comme la destination : chaque ligne, sa petite étiquette, puis ce qu'elle dit. */
+/* Chaque ligne : son libellé à gauche, ce qu'elle dit au bout, à droite. */
 .lignes {
   display: grid;
-  gap: 6px;
+  gap: 12px;
+  margin: 0;
 }
 
 .lignes > div {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
   align-items: center;
 }
 
 .lignes dt {
-  color: var(--texte-discret);
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 13.5px / 1 var(--police);
 }
 
 .lignes dd {
   margin: 0;
 }
 
+/* Les libres sur le total, en crème, après leurs losanges : un par explorateur, allumé pour chaque libre. */
 .libres {
-  font-weight: var(--graisse-titre);
-  font-variant-numeric: tabular-nums;
-}
-
-/* « − », le nombre choisi, puis « + », au pouce : chaque bouton a sa surface de 44 px, à 8 px du nombre. */
-.choix {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.plusMoins {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 1px solid var(--trait);
-  border-radius: var(--arrondi-petit);
-  background: var(--bloc);
-  color: var(--encre);
-  font: inherit;
-  font-size: 20px;
-  font-weight: var(--graisse-titre);
-  line-height: 1;
-  cursor: pointer;
-}
-
-/* Grisés, ils restent à leur place sans réagir. */
-.plusMoins:disabled {
-  border-color: var(--trait-doux);
-  background: var(--bloc-2);
-  color: var(--galet);
-  cursor: default;
-}
-
-@media (hover: hover) {
-  .plusMoins:enabled:hover {
-    border-color: var(--galet);
-    background: var(--bloc-3);
-  }
-}
-
-.plusMoins:focus-visible {
-  outline: 2px solid var(--encre);
-  outline-offset: 2px;
-}
-
-.nombre {
-  min-width: 2ch;
-  color: var(--encre);
-  font-weight: var(--graisse-titre);
+  gap: 10px;
+  color: var(--creme);
+  font: var(--graisse-titre) 16px / 1 var(--police);
   font-variant-numeric: tabular-nums;
-  text-align: center;
+}
+
+.losanges {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.losanges > i {
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--cuivre-trace);
+  transform: rotate(45deg);
+}
+
+.losanges > .libre {
+  border-color: var(--cuivre-clair);
+  background: var(--cuivre-clair);
+  box-shadow: 0 0 6px var(--cuivre-lueur);
+}
+
+/* « − », le nombre choisi, « + » : le pas du kit, grand. */
+.choix {
+  justify-self: end;
+}
+
+/* US-0902 : au pouce, sur un téléphone : « − » et « + » font 44 px de côté (plus précis que le pas du kit). */
+@media (max-width: 820px), (max-height: 500px) {
+  .lignes .choix > .plusMoins {
+    width: 44px;
+    height: 44px;
+  }
 }

@@ -1,176 +1,239 @@
 /*
- * US-0428 : la fiche d'une Case, sur ordinateur un bloc Bento flottant en haut à gauche de la carte, à hauteur du
- * bouton de la légende, qui est à droite ; elle défile si elle dépasse la carte.
+ * US-0428 : la fiche d'une Case, un panneau du kit (kit.panneau : son filet et ses coins de cuivre), sur ordinateur
+ * flottant en haut à gauche de la carte, sous le blason et le nom du chef, à hauteur du bouton de la légende, qui est à
+ * droite ; elle défile si elle dépasse la carte. En tête, le bandeau peint de son Biome, d'un bord à l'autre ; dessous,
+ * son corps, sur un fond d'un seul ton, que reprend le pied collé (.envoyer, .refus), et l'ombre courte du verre.
  */
 .fiche {
   position: absolute;
-  top: 12px;
+  top: calc(var(--hauteur-barre) + 12px);
   left: calc(12px + var(--bord-gauche));
   z-index: 10;
-  width: 300px;
-  max-width: calc(100% - 24px - var(--bord-gauche) - var(--bord-droit));
-  max-height: calc(100% - 24px);
+  width: 330px;
+  max-width: calc(100% - 32px - var(--bord-gauche) - var(--bord-droit));
+  max-height: calc(100% - var(--hauteur-barre) - 24px);
   overflow-y: auto;
-  padding: var(--marge-bloc);
-  border-radius: var(--arrondi);
-  background: var(--bloc);
-  box-shadow: var(--ombre);
   overflow-wrap: anywhere;
+  background: var(--panneau);
+  box-shadow: var(--ombre-verre);
+  scrollbar-width: thin;
+  scrollbar-color: var(--anneau-cuivre-fort) transparent;
 }
 
-/* Son Biome, en titre, à côté de la croix. */
+/*
+ * Le bandeau : la peinture du Biome (posée par la fiche), fondue vers le panneau en bas, où se pose le titre. Une eau
+ * sans paysage prend la mer du soir de la carte ; une Case inconnue, sa brume.
+ */
+.bandeau {
+  position: relative;
+  height: 112px;
+  background: var(--panneau-releve) center 60% / cover no-repeat;
+}
+
+.bandeau::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 35%, var(--panneau-fondu));
+  pointer-events: none;
+}
+
+.eau {
+  background-image: radial-gradient(ellipse 90% 140% at 70% 0%, var(--mer-du-soir), var(--mer-profonde));
+}
+
+.brume {
+  background-image:
+    radial-gradient(ellipse 28% 42% at 18% 28%, color-mix(in oklch, var(--mousse) 32%, transparent), transparent 70%),
+    radial-gradient(ellipse 34% 46% at 56% 18%, color-mix(in oklch, var(--mousse) 24%, transparent), transparent 70%),
+    radial-gradient(ellipse 30% 44% at 86% 42%, color-mix(in oklch, var(--mousse) 28%, transparent), transparent 70%),
+    linear-gradient(170deg, var(--sur-encre-pale), var(--sarcelle-abysse) 85%);
+}
+
+/* Son Biome, en titre, en Marcellus crème sur la peinture. */
 .biome {
-  margin-bottom: 10px;
-  padding-right: 32px;
-  font-size: 18px;
-  font-weight: var(--graisse-titre);
+  position: absolute;
+  right: 18px;
+  bottom: 10px;
+  left: 18px;
+  z-index: 1;
+  color: var(--creme-vive);
+  font: 400 32px / 1 var(--police-titre);
+  text-shadow: var(--ombre-texte-peinture);
 }
 
-/* US-0430 : sa croix, de 44 px, en haut à droite ; au-dessus de « Envoyer une Expédition » collé au pied (US-0901). */
+/*
+ * US-0430 : sa croix, 44 px à toucher, en haut à droite, un rond sombre au filet de cuivre posé sur la peinture ;
+ * au-dessus de « Envoyer une Expédition » collé au pied (US-0901), sous les coins du panneau.
+ */
 .fermer {
   position: absolute;
   top: 4px;
   right: 4px;
   z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   width: 44px;
   height: 44px;
   padding: 0;
   border: 0;
-  border-radius: var(--arrondi-moyen);
-  background: none;
-  color: var(--texte-discret);
+  border-radius: 50%;
+  background: radial-gradient(circle closest-side, var(--pastille-sombre) 14px, var(--filet-cuivre) 14px 15px, transparent 15.5px);
+  color: var(--parchemin);
   cursor: pointer;
 }
 
 .fermer svg {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.8;
+  stroke-width: 1.4;
   stroke-linecap: round;
 }
 
 @media (hover: hover) {
   .fermer:hover {
-    background: var(--survol);
-    color: var(--encre);
+    color: var(--cuivre-clair);
   }
 }
 
 .fermer:focus-visible {
-  outline: 2px solid var(--encre);
+  outline: 2px solid var(--cuivre-clair);
   outline-offset: -2px;
 }
 
-/* Chaque ligne : sa petite étiquette, puis ce qu'elle dit. */
+/* Le corps de la fiche, sous le bandeau ; l'écart entre ses lignes, que le pied collé reprend. */
+.corps {
+  --ecart-corps: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ecart-corps);
+  padding: 12px 18px 18px;
+}
+
+/* Chaque ligne : sa petite étiquette en capitales, puis ce qu'elle dit, en crème. */
 .details {
   display: grid;
-  gap: 6px;
+  gap: 9px;
 }
 
 .details > div {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 18px;
   align-items: baseline;
 }
 
 .details dt {
-  color: var(--texte-discret);
-  font-size: var(--taille-etiquette);
-  font-weight: var(--graisse-titre);
-  letter-spacing: var(--espacement-etiquette);
+  color: var(--lichen);
+  font: var(--graisse-moyenne) var(--taille-etiquette) / 1.4 var(--police-etroite);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .details dd {
   margin: 0;
+  color: var(--creme);
+  font: var(--graisse-titre) 14px / 1.3 var(--police);
 }
 
-/* US-0429 : la distance au Foyer, puis ce qui vit au Cœur sauvage. US-0438 : ou ce qui découvrira une Case inconnue. */
-.distance,
-.rares,
-.expedition {
-  margin-top: 10px;
+/* US-0429 : la distance au Foyer, sous un filet, une petite Case de cuivre devant. US-0438 : seule, sans filet. */
+.distance {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-top: 12px;
+  border-top: 1px solid var(--filet-cuivre-doux);
+  color: var(--parchemin);
+  font: var(--graisse-moyenne) 14px / 1.2 var(--police);
 }
 
-.rares,
-.expedition {
-  color: var(--texte-2);
+.distance:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.distance svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--cuivre);
+  stroke-width: 1.4;
+}
+
+/* US-0429 : ce qui vit au Cœur sauvage, en cuivre. */
+.rares {
+  color: var(--cuivre-clair);
+  font: italic var(--graisse-moyenne) 13px / 1.35 var(--police);
 }
 
 .echec {
-  color: var(--texte-discret);
+  padding: 16px 56px 18px 18px;
+  color: var(--mousse);
 }
 
 /*
- * US-0901 : « Envoyer une Expédition », au pied de la fiche, au pouce : toute sa largeur, sur l'Encre. Il y reste
- * collé quand la fiche est coupée, comme dans le panneau plafonné d'un petit téléphone ou d'un téléphone en paysage,
- * qui ne défile pas au doigt ; le fond de la fiche l'entoure, pour que le texte coupé ne le touche pas.
+ * US-0901 : « Envoyer une Expédition » (le bouton principal du kit), au pied de la fiche, au pouce : toute sa largeur.
+ * Il y reste collé quand la fiche est coupée, comme dans le panneau plafonné d'un petit téléphone ou d'un téléphone en
+ * paysage, qui ne défile pas au doigt ; le fond de la fiche l'entoure, pour que le texte coupé ne le touche pas.
  */
 .envoyer {
   position: sticky;
   bottom: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
   width: 100%;
   min-height: 44px;
-  margin-top: 16px;
-  padding: 0 14px;
-  box-shadow: 0 0 0 16px var(--bloc);
-  border-radius: var(--arrondi-moyen);
-  background: var(--encre);
-  color: var(--blanc-chaud);
-  font-weight: var(--graisse-titre);
-  text-align: center;
-  text-decoration: none;
+  box-shadow:
+    var(--ombre-bouton-principal),
+    0 0 0 var(--ecart-corps) var(--panneau);
   cursor: pointer;
 }
 
-@media (hover: hover) {
-  .envoyer:hover {
-    background: var(--encre-survol);
-  }
-}
-
 .envoyer:focus-visible {
-  outline: 2px solid var(--encre);
+  outline: 2px solid var(--cuivre-clair);
   outline-offset: 2px;
 }
 
 /*
- * US-0907 : sur la carte ouverte pour choisir la destination, le refus d'une Case d'un Territoire, à la place du
- * bouton, et comme lui collé au pied de la fiche quand le panneau plafonné du mobile coupe ce qui le précède.
+ * US-0907 : sur la carte ouverte pour choisir la destination, le refus d'une Case d'un Territoire, en braise, à la place
+ * du bouton, et comme lui collé au pied de la fiche quand le panneau plafonné du mobile coupe ce qui le précède.
  */
 .refus {
   position: sticky;
   bottom: 0;
-  margin-top: 16px;
-  box-shadow: 0 0 0 16px var(--bloc);
-  background: var(--bloc);
-  color: var(--mauvais);
-  font-weight: var(--graisse-titre);
+  background: var(--panneau);
+  box-shadow: 0 0 0 var(--ecart-corps) var(--panneau);
+  color: var(--braise);
+  font: var(--graisse-titre) 13.5px / 1.3 var(--police);
 }
 
-/* En attendant le serveur : la place du titre et d'une ligne, qui palpitent. */
+/* En attendant le serveur : la place du bandeau et de deux lignes, qui palpitent. */
 .attente {
   display: grid;
   gap: 12px;
+  padding-bottom: 20px;
 }
 
 .attente span {
+  display: block;
+  width: 70%;
   height: 14px;
-  border-radius: var(--arrondi-petit);
-  background: var(--bloc-3);
+  margin: 0 18px;
+  border-radius: var(--arrondi-net);
+  background: var(--panneau-releve);
   animation: palpiter 1.2s ease-in-out infinite;
 }
 
 .attente span:first-child {
+  width: auto;
+  height: 112px;
+  margin: 0 0 4px;
+  border-radius: 0;
+}
+
+.attente span:nth-child(2) {
   width: 45%;
   height: 20px;
 }
@@ -186,15 +249,15 @@
   }
 }
 
-/* US-0431 : la poignée d'un panneau qu'on fait glisser, sur mobile seulement. */
+/* US-0431 : la poignée d'un panneau qu'on fait glisser, sur mobile seulement, posée sur le haut du bandeau. */
 .poignee {
   display: none;
 }
 
 /*
  * US-0431 : sur mobile, comme la légende, un panneau en bas, au-dessus des onglets, sur moins de la moitié de la
- * carte : on la voit au-dessus. Il se prend au doigt pour le faire glisser vers le bas, et revient en douceur s'il
- * n'est pas allé assez loin.
+ * carte : on la voit au-dessus. Il flotte à 10 px des bords, comme les pièces posées sur la carte. Il se prend au doigt
+ * pour le faire glisser vers le bas, et revient en douceur s'il n'est pas allé assez loin.
  */
 @media (max-width: 820px) {
   .fiche {
@@ -206,28 +269,39 @@
     width: auto;
     max-width: none;
     max-height: calc(0.45 * var(--hauteur-utile));
-    padding: 22px max(16px, var(--bord-droit)) 16px max(16px, var(--bord-gauche));
-    border-radius: var(--arrondi) var(--arrondi) 0 0;
+    margin: 0 max(10px, var(--bord-droit)) 10px max(10px, var(--bord-gauche));
     touch-action: none;
     user-select: none;
     transition: transform 0.2s ease-out;
   }
 
+  .bandeau,
+  .attente span:first-child {
+    height: 84px;
+  }
+
+  .biome {
+    left: 14px;
+    font-size: 28px;
+  }
+
+  .corps {
+    --ecart-corps: 11px;
+    padding: 10px 14px 14px;
+  }
+
   .poignee {
     display: block;
     position: absolute;
-    top: 8px;
+    top: 7px;
     left: 50%;
+    z-index: 1;
     width: 36px;
     height: 4px;
     margin-left: -18px;
     border-radius: 2px;
-    background: var(--trait);
-  }
-
-  .fermer {
-    top: 10px;
-    right: max(4px, var(--bord-droit));
+    background: var(--creme-vive);
+    box-shadow: 0 1px 4px var(--ombre-noire);
   }
 }
 
