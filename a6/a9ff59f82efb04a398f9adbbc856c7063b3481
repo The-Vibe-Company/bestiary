@@ -1,0 +1,29 @@
+src/app/jeu/reserve/[espece]/page.db.test.tsx
+  s_7c7d151152e4a5::t_b378ed78e05522 140,142-158
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_43937e6cc7dd34 48-50,180,190,206-257
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_4e3fe7b6036c32 13,24-36,55-56,112-125
+src/expeditions/en-mon-absence.db.test.ts
+  s_7c7d151152e4a5::t_b1c020d1e270fb 6-8,292-294,298-311,324-330,336,338,430-431
+src/monde/effectif.db.test.ts
+  s_7c7d151152e4a5::t_1eeae16f777828 297-308,310-320
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_b784fb79db6a49 6,124-125,127-138,148
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a6a9ff59f82efb04a398f9adbbc856c7063b3481",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
