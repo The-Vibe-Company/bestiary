@@ -2,7 +2,7 @@
 
 Tous les « (à décider) » laissés dans les stories, jalon par jalon. On les tranche au moment d'attaquer la story concernée, pas avant. Une fois décidé, on remplace la mention dans la story par la règle retenue, et on met à jour [CONTEXT.md](../../CONTEXT.md) si un mot du jeu change.
 
-198 points au total.
+197 points au total.
 
 ## [Jalon 0 · Les fondations](00-fondations.md)
 
@@ -92,7 +92,6 @@ Tous les « (à décider) » laissés dans les stories, jalon par jalon. On les 
 - [US-0955](09-explorer-et-apprivoiser.md) · Soigner plus vite : un Blessé dont on s'occupe guérit plus vite ; le moyen, construction, Poste ou Bête à Rôle.
 - [US-0960](09-explorer-et-apprivoiser.md) · Le mâle ou la femelle n'est pas au Foyer : si l'une est Blessée, le Couple se forme aussitôt et elle guérit en Réserve, ou il attend sa guérison.
 - [US-0961](09-explorer-et-apprivoiser.md) · Prévenir avant de risquer une Bête précieuse : si l'escorte emmène la seule Bête d'un sexe d'une Espèce sans Couple, le récapitulatif le signale ; simple avertissement ou confirmation demandée.
-- [US-0965](09-explorer-et-apprivoiser.md) · Une Bête trop forte pour toutes : laquelle elle attaque (au hasard, la plus faible…), et si elle peut en attaquer plusieurs.
 - [US-0970](09-explorer-et-apprivoiser.md) · Les pigeons gardent les Bêtes en vue : la forme exacte de l'effet, présence prolongée ou Bêtes repérées sur les Cases voisines.
 
 ## [Jalon 10 · Le Bestiaire](10-le-bestiaire.md)
