@@ -336,8 +336,11 @@ describe.skipIf(!URL_TEST)("le combat par la somme des forces (US-0944, sur base
     const enFuite = (await expeditionsEnCours(pool, chef.territoireId, apres(le, 1 / 60_000))).find((e) => e.id === x.id)!;
     expect(enFuite).toMatchObject({ phase: "retour", enFuite: true, rappeleeLe: le });
     expect(retourDUneExpedition(enFuite)).toEqual(rentree);
-    // Elle a quitté sa Case : la Bête n'y voit plus personne.
-    expect((await expeditionsPresentesSurLaCase(pool, chef.caseId, apres(le, -1))).map((e) => e.id)).toContain(x.id);
+    // Elle a quitté sa Case : la Bête n'y voit plus personne. Une minute avant l'attaque, elle y était ; à son arrivée, si
+    // l'attaque tombe dans la première minute de son séjour.
+    const arrivee = apres(x.partLe, x.aller);
+    const avant = new Date(Math.max(arrivee.getTime(), apres(le, -1).getTime()));
+    expect((await expeditionsPresentesSurLaCase(pool, chef.caseId, avant)).map((e) => e.id)).toContain(x.id);
     expect((await expeditionsPresentesSurLaCase(pool, chef.caseId, le)).map((e) => e.id)).not.toContain(x.id);
     expect(await rappelerLExpedition(pool, chef.territoireId, x.id, apres(le, 1))).toEqual({ refus: RAPPEL_DEJA_AU_RETOUR });
 
@@ -359,7 +362,7 @@ describe.skipIf(!URL_TEST)("le combat par la somme des forces (US-0944, sur base
     const recit = (await recitsDuTerritoire(pool, chef.territoireId)).find((r) => r.titre === "Retour d'Expédition")!;
     expect(recit.survenuLe).toEqual(rentree);
     expect(recit.texte).not.toMatch(/Rappelée/);
-    expect(recit.texte).toContain(`séjour ${formaterMinutes(Math.ceil((le.getTime() - apres(x.partLe, x.aller).getTime()) / MINUTE_MS))}`);
+    expect(recit.texte).toContain(`séjour ${formaterMinutes(Math.ceil((le.getTime() - arrivee.getTime()) / MINUTE_MS))}`);
   }, 60_000);
 
   it("une attaque dont la Rencontre manque ne s'écrit pas : l'Expédition ne fuit pas, et le temps ne s'arrête pas sans fin", async () => {
