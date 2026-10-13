@@ -652,7 +652,8 @@ export const sexe = pgEnum("sexe", ["male", "femelle"]);
  * avec le Territoire. Personne n'a de Bête à sa naissance (ADR 0008) : la Bête apprivoisée y entre à son arrivée au Foyer
  * (US-0938), et l'Élevage des Couples réunis (jalon 8) la remplira aussi ; l'écran d'Expédition y lit les Bêtes
  * disponibles (src/monde/effectif.ts). US-0956 : le mâle et la femelle d'un Couple réuni la quittent pour la Réserve
- * (couple), d'où ils ne sortent plus.
+ * (couple), d'où ils ne sortent plus. US-0837 : tout ce qui retire des Bêtes valides du Foyer (un départ en escorte, un
+ * Couple réuni) y borne les Bêtes affectées à leur Rôle (affectation, bornerLesAffectations dans src/monde/roles.ts).
  */
 export const effectif = pgTable(
   "effectif",
@@ -667,6 +668,26 @@ export const effectif = pgTable(
     nombre: integer("nombre").notNull(),
   },
   (t) => [primaryKey({ columns: [t.territoireId, t.especeId, t.sexe] }), check("effectif_jamais_negatif", sql`${t.nombre} >= 0`)],
+);
+
+/**
+ * US-0837 : les Bêtes d'un Territoire affectées au Rôle de leur Espèce, quand ce Rôle sert au Foyer (src/monde/roles.ts) :
+ * une ligne par Espèce, avec leur nombre, jamais négatif. Comptées et non désignées, comme l'effectif (ADR 0002), dont
+ * elles font toujours partie. Le nombre retenu peut dépasser celui des Bêtes valides au Foyer, quand des affectées sortent
+ * en escorte ou rentrent blessées : seules les valides se lisent affectées. Elle part avec le Territoire.
+ */
+export const affectation = pgTable(
+  "affectation",
+  {
+    territoireId: integer("territoire_id")
+      .notNull()
+      .references(() => territoire.id, { onDelete: "cascade" }),
+    especeId: text("espece_id")
+      .notNull()
+      .references(() => espece.id),
+    nombre: integer("nombre").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.territoireId, t.especeId] }), check("affectation_jamais_negative", sql`${t.nombre} >= 0`)],
 );
 
 /**

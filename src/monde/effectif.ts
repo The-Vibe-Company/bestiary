@@ -44,9 +44,10 @@ export const BETES_SORTIES = `select coalesce(sum(s.nombre - s.perdues + s.bless
 /**
  * US-0953 : les Blessés au Foyer de l'Espèce (expression sur `e`, comme BETES_SORTIES) à l'instant du jeu $3 : ceux des
  * Expéditions rentrées, pas encore guéris $2 heures après leur retour, selon la règle même de blessesAuFoyer (gueriLe) ;
- * US-0955 : $4 heures, s'ils ont été soignés à leur retour.
+ * US-0955 : $4 heures, s'ils ont été soignés à leur retour. US-0837 : les Bêtes valides au Foyer, que le joueur peut
+ * affecter à leur Rôle, s'en déduisent aussi (src/monde/roles.ts).
  */
-const BLESSES_EN_GUERISON = `select coalesce(sum(s.blessees), 0)::int from expedition_escorte s join expedition x on x.id = s.expedition_id
+export const BLESSES_EN_GUERISON = `select coalesce(sum(s.blessees), 0)::int from expedition_escorte s join expedition x on x.id = s.expedition_id
   where x.territoire_id = e.territoire_id and s.espece_id = e.espece_id and x.rentree_le is not null and ${gueriLe("$2", "$4")} > $3`;
 
 /**

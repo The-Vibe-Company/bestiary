@@ -4,6 +4,7 @@ import "server-only";
 import type { Pool, PoolClient } from "pg";
 import { betesDisponibles } from "@/monde/effectif";
 import type { Coordonnees } from "@/monde/hex";
+import { bornerLesAffectations } from "@/monde/roles";
 import { type BetesDeLEscorte, dureeDuTrajetMinutes } from "./allure";
 import { destinationDUneCase } from "./destination";
 import { programmerLeRetour } from "./retour";
@@ -116,5 +117,7 @@ async function partir(client: PoolClient, territoireId: number, { destination, e
     betes.map(([especeId]) => especeId),
     betes.map(([, nombre]) => nombre),
   ]);
+  // US-0837 : l'escorte emmène d'abord les Bêtes non affectées à leur Rôle ; au-delà, celles qui partent ne le sont plus.
+  await bornerLesAffectations(client, territoireId, instant);
   return expeditionId;
 }

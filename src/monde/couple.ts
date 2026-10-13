@@ -9,6 +9,7 @@ import type { Pool, PoolClient } from "pg";
 import { inscrireAuBestiaire } from "@/bestiaire/bestiaire";
 import { BETES_SORTIES } from "./effectif";
 import { ELEVAGE_ACQUIS } from "./elevage";
+import { bornerLesAffectations } from "./roles";
 
 /** US-0956 : le Couple réuni d'une Espèce, et l'instant du jeu où il l'a été. */
 export type CoupleReuni = { especeId: string; reuniLe: Date };
@@ -54,6 +55,8 @@ export async function reunirLesCouples(client: PoolClient, territoireId: number,
   );
   // L'une après l'autre : sur le client d'une transaction, deux requêtes ne partent pas à la fois.
   for (const { especeId } of rows) await inscrireAuBestiaire(client, territoireId, especeId, "couple_reuni", le);
+  // US-0837 : le mâle et la femelle partis en Réserve ne sont plus des Bêtes valides au Foyer, ni affectées à leur Rôle.
+  if (rows.length > 0) await bornerLesAffectations(client, territoireId, le);
   return rows.map((r) => r.especeId);
 }
 

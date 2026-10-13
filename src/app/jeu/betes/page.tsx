@@ -15,8 +15,10 @@ import { blessesAuFoyer, type GroupeDeBlesses } from "@/monde/blesses";
 import { blessesAffiches, blessesDans } from "@/monde/blesses-affiches";
 import { effectifParEspece } from "@/monde/effectif";
 import { placesDeLHabitat } from "@/monde/habitat";
+import { type RoleAuFoyer, rolesAuFoyer } from "@/monde/roles";
 import { maintenant } from "@/temps/horloge";
 import styles from "./page.module.css";
+import { RoleDeLEspece } from "./RoleDeLEspece";
 
 export const metadata: Metadata = { title: "Bêtes" };
 
@@ -38,6 +40,10 @@ const betes = (nombre: number) => (nombre > 1 ? "Bêtes" : "Bête");
  * US-0822 : sous le total, « Places : occupées / total » pour l'Habitat du Foyer (placesDeLHabitat) ; pas sur la page
  * vide, qui n'a pas d'autre phrase.
  *
+ * US-0837 : au pied de la carte d'une Espèce dont le Rôle sert au Foyer (rolesAuFoyer, le Nourricier), son Rôle et le pas
+ * du kit, « − affectées / effectif + », pour lui affecter des Bêtes (RoleDeLEspece) ; le lien vers la fiche reste sur le
+ * reste de la carte, sans ses boutons.
+ *
  * Sur le fond du jeu, à la marge des autres écrans : le titre de l'écran, puis un panneau orné en bandeau, le mammouth
  * peint à droite, fondu vers la gauche, où se lisent le total en grand et les Places et leur jauge fine (qui ne sert
  * qu'aux yeux) ; dessous, l'effectif en cartes ornées, autant par ligne que la largeur en tient : la peinture de l'Espèce,
@@ -54,6 +60,7 @@ export default async function Betes() {
   const blesses = (especeId: string, effectif: number) => blessesAffiches(groupes.get(especeId) ?? [], instant, effectif).map((g) => `dont ${blessesDans(g)}`);
   const total = especes.reduce((somme, espece) => somme + espece.effectif, 0);
   const places = territoireId === null || especes.length === 0 ? null : await placesDeLHabitat(getPool(), territoireId);
+  const roles = territoireId === null || especes.length === 0 ? new Map<string, RoleAuFoyer>() : await rolesAuFoyer(getPool(), territoireId, instant);
   return (
     <main className={styles.page}>
       <h1 className={`${kit.titreEcran} ${styles.titre}`}>Bêtes</h1>
@@ -83,11 +90,12 @@ export default async function Betes() {
         <ul className={styles.especes} aria-label="Effectif">
           {especes.map((espece) => {
             const lignes = blesses(espece.especeId, espece.effectif);
+            const role = roles.get(espece.especeId);
             return (
-              <li key={espece.especeId}>
+              <li key={espece.especeId} className={`${kit.panneau} ${styles.carte}`}>
                 <Link
                   href={`/jeu/reserve/${espece.especeId}?depuis=betes`}
-                  className={`${kit.panneau} ${styles.espece}`}
+                  className={styles.espece}
                   aria-label={[`${espece.nom}, ${espece.rarete.nom}, ${espece.effectif} ${betes(espece.effectif)}`, ...lignes].join(", ")}
                 >
                   <IllustrationEspece espece={espece} format="carte" className={`${kit.vignette} ${styles.peinture}`} />
@@ -102,6 +110,16 @@ export default async function Betes() {
                   </span>
                   <span className={styles.effectif}>{espece.effectif}</span>
                 </Link>
+                {role ? (
+                  <RoleDeLEspece
+                    especeId={espece.especeId}
+                    nom={espece.nom}
+                    role={role.role}
+                    affectees={role.affectees}
+                    valides={role.valides}
+                    effectif={espece.effectif}
+                  />
+                ) : null}
               </li>
             );
           })}

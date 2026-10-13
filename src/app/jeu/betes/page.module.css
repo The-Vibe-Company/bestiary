@@ -103,30 +103,41 @@
 }
 
 /*
- * Une carte ornée, toute entière le lien vers la fiche de l'Espèce : sa peinture, carrée, puis son nom et sa Rareté à
- * gauche, son effectif en grand à droite. Au survol, son filet passe au vert.
+ * Une carte ornée par Espèce : le lien vers sa fiche, puis, pour une Espèce dont le Rôle sert au Foyer, le pas de son Rôle
+ * (US-0837), hors du lien. Au survol du lien, son filet passe au vert.
+ */
+.carte {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: border-color 0.15s;
+}
+
+@media (hover: hover) {
+  .carte:has(.espece:hover) {
+    border-color: var(--cuivre);
+  }
+}
+
+/*
+ * Le lien vers la fiche : sa peinture, carrée, puis son nom et sa Rareté à gauche, son effectif en grand à droite ; tassés
+ * en haut, à la même hauteur d'une carte à l'autre, qu'elle porte un Rôle ou non.
  */
 .espece {
   display: grid;
+  flex: 1;
   grid-template-areas:
     "peinture peinture"
     "identite effectif";
   grid-template-columns: minmax(0, 1fr) auto;
+  align-content: start;
   gap: 12px 10px;
   align-items: center;
-  height: 100%;
   min-width: 0;
   padding: 10px 12px 14px 10px;
   color: inherit;
   text-decoration: none;
   cursor: pointer;
-  transition: border-color 0.15s;
-}
-
-@media (hover: hover) {
-  .espece:hover {
-    border-color: var(--cuivre);
-  }
 }
 
 .espece:focus-visible {
@@ -160,6 +171,22 @@
   flex-basis: 100%;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+/*
+ * US-0837 : au pied de la carte, sous un filet, le Rôle en petite étiquette à gauche et son pas à droite (« − 2 / 5 + ») ;
+ * sur une carte étroite, le pas passe sous le Rôle.
+ */
+.role {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 10px;
+  min-width: 0;
+  margin: 0 12px 12px 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--filet-cuivre-doux);
 }
 
 .effectif {
@@ -259,6 +286,11 @@
   .espece {
     gap: 10px 8px;
     padding: 8px 10px 12px 8px;
+  }
+
+  .role {
+    margin: 0 10px 10px 8px;
+    padding-top: 8px;
   }
 
   .effectif {

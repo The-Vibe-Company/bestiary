@@ -5,6 +5,7 @@ import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { reunirLesCouples } from "@/monde/couple";
 import { faireEntrerDansLEffectif } from "@/monde/effectif";
+import { affecterUneBete } from "@/monde/roles";
 import { lireMarquePage } from "@/temps/marque-page";
 import { PLACES_DE_L_HABITAT_DU_FOYER } from "@/reglages";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
@@ -114,8 +115,10 @@ describe.skipIf(!URL_TEST)("voir l'effectif par Espèce, sur base (US-0810)", ()
       ["poule", "male", 1],
       ["poule", "femelle", 1],
     ]);
-    // US-0822 : 3 souris et 2 poules (31,623 Places chacune) : 67 Places.
-    expect((await page(t.territoireId)).texte).toBe(`Bêtes · 5 · Bêtes · Places : · 67 / ${TOTAL} · Poule · Commune · 2 · Souris grise · Commune · 3`);
+    // US-0822 : 3 souris et 2 poules (31,623 Places chacune) : 67 Places. US-0837 : la poule, Nourricière, a le pas de son Rôle.
+    expect((await page(t.territoireId)).texte).toBe(
+      `Bêtes · 5 · Bêtes · Places : · 67 / ${TOTAL} · Poule · Commune · 2 · Nourricier · − · 0 / 2 · + · Souris grise · Commune · 3`,
+    );
 
     expect(await reunir(t)).toEqual(["poule", "souris"]);
     // Les deux poules du Couple sont en Réserve : la poule quitte la liste, une souris reste.
@@ -129,5 +132,19 @@ describe.skipIf(!URL_TEST)("voir l'effectif par Espèce, sur base (US-0810)", ()
     // La première Bête ramenée au Foyer entre dans l'effectif (US-0938).
     await faireEntrerDansLEffectif(pool, t.territoireId, [{ especeId: "souris", sexe: "femelle" }]);
     expect(await page(t.territoireId)).toEqual({ texte: `Bêtes · 1 · Bête · Places : · 1 / ${TOTAL} · Souris grise · Commune · 1`, liens: ["/jeu/reserve/souris?depuis=betes"] });
+  });
+
+  it("met au pied de la carte de la poule, Nourricière, le pas de son Rôle et le compte « affectées / effectif » ; « + » le fait monter (US-0837)", async () => {
+    const t = await naitre();
+    await ajouter(t.territoireId, [
+      ["poule", "femelle", 3],
+      ["pigeon", "male", 2],
+    ]);
+    // Le pigeon est Éclaireur : il s'affecte au départ d'une Expédition (US-0976), pas d'ici.
+    const avant = `Bêtes · 5 · Bêtes · Places : · 112 / ${TOTAL} · Pigeon biset · Commune · 2 · Poule · Commune · 3 · Nourricier · − · `;
+    expect((await page(t.territoireId)).texte).toBe(`${avant}0 / 3 · +`);
+    expect(await affecterUneBete(pool, t.territoireId, "poule", t.ne)).toBe(true);
+    // Affectée, la poule reste dans l'effectif, avec ses Places.
+    expect((await page(t.territoireId)).texte).toBe(`${avant}1 / 3 · +`);
   });
 });

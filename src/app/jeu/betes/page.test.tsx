@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { EspeceDeLEffectif } from "@/monde/effectif";
+import type { RoleAuFoyer } from "@/monde/roles";
 
 // La vraie garde, branchée sur une session simulée.
 const cookie = vi.hoisted(() => ({ jetonDeSession: vi.fn() }));
@@ -25,6 +26,11 @@ vi.mock("@/temps/horloge", async (original) => ({ ...(await original<object>()),
 // US-0822 : les Places de l'Habitat du Foyer, lues sur base (src/monde/habitat.db.test.ts).
 const habitat = vi.hoisted(() => ({ placesDeLHabitat: vi.fn(async () => ({ occupees: 21, total: 500 })) }));
 vi.mock("@/monde/habitat", () => habitat);
+// US-0837 : le Rôle au Foyer de chaque Espèce, ses Bêtes affectées et valides, lus sur base (src/monde/roles.db.test.ts).
+const roles = vi.hoisted(() => ({ rolesAuFoyer: vi.fn(async (): Promise<Map<string, RoleAuFoyer>> => new Map()) }));
+vi.mock("@/monde/roles", () => roles);
+// US-0837 : les actions du pas d'un Rôle, côté serveur, n'ont rien à faire ici.
+vi.mock("./actions", () => ({ affecterAuRole: vi.fn(), retirerDuRole: vi.fn() }));
 vi.mock("@/temps/rattraper", () => ({ rattraper: vi.fn(async () => new Date()) }));
 vi.mock("@/db", () => ({ getPool: () => ({}) }));
 vi.mock("next/server", async (original) => ({ ...(await original<object>()), connection: async () => {} }));
@@ -232,5 +238,64 @@ describe("voir les Places de l'Habitat du Foyer (US-0822)", () => {
     connecte([]);
     expect(texte(renderToStaticMarkup(await Betes()))).toBe("Bêtes · Aucune Bête pour l'instant · Envoyer une Expédition");
     expect(habitat.placesDeLHabitat).not.toHaveBeenCalled();
+  });
+});
+
+describe("affecter des Bêtes à leur Rôle (US-0837)", () => {
+  afterEach(() => {
+    session.compteDeLaSession.mockReset();
+    cookie.jetonDeSession.mockReset();
+    effectif.effectifParEspece.mockReset();
+    roles.rolesAuFoyer.mockReset();
+  });
+
+  const connecte = (lus: [string, RoleAuFoyer][]) => {
+    cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
+    session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
+    effectif.effectifParEspece.mockResolvedValue([{ ...EFFECTIF[0], effectif: 5 }, ...EFFECTIF.slice(1)]);
+    roles.rolesAuFoyer.mockResolvedValue(new Map(lus));
+  };
+  const NOURRICIER = { id: "nourricier", nom: "Nourricier" };
+
+  it("met au pied de la carte d'une Espèce dont le Rôle sert au Foyer son Rôle, « − », le compte « affectées / effectif » et « + »", async () => {
+    connecte([["poule", { role: NOURRICIER, affectees: 2, valides: 4 }]]);
+    const html = renderToStaticMarkup(await Betes());
+    expect(roles.rolesAuFoyer).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, MAINTENANT);
+    const [poule, souris, pigeon] = especesMontrees(html);
+    expect(poule.texte).toBe("Poule · Commune · 5 · Nourricier · − · 2 / 5 · +");
+    // Les autres n'ont aucun Rôle qui serve au Foyer : rien de plus sur leur carte.
+    expect(souris.texte).toBe("Souris grise · Commune · 12");
+    expect(pigeon.texte).toBe("Pigeon biset · Peu commune · 3");
+  });
+
+  it("garde le lien vers la fiche sur la carte, hors du pas : ses boutons ne sont pas dans le lien", async () => {
+    connecte([["poule", { role: NOURRICIER, affectees: 0, valides: 5 }]]);
+    const html = renderToStaticMarkup(await Betes());
+    const carte = html.match(/<ul[^>]*aria-label="Effectif"[^>]*><li[^>]*>(.*?)<\/li>/)?.[1] ?? "";
+    const lien = carte.match(/<a [^>]*>(.*?)<\/a>/)?.[1] ?? "";
+    expect(lien).not.toContain("<button");
+    expect(carte).toMatch(/<\/a><div role="group" aria-label="Poule, Nourricier"/);
+    expect(carte.match(/<button[^>]*aria-label="([^"]*)"/g)?.map((b) => b.match(/aria-label="([^"]*)"/)![1])).toEqual([
+      "Une Bête de moins au Rôle de Nourricier",
+      "Une Bête de plus au Rôle de Nourricier",
+    ]);
+  });
+
+  it("éteint « + » quand toutes les Bêtes valides au Foyer sont affectées, et « − » quand aucune ne l'est", async () => {
+    connecte([["poule", { role: NOURRICIER, affectees: 3, valides: 3 }]]);
+    let carte = renderToStaticMarkup(await Betes());
+    expect(carte).toMatch(/aria-label="Une Bête de plus au Rôle de Nourricier" disabled=""/);
+    expect(carte).not.toMatch(/aria-label="Une Bête de moins au Rôle de Nourricier" disabled=""/);
+    connecte([["poule", { role: NOURRICIER, affectees: 0, valides: 3 }]]);
+    carte = renderToStaticMarkup(await Betes());
+    expect(carte).toMatch(/aria-label="Une Bête de moins au Rôle de Nourricier" disabled=""/);
+    expect(carte).not.toMatch(/aria-label="Une Bête de plus au Rôle de Nourricier" disabled=""/);
+  });
+
+  it("ne lit aucun Rôle sur la page vide", async () => {
+    connecte([]);
+    effectif.effectifParEspece.mockResolvedValue([]);
+    await Betes();
+    expect(roles.rolesAuFoyer).not.toHaveBeenCalled();
   });
 });

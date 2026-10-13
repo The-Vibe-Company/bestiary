@@ -36,6 +36,17 @@ describe("la page Bêtes (US-0810)", () => {
     expect(regle(".espece:focus-visible")).toContain("outline: 2px solid var(--cuivre-clair);");
   });
 
+  it("met le pas du Rôle au pied de la carte, hors du lien, sous un filet doux ; sur une carte étroite, il passe sous le Rôle (US-0837)", () => {
+    expect(regle(".carte")).toMatch(/display: flex;[^}]*flex-direction: column;/);
+    expect(regle(".espece")).toContain("flex: 1;");
+    // Tassés en haut : la peinture et le nom à la même hauteur d'une carte à l'autre, qu'elle porte un Rôle ou non.
+    expect(regle(".espece")).toContain("align-content: start;");
+    expect(regle(".carte:has(.espece:hover)")).toContain("border-color: var(--cuivre);");
+    expect(regle(".role")).toContain("flex-wrap: wrap;");
+    expect(regle(".role")).toContain("min-width: 0;");
+    expect(regle(".role")).toContain("border-top: 1px solid var(--filet-cuivre-doux);");
+  });
+
   it("met chaque groupe de Blessés sur sa propre ligne, sous le nom et la Rareté, sans déborder (US-0952)", () => {
     expect(regle(".blesses")).toMatch(/flex-basis: 100%;[^}]*min-width: 0;/);
     expect(regle(".blesses")).toContain("overflow-wrap: anywhere;");
