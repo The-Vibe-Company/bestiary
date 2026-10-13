@@ -1,0 +1,31 @@
+src/app/jeu/reserve/[espece]/BlocElever.module.css
+  s_7c7d151152e4a5::t_16f246ac6d91d5 98,101-104
+src/app/jeu/reserve/[espece]/BlocElever.test.tsx
+  s_7c7d151152e4a5::t_c11386aec6afae 265,267,272,274-286
+src/app/jeu/reserve/[espece]/BlocElever.tsx
+  s_7c7d151152e4a5::t_f2830728b02a6b 4,10,25-36,40,62-64,96-97,186
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_4346a6af058679 1,26-27,46-48,176-185,188-189,192-207
+src/monde/cout-d-elevage.test.ts
+  s_7c7d151152e4a5::t_7dff64e162c192 9-13
+src/monde/cout-d-elevage.ts
+  s_7c7d151152e4a5::t_162eaeb798cbda 18-19,22
+src/reglages.ts
+  s_7c7d151152e4a5::t_49e59199e835e6 385-386
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5bc5c8ee0a31e1080f04137ec2d36a6c692a9fc6",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
