@@ -1,0 +1,31 @@
+src/monde/couple-absent.db.test.ts
+  s_7c7d151152e4a5::t_2f83c49e840795 205-237
+src/expeditions/pertes.ts
+  s_f4ef63499fb7af::t_848d71731dd440 86,109
+src/monde/effectif.ts
+  s_f4ef63499fb7af::t_bd8eb3b060e2ac 37-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "024c8402da4fd3ed9ebe0845bad97fdc3a3629f9",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_f4ef63499fb7af": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0168213473c8d0c6",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
