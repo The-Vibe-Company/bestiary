@@ -478,6 +478,14 @@
   font: 400 13px / 1 var(--police);
 }
 
+/*
+ * US-0843 : l'état d'un éleveur à l'Élevage dit aussi l'Espèce qu'il élève (« à l'Élevage · Souris grise ») : quand le
+ * registre se resserre, la cellule le passe à la ligne plutôt que de le couper.
+ */
+.etat > span {
+  white-space: normal;
+}
+
 /* La ligne dépliée : un voile de cuivre, un trait lumineux à gauche, le prénom en cuivre clair. */
 .habitant[data-ouvert] > * {
   border-bottom-color: transparent;

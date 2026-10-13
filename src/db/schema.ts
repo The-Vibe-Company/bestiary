@@ -510,6 +510,11 @@ export const habitant = pgTable(
      * qu'un changement de Métier ou un renvoi envoyé au même instant que le départ la voie.
      */
     expeditionId: integer("expedition_id").references((): AnyPgColumn => expedition.id, { onDelete: "set null" }),
+    /**
+     * US-0843 : l'Espèce que l'éleveur élève, posée au lancement de son Élevage (US-0815) et retirée à sa fin ; null tant
+     * qu'il est libre. Posée sur sa ligne même, comme l'Expédition d'un explorateur : son Métier ne change pas avant la fin.
+     */
+    especeElevee: text("espece_elevee").references((): AnyPgColumn => espece.id),
   },
   (t) => [index("habitant_par_territoire").on(t.territoireId), index("habitant_par_expedition").on(t.expeditionId)],
 );

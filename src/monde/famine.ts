@@ -19,6 +19,8 @@ const FUSEAU = "Europe/Paris";
 /**
  * US-0921 : un Habitant resté au Foyer, qui peut s'en aller en Famine (condition sur la table habitant) : un explorateur
  * absent ne part pas. Le départ (FAIRE_PARTIR) et le calcul qui le programme (PRODUIRE) le lisent tous deux ici.
+ * US-0843 : un éleveur à l'Élevage est au Foyer, et peut donc s'en aller ; aucun Élevage ne se lance encore : le lancement
+ * (US-0815) devra trancher ce qu'une Famine fait de son éleveur (et de l'Élevage, US-0834).
  */
 export const AU_FOYER = "expedition_id is null";
 

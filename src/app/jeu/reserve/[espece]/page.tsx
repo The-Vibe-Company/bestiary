@@ -13,7 +13,7 @@ import { blessesAuFoyer } from "@/monde/blesses";
 import { blessesAffiches, blessesDans } from "@/monde/blesses-affiches";
 import { maxAElever } from "@/monde/cout-d-elevage";
 import { especeDuTerritoire, type Regime } from "@/monde/effectif";
-import { elevageAcquis } from "@/monde/elevage";
+import { elevageAcquis, eleveurLibre } from "@/monde/elevage";
 import { placesDeLHabitat } from "@/monde/habitat";
 import { caracteristiqueAffichee as nombre } from "@/monde/quantite";
 import { maintenant } from "@/temps/horloge";
@@ -149,7 +149,7 @@ export default async function FicheDeLEspece({
           Fermer
         </Link>
       </article>
-      {territoireId !== null && (await elevageAcquis(getPool(), territoireId, espece)) ? <BlocElever especeId={espece} places={await placesDeLHabitat(getPool(), territoireId)} max={await maxAElever(getPool(), territoireId, espece)} /> : null}
+      {territoireId !== null && (await elevageAcquis(getPool(), territoireId, espece)) ? <BlocElever especeId={espece} places={await placesDeLHabitat(getPool(), territoireId)} max={await maxAElever(getPool(), territoireId, espece)} eleveur={(await eleveurLibre(getPool(), territoireId))?.prenom ?? null} /> : null}
     </main>
   );
 }

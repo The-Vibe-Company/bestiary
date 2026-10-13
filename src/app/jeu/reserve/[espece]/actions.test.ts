@@ -11,12 +11,16 @@ const chefs = vi.hoisted(() => ({
 }));
 vi.mock("@/chefs/chef", () => chefs);
 // L'Élevage acquis, lu sur base (actions.db.test.ts) ; le message du refus reste le vrai.
-const elevage = vi.hoisted(() => ({ elevageAcquis: vi.fn(async () => false) }));
-vi.mock("@/monde/elevage", async (original) => ({ ...(await original<object>()), elevageAcquis: elevage.elevageAcquis }));
+// US-0843 : l'éleveur libre aussi, lu sur base (src/monde/eleveur.db.test.ts) ; Brune d'abord.
+const elevage = vi.hoisted(() => ({
+  elevageAcquis: vi.fn(async () => false),
+  eleveurLibre: vi.fn(async (): Promise<{ id: number; prenom: string } | null> => ({ id: 5, prenom: "Brune" })),
+}));
+vi.mock("@/monde/elevage", async (original) => ({ ...(await original<object>()), elevageAcquis: elevage.elevageAcquis, eleveurLibre: elevage.eleveurLibre }));
 vi.mock("@/temps/rattraper", () => ({ rattraper: vi.fn(async () => new Date()) }));
 vi.mock("@/db", () => ({ getPool: () => ({}) }));
 
-import { ELEVAGE_SANS_COUPLE } from "@/monde/elevage";
+import { ELEVAGE_SANS_COUPLE, ELEVAGE_SANS_ELEVEUR } from "@/monde/elevage";
 import { elever } from "./actions";
 import { QUANTITE_REFUSEE } from "./quantite";
 
@@ -127,6 +131,43 @@ describe("refuser une quantité nulle, négative ou non entière (US-0813)", () 
     connecte();
     elevage.elevageAcquis.mockResolvedValue(false);
     expect(await demander("pigeon", "0")).toEqual({ refus: ELEVAGE_SANS_COUPLE });
+  });
+});
+
+describe("demander un éleveur libre au lancement (US-0843)", () => {
+  afterEach(() => {
+    elevage.elevageAcquis.mockReset();
+    elevage.eleveurLibre.mockReset();
+    elevage.eleveurLibre.mockResolvedValue({ id: 5, prenom: "Brune" });
+    cookie.jetonDeSession.mockReset();
+  });
+
+  const connecte = () => {
+    cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
+    session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
+  };
+
+  it("refuse, et dit pourquoi, l'Élevage d'une Espèce au Couple réuni sans éleveur libre au Territoire de la garde", async () => {
+    connecte();
+    elevage.elevageAcquis.mockResolvedValue(true);
+    elevage.eleveurLibre.mockResolvedValue(null);
+    expect(await demander("poule")).toEqual({ refus: ELEVAGE_SANS_ELEVEUR });
+    expect(elevage.eleveurLibre).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12);
+    expect(ELEVAGE_SANS_ELEVEUR).toBe("Aucun éleveur libre.");
+  });
+
+  it("ne cherche pas d'éleveur pour une Espèce sans Couple : son refus passe d'abord", async () => {
+    connecte();
+    elevage.elevageAcquis.mockResolvedValue(false);
+    elevage.eleveurLibre.mockResolvedValue(null);
+    expect(await demander("pigeon")).toEqual({ refus: ELEVAGE_SANS_COUPLE });
+    expect(elevage.eleveurLibre).not.toHaveBeenCalled();
+  });
+
+  it("ne refuse pas quand un éleveur est libre : le lancement arrive avec US-0815", async () => {
+    connecte();
+    elevage.elevageAcquis.mockResolvedValue(true);
+    expect(await demander("poule")).toEqual({ refus: null });
   });
 });
 

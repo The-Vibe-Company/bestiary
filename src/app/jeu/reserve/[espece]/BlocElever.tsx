@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useId, useState } from "react";
 import { Bloc } from "@/components/Bloc";
 import { Jauge } from "@/components/Jauge";
@@ -15,7 +16,7 @@ const SANS_REFUS: EtatDeLElevage = { refus: null };
  * US-0812 : le bloc « Élever » de la fiche d'une Espèce dont le joueur a réuni le Couple (la fiche ne le pose que pour
  * elles), ancré en « #elever » pour que le récit du Couple réuni y mène (US-0958). Son bouton « Élever » demande
  * l'Élevage de l'Espèce (actions.ts), qui refuse toute Espèce sans Couple et le dit, juste dessous ; il reste grisé tant
- * que l'Élevage ne se lance pas : l'éleveur (US-0843) et le lancement (US-0815) arrivent ensuite.
+ * que l'Élevage ne se lance pas : le lancement arrive avec US-0815.
  * US-0822 : au-dessus du bouton, le même compteur des Places de l'Habitat du Foyer que la page Bêtes, et sa jauge fine
  * (qui ne sert qu'aux yeux). Le bouton est celui de l'action principale du kit, éteint tant qu'il est grisé ; le refus
  * se dit en braise.
@@ -24,10 +25,24 @@ const SANS_REFUS: EtatDeLElevage = { refus: null };
  * (`max`, cout-d-elevage.ts) ; une quantité nulle, négative ou non entière est refusée, dite en braise sous le pas dès
  * qu'elle s'écrit (ou, vide, quand on quitte le champ). Le champ prend neuf chiffres au plus, la plus grande quantité qui
  * se lit.
+ * US-0843 : sous les Places, l'éleveur libre qui s'en occupera (`eleveur`, son prénom) ; sans éleveur libre, la raison,
+ * avec un lien vers la page Habitants, et « Élever » grisé qui la donne pour description. Le bloc reste : l'Élevage de
+ * l'Espèce est acquis sans éleveur, seul son lancement en demande un.
  */
-export function BlocElever({ especeId, places, max }: { especeId: string; places: { occupees: number; total: number }; max: number }) {
+export function BlocElever({
+  especeId,
+  places,
+  max,
+  eleveur,
+}: {
+  especeId: string;
+  places: { occupees: number; total: number };
+  max: number;
+  eleveur: string | null;
+}) {
   const [{ refus }, envoyer] = useActionState(elever, SANS_REFUS);
   const idRefus = useId();
+  const idSansEleveur = useId();
   const idQuantite = useId();
   const idQuantiteRefusee = useId();
   const [texte, setTexte] = useState("1");
@@ -49,6 +64,18 @@ export function BlocElever({ especeId, places, max }: { especeId: string; places
           <PlacesDeLHabitat {...places} />
           <Jauge valeur={Math.ceil(places.occupees)} max={places.total} fine />
         </div>
+        {eleveur !== null ? (
+          <p className={styles.eleveur}>
+            Éleveur : <strong className={styles.prenom}>{eleveur}</strong>
+          </p>
+        ) : (
+          <p id={idSansEleveur} className={styles.eleveur}>
+            Aucun éleveur libre.{" "}
+            <Link href="/jeu/habitants" className={kit.lien}>
+              Habitants
+            </Link>
+          </p>
+        )}
         <form action={envoyer} className={styles.formulaire}>
           <input type="hidden" name="espece" value={especeId} />
           <div className={styles.quantite}>
@@ -105,7 +132,7 @@ export function BlocElever({ especeId, places, max }: { especeId: string; places
               </p>
             ) : null}
           </div>
-          <button type="submit" className={`${kit.bouton} ${kit.principal} ${kit.grand} ${styles.bouton}`} disabled aria-describedby={refus ? idRefus : undefined}>
+          <button type="submit" className={`${kit.bouton} ${kit.principal} ${kit.grand} ${styles.bouton}`} disabled aria-describedby={[eleveur === null ? idSansEleveur : null, refus ? idRefus : null].filter(Boolean).join(" ") || undefined}>
             Élever
           </button>
           {refus ? (

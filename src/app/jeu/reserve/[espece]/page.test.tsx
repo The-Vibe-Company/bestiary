@@ -24,8 +24,12 @@ vi.mock("@/monde/blesses", () => blesses);
 const MAINTENANT = vi.hoisted(() => new Date("2026-10-09T07:42:13.250Z"));
 vi.mock("@/temps/horloge", async (original) => ({ ...(await original<object>()), maintenant: () => MAINTENANT }));
 // US-0812 : l'Élevage de l'Espèce, acquis ou non, lu sur base (page.db.test.tsx).
-const elevage = vi.hoisted(() => ({ elevageAcquis: vi.fn(async () => false) }));
-vi.mock("@/monde/elevage", async (original) => ({ ...(await original<object>()), elevageAcquis: elevage.elevageAcquis }));
+// US-0843 : et l'éleveur libre du Territoire (src/monde/eleveur.db.test.ts).
+const elevage = vi.hoisted(() => ({
+  elevageAcquis: vi.fn(async () => false),
+  eleveurLibre: vi.fn(async (): Promise<{ id: number; prenom: string } | null> => ({ id: 5, prenom: "Brune" })),
+}));
+vi.mock("@/monde/elevage", async (original) => ({ ...(await original<object>()), elevageAcquis: elevage.elevageAcquis, eleveurLibre: elevage.eleveurLibre }));
 // US-0822 : les Places de l'Habitat du Foyer, lues sur base (src/monde/habitat.db.test.ts).
 const habitat = vi.hoisted(() => ({ placesDeLHabitat: vi.fn(async () => ({ occupees: 21, total: 500 })) }));
 vi.mock("@/monde/habitat", () => habitat);
@@ -143,6 +147,20 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
     cout.maxAElever.mockResolvedValueOnce(0);
     elevage.elevageAcquis.mockResolvedValueOnce(true);
     expect(await ouvrir("poule")).toMatch(/<button[^>]*disabled=""[^>]*>Max<\/button>/);
+  });
+
+  it("y dit l'éleveur libre du joueur, ou qu'il n'en a aucun, le bloc restant proposé (US-0843)", async () => {
+    connecte();
+    elevage.elevageAcquis.mockResolvedValueOnce(true);
+    const avec = await ouvrir("poule");
+    expect(elevage.eleveurLibre).toHaveBeenLastCalledWith(expect.anything(), 12);
+    expect(avec.slice(avec.indexOf('id="elever"')).replace(/<[^>]+>/g, "")).toContain("Éleveur : Brune");
+    elevage.elevageAcquis.mockResolvedValueOnce(true);
+    elevage.eleveurLibre.mockResolvedValueOnce(null);
+    const sans = await ouvrir("poule");
+    expect(sans).toContain('id="elever"');
+    expect(sans.slice(sans.indexOf('id="elever"')).replace(/<[^>]+>/g, "")).toContain("Aucun éleveur libre. Habitants");
+    expect(sans).toMatch(/<a[^>]*href="\/jeu\/habitants"[^>]*>Habitants<\/a>/);
   });
 
   it("ne le propose pas pour une Espèce sans Couple, même avec des Bêtes (US-0812)", async () => {

@@ -3,7 +3,7 @@ import "server-only";
 import type { Pool, PoolClient } from "pg";
 import { DatabaseError } from "pg";
 import { ENTRETIEN_HABITANT_PAR_HEURE, PLACES_DU_FOYER } from "@/reglages";
-import { EN_EXPEDITION, type EtatHabitant, LIBRE } from "./etat-habitant";
+import { aLElevage, EN_EXPEDITION, type EtatHabitant, LIBRE, LIBRE_EN_SQL } from "./etat-habitant";
 import { ENTRETIEN_DU_TERRITOIRE } from "./production";
 import { ecrireUnRecit, type NouveauRecit } from "./recits";
 
@@ -18,17 +18,17 @@ export type Habitant = { id: number; prenom: string; metier: string | null; arri
 /**
  * Les Habitants d'un Territoire, rangés par Métier, ceux sans Métier en premier, puis par prénom (US-0303).
  * US-0308 : les Métiers dans leur ordre de donnees/metiers.yaml, chacun sous son nom. US-0911 : chacun libre, ou en
- * Expédition jusqu'à son retour.
+ * Expédition jusqu'à son retour. US-0843 : ou à l'Élevage, avec le nom de l'Espèce qu'il élève, jusqu'à la fin.
  */
 export async function habitantsDuTerritoire(pool: Pool, territoireId: number): Promise<Habitant[]> {
-  const { rows } = await pool.query<Omit<Habitant, "etat"> & { parti: boolean }>(
-    `select h.id, h.prenom, m.nom as metier, h.arrive_le as "arriveLe", h.expedition_id is not null as parti
-     from habitant h left join metier m on m.id = h.metier
+  const { rows } = await pool.query<Omit<Habitant, "etat"> & { parti: boolean; especeElevee: string | null }>(
+    `select h.id, h.prenom, m.nom as metier, h.arrive_le as "arriveLe", h.expedition_id is not null as parti, e.nom as "especeElevee"
+     from habitant h left join metier m on m.id = h.metier left join espece e on e.id = h.espece_elevee
      where h.territoire_id = $1
      order by m.ordre nulls first, h.prenom, h.id`,
     [territoireId],
   );
-  return rows.map(({ parti, ...h }) => ({ ...h, etat: parti ? EN_EXPEDITION : LIBRE }));
+  return rows.map(({ parti, especeElevee, ...h }) => ({ ...h, etat: parti ? EN_EXPEDITION : especeElevee !== null ? aLElevage(especeElevee) : LIBRE }));
 }
 
 /**
@@ -37,11 +37,12 @@ export async function habitantsDuTerritoire(pool: Pool, territoireId: number): P
  * immédiat, sans temps d'apprentissage : aucune Ressource n'est touchée. Rend false sans rien changer pour un
  * Habitant d'un autre Territoire, ou un Métier inconnu, que la clé étrangère vers `metier` refuse. US-0911 : de même
  * pour un explorateur parti en Expédition, jusqu'à son retour, même quand le départ et le changement arrivent au même
- * instant : l'un attend l'autre sur la ligne de l'Habitant, puis la relit.
+ * instant : l'un attend l'autre sur la ligne de l'Habitant, puis la relit. US-0843 : et pour un éleveur à l'Élevage,
+ * jusqu'à la fin.
  */
 export async function enregistrerLeMetier(base: Pool | PoolClient, territoireId: number, habitantId: number, metierId: string | null): Promise<boolean> {
   try {
-    const { rowCount } = await base.query("update habitant set metier = $3 where id = $2 and territoire_id = $1 and expedition_id is null", [
+    const { rowCount } = await base.query(`update habitant set metier = $3 where id = $2 and territoire_id = $1 and ${LIBRE_EN_SQL}`, [
       territoireId,
       habitantId,
       metierId,
@@ -85,13 +86,14 @@ export async function ajouterUnHabitantAuMetier(base: Pool | PoolClient, territo
  *
  * US-0315 : comme pour « + », des « − » simultanés verrouillent chacun le sien et passent ceux déjà pris : jamais
  * plus d'Habitants remis sans Métier qu'il n'en exerçait le Métier, et aucun « − » perdu tant qu'il en reste.
- * US-0911 : un explorateur parti en Expédition n'est jamais choisi : son Métier ne change pas avant son retour.
+ * US-0911 : un explorateur parti en Expédition n'est jamais choisi : son Métier ne change pas avant son retour. US-0843 :
+ * un éleveur à l'Élevage non plus, avant la fin.
  */
 export async function retirerUnHabitantDuMetier(base: Pool | PoolClient, territoireId: number, metierId: string): Promise<number | null> {
   const { rows } = await base.query<{ id: number }>(
     `update habitant set metier = null
-     where id = (select id from habitant where territoire_id = $1 and metier = $2 and expedition_id is null order by id desc limit 1 for update skip locked)
-       and metier = $2 and expedition_id is null
+     where id = (select id from habitant where territoire_id = $1 and metier = $2 and ${LIBRE_EN_SQL} order by id desc limit 1 for update skip locked)
+       and metier = $2 and ${LIBRE_EN_SQL}
      returning id`,
     [territoireId, metierId],
   );
@@ -122,10 +124,11 @@ export async function ajouterUnHabitant(
 
 /**
  * US-0330 : efface l'Habitant $2 du Territoire $1, et rend son prénom et le nom de son Métier (null sans Métier).
- * US-0911 : un explorateur parti en Expédition ne se renvoie pas avant son retour.
+ * US-0911 : un explorateur parti en Expédition ne se renvoie pas avant son retour. US-0843 : un éleveur à l'Élevage non
+ * plus, avant la fin.
  */
 const RENVOYER = `
-  with parti as (delete from habitant where id = $2 and territoire_id = $1 and expedition_id is null returning prenom, metier)
+  with parti as (delete from habitant where id = $2 and territoire_id = $1 and ${LIBRE_EN_SQL} returning prenom, metier)
   select parti.prenom, m.nom as metier from parti left join metier m on m.id = parti.metier`;
 
 /**

@@ -6,7 +6,7 @@ import { type CSSProperties, type MouseEvent, useEffect, useId, useRef, useState
 import { Etat } from "@/components/Etat";
 import kit from "@/components/kit.module.css";
 import { Medaillon } from "@/components/Medaillon";
-import { EN_EXPEDITION } from "@/monde/etat-habitant";
+import { EN_EXPEDITION, occupe } from "@/monde/etat-habitant";
 import { ajouterAuMetier, donnerUnMetier, renvoyerUnHabitant, retirerDuMetier, retirerLeMetier } from "./actions";
 import { BandeauSansMetier } from "./BandeauSansMetier";
 import { useHabitantsMontres } from "./HabitantsMontres";
@@ -90,11 +90,11 @@ function effectifsParMetier(habitants: HabitantAffiche[], metiers: MetierDuTable
  * US-0312 : celui que « − » remet sans Métier : le dernier arrivé au Territoire de ceux qui exercent le Métier `nom`,
  * soit le plus grand identifiant (les Habitants sont numérotés à leur arrivée), comme la base le choisira ; null quand
  * personne ne l'exerce. US-0911 : parmi ceux restés au Foyer : le Métier d'un explorateur parti ne change pas avant son
- * retour.
+ * retour. US-0843 : ni celui d'un éleveur à l'Élevage, avant la fin.
  */
 function dernierArrive(habitants: HabitantAffiche[], nom: string): HabitantAffiche | null {
   return habitants
-    .filter((h) => h.metier === nom && h.etat !== EN_EXPEDITION)
+    .filter((h) => h.metier === nom && !occupe(h.etat))
     .reduce<HabitantAffiche | null>((dernier, h) => (dernier && dernier.id > h.id ? dernier : h), null);
 }
 
@@ -142,7 +142,8 @@ function dernierArrive(habitants: HabitantAffiche[], nom: string): HabitantAffic
  * d'avant. Le dernier Habitant se renvoie aussi : la phrase d'US-0329 prend sa place.
  *
  * US-0911 : un explorateur parti est « en Expédition » sur sa ligne, son Métier écrit sans bouton : rien ne se déplie,
- * ni Métier ni renvoi, avant son retour.
+ * ni Métier ni renvoi, avant son retour. US-0843 : de même pour un éleveur « à l'Élevage », l'Espèce qu'il élève à la
+ * suite (« à l'Élevage · Poule »), avant la fin de son Élevage.
  */
 export function ListeDesHabitants({ habitants, metiers }: { habitants: HabitantAffiche[]; metiers: MetierDuTableau[] }) {
   const [affiches, montrerDAvance] = useHabitantsMontres(habitants);
@@ -242,8 +243,8 @@ export function ListeDesHabitants({ habitants, metiers }: { habitants: HabitantA
     setARenvoyer(null);
     setOuvert(null);
     // La ligne s'en va avec le bouton : la main passe à celle qui prend sa place, ou à celle d'avant ; US-0911 : à la
-    // plus proche qui a son bouton, celle d'un explorateur parti n'en ayant pas.
-    const aBouton = montres.filter((h) => h === habitant || h.etat !== EN_EXPEDITION);
+    // plus proche qui a son bouton, celle d'un explorateur parti (US-0843 : ou d'un éleveur à l'Élevage) n'en ayant pas.
+    const aBouton = montres.filter((h) => h === habitant || !occupe(h.etat));
     const rang = aBouton.indexOf(habitant);
     const voisin = aBouton[rang + 1] ?? aBouton[rang - 1];
     if (voisin) document.getElementById(idBouton(voisin.id))?.focus();
@@ -427,7 +428,8 @@ export function ListeDesHabitants({ habitants, metiers }: { habitants: HabitantA
                     </tr>
                   ) : null}
                   {ceux.flatMap((h) => {
-                    const parti = h.etat === EN_EXPEDITION;
+                    // US-0843 : un éleveur à l'Élevage est occupé comme un explorateur parti, et se montre de même.
+                    const parti = occupe(h.etat);
                     // US-0911 : rien ne reste déplié sur la ligne d'un explorateur parti entre-temps.
                     const deplie = ouvert === h.id && !parti;
                     const confirmer = deplie && aRenvoyer === h.id;

@@ -841,6 +841,25 @@ describe("un explorateur parti en Expédition (US-0911)", () => {
   });
 });
 
+describe("un éleveur à l'Élevage (US-0843)", () => {
+  /** Arno, sans Métier, et Dara, éleveuse à l'Élevage de la Poule. */
+  const AVEC_UNE_ELEVEUSE: HabitantAffiche[] = [HABITANTS[0], { id: 43, prenom: "Dara", metier: "Éleveur", etat: "à l'Élevage · Poule" }];
+
+  it("est « à l'Élevage » sur sa ligne, avec l'Espèce qu'il élève, son Métier écrit sans bouton : ni changé, ni retiré, ni renvoyé avant la fin", () => {
+    render(<ListeDesHabitants habitants={AVEC_UNE_ELEVEUSE} metiers={METIERS} />);
+    expect(lignes()).toEqual(["Arno · Choisir un Métier · libre", "Dara · Éleveur · à l'Élevage · Poule"]);
+    expect(within(ligne("Dara")).queryAllByRole("button")).toEqual([]);
+    // Occupé ailleurs, comme un explorateur parti : la même teinte, et toujours son mot.
+    expect(ligne("Dara").querySelector("[data-absent]")?.textContent).toBe("à l'Élevage · Poule");
+  });
+
+  it("compte toujours parmi les éleveurs, sans être dit en Expédition (US-0309)", () => {
+    render(<ListeDesHabitants habitants={AVEC_UNE_ELEVEUSE} metiers={METIERS} />);
+    expect(effectifs()).toContain("Éleveur 1");
+    expect(rangeeDesEffectifs().textContent).not.toContain("en Expédition");
+  });
+});
+
 describe("répartir les Habitants avec « − » et « + », en tête de chaque groupe (US-0312)", () => {
   const TROIS_METIERS: MetierDuTableau[] = [
     ["chasseur", "Chasseur", "rapporte de la Viande", "avec les Récoltes"],
@@ -956,6 +975,23 @@ describe("répartir les Habitants avec « − » et « + », en tête de chaque 
     expect(effectif("Bûcheron")).toBe("0");
     expect(prenomsEtMetiers()[0]).toBe("Arno · Choisir un Métier");
     expect(bandeau()).toBe("2 Habitants sans Métier");
+  });
+
+  describe("un éleveur à l'Élevage (US-0843)", () => {
+    /** Dara, Chasseur à l'Élevage pour les besoins de l'essai (un état, pas un Métier, verrouille), arrivée après Cael. */
+    const DARA: HabitantAffiche = { id: 43, prenom: "Dara", metier: "Chasseur", etat: "à l'Élevage · Poule" };
+
+    it("« − » ne le remet pas sans Métier : il prend le dernier arrivé resté libre, et se grise quand il n'y en a plus", async () => {
+      render(page([...HABITANTS, DARA]));
+      expect(effectif("Chasseur")).toBe("2");
+      await userEvent.setup().click(moins("Chasseur"));
+      expect(actions.retirerDuMetier).toHaveBeenCalledExactlyOnceWith("chasseur");
+      expect(prenomsEtMetiers()).toContain("Dara · Chasseur");
+      expect(prenomsEtMetiers()).toContain("Cael · Choisir un Métier");
+      cleanup();
+      render(page([HABITANTS[0], DARA]));
+      expect(moins("Chasseur").disabled).toBe(true);
+    });
   });
 
   describe("un Habitant parti en Expédition (US-0911)", () => {

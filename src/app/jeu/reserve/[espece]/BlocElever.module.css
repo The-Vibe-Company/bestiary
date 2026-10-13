@@ -11,6 +11,18 @@
   max-width: 320px;
 }
 
+/* US-0843 : l'éleveur libre (« Éleveur : » en mousse, son prénom en crème), ou la raison de son absence et son lien. */
+.eleveur {
+  margin-top: 12px;
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 13.5px / 1.3 var(--police);
+}
+
+.prenom {
+  color: var(--creme);
+  font-weight: var(--graisse-titre);
+}
+
 /* Le bouton sous le compteur. */
 .formulaire {
   margin-top: 14px;

@@ -3,7 +3,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { reunirLesCouples } from "@/monde/couple";
-import { ELEVAGE_SANS_COUPLE } from "@/monde/elevage";
+import { ELEVAGE_SANS_COUPLE, ELEVAGE_SANS_ELEVEUR } from "@/monde/elevage";
 import { lireMarquePage } from "@/temps/marque-page";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 
@@ -47,6 +47,9 @@ describe.skipIf(!URL_TEST)("refuser l'Élevage d'une Espèce sans Couple, sur ba
       client.release();
     }
   };
+  /** US-0843 : donne le Métier d'éleveur au premier Habitant du Territoire. */
+  const nommerUnEleveur = (territoireId: number) =>
+    pool.query("update habitant set metier = 'eleveur' where id = (select id from habitant where territoire_id = $1 order by id limit 1)", [territoireId]);
   /** L'Élevage d'une Bête de l'Espèce `espece` demandé pour le joueur du Territoire, comme le bouton l'envoie, ou par tout autre chemin. */
   const demander = (territoireId: number, espece: string) => {
     garde.exigerCompte.mockResolvedValue({ id: 1, email: "nom@exemple.fr", nomDeChef: "Ourse", territoireId, recitLu: true });
@@ -80,7 +83,20 @@ describe.skipIf(!URL_TEST)("refuser l'Élevage d'une Espèce sans Couple, sur ba
     expect(await demander(t.territoireId, "poule")).toEqual({ refus: ELEVAGE_SANS_COUPLE });
     expect(await demander(t.territoireId, "pigeon")).toEqual({ refus: ELEVAGE_SANS_COUPLE });
     expect(await demander(t.territoireId, "espece_inconnue")).toEqual({ refus: ELEVAGE_SANS_COUPLE });
+    // US-0843 : le Couple réuni, l'Élevage reste acquis, mais son lancement demande un éleveur libre.
+    expect(await demander(t.territoireId, "souris")).toEqual({ refus: ELEVAGE_SANS_ELEVEUR });
+    await nommerUnEleveur(t.territoireId);
+    await nommerUnEleveur(voisin.territoireId);
     expect(await demander(t.territoireId, "souris")).toEqual({ refus: null });
     expect(await demander(voisin.territoireId, "pigeon")).toEqual({ refus: null });
+  });
+
+  it("refuse le lancement quand le seul éleveur s'occupe déjà d'un Élevage (US-0843)", async () => {
+    const t = await naitre();
+    await reunir(t, "souris");
+    await nommerUnEleveur(t.territoireId);
+    expect(await demander(t.territoireId, "souris")).toEqual({ refus: null });
+    await pool.query("update habitant set espece_elevee = 'poule' where territoire_id = $1 and metier = 'eleveur'", [t.territoireId]);
+    expect(await demander(t.territoireId, "souris")).toEqual({ refus: ELEVAGE_SANS_ELEVEUR });
   });
 });
