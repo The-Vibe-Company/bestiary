@@ -1,0 +1,29 @@
+src/monde/guerison.db.test.ts
+  s_7c7d151152e4a5::t_31a11fc8c140d7 7,11-13,18,21-23,28-39,134-180,214-221,225,282-418
+src/monde/guerison.ts
+  s_75e9a780874bbd::t_ea277a275b2b36 19-24,28,31,34-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6e4b9e683f695e7c645800814e3da0592faaaacc",
+  "prompts": {},
+  "sessions": {
+    "s_75e9a780874bbd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e8a22366-3524-4157-8983-f900d79a348a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
