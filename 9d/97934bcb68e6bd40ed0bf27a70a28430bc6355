@@ -1,0 +1,46 @@
+src/app/jeu/carte/Echantillon.tsx
+  s_7c7d151152e4a5::t_63ac86fd5d70e2 1-76
+src/app/jeu/reserve/[espece]/page.module.css
+  s_7c7d151152e4a5::t_13343810930d80 106,109-114
+  s_7c7d151152e4a5::t_e396e4383ee018 103-105
+  s_7c7d151152e4a5::t_968c3ad6709ff5 107-108
+  s_197c47ffa215f4::t_2c6cf937ae008a 100-102
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_08222952e3019d 3,47-48,209,245-291
+src/monde/effectif.db.test.ts
+  s_7c7d151152e4a5::t_2683e6937bebf1 308-310,323-324
+src/app/jeu/reserve/[espece]/page.css.test.ts
+  s_7c7d151152e4a5::t_d8ff4d2e112d66 48-54
+src/app/jeu/carte/Legende.tsx
+  s_7c7d151152e4a5::t_7b80c9c1b8d8bf 3,5,7
+src/app/jeu/reserve/[espece]/page.db.test.tsx
+  s_7c7d151152e4a5::t_5f2958ecf4d4b2 154,176-191
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_de902839262e23 125-126,136-137,151-153,156-157
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_971627ce83a1b9 7,35-40,57-58,120-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9d97934bcb68e6bd40ed0bf27a70a28430bc6355",
+  "prompts": {},
+  "sessions": {
+    "s_197c47ffa215f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5d864287176be1e2",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
