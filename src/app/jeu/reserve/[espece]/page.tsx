@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { exigerCompte } from "@/comptes/garde";
 import { entreeDuJeuOuverte } from "@/comptes/ouverture";
+import { Echantillon } from "@/app/jeu/carte/Echantillon";
 import { IllustrationEspece } from "@/components/IllustrationEspece";
 import kit from "@/components/kit.module.css";
 import { PastilleRarete } from "@/components/PastilleRarete";
@@ -35,6 +36,12 @@ const REGIMES: Record<Regime, { nom: string; nourriture: string }> = {
   omnivore: { nom: "Omnivore", nourriture: "Viande ou Végétaux" },
 };
 
+/**
+ * US-0806 : la teinte de la carte qui sert de pictogramme au Biome d'Habitat : la sienne, sauf pour l'eau, que la carte
+ * ne dessine que par ses formes (côte, lac, rivière, mer) : la mer, de la couleur de l'eau, la représente.
+ */
+const teinteDuBiome = (biome: string) => (biome === "eau" ? "mer" : biome);
+
 /** US-0803 : un identifiant d'Espèce, tel que les données du jeu les écrivent (« souris », « peu_commune »). */
 const IDENTIFIANT = /^[a-z0-9_]{1,64}$/;
 
@@ -54,7 +61,8 @@ const IDENTIFIANT = /^[a-z0-9_]{1,64}$/;
  * l'attaque, la vie, la vitesse en km/h et la charge, un nom et une valeur chacune, sans phrase (leurs explications
  * arrivent avec US-0807). Toutes sont toujours là : une Espèce à qui il en manque une ne se charge pas en base
  * (src/donnees/jeux.ts). US-0805 : puis sa taille en Places occupées par Bête, son régime et son Entretien par heure et
- * par Bête, dans la Nourriture de son régime.
+ * par Bête, dans la Nourriture de son régime. US-0806 : enfin son Biome d'Habitat, son nom précédé de son pictogramme,
+ * la Case du Biome dessinée comme sur la carte et sa légende, et son Rôle, ou « Aucun Rôle ».
  *
  * Sur le fond du jeu, un panneau orné : la peinture de l'Espèce dans son filet vert ; son nom en Bree Serif, sa Rareté
  * en puce, l'effectif en grand, puis ses caractéristiques sous un filet doux ; « Fermer », un bouton au contour vert.
@@ -123,6 +131,17 @@ export default async function FicheDeLEspece({
               <dd>
                 {nombre(fiche.entretienParHeure)}&nbsp;{REGIMES[fiche.regime].nourriture}&nbsp;/&nbsp;h
               </dd>
+            </div>
+            <div className={styles.habitat}>
+              <dt>Habitat</dt>
+              <dd>
+                <Echantillon teinte={teinteDuBiome(fiche.biome.id)} />
+                {fiche.biome.nom}
+              </dd>
+            </div>
+            <div>
+              <dt>Rôle</dt>
+              <dd>{fiche.role ? fiche.role.nom : "Aucun Rôle"}</dd>
             </div>
           </dl>
         </div>

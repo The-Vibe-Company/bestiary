@@ -305,6 +305,9 @@ describe.skipIf(!URL_TEST)("les Bêtes disponibles pour l'escorte (US-0904, sur 
         taille: 31.623,
         regime: "omnivore",
         entretienParHeure: 5,
+        // US-0806 : son Biome d'Habitat et son Rôle.
+        biome: { id: "prairie", nom: "Prairie" },
+        role: { id: "nourricier", nom: "Nourricier" },
       });
       // Son Couple en Réserve, l'effectif de l'Espèce est vide : la fiche le rappelle.
       expect(await especeDuTerritoire(pool, t, "souris")).toEqual({
@@ -317,6 +320,8 @@ describe.skipIf(!URL_TEST)("les Bêtes disponibles pour l'escorte (US-0904, sur 
         taille: 1,
         regime: "omnivore",
         entretienParHeure: 0.167,
+        biome: { id: "prairie", nom: "Prairie" },
+        role: null,
       });
       // Ni une Espèce sans Bête ni Couple, ni celle d'un autre joueur, ni une Espèce inconnue.
       expect(await especeDuTerritoire(pool, t, "pigeon")).toBeNull();

@@ -102,6 +102,21 @@
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * US-0806 : le Biome d'Habitat, son pictogramme (la Case de la légende de la carte) devant son nom ; plus haut qu'une
+ * ligne de texte, il cale son nom et sa valeur sur son milieu.
+ */
+.caracteristiques > .habitat > * {
+  align-self: center;
+}
+
+.caracteristiques > .habitat > dd {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
 /* « Fermer », au pouce : 44 px de haut, le bouton au contour vert d'une action secondaire. */
 .fermer {
   grid-area: fermer;

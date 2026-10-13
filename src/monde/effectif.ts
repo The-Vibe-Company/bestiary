@@ -122,7 +122,8 @@ export async function nombreDeBetes(base: Pool | PoolClient, territoireId: numbe
  * US-0804 : la fiche d'une Espèce : ce que la page Bêtes en montre, et ses caractéristiques telles que la base les a
  * enregistrées pour elle (src/donnees/jeux.ts, par le barème) : son attaque, sa vie, sa vitesse en km/h et sa charge. Les
  * mêmes pour tous les joueurs : rien du Territoire n'y entre, aucune Recherche non plus (ADR 0005). US-0805 : et sa taille
- * en Places par Bête, son régime et son Entretien par heure et par Bête.
+ * en Places par Bête, son régime et son Entretien par heure et par Bête. US-0806 : et son Biome d'Habitat, et son Rôle
+ * (null : aucun).
  */
 export type FicheDEspece = EspeceDeLEffectif & {
   attaque: number;
@@ -132,6 +133,8 @@ export type FicheDEspece = EspeceDeLEffectif & {
   taille: number;
   regime: Regime;
   entretienParHeure: number;
+  biome: { id: string; nom: string };
+  role: { id: string; nom: string } | null;
 };
 
 /** US-0805 : le régime d'une Espèce, qui dit la Nourriture de son Entretien : l'une des valeurs de l'énumération en base. */
@@ -145,9 +148,13 @@ export type Regime = (typeof regime.enumValues)[number];
 export async function especeDuTerritoire(base: Pool | PoolClient, territoireId: number, especeId: string): Promise<FicheDEspece | null> {
   const { rows } = await base.query<FicheDEspece>(
     `select es.id as "especeId", es.nom, es.illustration, json_build_object('id', r.id, 'nom', r.nom) as rarete, x.effectif,
-       es.attaque, es.vie, es.vitesse, es.charge, es.taille, es.regime, es.entretien_par_heure as "entretienParHeure"
+       es.attaque, es.vie, es.vitesse, es.charge, es.taille, es.regime, es.entretien_par_heure as "entretienParHeure",
+       json_build_object('id', b.id, 'nom', b.nom) as biome,
+       case when ro.id is null then null else json_build_object('id', ro.id, 'nom', ro.nom) end as role
      from espece es
      join rarete r on r.id = es.rarete_id
+     join biome b on b.id = es.biome_id
+     left join role ro on ro.id = es.role_id
      cross join lateral (select coalesce(sum(e.nombre), 0)::int as effectif from effectif e where e.territoire_id = $1 and e.espece_id = es.id) x
      where es.id = $2
        and (x.effectif > 0 or exists (select 1 from couple c where c.territoire_id = $1 and c.espece_id = es.id))`,

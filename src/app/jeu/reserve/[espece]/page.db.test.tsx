@@ -151,7 +151,7 @@ describe.skipIf(!URL_TEST)("ouvrir la fiche d'une Espèce, sur base (US-0803)", 
     const nombre = (n: number) => n.toLocaleString("fr-FR", { maximumFractionDigits: 3 }).replace(/[\u00a0\u202f]/g, " ");
     // Le pigeon est herbivore (donnees/especes.yaml) : il mange des Végétaux.
     expect(rows[0].regime).toBe("herbivore");
-    expect((await caracteristiques(t.territoireId, "pigeon")).slice(4)).toEqual([
+    expect((await caracteristiques(t.territoireId, "pigeon")).slice(4, 7)).toEqual([
       `Taille ${nombre(rows[0].taille)} Places`,
       "Régime Herbivore",
       `Entretien ${nombre(rows[0].entretien)} Végétaux / h`,
@@ -172,5 +172,21 @@ describe.skipIf(!URL_TEST)("ouvrir la fiche d'une Espèce, sur base (US-0803)", 
     expect(await elever("souris")).toBe(true);
     // Trois poules, sans Couple : leur fiche s'ouvre (US-0810), sans Élevage.
     expect(await elever("poule")).toBe(false);
+  });
+
+  it("affiche le Biome d'Habitat et le Rôle enregistrés pour l'Espèce, ou « Aucun Rôle » (US-0806)", async () => {
+    const t = await naitre();
+    await reunir(t, "pigeon");
+    await reunir(t, "souris");
+    const { rows } = await pool.query<{ id: string; biome: string; role: string | null }>(
+      `select e.id, b.nom as biome, r.nom as role from espece e join biome b on b.id = e.biome_id left join role r on r.id = e.role_id
+       where e.id in ('pigeon', 'souris') order by e.id`,
+    );
+    const [pigeon, souris] = rows;
+    // Le pigeon est Éclaireur, la souris n'a aucun Rôle (donnees/especes.yaml).
+    expect(pigeon.role).not.toBeNull();
+    expect(souris.role).toBeNull();
+    expect((await caracteristiques(t.territoireId, "pigeon")).slice(7)).toEqual([`Habitat ${pigeon.biome}`, `Rôle ${pigeon.role}`]);
+    expect((await caracteristiques(t.territoireId, "souris")).slice(7)).toEqual([`Habitat ${souris.biome}`, "Rôle Aucun Rôle"]);
   });
 });

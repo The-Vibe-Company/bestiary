@@ -45,4 +45,11 @@ describe("la fiche d'une Espèce (US-0803)", () => {
     expect(regle(".fiche", couche)).toContain('grid-template-areas: "illustration fermer" "illustration entete";');
     expect(regle(".fermer", couche)).toContain("justify-self: end;");
   });
+
+  it("met le pictogramme du Biome devant son nom, le nom de la ligne à sa hauteur (US-0806)", () => {
+    expect(regle(".caracteristiques > .habitat > dd")).toMatch(/display: flex;[^}]*align-items: center;/);
+    expect(regle(".caracteristiques > .habitat > *")).toContain("align-self: center;");
+    // Les autres lignes gardent leurs noms et leurs valeurs sur une même ligne d'écriture.
+    expect(regle(".caracteristiques")).toContain("align-items: baseline;");
+  });
 });

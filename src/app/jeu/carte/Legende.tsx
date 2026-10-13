@@ -1,11 +1,10 @@
 "use client";
 
-import { type CSSProperties, type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import kit from "@/components/kit.module.css";
-import { BROUILLARD, couleur } from "@/monde/couleurs-de-la-carte";
-import type { Coordonnees } from "@/monde/hex";
+import { BROUILLARD } from "@/monde/couleurs-de-la-carte";
 import { ZONE_COEUR, ZONE_COURONNE } from "@/monde/zones";
-import { type CarteADessiner, dessinerLaCarte, enSvg, type Peinture, type TraitSvg, vueSurLeFoyer } from "./dessin";
+import { Echantillon, ICI } from "./Echantillon";
 import styles from "./Legende.module.css";
 
 /** Une teinte de la carte (un Biome de terre, ou une eau), et son nom affiché. */
@@ -60,75 +59,8 @@ function publierLaHauteur(panneau: HTMLElement): void {
   else document.documentElement.style.removeProperty("--hauteur-legende");
 }
 
-/** Les couleurs de la carte en CSS, que le SVG comprend telles quelles : celles que CarteDuJeu donne au <canvas> (un test le vérifie). */
-const PEINTURE: Omit<Peinture, "fonds"> = {
-  bord: "color-mix(in oklch, var(--bois-sombre) 38%, transparent)",
-  motifSombre: "color-mix(in oklch, var(--bois-sombre) 30%, transparent)",
-  motifClair: "color-mix(in oklch, var(--ivoire) 50%, transparent)",
-  encre: "var(--encre)",
-  repere: "var(--citron)",
-  // Aucune Case n'est choisie dans la légende.
-  surlignage: {
-    voile: "color-mix(in oklch, var(--cuivre-pale) 22%, transparent)",
-    halo: "color-mix(in oklch, var(--cuivre) 65%, transparent)",
-    trait: "var(--cuivre-pale)",
-    anneau: "color-mix(in oklch, var(--cuivre-clair) 75%, transparent)",
-  },
-};
-
-/** La Case d'un échantillon, et un Foyer assez loin pour ne pas y paraître. */
-const ICI: Coordonnees = { q: 0, r: 0 };
-const AILLEURS: Coordonnees = { q: 1000, r: 0 };
-/** La carte à la taille de son ouverture, sur 120 pixels de côté : les deux Cases d'une limite y tiennent. */
-const VUE = vueSurLeFoyer(ICI, 120, 120);
-/** Une seule Case, en (0, 0), hors de la Couronne et du Cœur sauvage. */
-const UNE_CASE = { q: [ICI.q], r: [ICI.r], teinte: [0], zone: [0] };
 /** US-0433 : deux Cases côte à côte, celle de gauche de la zone `zone`, celle de droite non : leur limite entre elles. */
 const deuxCases = (zone: number) => ({ q: [0, 1], r: [0, 0], teinte: [0, 0], zone: [zone, 0] });
-
-/** Un nombre de style SVG, au centième de pixel. */
-const auCentieme = (n: number) => Math.round(n * 100) / 100;
-/** US-0433 : l'opacité d'un remplissage ou d'un trait, quand il n'est pas opaque. */
-const opacite = (t: TraitSvg) => (t.opacite < 1 ? t.opacite : undefined);
-
-/** Le style SVG d'un trait de la carte : sa couleur, son épaisseur, ses bouts et ses jointures ; US-0433 : ses tirets et son opacité. */
-function trait(t: TraitSvg): CSSProperties {
-  return {
-    fill: "none",
-    stroke: t.couleur,
-    strokeWidth: t.epaisseur,
-    strokeLinecap: t.bouts,
-    strokeLinejoin: t.jointures,
-    strokeDasharray: t.tirets.length > 0 ? t.tirets.map(auCentieme).join(" ") : undefined,
-    strokeDashoffset: t.tirets.length > 0 ? auCentieme(t.decalage) : undefined,
-    opacity: opacite(t),
-  };
-}
-
-/**
- * US-0432 : un échantillon de la carte, une seule Case de `teinte` (ou les Cases `cases`, toutes de cette teinte),
- * dessinée par la carte elle-même à la taille de son ouverture, écrite en SVG : la même couleur, le même motif, le
- * même bord ; avec son Foyer ou celui d'un autre chef. US-0433 : avec le liseré d'une limite.
- */
-function Echantillon({ teinte, cases = UNE_CASE, foyer = AILLEURS, foyers = [] }: { teinte: string; cases?: CarteADessiner["cases"]; foyer?: Coordonnees; foyers?: Coordonnees[] }) {
-  const carte = { teintes: [teinte], cases, foyer, foyers };
-  const { traits, cadre } = enSvg((pinceau) => dessinerLaCarte(pinceau, carte, VUE, { ...PEINTURE, fonds: [couleur(teinte)] }));
-  const [x, y, largeur, hauteur] = [cadre.x, cadre.y, cadre.largeur, cadre.hauteur].map(auCentieme);
-  return (
-    <svg
-      className={styles.echantillon}
-      viewBox={`${x} ${y} ${largeur} ${hauteur}`}
-      width={largeur}
-      height={hauteur}
-      preserveAspectRatio="xMinYMid meet"
-      aria-hidden="true"
-    >
-      {traits.map((t, i) => (
-        <path key={i} d={t.d} style={t.geste === "remplir" ? { fill: t.couleur, opacity: opacite(t) } : trait(t)} />
-      ))}
-    </svg>
-  );
-}
 
 /** Une liste de la légende, sous son petit titre ; sur une colonne, pour des échantillons plus larges. */
 function Groupe({ titre, uneColonne = false, children }: { titre: string; uneColonne?: boolean; children: ReactNode }) {
