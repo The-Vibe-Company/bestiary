@@ -1,0 +1,25 @@
+docs/conventions-des-workers.md
+  s_7c7d151152e4a5::t_59a10457f1cb81 38-41
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_ef276c503584c9 388
+docs/stories/README.md
+  s_7c7d151152e4a5::t_d6641833b41c7e 7
+docs/stories/a-decider.md
+  s_7c7d151152e4a5::t_73f5a62d6ce02d 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c7a267ee8d1576f0b495a3358496d17afcaa6608",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "unknown"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
