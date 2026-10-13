@@ -7,6 +7,11 @@
 // ce que la fuite (US-0945) mette fin au séjour à la première. Celle qui n'attaque pas laisse l'Expédition finir son séjour
 // normalement. Les Rencontres l'appliquent et la retiennent à son instant (src/expeditions/rencontres.ts), pour le combat
 // (US-0944). Côté serveur comme dans le navigateur.
+//
+// US-0965 : trop forte pour toutes les Expéditions de sa Case, de tous les joueurs, la Bête y reste et peut les attaquer
+// toutes, chacune à l'instant de ses propres tirages, comptés depuis leur propre Rencontre : celle dont les tirages tombent
+// d'abord est attaquée la première, et fuit ; les autres poursuivent leur séjour, exposées tant qu'elles y sont, chacune
+// attaquée au plus une fois (décidé le 2026-10-13).
 import type { regime } from "@/db/schema";
 import type { HasardsDeLAttaque } from "@/monde/betes-sauvages";
 import { CHANCE_D_ATTAQUE_PAR_HEURE } from "@/reglages";
