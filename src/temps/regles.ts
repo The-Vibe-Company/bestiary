@@ -4,12 +4,14 @@
 // puis repartent au bout de leur attente s'ils n'ont pas été accueillis (US-0337) ; ses Expéditions y retiennent leurs
 // Rencontres, à leur instant exact (US-0932), et y rentrent au Foyer à leur heure (US-0916) : le temps évolue jusqu'au
 // retour avant de l'appliquer, toutes les Rencontres du séjour sont donc retenues quand il s'applique ; le brouillard
-// s'y lève sur leur chemin, à leur passage (US-0914) ; les guérisons, les Attaques s'ajouteront ici.
+// s'y lève sur leur chemin, à leur passage (US-0914) ; les Blessés qu'elles ramènent y guérissent à leur heure (US-0954) ;
+// les Attaques s'ajouteront ici.
 import "server-only";
 import { leverLeBrouillard } from "@/expeditions/brouillard";
 import { mettreEnFuite } from "@/expeditions/fuite";
 import { retenirLesRencontres } from "@/expeditions/rencontres";
 import { RETOUR_EXPEDITION, rentrerAuFoyer } from "@/expeditions/retour";
+import { guerirLesBlesses } from "@/monde/guerison";
 import { produire } from "@/monde/production";
 import { ARRIVEE_VOYAGEUR, arriveeDUnVoyageur, DEPART_VOYAGEUR, departDUnVoyageur } from "@/monde/voyageurs";
 import type { Regles } from "./avancer";
@@ -26,6 +28,8 @@ export const REGLES: Record<ElementSuivi, Regles> = {
       if (arret.getTime() > depuis.getTime()) {
         await produire(client, id, depuis, arret);
         await leverLeBrouillard(client, id, depuis, arret);
+        // US-0954 : jusqu'à l'arrêt seulement : le temps reprend de là, et chaque guérison n'est dite qu'une fois.
+        await guerirLesBlesses(client, id, depuis, arret);
       }
       return arret;
     },

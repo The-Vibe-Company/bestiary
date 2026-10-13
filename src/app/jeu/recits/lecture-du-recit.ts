@@ -3,11 +3,16 @@
 // la frise (Frise) et sa destination en paysage (Paysage), lus dans le texte que le jeu a écrit (recitDeRetour).
 import type { DureesDUneExpedition } from "@/components/Frise";
 import { RETOUR_D_EXPEDITION } from "@/expeditions/resume-du-retour";
+import { estUnRecitDeGuerison } from "@/monde/recit-de-guerison";
 
-/** Le médaillon de chaque sorte de Récit : la carte roulée de l'explorateur, la Nourriture d'une Famine, un Habitant. */
+/**
+ * Le médaillon de chaque sorte de Récit : la carte roulée de l'explorateur, la Nourriture d'une Famine, un Habitant ; US-0954,
+ * l'éleveur d'une guérison de Blessés, comme la Réserve dans la navigation.
+ */
 const MEDAILLONS = {
   expedition: "/illustrations/metiers/explorateur.webp",
   famine: "/illustrations/ressources/vegetaux.webp",
+  guerison: "/illustrations/metiers/eleveur.webp",
   habitants: "/illustrations/icones/habitants.webp",
 } as const;
 
@@ -15,12 +20,13 @@ const MEDAILLONS = {
 export const MEDAILLON_DES_RECITS = "/illustrations/metiers/chercheur.webp";
 
 /**
- * Le médaillon d'un Récit, par son titre : un retour d'Expédition, la Famine et sa fin, et sinon un Habitant (les
- * Voyageurs accueillis ou repartis, les Habitants partis).
+ * Le médaillon d'un Récit, par son titre : un retour d'Expédition, la Famine et sa fin, une guérison de Blessés (US-0954),
+ * et sinon un Habitant (les Voyageurs accueillis ou repartis, les Habitants partis).
  */
 export function medaillonDuRecit(titre: string): string {
   if (titre === RETOUR_D_EXPEDITION) return MEDAILLONS.expedition;
   if (titre.includes("Famine")) return MEDAILLONS.famine;
+  if (estUnRecitDeGuerison(titre)) return MEDAILLONS.guerison;
   return MEDAILLONS.habitants;
 }
 

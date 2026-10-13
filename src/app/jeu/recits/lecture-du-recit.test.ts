@@ -43,17 +43,25 @@ describe("la lecture d'un Récit sur la page Récits", () => {
     });
   });
 
-  it("donne à chaque sorte de Récit son médaillon", () => {
+  it("donne à chaque sorte de Récit son médaillon ; à une guérison de Blessés, l'éleveur, comme la Réserve (US-0954)", () => {
     expect(
-      ["Retour d'Expédition", "Fin de la Famine", "2 Voyageurs ont repris la route", "Lumi a rejoint le Territoire", "Lumi a quitté le Territoire"].map(
-        medaillonDuRecit,
-      ),
+      [
+        "Retour d'Expédition",
+        "Fin de la Famine",
+        "2 Voyageurs ont repris la route",
+        "Lumi a rejoint le Territoire",
+        "Lumi a quitté le Territoire",
+        "3 Blessés ont guéri",
+        "1 Blessé a guéri",
+      ].map(medaillonDuRecit),
     ).toEqual([
       "/illustrations/metiers/explorateur.webp",
       "/illustrations/ressources/vegetaux.webp",
       "/illustrations/icones/habitants.webp",
       "/illustrations/icones/habitants.webp",
       "/illustrations/icones/habitants.webp",
+      "/illustrations/metiers/eleveur.webp",
+      "/illustrations/metiers/eleveur.webp",
     ]);
   });
 
