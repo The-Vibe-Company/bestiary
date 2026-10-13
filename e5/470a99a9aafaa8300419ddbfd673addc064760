@@ -1,0 +1,465 @@
+.aeom/config.json
+  s_7c7d151152e4a5::t_aada02fe5e6df8 1-59
+.aeom/demarrer.mjs
+  s_7c7d151152e4a5::t_43431b14017456 1-56
+.aeom/journeys/accueillir-un-voyageur.json
+  s_7c7d151152e4a5::t_55b2042e57f626 1-9
+.aeom/journeys/envoyer-une-expedition.json
+  s_7c7d151152e4a5::t_80ecbf0577dc65 1-10
+.aeom/journeys/revenir-dans-le-jeu.json
+  s_7c7d151152e4a5::t_95228f22c5050d 1-12
+.aeom/journeys/suivre-ses-expeditions-en-cours.json
+  s_7c7d151152e4a5::t_496aab03659867 1-29
+.aeom/journeys/voir-ce-qu-une-expedition-a-ramene.json
+  s_7c7d151152e4a5::t_ee3bdf46746060 1-9
+.aeom/standard.md
+  s_7c7d151152e4a5::t_0900dc3589d1b0 1-307
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_ae9bb58f8d8265 40,50,109,119,237
+docs/stories/09-explorer-et-apprivoiser.md
+  s_7c7d151152e4a5::t_7151e726b60320 572,692,711,721,730
+docs/stories/README.md
+  s_7c7d151152e4a5::t_b5eaf1f975399e 7
+src/app/EntreeDuJeu.tsx
+  s_7c7d151152e4a5::t_bab200ac795b13 6,11-14,29,34,37
+src/app/confirmer/[jeton]/NouveauLien.tsx
+  s_7c7d151152e4a5::t_70a7bf104aec94 5,35
+src/app/confirmer/[jeton]/page.tsx
+  s_7c7d151152e4a5::t_a4f9faaf2bad4a 7,51
+src/app/connexion/FormulaireConnexion.tsx
+  s_7c7d151152e4a5::t_8d77942bd6961a 7,88
+src/app/connexion/page.tsx
+  s_7c7d151152e4a5::t_00feeb24e75bf9 22
+src/app/controle/chances/page.test.tsx
+  s_7c7d151152e4a5::t_1f0c6cb069e8a2 1-121
+src/app/controle/chances/page.tsx
+  s_7c7d151152e4a5::t_61473f81841194 1-131
+src/app/controle/chances/simulation.test.ts
+  s_7c7d151152e4a5::t_10e90a46d24101 1-79
+src/app/controle/chances/simulation.ts
+  s_7c7d151152e4a5::t_a29dcdd75e6073 1-69
+src/app/controle/page.test.tsx
+  s_7c7d151152e4a5::t_42eb4c6c0fd7b6 192-196
+src/app/controle/page.tsx
+  s_7c7d151152e4a5::t_2b2ffb4f0d9e41 235-240
+src/app/entree.module.css
+  s_7c7d151152e4a5::t_c681653569d608 1-5,8-9,14-16,21-28,35-42,45-54,56,66,73,79,81,87-88,92,99,106-107,111-112,118-119,130,134,140-142,176-177,181,183,186-187,189-192,199-200,219-221,224,226-228,236,238-240,244,248-258,262-263,266,269-274,277,280-285,291-294,299-300,304,310,315,332,341-342,347-350,355-356,361,363-364,407-408,416-417
+src/app/error.module.css
+  s_7c7d151152e4a5::t_9d598cd6edfa48 1-4,7,10-17,22-23,27-28,32,36-44
+src/app/error.tsx
+  s_7c7d151152e4a5::t_5455d16852d467 3,6-9,12-19
+src/app/globals.css
+  s_7c7d151152e4a5::t_8fdbbe8ec29b22 1-54,62,69,72-173
+src/app/icones.test.ts
+  s_7c7d151152e4a5::t_a43163677b4e09 11,48-49
+src/app/inscription/FormulaireInscription.tsx
+  s_7c7d151152e4a5::t_79309b5c75b233 9,186,235
+src/app/jeu/BlocProduction.tsx
+  s_7c7d151152e4a5::t_ea8c7d864722b7 3,9-10,14,19-20,25
+src/app/jeu/RecapAbsence.tsx
+  s_7c7d151152e4a5::t_cd94d053ad889d 5,10-12,18
+src/app/jeu/arrivee/page.tsx
+  s_7c7d151152e4a5::t_c92544124c31b2 6,36
+src/app/jeu/betes/page.css.test.ts
+  s_7c7d151152e4a5::t_aa7ea17909731b 14-18,22-23,30-34,36,48-53,57
+src/app/jeu/betes/page.db.test.tsx
+  s_7c7d151152e4a5::t_39706c41fd21d5 9,21-23,103-104,117-118,122,131
+src/app/jeu/betes/page.module.css
+  s_7c7d151152e4a5::t_12d61639feae16 1-6,8,12-15,18-24,26-31,34-54,58-59,61-69,72-75,77-79,82-86,89,91,94-96,101-108,111-115,117,119-120,123,128,133,137-139,142,146-147,150,158,166-169,171,174-229,236-256,260-265,268-285,291
+src/app/jeu/betes/page.test.tsx
+  s_7c7d151152e4a5::t_777c82ee9699ee 23-25,95,97,111,185,189-217
+src/app/jeu/betes/page.tsx
+  s_7c7d151152e4a5::t_bc55381713927b 8-9,11-12,14,17,37-45,53,56,59,61-62,64,67,69-70,74-80,90,93,95,98
+src/app/jeu/carte/Attente.test.tsx
+  s_7c7d151152e4a5::t_6914870504b1ce 11,13
+src/app/jeu/carte/Attente.tsx
+  s_7c7d151152e4a5::t_9ce325d5204bc6 1,17-18,26,35
+src/app/jeu/carte/BetesRepereesSurLaCarte.css.test.ts
+  s_7c7d151152e4a5::t_142f8475d24825 23,26,31
+src/app/jeu/carte/BetesRepereesSurLaCarte.module.css
+  s_7c7d151152e4a5::t_9a92c6ec4c5610 43,45-46,56,60-102,104,108-110,113,115-128
+src/app/jeu/carte/BetesRepereesSurLaCarte.tsx
+  s_7c7d151152e4a5::t_a705633f00a377 7,31-51,63-64,123,128-140
+src/app/jeu/carte/BoutonsDeLaCarte.module.css
+  s_7c7d151152e4a5::t_10e6a2e137d9a5 3-6,15-21,24,32-35,37-38,41,45,51,56-57,60-63,66-72,76-80
+src/app/jeu/carte/BoutonsDeLaCarte.tsx
+  s_7c7d151152e4a5::t_268acec0ebc6f3 8,13-15,21
+src/app/jeu/carte/CarteDuJeu.test.tsx
+  s_7c7d151152e4a5::t_1f7da6972cb023 211,218-220,704-705
+src/app/jeu/carte/CarteDuJeu.tsx
+  s_7c7d151152e4a5::t_f64242ab8b8e3e 16,23,51,181,183-185,188-194,196-205
+src/app/jeu/carte/CasesDecouvertes.module.css
+  s_7c7d151152e4a5::t_aee1912180ddd8 2,11,14-23,27-42,47-68
+src/app/jeu/carte/CasesDecouvertes.test.tsx
+  s_7c7d151152e4a5::t_c3bd611b0e6e85 26-28,31
+src/app/jeu/carte/CasesDecouvertes.tsx
+  s_7c7d151152e4a5::t_e321cf9e83a432 17-20,26-37
+src/app/jeu/carte/ExpeditionsSurLaCarte.css.test.ts
+  s_7c7d151152e4a5::t_c6f2b12ba8d8af 23,25,30
+src/app/jeu/carte/ExpeditionsSurLaCarte.module.css
+  s_7c7d151152e4a5::t_684c97153e294a 19,44,46-47,57,61-64,66,69-74
+src/app/jeu/carte/ExpeditionsSurLaCarte.tsx
+  s_7c7d151152e4a5::t_020d40df44606d 13,100-102,108-109,196
+src/app/jeu/carte/FicheDeLaCase.css.test.ts
+  s_7c7d151152e4a5::t_11a2f9194746de 5,7,13,16,18-21,32-33,52,62,68-71,79,86-87
+src/app/jeu/carte/FicheDeLaCase.module.css
+  s_7c7d151152e4a5::t_d1fb5559172600 2-5,9,12-14,17-20,23-53,55-62,65-68,74-75,80-82,87-88,91,97,102,106-115,118,123-124,129-131,137-138,141-154,157-169,173-174,178-180,188-190,195,200-201,206-209,212,216,220-221,223-225,230-236,252,259-260,272,278-292,296,298,303-304
+src/app/jeu/carte/FicheDeLaCase.tsx
+  s_7c7d151152e4a5::t_70e178a6738690 5,14-15,79-81,87-90,135,169,223-228,232-247,255,262-288,302
+src/app/jeu/carte/FlecheDuFoyer.module.css
+  s_7c7d151152e4a5::t_3a156823cf1590 27,30,32-34,39
+src/app/jeu/carte/Legende.module.css
+  s_7c7d151152e4a5::t_c24a3b750b4750 2-4,17-19,21-28,32-42,44-46,51,53,55-57,60,63,67-69,76,78,84,100,103-104,118-121,131-132
+src/app/jeu/carte/Legende.test.tsx
+  s_7c7d151152e4a5::t_4c15956c688342 50-52,55,121
+src/app/jeu/carte/Legende.tsx
+  s_7c7d151152e4a5::t_6561fb7711677d 4,45-55,58,65-67,70-76,137,147-149,191-194,197
+src/app/jeu/carte/dessin.test.ts
+  s_7c7d151152e4a5::t_e4436c5edefe01 107-115,611,615-622,624-626,632-641,650
+src/app/jeu/carte/dessin.ts
+  s_7c7d151152e4a5::t_1fae63691a1804 45-47,49-66,444-446,448-450,452-461,463-464,466,469,574-593,633
+src/app/jeu/carte/error.tsx
+  s_7c7d151152e4a5::t_b516c95a3ea1b8 3,8-9,13,16-17,20,23
+src/app/jeu/carte/etats.module.css
+  s_7c7d151152e4a5::t_3b4a72b1f37d43 1-4,8-9,20-22,31,33-36,38-44
+src/app/jeu/carte/page.module.css
+  s_7c7d151152e4a5::t_135ad79818e2bf 1-6,8-9,11-53,62-76,95,97,109-113,125-170
+src/app/jeu/carte/page.test.tsx
+  s_7c7d151152e4a5::t_1b0abf087a93df 169,171,213-221
+src/app/jeu/carte/page.tsx
+  s_7c7d151152e4a5::t_4d5eda9263c8d9 6,32-33,51,53-58
+src/app/jeu/carte/peintures.ts
+  s_7c7d151152e4a5::t_fc7e7bfbf07734 1-32
+src/app/jeu/carte/relief.ts
+  s_7c7d151152e4a5::t_f972351bedff68 1-139
+src/app/jeu/carte/styles.test.ts
+  s_7c7d151152e4a5::t_55ed7922fafcb1 28-29,42-44,51,53,62-64,67,76-78,93
+src/app/jeu/expeditions/ListeDesExpeditions.test.tsx
+  s_7c7d151152e4a5::t_6642d16578b1c3 14,41-42,91-98
+src/app/jeu/expeditions/ListeDesExpeditions.tsx
+  s_7c7d151152e4a5::t_6ed4971367dc08 9,17-21,46
+src/app/jeu/expeditions/PanneauDeLExpedition.module.css
+  s_7c7d151152e4a5::t_20bba398d9b622 1-356
+src/app/jeu/expeditions/PanneauDeLExpedition.test.tsx
+  s_7c7d151152e4a5::t_b06e30737c80e0 2,5,7,10,13-16,18-19,22-175,179-208,210-216,219-221
+src/app/jeu/expeditions/PanneauDeLExpedition.tsx
+  s_7c7d151152e4a5::t_754d6d01c838a4 1-188
+src/app/jeu/expeditions/nouvelle/AucunExplorateurLibre.css.test.ts
+  s_7c7d151152e4a5::t_0f0cb9b84e00c1 5-8,18,20
+src/app/jeu/expeditions/nouvelle/AucunExplorateurLibre.module.css
+  s_7c7d151152e4a5::t_3fc5118a4014d3 1-23,25-27,30-32,35-37,40-43,47-50
+src/app/jeu/expeditions/nouvelle/AucunExplorateurLibre.tsx
+  s_7c7d151152e4a5::t_dba95202f76022 3-5,19,23-24,26,28,33
+src/app/jeu/expeditions/nouvelle/Escorte.css.test.ts
+  s_7c7d151152e4a5::t_48661e4f28cfa4 5-8,14,18-22,27,29,35-39
+src/app/jeu/expeditions/nouvelle/Escorte.module.css
+  s_7c7d151152e4a5::t_86e5c8133cf4cf 1,3,6,8,14,17-18,28,31,33-35,40,42-43,47-48,56,67,70-71,73,75,79-80,88-89,93-107,110
+src/app/jeu/expeditions/nouvelle/Escorte.tsx
+  s_7c7d151152e4a5::t_c46c24bfce9ff9 7,97-98,101-102,107,110
+src/app/jeu/expeditions/nouvelle/Explorateurs.css.test.ts
+  s_7c7d151152e4a5::t_16debbee553647 5-9,15,17-20,23-26,29,31-32
+src/app/jeu/expeditions/nouvelle/Explorateurs.module.css
+  s_7c7d151152e4a5::t_05703a603a0545 1,3,6,9-10,15-16,21-22,29,33-36,39,41,44-48,51-54,57-59,62-67
+src/app/jeu/expeditions/nouvelle/Explorateurs.test.tsx
+  s_7c7d151152e4a5::t_a39e914efed9e6 5,72-77
+src/app/jeu/expeditions/nouvelle/Explorateurs.tsx
+  s_7c7d151152e4a5::t_3bb290353bfab5 5-6,13-15,27-28,48,52-61,65-66,69-70
+src/app/jeu/expeditions/nouvelle/Partir.module.css
+  s_7c7d151152e4a5::t_7c901791d413ff 1,3,6-12,15,17-19,22,24-26
+src/app/jeu/expeditions/nouvelle/Partir.tsx
+  s_7c7d151152e4a5::t_92c1e5ccd9e3e8 4,22,46-51,53-55
+src/app/jeu/expeditions/nouvelle/Recapitulatif.css.test.ts
+  s_7c7d151152e4a5::t_d39517d7f8aa60 19,21-23,32-33,36,41,43
+src/app/jeu/expeditions/nouvelle/Recapitulatif.module.css
+  s_7c7d151152e4a5::t_0447493a5485e2 1-4,6-30,33-46,49-52,56,59-62,67-68,72-119,122-123,132-156,166-179,183,187-190,200,208,213,233-239,243-275
+src/app/jeu/expeditions/nouvelle/Recapitulatif.test.tsx
+  s_7c7d151152e4a5::t_ad1c5d74f4c153 5,194-198
+src/app/jeu/expeditions/nouvelle/Recapitulatif.tsx
+  s_7c7d151152e4a5::t_b1ac12190c99d1 6-8,16,28,47-58,60-62,119,145,156,161-173
+src/app/jeu/expeditions/nouvelle/SansEscorte.css.test.ts
+  s_7c7d151152e4a5::t_325a734ba213bd 12-14
+src/app/jeu/expeditions/nouvelle/SansEscorte.module.css
+  s_7c7d151152e4a5::t_b0e4e3ebc701eb 1,3-26
+src/app/jeu/expeditions/nouvelle/SansEscorte.tsx
+  s_7c7d151152e4a5::t_7fd502cd077410 2,6-8,13-19
+src/app/jeu/expeditions/nouvelle/Sejour.css.test.ts
+  s_7c7d151152e4a5::t_5dbad895b7ba8f 5-8,14-17,19-20,23,26-27
+src/app/jeu/expeditions/nouvelle/Sejour.module.css
+  s_7c7d151152e4a5::t_f97b101b0c56eb 1,3,10,12-15,18-21,23,27,29-73,77,85-88,91,94,101,103-104
+src/app/jeu/expeditions/nouvelle/Sejour.tsx
+  s_7c7d151152e4a5::t_f0bd25450b35f9 4,6,61-66,107-108,125
+src/app/jeu/expeditions/nouvelle/page.css.test.ts
+  s_7c7d151152e4a5::t_dbf7dc229f6147 5-8,12-13,16-17,19-22,25-27,31,34-36,38-53
+src/app/jeu/expeditions/nouvelle/page.module.css
+  s_7c7d151152e4a5::t_e07684daf6c14c 1-5,7,10-17,20-113,116-126,130-142,144-145,149-151,154-156,159,161-162,165,167,171,173,176-186,189-191,193-195,198-200,204-205,207-216,219-232,235,237,239
+src/app/jeu/expeditions/nouvelle/page.test.tsx
+  s_7c7d151152e4a5::t_50d79effd983b4 75-77,101-116,125,138,153,168,171,174,179-182,233-234,274,286,295,345,354,381,473,505
+src/app/jeu/expeditions/nouvelle/page.tsx
+  s_7c7d151152e4a5::t_a4686c7d0b4aed 6,8-9,48-54,70-95,145-148,163,172-173,177,181-205
+src/app/jeu/expeditions/page.css.test.ts
+  s_7c7d151152e4a5::t_74d484d2dc2d21 5-9,22-26,29-30,34-74
+src/app/jeu/expeditions/page.module.css
+  s_7c7d151152e4a5::t_ae302867e2a8af 1-4,6,9-19,22-23,26-29,31-33,37-40,43-47,50-59,67-73
+src/app/jeu/expeditions/page.test.tsx
+  s_7c7d151152e4a5::t_632ffba262488d 72,86,94-98,104
+src/app/jeu/expeditions/page.tsx
+  s_7c7d151152e4a5::t_669d03eff8241f 7-8,22-26,38-51
+src/app/jeu/habitants/AuxPortes.css.test.ts
+  s_7c7d151152e4a5::t_2d212a4d7e4a2e 8-9,12,14-18,21,24-31,34-39,42-46,49-51,53-54,58-63,66-69,72-75,77,79-83,87-89,92-93,97-101,103,105-108
+src/app/jeu/habitants/AuxPortes.module.css
+  s_7c7d151152e4a5::t_2fbe826d39be54 2-6,8-12,15-16,18-20,23-29,32-36,39-42,45-47,50-58,60-69,72-74,77-81,84-91,94-106,109-111,114-117,120-126,129-131,134-143,145-155,157-161,164-172,175-182,185-187,190-191,194-198,201-202,205-214,217-218,222-224,227-228,231-237,240-247,250-259,263-265,267-329
+src/app/jeu/habitants/AuxPortes.tsx
+  s_7c7d151152e4a5::t_8eef8a1a8f731c 3,7-10,21-26,48-51,54-58,71-73,214-224,226,236-240,256-257,260-264,268-270,273-275,282,304,313,322-329
+src/app/jeu/habitants/BandeauSansMetier.test.tsx
+  s_7c7d151152e4a5::t_0fe8f684d41999 33-34,50,53-59,62-63,77-82,122-123,131-132,140-142
+src/app/jeu/habitants/BandeauSansMetier.tsx
+  s_7c7d151152e4a5::t_2f2facf48104f1 2-3,9-12,14-15,17-19,22-24
+src/app/jeu/habitants/HabitantsMontres.ts
+  s_7c7d151152e4a5::t_2873fb1dda4396 3,22-24,39-42,44-45
+src/app/jeu/habitants/ListeDesHabitants.module.css
+  s_7c7d151152e4a5::t_dc6e1baf4f47b4 1-839
+src/app/jeu/habitants/ListeDesHabitants.test.tsx
+  s_7c7d151152e4a5::t_58020dab709576 6,9,12-16,40-41,69,73-83,85,88-89,92-93,98-106,108-113,119-120,122-125,128,131-179,188,194-195,197,201,203,208,210,212-213,215,220,228-229,249,267,270,275,280,283-285,294,299-300,310,323,331,336,356,359,412,417,434,438,440-441,443,448-458,473-474,479-486,509,513,519,526-527,538,565,568-569,576-577,580,616,618-619,622,630,637-641,652,660-661,664,774,797,809,816-818,820-821,823,833,843-980
+src/app/jeu/habitants/ListeDesHabitants.tsx
+  s_7c7d151152e4a5::t_a4e3ed2d1f8175 5-8,10-11,13,18-19,22-23,25-42,47-64,68-70,72-74,76-81,83-85,90-103,105-110,112-116,118-124,126-132,134-135,137,140-142,147,152-155,164-165,198-213,217,219,226-234,257-258,268-274,276-281,284-295,298-311,314-335,338-340,342-502
+src/app/jeu/habitants/MetiersAuChoix.module.css
+  s_7c7d151152e4a5::t_62d0f18c054983 1-195
+src/app/jeu/habitants/MetiersAuChoix.tsx
+  s_7c7d151152e4a5::t_2abbf69b908a52 3-4,12-13,19-20,29-30,44,47-49,51,58-62,84-93,98-99
+src/app/jeu/habitants/page.module.css
+  s_7c7d151152e4a5::t_93317d9d319398 2-7,9-14,17-18,20-23,26-30,33-38,41-45,48-52,57,60-62,65-72,75,77-81,84,87-88,91-96,99-100,103-106,109,111-113,116-117,120-121,125-127,131,133,136-137,139,143,145,147-149,152-154,157-160,163-166,169-170,173-174,178-180,183-186,189-190,193,195,197-201,203,206-207,209-210,213-214,218-220
+src/app/jeu/habitants/page.test.tsx
+  s_7c7d151152e4a5::t_fd534513805bb1 1,4,22,24,64,71,82-132,136,160-161,164-166,169,171-181,183-184,189,192,197-205,210-216,219,221-223,232-234,237,241,243,246-248,250,254,260,262-263,266,268-274,279-280,286,288,290,293,298,300,305-312,314-318,323-325,327,329,334,338,340-345,349,351-355,365,375-376,378,380-381,407,409-411,422-423,429,431-432,449,456-461,463-467,470,473-477,483-485,490,492,494,497,499-501,506-507,509-510,512-513,520-536,539,541-542,545-546,552-555,565,567,580-581,584,586-588,594,596-603,607,614-615,617-618,621-622,628,630-631,637-638,644,647-649,653-718,720-747,749-750,753-755,757,759-791,809,833-834,838,840,842,850,859,869,872,874-875,880,890,898,902,906,909,911-924,927,929-934
+src/app/jeu/habitants/page.tsx
+  s_7c7d151152e4a5::t_49c957dcdc0c5f 6-9,14,24-29,40-41,43-56,61-62,64-65,67-81,86-89,91-128,131-140,158,160,163-182
+src/app/jeu/habitants/voyageurs/page.module.css
+  s_7c7d151152e4a5::t_4dc2844a1640e3 1-8,10,14-39,42,46-47,51-53,56-61,65-66,69-72,75-76,83-84,86-97,101-105,109-112,116,118-119,123-125,129,133-201,204,206,208,210-231
+src/app/jeu/habitants/voyageurs/page.test.tsx
+  s_7c7d151152e4a5::t_9d8bee77b69e9d 113-114,133-138,167,171,177-178,184-203,206-208
+src/app/jeu/habitants/voyageurs/page.tsx
+  s_7c7d151152e4a5::t_5af368085ecada 6-7,23-28,38-40,43-44,47-48,61,66
+src/app/jeu/nom-de-chef/FormulaireNomDeChef.tsx
+  s_7c7d151152e4a5::t_eb008d49c8ad7a 14,152
+src/app/jeu/page.css.test.ts
+  s_7c7d151152e4a5::t_e3a6d3dd8d0ba5 18-20
+src/app/jeu/page.module.css
+  s_7c7d151152e4a5::t_30547ac8a84f3b 1-7,9-15,18,20,23-31,34-35,38-46,49-55,58-60,63-74,77-81,84-86,89-98,101-102,105-107,110-119,123-124,128-129,133-135,138-145,154-172,174-175,179,181-183,186-187,190-200,203-209,212-213,216-223,227-250,254-255,257-258,260-270,272,274,276-278,280-289
+src/app/jeu/page.test.tsx
+  s_7c7d151152e4a5::t_a0711b827290f4 31-34,44-46,64-65,128-142
+src/app/jeu/page.tsx
+  s_7c7d151152e4a5::t_d3bcb4a61d79c9 5,9-10,27-39,41-46,51-53,65,70-73,79,81-89,91-96,98-118
+src/app/jeu/recits/AnnonceDuCouple.css.test.ts
+  s_7c7d151152e4a5::t_b4442c746080e9 25-27,41
+src/app/jeu/recits/AnnonceDuCouple.module.css
+  s_7c7d151152e4a5::t_f87047bb5866a4 2-4,7,12,16-18,21,24,29-32,46,53-54,58,66,71-72,80,82,86,90,92,98,106,119
+src/app/jeu/recits/AnnonceDuCouple.tsx
+  s_7c7d151152e4a5::t_1c32a629568687 3,16-17,24,26-27
+src/app/jeu/recits/LectureDuRecit.tsx
+  s_7c7d151152e4a5::t_27ec5710dded48 1-87
+src/app/jeu/recits/ListeDesRecits.test.tsx
+  s_7c7d151152e4a5::t_0d427e425fde5a 24-27,35,48-49,60,65-86,90,126,130,133-134,136,138-139,141,148,193,198-205,210,215,220-310
+src/app/jeu/recits/ListeDesRecits.tsx
+  s_7c7d151152e4a5::t_a801137657f405 3-6,9-10,12,32-39,42,46-50,53-54,61-112
+src/app/jeu/recits/RencontresDuRecit.css.test.ts
+  s_7c7d151152e4a5::t_6fa7ae07702414 9-10,12-13,15-19,28,32-36,41
+src/app/jeu/recits/RencontresDuRecit.module.css
+  s_7c7d151152e4a5::t_aa141473d3479e 1-5,8-12,16-19,22-23,26,28-31,35-54,57-59,63-68,70-88,91-108,112,119-120,124-132,135-136,141-146,150,153-157,161,163,165,169,173-174,176,178,180-181,183-194
+src/app/jeu/recits/RencontresDuRecit.test.tsx
+  s_7c7d151152e4a5::t_2e75f2563be276 89-109
+src/app/jeu/recits/RencontresDuRecit.tsx
+  s_7c7d151152e4a5::t_22d1bf15a2f1d8 1,4-5,13-15,34,38-39,51-58,62-79,81-86,88,90,93,95-100,103-105,110-115,117
+src/app/jeu/recits/lecture-du-recit.test.ts
+  s_7c7d151152e4a5::t_d47a4104c6300e 1-76
+src/app/jeu/recits/lecture-du-recit.ts
+  s_7c7d151152e4a5::t_8bb36b40261474 1-89
+src/app/jeu/recits/page.css.test.ts
+  s_7c7d151152e4a5::t_8393ec69c4f515 9-10,13,15,26-53
+src/app/jeu/recits/page.module.css
+  s_7c7d151152e4a5::t_5f92cfde774da6 1-5,7,11-30,34-41,45,52,55-62,65-68,72,74-75,79-88,93,98-105,114-117,121-122,127-128,131-138,141-144,147-151,154-201,204-210,212-219,222-251,253-263,267-313,315-319,324-332,336-457,461-462,464,466,468-476,478,480,482-484,486-489
+src/app/jeu/recits/page.test.tsx
+  s_7c7d151152e4a5::t_4a12358cdf5f11 12-16,54-65,67-73,81,84,115-117,120,126-131,159-162,164-169,320-325,375-376
+src/app/jeu/recits/page.tsx
+  s_7c7d151152e4a5::t_916ac6261167b1 6-7,16,58-60,70-73,75-111,113-116
+src/app/jeu/reserve/[espece]/BlocElever.module.css
+  s_7c7d151152e4a5::t_bf1f9024a35ac1 1,7-16,19-22,26,30,32-34,38-41
+src/app/jeu/reserve/[espece]/BlocElever.test.tsx
+  s_7c7d151152e4a5::t_8d1c859bcb3e1d 11-13,24,29,36-45,50
+src/app/jeu/reserve/[espece]/BlocElever.tsx
+  s_7c7d151152e4a5::t_913ac6b7d66321 5-7,18-20,22,28-32,34
+src/app/jeu/reserve/[espece]/page.css.test.ts
+  s_7c7d151152e4a5::t_82a65aa8a438ea 27,37-47
+src/app/jeu/reserve/[espece]/page.db.test.tsx
+  s_7c7d151152e4a5::t_48519a927b0358 51-58,130-160
+src/app/jeu/reserve/[espece]/page.module.css
+  s_7c7d151152e4a5::t_06df705bdb8ab9 1,3-7,20-21,24,32,36,39,41-43,47,50,52-59,62,68-69,71,74-105,111,116,126,135,138-143,156-160
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_780a89449a5a47 4,18,28-30,37-58,72,122-124,164-257
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_e1b57e40c01d36 8,13,15-16,24-36,44,49-59,82-83,91,95-126,128,132
+src/app/jeu/reserve/page.css.test.ts
+  s_7c7d151152e4a5::t_3c31c7735f085c 33-41,45
+src/app/jeu/reserve/page.module.css
+  s_7c7d151152e4a5::t_423de4b0ee213a 1-5,7,11-14,17,19-23,25-30,33-58,62-63,66,69,74,78-131,133-134,145-149,151-153,155,157-158,162-163,168,172,179,183,185,190,199-219,226-251
+src/app/jeu/reserve/page.tsx
+  s_7c7d151152e4a5::t_ebbbf8ab1874e5 8,10,30-33,42,44-45,47,50,52-53,58,64-72
+src/app/layout.tsx
+  s_7c7d151152e4a5::t_6e4bf3b8694dc7 3,19,23-24,27
+src/app/mot-de-passe-oublie/FormulaireOubli.tsx
+  s_7c7d151152e4a5::t_e8f69cffe656d6 8,45,92
+src/app/mot-de-passe-oublie/page.tsx
+  s_7c7d151152e4a5::t_7392765687e701 15
+src/app/not-found.module.css
+  s_7c7d151152e4a5::t_3176b8e4298019 1,3
+src/app/not-found.tsx
+  s_7c7d151152e4a5::t_00a92c8939a6b2 3-5,10,13-22
+src/app/page.module.css
+  s_7c7d151152e4a5::t_96295b5e825f29 1-7,9-13,15-16,19,21-22,24-26,29-43,46-47,50-53,56-62,65-71,74-77,80-85,88-89,92-93,96-103,106,110-112,116-118,121-125,128-134,137-139,142-176,178-183,185,187,189-190,192-194,196-198,200,206,208,210
+src/app/page.tsx
+  s_7c7d151152e4a5::t_8dadf1fecce706 3,7,9-13,18-31,33-36,38-49
+src/app/reinitialiser/[jeton]/FormulaireNouveauMotDePasse.tsx
+  s_7c7d151152e4a5::t_841b218f769227 5,77
+src/app/reinitialiser/[jeton]/LienHorsService.tsx
+  s_7c7d151152e4a5::t_5bb1c7ea21973e 2,12
+src/app/reinitialiser/[jeton]/page.tsx
+  s_7c7d151152e4a5::t_44ae8e805b40fd 25
+src/components/ActionsDuJeu.test.tsx
+  s_7c7d151152e4a5::t_6aee0d1eef7366 163,166,168-171
+src/components/BarreHaut.module.css
+  s_7c7d151152e4a5::t_5c8711bdc3b332 2-9,15,18,25-30,33-87,91,95,97-99,101-103,105-107,111-112,116,125,134-138,144,148-169,183,189-196,201,204,206,209-222,225-230,232-235,239,244-247,251,257,261,264-265,272-273,283-287,290,292-298,303-304,309-312,314-316,319-324,327-357,362,367-369,372-373,375-389,392-401,404,406-414,418-421,423-427,429-432,436-438,441-443,446-453,456-463,466,480,482-484,486-491,493,495,501-510,512-513,517-522,524-528,532-535,539-563,565,568,570,574-582,587-588,591-594,596,601,605,618,620,623,627-635,645-647,650-656,665-666,672,674-676,682,686,690,702,711,716,722-724,729,752-753,759-762,765,767,769,771-777,781-790,792,797,801,803,807-808,816,820-823,829,837,839,844-847,849,858,861,863-868,873-874,876-893,897-901,907,909-919,922-924,928-929,931-932,934,936-939,942-946,949-950,953-954,957-958,961-962,965-970,973-976,979-981,984-987,989,991-993,996-998,1001-1003,1006-1012,1014-1018,1022,1037,1039,1056,1073,1077-1082,1085,1087-1094,1097-1104,1108-1113
+src/components/BarreHaut.test.tsx
+  s_7c7d151152e4a5::t_bb347db895ffa2 22-29,32-75,78-83,86-90,93-101,104-106,108-110,114,116,118-119,121-123,128-129,131,134,136-138,142,146-148,155
+src/components/Bloc.module.css
+  s_7c7d151152e4a5::t_fcb9b8a1bb6e43 1-6,8,10-11,13-16,20-29,36,38-40,45-74,85-88,91-92,94,96,98,100,102,104,106,110-119
+src/components/Bloc.test.tsx
+  s_7c7d151152e4a5::t_00050d909873ef 5,39-54
+src/components/Bloc.tsx
+  s_7c7d151152e4a5::t_d469c6537af0a3 6,10,12-17,22,28-34,36,39-46
+src/components/DetailDeLExpedition.tsx
+  s_7c7d151152e4a5::t_6a6816675966d8 18,21
+src/components/Etat.module.css
+  s_7c7d151152e4a5::t_af291829e19d99 1-35
+src/components/Etat.test.tsx
+  s_7c7d151152e4a5::t_254dd13a9c54fd 1-15
+src/components/Etat.tsx
+  s_7c7d151152e4a5::t_0ebaef3b134a6d 1-25
+src/components/Frise.module.css
+  s_7c7d151152e4a5::t_89d86ec5349827 1-106
+src/components/Frise.test.tsx
+  s_7c7d151152e4a5::t_6d0ac670ba31b5 1-70
+src/components/Frise.tsx
+  s_7c7d151152e4a5::t_b731e6fee5b1e4 1-4,6-11,13-14,16-26,29,31-34,36-38,40-48,50-53,56-73
+src/components/Grille.module.css
+  s_7c7d151152e4a5::t_6a778379d469dd 2-3,18
+src/components/IllustrationEspece.test.tsx
+  s_7c7d151152e4a5::t_5f6ff9a29b7148 8
+src/components/IllustrationEspece.tsx
+  s_7c7d151152e4a5::t_52451ab88d2d94 10-12,19
+src/components/Jauge.module.css
+  s_7c7d151152e4a5::t_7fde89375481d4 1-68
+src/components/Jauge.test.tsx
+  s_7c7d151152e4a5::t_5679c50ce687aa 1-27
+src/components/Jauge.tsx
+  s_7c7d151152e4a5::t_29370b290f19b8 1-45
+src/components/Logo.module.css
+  s_7c7d151152e4a5::t_8269ccb89b4ef1 1-5,9,13-14,19,23-24,26-40,52-53,57-75,77-78,80-83,85-88,91-92
+src/components/Logo.tsx
+  s_7c7d151152e4a5::t_6e2bbd9abc821c 5-8,12-17
+src/components/Medaillon.module.css
+  s_7c7d151152e4a5::t_11ed623586cb18 1-83
+src/components/Medaillon.test.tsx
+  s_7c7d151152e4a5::t_27b5cce739f748 1-22
+src/components/Medaillon.tsx
+  s_7c7d151152e4a5::t_dcf2a8c9a558aa 1-39
+src/components/Navigation.test.tsx
+  s_7c7d151152e4a5::t_cc7ebbe92597e7 147-152
+src/components/Navigation.tsx
+  s_7c7d151152e4a5::t_8c32a73906a8d2 3,6,8,11-13,15-20,35-44,56,60-63
+src/components/PageEntree.module.css
+  s_7c7d151152e4a5::t_f8890baa7a0428 1-5,8,10,13-21,23,25,28-29,32-33,36-42,44-46,49-58,62-66,70-72,75,78-83,85,88,90,93-101,105-114
+src/components/PageEntree.tsx
+  s_7c7d151152e4a5::t_da2078b1912d1b 1,3,7-8,14-17,24-27,31-45,48-49
+src/components/PastilleRarete.module.css
+  s_7c7d151152e4a5::t_079ce806acf8e8 1-4,18,24,30,36,42,48-74
+src/components/Paysage.module.css
+  s_7c7d151152e4a5::t_b8f98db8ad1425 1-70
+src/components/Paysage.test.tsx
+  s_7c7d151152e4a5::t_3ab2b45ad837f1 1-35
+src/components/Paysage.tsx
+  s_7c7d151152e4a5::t_37d5425c93fa4e 1-69
+src/components/PlacesDeLHabitat.module.css
+  s_7c7d151152e4a5::t_8bb49b7ffbd043 1-13
+src/components/PlacesDeLHabitat.test.tsx
+  s_7c7d151152e4a5::t_2c2102c4c12500 1-27
+src/components/PlacesDeLHabitat.tsx
+  s_7c7d151152e4a5::t_f0e2737b440c81 1-17
+src/components/entrees-du-jeu.ts
+  s_7c7d151152e4a5::t_b93ca81cb43a93 1-38
+src/components/kit.module.css
+  s_7c7d151152e4a5::t_740e156dd95685 1-516
+src/donnees/especes.test.ts
+  s_7c7d151152e4a5::t_f6579bf77e1966 31-32
+src/emails/couleurs-emails.json
+  s_7c7d151152e4a5::t_b7fbcc26174e62 5-8
+src/expeditions/arrivee-plus-forte.db.test.ts
+  s_7c7d151152e4a5::t_a2fdfb8b9e7b60 1-276
+src/expeditions/case-partagee.db.test.ts
+  s_7c7d151152e4a5::t_6d7ae7596b48a0 259-260,263-264,345,349-350
+src/expeditions/chances.db.test.ts
+  s_7c7d151152e4a5::t_ad3d7feb97bd7e 355-356,358
+src/expeditions/en-mon-absence.db.test.ts
+  s_7c7d151152e4a5::t_408d07b2fd30e5 6-8,293-295,299-312,325-331,337,339,433-434
+src/expeditions/meme-case.db.test.ts
+  s_7c7d151152e4a5::t_3fc75457a5e31c 1-246
+src/expeditions/recit-de-rencontre.db.test.ts
+  s_7c7d151152e4a5::t_9fd7bfdec010fc 186,211,215-243
+src/expeditions/recit-de-rencontre.test.ts
+  s_7c7d151152e4a5::t_b382f6bc49aadb 12-13,16-17,21,42-48
+src/expeditions/recit-de-rencontre.ts
+  s_7c7d151152e4a5::t_14d635ca40d826 7-8,26-27,29,31-32,40,42,44,69,74,83-88,100,102-103,117,119-120
+src/expeditions/recit-de-retour.test.ts
+  s_7c7d151152e4a5::t_1616f229a760d5 276-299
+src/expeditions/recit-de-retour.ts
+  s_7c7d151152e4a5::t_9f8f0a9d157e6f 71-75,246-253,286-289,303,321,367-369,393
+src/expeditions/recit-du-perdant.db.test.ts
+  s_7c7d151152e4a5::t_e60e90c846b434 1-183
+src/monde/effectif.db.test.ts
+  s_7c7d151152e4a5::t_32ba8372071c7c 297-308,310-320
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_ec4e87d0cf07af 6,139-157,161,163-166
+src/monde/habitat.db.test.ts
+  s_7c7d151152e4a5::t_327f46c5842e97 1-98
+src/monde/habitat.ts
+  s_7c7d151152e4a5::t_196b8cfca01e6b 1-27
+src/monde/quantite.ts
+  s_7c7d151152e4a5::t_e5692458a62b0c 69-78
+src/monde/recits.ts
+  s_7c7d151152e4a5::t_2711024f2fb161 30,32
+src/reglages.ts
+  s_7c7d151152e4a5::t_9235e04b3dde25 361-376
+src/styles/fonts.ts
+  s_7c7d151152e4a5::t_3263d7d9f038ee 1,3-16,18-19,22-24
+src/styles/formes.css
+  s_7c7d151152e4a5::t_80086e14dfb8eb 1-5,7-12,14-56,61-63,66,68-69,71,79-82,86-94,98,102-105,109,111,117
+src/styles/palette.css
+  s_7c7d151152e4a5::t_ba2105a15132ef 2-8,13-120,122-132,135-137,140,142,144-148,152-173,176-177,181-182,184-185,187-188,190-192,194-195,214-215,219-232
+src/styles/typographie.css
+  s_7c7d151152e4a5::t_ee8e63c5ac615a 1-5,7-19
+vitest.config.mts
+  s_7c7d151152e4a5::t_42b3aa55759b09 4-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e5470a99a9aafaa8300419ddbfd673addc064760",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
