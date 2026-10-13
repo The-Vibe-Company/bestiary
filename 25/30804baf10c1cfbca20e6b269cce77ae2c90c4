@@ -1,0 +1,37 @@
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_a589b2ad0c002f 50
+docs/stories/09-explorer-et-apprivoiser.md
+  s_7c7d151152e4a5::t_20436256f44c26 720
+docs/stories/README.md
+  s_7c7d151152e4a5::t_3122e9a1e42ce5 7
+src/app/jeu/reserve/[espece]/page.db.test.tsx
+  s_7c7d151152e4a5::t_a362920227875b 140,142-158
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_b3ad681031a4a0 46-48,182,192,208-259
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_6de1f3277dd907 12,22-34,50-51,99-112
+src/expeditions/en-mon-absence.db.test.ts
+  s_7c7d151152e4a5::t_f35c8078da7c98 6-8,292-294,298-311,324-330,336,338,430-431
+src/expeditions/meme-case.db.test.ts
+  s_7c7d151152e4a5::t_6e4529900f6cf9 1-246
+src/monde/effectif.db.test.ts
+  s_7c7d151152e4a5::t_bcfd9323eb43ca 297-308,310-320
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_80e84c413b3c4c 6,124-125,127-138,148
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2530804baf10c1cfbca20e6b269cce77ae2c90c4",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
