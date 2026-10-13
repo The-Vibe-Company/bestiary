@@ -23,7 +23,7 @@ describe("Métiers des Habitants (US-0307)", () => {
     }
   });
 
-  it("disent quand ils serviront, sauf l'explorateur, qui part en Expédition (US-0911) : l'éleveur avec l'Élevage", () => {
+  it("disent quand ils serviront, sauf l'explorateur, qui part en Expédition (US-0911), et l'éleveur, qui soigne les Blessés (US-0955)", () => {
     expect(Object.fromEntries(metiers.map((m) => [m.id, m.servira ?? null]))).toEqual({
       explorateur: null,
       chasseur: "avec les Récoltes",
@@ -32,7 +32,7 @@ describe("Métiers des Habitants (US-0307)", () => {
       mineur: "avec les Récoltes",
       chercheur: "quand le cercle des sages sera bâti",
       batisseur: "avec les premières constructions",
-      eleveur: "avec l'Élevage",
+      eleveur: null,
     });
   });
 

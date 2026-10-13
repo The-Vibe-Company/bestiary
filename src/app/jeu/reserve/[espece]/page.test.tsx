@@ -20,7 +20,9 @@ vi.mock("@/chefs/chef", () => chefs);
 const effectif = vi.hoisted(() => ({ especeDuTerritoire: vi.fn(async (): Promise<FicheDEspece | null> => null) }));
 vi.mock("@/monde/effectif", () => effectif);
 // US-0952 : les Blessés au Foyer, lus sur base (src/monde/blesses.db.test.ts), à l'heure du jeu de la fiche.
-const blesses = vi.hoisted(() => ({ blessesAuFoyer: vi.fn(async (): Promise<Map<string, { nombre: number; gueriLe: Date }[]>> => new Map()) }));
+const blesses = vi.hoisted(() => ({
+  blessesAuFoyer: vi.fn(async (): Promise<Map<string, { nombre: number; gueriLe: Date; soignes?: true }[]>> => new Map()),
+}));
 vi.mock("@/monde/blesses", () => blesses);
 const MAINTENANT = vi.hoisted(() => new Date("2026-10-09T07:42:13.250Z"));
 // US-0814 : et la vitesse du jeu, que le bloc « Élever » reçoit pour faire avancer l'heure de la dernière Bête.
@@ -126,6 +128,12 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
     // Sans Blessé, rien de plus.
     connecte();
     expect(await ouvrir("poule")).not.toContain("Blessé");
+  });
+
+  it("dit les Blessés soignés à leur retour, et le temps plus court qui leur reste (US-0955)", async () => {
+    connecte();
+    blesses.blessesAuFoyer.mockResolvedValueOnce(new Map([["poule", [{ nombre: 2, gueriLe: new Date("2026-10-09T12:42:13.250Z"), soignes: true }]]]));
+    expect(await ouvrir("poule")).toMatch(/<strong[^>]*>12<\/strong><\/p><p[^>]*>dont 2 Blessés soignés, guéris dans 5 h<\/p>/);
   });
 
   it("propose sous la fiche le bloc « Élever » quand le joueur a réuni le Couple de l'Espèce (US-0812)", async () => {

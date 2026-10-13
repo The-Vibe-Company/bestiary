@@ -5,10 +5,9 @@ import "server-only";
 import type { Pool, PoolClient } from "pg";
 import type { regime } from "@/db/schema";
 import { forceDUneBete } from "@/expeditions/force";
-import { GUERISON_DES_BLESSES_HEURES } from "@/reglages";
 import { maintenant } from "@/temps/horloge";
 import type { Sexe } from "./betes-sauvages";
-import { gueriLe } from "./blesses";
+import { dureesDeGuerison, gueriLe } from "./blesses";
 import { ELEVAGE_ACQUIS } from "./elevage";
 
 /**
@@ -44,10 +43,11 @@ export const BETES_SORTIES = `select coalesce(sum(s.nombre - s.perdues + s.bless
 
 /**
  * US-0953 : les Blessés au Foyer de l'Espèce (expression sur `e`, comme BETES_SORTIES) à l'instant du jeu $3 : ceux des
- * Expéditions rentrées, pas encore guéris $2 heures après leur retour, selon la règle même de blessesAuFoyer (gueriLe).
+ * Expéditions rentrées, pas encore guéris $2 heures après leur retour, selon la règle même de blessesAuFoyer (gueriLe) ;
+ * US-0955 : $4 heures, s'ils ont été soignés à leur retour.
  */
 const BLESSES_EN_GUERISON = `select coalesce(sum(s.blessees), 0)::int from expedition_escorte s join expedition x on x.id = s.expedition_id
-  where x.territoire_id = e.territoire_id and s.espece_id = e.espece_id and x.rentree_le is not null and ${gueriLe("$2")} > $3`;
+  where x.territoire_id = e.territoire_id and s.espece_id = e.espece_id and x.rentree_le is not null and ${gueriLe("$2", "$4")} > $3`;
 
 /**
  * US-0904 : les Bêtes que le joueur peut emmener en escorte, Espèce par Espèce, lues à chaque affichage de l'écran
@@ -65,6 +65,7 @@ const BLESSES_EN_GUERISON = `select coalesce(sum(s.blessees), 0)::int from exped
  * sans aucune disponible, pour que ses Blessés se lisent (US-0952).
  */
 export async function betesDisponibles(base: Pool | PoolClient, territoireId: number, instant: Date = maintenant()): Promise<EspeceDisponible[]> {
+  const [normale, soignee] = dureesDeGuerison();
   const { rows } = await base.query<Omit<EspeceDisponible, "force"> & { attaque: number; vie: number }>(
     `select es.id, es.nom, es.illustration, x.au_foyer - least(x.au_foyer, x.blesses) as disponibles, least(x.au_foyer, x.blesses) as blesses,
        es.attaque, es.vie, es.vitesse, x.males, x.femelles, x."coupleReuni"
@@ -81,7 +82,7 @@ export async function betesDisponibles(base: Pool | PoolClient, territoireId: nu
      join rarete r on r.id = es.rarete_id
      where x.au_foyer > 0
      order by r.rang, es.nom`,
-    [territoireId, GUERISON_DES_BLESSES_HEURES, instant],
+    [territoireId, normale, instant, soignee],
   );
   return rows.map(({ attaque, vie, blesses, ...espece }) => ({ ...espece, ...(blesses ? { blesses } : {}), force: forceDUneBete({ attaque, vie }) }));
 }

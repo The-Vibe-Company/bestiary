@@ -709,7 +709,8 @@ export const beteDeNaissance = pgTable(
  * n'est pas effacée : la présence sur sa Case (src/expeditions/presence.ts) la relit. US-0920 : rappelée par le joueur à
  * `rappelee_le`, un instant du jeu (null sans rappel), elle fait demi-tour aussitôt (src/expeditions/phase.ts). US-0945 :
  * `en_fuite`, ce demi-tour est sa fuite après un combat, à l'instant de l'attaque (src/expeditions/fuite.ts), et non un
- * rappel du joueur.
+ * rappel du joueur. US-0955 : `blesses_soignes`, un éleveur libre attendait au Foyer à son retour et soigne ses Blessés,
+ * qui guérissent plus vite (src/monde/guerison.ts).
  */
 export const expedition = pgTable(
   "expedition",
@@ -727,6 +728,7 @@ export const expedition = pgTable(
     rentreeLe: timestamp("rentree_le", { withTimezone: true }),
     rappeleeLe: timestamp("rappelee_le", { withTimezone: true }),
     enFuite: boolean("en_fuite").notNull().default(false),
+    blessesSoignes: boolean("blesses_soignes").notNull().default(false),
   },
   (t) => [
     index("expedition_par_territoire").on(t.territoireId),

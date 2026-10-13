@@ -394,3 +394,10 @@ export const JOURS_D_ENTRETIEN_PAR_BETE_ELEVEE = 7;
  * 2 h 08, une poule 7 h 54 (src/monde/cout-d-elevage.ts).
  */
 export const MINUTES_D_ELEVAGE_PAR_PLACE = 15;
+
+/**
+ * US-0955 : les Blessés qu'un éleveur libre attendait au Foyer à leur retour (un Habitant éleveur qui ne s'occupe d'aucun
+ * Élevage, US-0843) sont soignés, et guérissent en 12 heures de jeu au lieu de GUERISON_DES_BLESSES_HEURES (valeur
+ * provisoire, à régler en jouant) ; src/monde/guerison.ts.
+ */
+export const GUERISON_DES_BLESSES_SOIGNES_HEURES = 12;

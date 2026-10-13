@@ -31,4 +31,15 @@ describe("les Blessés au Foyer tels que les pages les montrent (US-0952)", () =
       "1 Blessé, guéri dans 45 min",
     ]);
   });
+
+  it("garde les Blessés soignés à leur retour, et le dit : « 2 Blessés soignés, guéris dans 11 h » (US-0955)", () => {
+    expect(blessesAffiches([{ nombre: 2, gueriLe: dans(660), soignes: true }, { nombre: 1, gueriLe: dans(1_380) }], instant, 10)).toEqual([
+      { nombre: 2, dansMinutes: 660, soignes: true },
+      { nombre: 1, dansMinutes: 1_380 },
+    ]);
+    expect([blessesDans({ nombre: 2, dansMinutes: 660, soignes: true }), blessesDans({ nombre: 1, dansMinutes: 45, soignes: true })]).toEqual([
+      "2 Blessés soignés, guéris dans 11 h",
+      "1 Blessé soigné, guéri dans 45 min",
+    ]);
+  });
 });

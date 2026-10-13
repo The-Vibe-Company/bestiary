@@ -456,6 +456,13 @@
       "when": 1791889157013,
       "tag": "0068_eleveur_a_l_elevage",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1791892814679,
+      "tag": "0069_blesses_soignes",
+      "breakpoints": true
     }
   ]
 }

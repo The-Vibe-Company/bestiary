@@ -44,7 +44,9 @@ const effectif = vi.hoisted(() => ({
 vi.mock("@/monde/effectif", () => effectif);
 vi.mock("./Escorte", () => ({ Escorte: (p: object) => <i data-escorte={JSON.stringify(p)} /> }));
 // US-0952 : les Blessés au Foyer, lus sur base (src/monde/blesses.db.test.ts) : ici, ce que l'écran en fait.
-const blesses = vi.hoisted(() => ({ blessesAuFoyer: vi.fn(async (): Promise<Map<string, { nombre: number; gueriLe: Date }[]>> => new Map()) }));
+const blesses = vi.hoisted(() => ({
+  blessesAuFoyer: vi.fn(async (): Promise<Map<string, { nombre: number; gueriLe: Date; soignes?: true }[]>> => new Map()),
+}));
 vi.mock("@/monde/blesses", () => blesses);
 // US-0949 : les Bêtes repérées du Territoire, lues sur base (betes-reperees.db.test.tsx) : ici, ce que l'écran en fait.
 const reperees = vi.hoisted(() => ({ betesReperees: vi.fn(async (): Promise<BeteReperee[]> => []) }));
@@ -450,6 +452,29 @@ describe("les Blessés dans l'effectif (US-0952)", () => {
     expect(confie(await ouvrir(), "escorte").blesses).toEqual({
       souris: [
         { nombre: 2, dansMinutes: 300 },
+        { nombre: 1, dansMinutes: 360 },
+      ],
+    });
+  });
+
+  it("garde, jusqu'au bloc Escorte, les Blessés soignés à leur retour (US-0955)", async () => {
+    cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
+    session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
+    effectif.betesDisponibles.mockResolvedValueOnce([{ ...SOURIS_DE_L_EFFECTIF, disponibles: 0, blesses: 3 }]);
+    blesses.blessesAuFoyer.mockResolvedValueOnce(
+      new Map([
+        [
+          "souris",
+          [
+            { nombre: 2, gueriLe: new Date("2026-10-09T12:42:13.250Z"), soignes: true },
+            { nombre: 1, gueriLe: new Date("2026-10-09T13:42:13.250Z") },
+          ],
+        ],
+      ]),
+    );
+    expect(confie(await ouvrir(), "escorte").blesses).toEqual({
+      souris: [
+        { nombre: 2, dansMinutes: 300, soignes: true },
         { nombre: 1, dansMinutes: 360 },
       ],
     });
