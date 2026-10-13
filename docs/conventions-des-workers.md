@@ -32,6 +32,9 @@ Lis d'abord `AGENTS.md` (ce Next.js 16 a des changements cassants ; les guides s
 - Un essai qui raconte un séjour (effectif, heure de retour, récit) sur une Case qu'il n'a pas choisie calme est attaquable : une Bête rare peut lui coûter des Bêtes (US-0944) et le faire fuir (US-0945). Choisis une Case sans Bête plus rare que commune pendant tout le séjour, ou épargne l'Expédition avec `epargneePar` / `effacerLExpedition` (`src/test/attaques.ts`), qui calculent l'attaque comme le jeu.
 - Un essai qui apprivoise des Bêtes dans un Monde d'essai réutilisé efface d'abord, dans `beforeAll`, les lignes `bete_partie` de son Monde : sinon une relance retombe sur une Bête déjà emmenée.
 - Un essai qui choisit son scénario par tirage (identifiants, Cases) vérifie dans l'essai même les conditions qui font sa preuve (qui est sur la Case, quand, dans quel ordre) : une recherche trop large laisse passer, au hasard, un scénario qui ne prouve plus rien.
+- Depuis US-0945, `evoluer` peut s'arrêter avant la fin de sa tranche (`arret`) : ce qu'une règle écrit pendant le temps ne couvre que `]depuis, arret]`. Après chaque fusion de main, regarde si `src/temps/avancer.ts` ou `src/temps/regles.ts` ont changé.
+- Une règle lue par plusieurs requêtes SQL (la guérison, la présence sur une Case) passe par un seul helper ; la PR qui fusionne en second y ramène tous les appels. Dans un `case … then $n`, type le paramètre (`$n::float8`).
+- L'inscription locale demande une confirmation par e-mail : le lien est écrit dans le journal du serveur de dev.
 - Tout état que lisent plusieurs Territoires (présence sur une Case, force d'escorte, départ d'une Bête) se prouve par un essai à deux joueurs sur une Case partagée, rattrapés dans les deux ordres.
 - Arrête tes serveurs par leurs PID, jamais par leur nom (`pkill -f …` arrête aussi ceux des autres agents). Un critère « sur mobile » se vérifie aussi téléphone couché.
 

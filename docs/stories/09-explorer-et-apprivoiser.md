@@ -601,6 +601,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0955 · Soigner plus vite
 **En tant que** joueur, **je veux** m'occuper de mes Blessés pour qu'ils guérissent plus vite, **afin de** repartir plus tôt en Expédition.
 
+- **Statut** : Livrée le 2026-10-13 (autopilot, Zewed/bestia-2#83, migration 0069). Les Blessés d'une Expédition qui rentre quand un éleveur libre est au Foyer sont soignés : ils guérissent en 12 h de jeu au lieu de 24, et le temps restant le dit partout (« dont 2 Blessés soignés, guéris dans 11 h 52 » sur la page Bêtes et la fiche, « 2 Blessés soignés, guéris dans 11 h 52 » dans le bloc Escorte) ; le Récit de guérison tombe au retour + 12 h, et ils redeviennent disponibles pour l'escorte à cet instant. L'éleveur « élève les Bêtes d'un Couple réuni et soigne les Blessés ». Tranché (provisoire, à revoir) : aucun des moyens proposés (construction, Poste, Bête à Rôle) n'existe encore, d'où l'éleveur libre (sans Élevage en cours) ; les soins se décident une fois pour toutes au retour (`expedition.blesses_soignes`), sans occuper l'éleveur ; 12 h pour toutes les Espèces (`GUERISON_DES_BLESSES_SOIGNES_HEURES`).
 - **Débloquée par** : US-0954
 - **Critères d'acceptation** :
   - Un Blessé dont on s'occupe guérit plus vite ; le moyen, construction, Poste ou Bête à Rôle (à décider).
