@@ -589,6 +589,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0954 · La guérison avec le temps
 **En tant que** joueur, **je veux** que mes Blessés guérissent seuls avec le temps, **afin de** retrouver mon effectif sans rien faire.
 
+- **Statut** : Livrée le 2026-10-13 (autopilot, Zewed/bestia-2#77). Un Blessé guérit 24 h de jeu après le retour de son Expédition et redevient une Bête valide, même joueur absent ; à cet instant, la page Récits reçoit une note « 2 Blessés ont guéri » (« 1 Blessé a guéri ») : « De nouveau valides : Souris grise (2). », au médaillon de l'éleveur. Tranché (provisoire) : la même durée pour toutes les Espèces (`GUERISON_DES_BLESSES_HEURES = 24`) ; une note à part plutôt qu'un compteur ; les Blessés rentrés au même instant guérissent dans un seul Récit, les Espèces dans l'ordre du récit de retour ; jamais plus de guéris que l'effectif de l'Espèce. Sans migration : le Récit s'écrit quand le temps du Territoire avance, pas par un événement posé au retour. Limites acceptées : changer la durée en cours de partie peut annoncer deux fois, ou pas du tout, une guérison passée ; une attaque juste après la guérison, dans le même calcul, peut faire compter moins de guéris que la page n'en montrait.
 - **Débloquée par** : US-0952
 - **Critères d'acceptation** :
   - Un Blessé guérit après une durée (chiffre à régler) ; la même pour toutes les Espèces ou selon l'Espèce (à décider).
