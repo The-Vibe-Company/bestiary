@@ -11,12 +11,12 @@ import { PastilleRarete } from "@/components/PastilleRarete";
 import { getPool } from "@/db";
 import { blessesAuFoyer } from "@/monde/blesses";
 import { blessesAffiches, blessesDans } from "@/monde/blesses-affiches";
-import { maxAElever } from "@/monde/cout-d-elevage";
+import { coutDUneBeteElevee, dureeDUneBeteEleveeMinutes, maxAElever } from "@/monde/cout-d-elevage";
 import { especeDuTerritoire, type Regime } from "@/monde/effectif";
 import { elevageAcquis, eleveurLibre } from "@/monde/elevage";
 import { placesDeLHabitat } from "@/monde/habitat";
 import { caracteristiqueAffichee as nombre } from "@/monde/quantite";
-import { maintenant } from "@/temps/horloge";
+import { maintenant, vitesse } from "@/temps/horloge";
 import { BlocElever } from "./BlocElever";
 import styles from "./page.module.css";
 
@@ -149,7 +149,7 @@ export default async function FicheDeLEspece({
           Fermer
         </Link>
       </article>
-      {territoireId !== null && (await elevageAcquis(getPool(), territoireId, espece)) ? <BlocElever especeId={espece} places={await placesDeLHabitat(getPool(), territoireId)} max={await maxAElever(getPool(), territoireId, espece)} eleveur={(await eleveurLibre(getPool(), territoireId))?.prenom ?? null} /> : null}
+      {territoireId !== null && (await elevageAcquis(getPool(), territoireId, espece)) ? <BlocElever especeId={espece} places={await placesDeLHabitat(getPool(), territoireId)} max={await maxAElever(getPool(), territoireId, espece)} eleveur={(await eleveurLibre(getPool(), territoireId))?.prenom ?? null} elevage={{ cout: coutDUneBeteElevee(fiche.entretienParHeure), nourriture: REGIMES[fiche.regime].nourriture, dureeMinutes: dureeDUneBeteEleveeMinutes(fiche.taille) }} maintenant={instant} vitesse={vitesse()} /> : null}
     </main>
   );
 }

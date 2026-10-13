@@ -1,10 +1,10 @@
 // Ce que coûte l'Élevage d'une Espèce (US-0813) : le coût d'une Bête élevée, la Nourriture qui le paie, et le plus grand
-// nombre de Bêtes que les Stocks permettent de payer, que « Max » propose dans le bloc « Élever ». Le coût et sa
-// Nourriture se disent avec US-0814 et se paient au lancement (US-0815). Côté serveur uniquement.
+// nombre de Bêtes que les Stocks permettent de payer, que « Max » propose dans le bloc « Élever ». US-0814 : et ce que dure
+// l'Élevage d'une Bête ; le bloc dit l'un et l'autre, qui se paieront au lancement (US-0815). Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
 import type { Regime } from "./effectif";
-import { JOURS_D_ENTRETIEN_PAR_BETE_ELEVEE } from "@/reglages";
+import { JOURS_D_ENTRETIEN_PAR_BETE_ELEVEE, MINUTES_D_ELEVAGE_PAR_PLACE } from "@/reglages";
 
 /** La Nourriture en Stock au Territoire, Viande et Végétaux, en quantités exactes. */
 export type NourritureDisponible = { viande: number; vegetaux: number };
@@ -15,9 +15,20 @@ const NOURRITURE_DU_REGIME: Record<Regime, ("viande" | "vegetaux")[]> = { carniv
 /**
  * US-0813 : le coût en Nourriture d'une Bête élevée, un chiffre par Espèce : ce qu'elle mange pendant
  * JOURS_D_ENTRETIEN_PAR_BETE_ELEVEE jours (son Entretien, ramené à l'heure, docs/adr/0007) ; à régler en jouant.
+ * US-0814 : en Nourriture entière, arrondi au-dessus (au millionième près d'abord, comme les Stocks) : le coût affiché
+ * est celui qui sera payé, et « Max » ne propose que ce que les Stocks paient à ce prix.
  */
 export function coutDUneBeteElevee(entretienParHeure: number): number {
-  return entretienParHeure * 24 * JOURS_D_ENTRETIEN_PAR_BETE_ELEVEE;
+  return Math.ceil(Math.round(entretienParHeure * 24 * JOURS_D_ENTRETIEN_PAR_BETE_ELEVEE * 1e6) / 1e6);
+}
+
+/**
+ * US-0814 : la durée d'Élevage d'une Bête, un chiffre par Espèce : ses Places (sa taille, docs/adr/0007) fois
+ * MINUTES_D_ELEVAGE_PAR_PLACE, à la minute près, une minute au moins. Les Bêtes d'un Élevage naîtront l'une après l'autre,
+ * chacune après cette durée (US-0817).
+ */
+export function dureeDUneBeteEleveeMinutes(taille: number): number {
+  return Math.max(1, Math.round(taille * MINUTES_D_ELEVAGE_PAR_PLACE));
 }
 
 /**

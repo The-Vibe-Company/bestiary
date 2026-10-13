@@ -95,6 +95,16 @@
   min-height: 34px;
 }
 
+/* US-0814 : le coût et la durée de l'Élevage, libellés et valeurs en deux colonnes (kit.cles), au-dessus du bouton. */
+.formulaire .cout {
+  margin-bottom: 16px;
+}
+
+/* Les nombres en chiffres alignés : sur les valeurs mêmes, dont le « font » du kit remet les chiffres à leur forme. */
+.formulaire .cout dd {
+  font-variant-numeric: tabular-nums;
+}
+
 /* La quantité que « − », « + » ou « Max » viennent de donner, pour les lecteurs d'écran seulement. */
 .annonce {
   position: absolute;
