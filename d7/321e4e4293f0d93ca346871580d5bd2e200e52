@@ -1,0 +1,35 @@
+src/app/jeu/reserve/[espece]/Explication.test.tsx
+  s_7c7d151152e4a5::t_3ab69ff776722b 1-102
+src/app/jeu/reserve/[espece]/Explication.tsx
+  s_7c7d151152e4a5::t_48fcb950c294b0 1-105
+src/app/jeu/reserve/[espece]/explications.test.ts
+  s_7c7d151152e4a5::t_e381581e8abafb 1-19
+src/app/jeu/reserve/[espece]/explications.ts
+  s_7c7d151152e4a5::t_79c200d166e85b 1-19
+src/app/jeu/reserve/[espece]/page.css.test.ts
+  s_7c7d151152e4a5::t_e52decd18e8403 56-75
+src/app/jeu/reserve/[espece]/page.db.test.tsx
+  s_7c7d151152e4a5::t_956e70bde90141 56,70
+src/app/jeu/reserve/[espece]/page.module.css
+  s_7c7d151152e4a5::t_220b8a831c956c 55,120-213
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_6dd8c7696a9670 51,75,116,120,128-129,138,376,383,399-418
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_a4b7da570cecc2 21,62,67-69,99,106-119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d7321e4e4293f0d93ca346871580d5bd2e200e52",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
