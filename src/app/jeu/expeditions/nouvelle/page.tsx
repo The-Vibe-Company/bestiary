@@ -118,14 +118,14 @@ async function betesAChercher(territoireId: number, c: Coordonnees, instant: Dat
 /**
  * US-0952 : les groupes de Blessés au Foyer du Territoire, Espèce par Espèce (blessesAuFoyer), tels que le bloc Escorte
  * les montre à l'heure du jeu `instant` : combien, et dans combien de minutes, à la minute supérieure, ils seront guéris.
- * Jamais plus de Blessés que l'Espèce n'a de Bêtes au Foyer (`auFoyer`, ses disponibles) : jusqu'à US-0953, un Blessé
- * peut repartir en escorte ; les derniers à guérir sont retranchés les premiers.
+ * Jamais plus que l'Espèce n'en compte au Foyer (`plafonds`, ses Blessés selon betesDisponibles, bornés à ses Bêtes au
+ * Foyer) : les derniers à guérir sont retranchés les premiers.
  */
-async function blessesDuFoyer(territoireId: number, instant: Date, auFoyer: Map<string, number>): Promise<Record<string, BlessesAffiches[]>> {
+async function blessesDuFoyer(territoireId: number, instant: Date, plafonds: Map<string, number>): Promise<Record<string, BlessesAffiches[]>> {
   const groupes = await blessesAuFoyer(getPool(), territoireId, instant);
   return Object.fromEntries(
     [...groupes].flatMap(([especeId, liste]) => {
-      const affiches = blessesAffiches(liste, instant, auFoyer.get(especeId) ?? 0);
+      const affiches = blessesAffiches(liste, instant, plafonds.get(especeId) ?? 0);
       return affiches.length > 0 ? [[especeId, affiches]] : [];
     }),
   );
@@ -166,13 +166,14 @@ export default async function NouvelleExpedition({ searchParams }: PageProps<"/j
     );
   }
   // US-0904 : les Bêtes disponibles pour l'escorte, par Espèce, lues à chaque affichage du formulaire.
-  const escorte = territoireId !== null ? await betesDisponibles(getPool(), territoireId) : [];
+  // US-0953 : sans les Blessés au Foyer, à l'heure du jeu.
+  const instant = maintenant();
+  const escorte = territoireId !== null ? await betesDisponibles(getPool(), territoireId, instant) : [];
   const fiche = destination && "fiche" in destination ? destination.fiche : null;
   const refus = destination && "refus" in destination ? destination.refus : null;
-  const instant = maintenant();
   // US-0952 : les Blessés au Foyer de chaque Espèce, et le temps qui leur reste avant de guérir.
   const blesses =
-    territoireId !== null && escorte.length > 0 ? await blessesDuFoyer(territoireId, instant, new Map(escorte.map((e) => [e.id, e.disponibles]))) : {};
+    territoireId !== null && escorte.length > 0 ? await blessesDuFoyer(territoireId, instant, new Map(escorte.map((e) => [e.id, e.blesses ?? 0]))) : {};
   const choisie = fiche ? destinationChoisie(fiche) : null;
   // US-0949 : les Bêtes repérées sur la Case de destination ; aucune sans destination.
   const betes = choisie && territoireId !== null ? await betesAChercher(territoireId, choisie, instant) : [];
@@ -196,7 +197,8 @@ export default async function NouvelleExpedition({ searchParams }: PageProps<"/j
         </Bloc>
         <div className={styles.equipage}>
           <Explorateurs {...explorateurs} />
-          {/* US-0909 : sans Bête disponible, pas d'escorte à choisir : l'Expédition part sans, et l'écran le dit à sa place. */}
+          {/* US-0909 : sans Bête au Foyer, pas d'escorte à choisir : l'Expédition part sans, et l'écran le dit à sa place. US-0953 :
+              avec des Blessés seulement, le bloc reste, pour les montrer, sans aucune Bête à choisir. */}
           {escorte.length > 0 ? <Escorte especes={escorte} blesses={blesses} /> : <SansEscorte />}
         </div>
         <Sejour />

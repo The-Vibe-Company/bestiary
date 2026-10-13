@@ -261,7 +261,14 @@ describe("les Blessés de l'effectif (US-0952)", () => {
         }}
       />,
     );
-    expect(textes().slice(9, 15)).toEqual(["Souris grise", "6 disponibles", "2 mâles · 1 femelle", "dont 2 Blessés, guéris dans 5 h", "dont 1 Blessé, guéri dans 23 h", "−"]);
+    expect(textes().slice(9, 15)).toEqual(["Souris grise", "6 disponibles", "2 mâles · 1 femelle", "2 Blessés, guéris dans 5 h", "1 Blessé, guéri dans 23 h", "−"]);
+  });
+
+  it("une Espèce dont toutes les Bêtes au Foyer sont blessées n'en propose aucune : ses Blessés ne partent pas (US-0953)", () => {
+    render(<Escorte especes={[{ ...SOURIS, disponibles: 0, blesses: 3 }]} blesses={{ souris: [{ nombre: 3, dansMinutes: 60 }] }} />);
+    expect(within(ligne("Souris grise")).getByText("0 disponible")).toBeTruthy();
+    expect(within(ligne("Souris grise")).getByText("3 Blessés, guéris dans 1 h")).toBeTruthy();
+    expect(grises("Souris grise")).toEqual(["Une Bête de moins", "Une Bête de plus", "Toutes", "Aucune"]);
   });
 
   it("sans Blessé, rien de plus, pas même une ligne vide", () => {

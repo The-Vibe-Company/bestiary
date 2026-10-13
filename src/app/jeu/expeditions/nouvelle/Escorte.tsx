@@ -42,17 +42,18 @@ export const entier = (n: number) => new Intl.NumberFormat("fr-FR").format(n).re
 
 /**
  * US-0904 : le bloc Escorte de l'écran d'Expédition, après les Explorateurs. Chaque Espèce de l'effectif qui a des Bêtes
- * disponibles y a sa ligne : son illustration, son nom et ce nombre, puis combien de ses Bêtes partent, au pouce, entre
+ * au Foyer y a sa ligne : son illustration, son nom et ses disponibles, puis combien de ses Bêtes partent, au pouce, entre
  * « − » et « + », à partir de zéro et jamais plus que les disponibles ; « Toutes » les prend toutes, « Aucune » remet à
  * zéro. Comme les explorateurs, l'escorte vit dans l'adresse (replaceState) : elle survit à un rechargement, et le départ
  * la relira (US-0911). Choisir ne retient aucune Bête : les disponibles ne bougent pas avant le départ. Sans aucune Bête
- * disponible, pas d'escorte : le bloc n'apparaît pas, et l'Expédition part sans (US-0909).
+ * au Foyer, pas d'escorte : le bloc n'apparaît pas, et l'Expédition part sans (US-0909).
  * US-0905 : sous les Espèces, la force de l'escorte choisie, la simple somme des forces de ses Bêtes, recomptée à chaque
  * Bête ajoutée ou retirée, comme au rechargement ; zéro tant qu'aucune Bête n'est choisie.
  * US-0937 : sous les disponibles de chaque Espèce, combien de mâles et de femelles le joueur en possède, Bêtes sorties
  * comprises, pour savoir lequel lui manque pour réunir son Couple. US-0956 : plus rien une fois son Couple réuni.
- * US-0952 : puis, parmi les disponibles, chaque groupe de Blessés de l'Espèce (`blesses`, par Espèce) et le temps qui
- * lui reste avant sa guérison ; rien sans Blessé.
+ * US-0952 : puis chaque groupe de Blessés de l'Espèce au Foyer (`blesses`, par Espèce) et le temps qui lui reste avant sa
+ * guérison ; rien sans Blessé. US-0953 : les Blessés ne sont pas parmi les disponibles, et ne partent pas ; une Espèce
+ * dont toutes les Bêtes au Foyer sont blessées a sa ligne, sans aucune à choisir.
  */
 export function Escorte({ especes, blesses = {} }: { especes: EspeceDisponible[]; blesses?: Record<string, BlessesAffiches[]> }) {
   const recherche = useSearchParams();
@@ -88,7 +89,7 @@ export function Escorte({ especes, blesses = {} }: { especes: EspeceDisponible[]
                 {!e.coupleReuni && <span className={styles.disponibles}>{sexes(e)}</span>}
                 {(blesses[e.id] ?? []).map((groupe, i) => (
                   <span key={i} className={styles.disponibles}>
-                    {`dont ${blessesDans(groupe)}`}
+                    {blessesDans(groupe)}
                   </span>
                 ))}
               </p>

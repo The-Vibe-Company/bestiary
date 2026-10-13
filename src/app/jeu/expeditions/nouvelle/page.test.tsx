@@ -37,7 +37,9 @@ vi.mock("@/temps/horloge", () => horloge);
 vi.mock("./AucunExplorateurLibre", () => ({ AucunExplorateurLibre: (p: object) => <i data-aucun={JSON.stringify(p)} /> }));
 // US-0904 : les Bêtes disponibles du Territoire, et le bloc Escorte réduit à ce que la page lui donne (testé à part).
 const effectif = vi.hoisted(() => ({
-  betesDisponibles: vi.fn(async () => [{ id: "souris", nom: "Souris grise", illustration: "especes/souris.webp", disponibles: 3 }]),
+  betesDisponibles: vi.fn(async (): Promise<{ id: string; nom: string; illustration: string; disponibles: number; blesses?: number }[]> => [
+    { id: "souris", nom: "Souris grise", illustration: "especes/souris.webp", disponibles: 3 },
+  ]),
 }));
 vi.mock("@/monde/effectif", () => effectif);
 vi.mock("./Escorte", () => ({ Escorte: (p: object) => <i data-escorte={JSON.stringify(p)} /> }));
@@ -372,7 +374,8 @@ describe("l'escorte de l'écran d'Expédition (US-0904)", () => {
     connecte();
     destinations.destinationDUneCase.mockResolvedValue({ fiche: FORET });
     const html = await ouvrir({ q: "3", r: "-5" });
-    expect(effectif.betesDisponibles).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12);
+    // US-0953 : à l'heure du jeu, sans les Blessés au Foyer.
+    expect(effectif.betesDisponibles).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, new Date("2026-10-09T07:42:13.250Z"));
     const [avant, apres] = html.split(donne("escorte", { especes: [SOURIS], blesses: {} }));
     expect(avant).toMatch(new RegExp(`${donne("explorateurs", { libres: 2, total: 3 })}$`));
     expect(apres).toMatch(/^<\/div><section[^>]*><h2[^>]*>Séjour<\/h2>/);
@@ -395,9 +398,13 @@ describe("l'escorte de l'écran d'Expédition (US-0904)", () => {
 });
 
 describe("les Blessés dans l'effectif (US-0952)", () => {
+  /** La Souris grise de l'effectif simulé (betesDisponibles). */
+  const SOURIS_DE_L_EFFECTIF = { id: "souris", nom: "Souris grise", illustration: "especes/souris.webp", disponibles: 3 };
   it("donne au bloc Escorte les groupes de Blessés au Foyer de chaque Espèce, lus pour le Territoire à l'heure du jeu, et leur temps avant guérison", async () => {
     cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
     session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
+    // US-0953 : trois Blessées au Foyer parmi les Souris grises, aucune disponible.
+    effectif.betesDisponibles.mockResolvedValueOnce([{ ...SOURIS_DE_L_EFFECTIF, disponibles: 0, blesses: 3 }]);
     // L'heure du jeu de l'écran : 07:42:13.250 ; guéris à 12:42:13.250, puis à 12:43 : 5 h, puis 5 h 01 à la minute supérieure.
     blesses.blessesAuFoyer.mockResolvedValueOnce(
       new Map([
@@ -411,6 +418,7 @@ describe("les Blessés dans l'effectif (US-0952)", () => {
       ]),
     );
     const html = await ouvrir();
+    expect(effectif.betesDisponibles).toHaveBeenLastCalledWith(expect.anything(), 12, new Date("2026-10-09T07:42:13.250Z"));
     expect(blesses.blessesAuFoyer).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, new Date("2026-10-09T07:42:13.250Z"));
     expect(confie(html, "escorte").blesses).toEqual({
       souris: [
@@ -420,10 +428,11 @@ describe("les Blessés dans l'effectif (US-0952)", () => {
     });
   });
 
-  it("n'en montre jamais plus que de Bêtes de l'Espèce au Foyer : les derniers à guérir en premier retranchés", async () => {
+  it("n'en montre jamais plus que de Blessés de l'Espèce au Foyer : les derniers à guérir en premier retranchés", async () => {
     cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
     session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
-    // Trois Souris grises au Foyer ; des Blessés rentrés repartis depuis en escorte : quatre en deux groupes, puis un.
+    // Trois Souris grises Blessées au Foyer (US-0953) ; d'avant, des Blessés rentrés repartis en escorte : quatre en deux groupes, puis un.
+    effectif.betesDisponibles.mockResolvedValueOnce([{ ...SOURIS_DE_L_EFFECTIF, disponibles: 0, blesses: 3 }]);
     blesses.blessesAuFoyer.mockResolvedValueOnce(
       new Map([
         [

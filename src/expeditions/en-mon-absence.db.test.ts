@@ -144,7 +144,8 @@ describe.skipIf(!URL_TEST)("une Expédition vécue en mon absence (US-0922, sur 
       expeditions,
       parties: parties.map((p) => ({ ...p, numero: Number(p.numero) })),
       bestiaire: await bestiaireDuTerritoire(jeu, territoireId),
-      disponibles: await betesDisponibles(jeu, territoireId),
+      // US-0953 : à l'instant du bilan, pas à l'heure réelle : les Blessés au Foyer y guérissent encore ou non.
+      disponibles: await betesDisponibles(jeu, territoireId, fin),
       explorateursAuFoyer: foyer[0].n,
       enCours: (await expeditionsEnCours(jeu, territoireId, fin)).length,
       recits: recits.map(({ texte, survenuLe, luLe }) => ({ texte, survenuLe, luLe })),
@@ -382,8 +383,10 @@ describe.skipIf(!URL_TEST)("une Expédition vécue en mon absence (US-0922, sur 
     for (const maniere of MANIERES) {
       const { expeditions, enCours, explorateursAuFoyer, disponibles } = bilans[maniere];
       for (const { lettre, retour } of plans) expect(expeditions[lettre]?.rentreeLe, `${lettre}, ${maniere}`).toEqual(retour);
-      // Les deux Bêtes de l'escorte de A et B sont de nouveau disponibles.
-      const auFoyer = { enCours, explorateursAuFoyer, escorte: disponibles.find((x) => x.id === forteId)?.disponibles };
+      // Les deux Bêtes de l'escorte de A et B sont rentrées au Foyer : disponibles, ou Blessées par une Bête trop forte et qui
+      // y guérissent sans être disponibles (US-0951, US-0953).
+      const forte = disponibles.find((x) => x.id === forteId);
+      const auFoyer = { enCours, explorateursAuFoyer, escorte: (forte?.disponibles ?? 0) + (forte?.blesses ?? 0) };
       expect(auFoyer, maniere).toEqual({ enCours: 0, explorateursAuFoyer: 5, escorte: 2 });
     }
   });

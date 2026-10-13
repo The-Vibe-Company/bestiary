@@ -108,7 +108,8 @@ async function partir(client: PoolClient, territoireId: number, { destination, e
     territoireId,
     betes.map(([especeId]) => especeId),
   ]);
-  const disponibles = new Map((await betesDisponibles(client, territoireId)).map((e) => [e.id, e.disponibles]));
+  // US-0953 : les Blessés au Foyer à l'instant du départ ne sont pas disponibles.
+  const disponibles = new Map((await betesDisponibles(client, territoireId, instant)).map((e) => [e.id, e.disponibles]));
   if (betes.some(([especeId, nombre]) => nombre > (disponibles.get(especeId) ?? 0))) throw new Refus(BETE_PLUS_DISPONIBLE);
   await client.query(`insert into expedition_escorte (expedition_id, espece_id, nombre) select $1, e, n from unnest($2::text[], $3::int[]) as l(e, n)`, [
     expeditionId,

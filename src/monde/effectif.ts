@@ -5,14 +5,19 @@ import "server-only";
 import type { Pool, PoolClient } from "pg";
 import type { regime } from "@/db/schema";
 import { forceDUneBete } from "@/expeditions/force";
+import { GUERISON_DES_BLESSES_HEURES } from "@/reglages";
+import { maintenant } from "@/temps/horloge";
 import type { Sexe } from "./betes-sauvages";
+import { gueriLe } from "./blesses";
 import { ELEVAGE_ACQUIS } from "./elevage";
 
 /**
- * US-0904 : une Espèce de l'effectif, avec son illustration (null : aucune) et ses Bêtes disponibles pour l'escorte.
+ * US-0904 : une Espèce de l'effectif, avec son illustration (null : aucune) et ses Bêtes disponibles pour l'escorte, aucune
+ * quand toutes ses Bêtes au Foyer sont des Blessés (US-0953).
  * US-0905 : avec la force d'une de ses Bêtes, la même pour toutes. US-0912 : et leur vitesse réelle, en km/h, qui règle
  * l'allure d'une escorte. US-0937 : et combien de mâles et de femelles le joueur en possède, Bêtes sorties comprises.
- * US-0956 : et si son Couple est réuni : le sexe ne compte plus.
+ * US-0956 : et si son Couple est réuni : le sexe ne compte plus. US-0953 : et ses Blessés au Foyer, qui guérissent sans être
+ * disponibles (absent : aucun).
  */
 export type EspeceDisponible = {
   id: string;
@@ -24,6 +29,7 @@ export type EspeceDisponible = {
   males: number;
   femelles: number;
   coupleReuni: boolean;
+  blesses?: number;
 };
 
 /**
@@ -37,21 +43,33 @@ export const BETES_SORTIES = `select coalesce(sum(s.nombre - s.perdues + s.bless
   where x.territoire_id = e.territoire_id and s.espece_id = e.espece_id and x.rentree_le is null`;
 
 /**
+ * US-0953 : les Blessés au Foyer de l'Espèce (expression sur `e`, comme BETES_SORTIES) à l'instant du jeu $3 : ceux des
+ * Expéditions rentrées, pas encore guéris $2 heures après leur retour, selon la règle même de blessesAuFoyer (gueriLe).
+ */
+const BLESSES_EN_GUERISON = `select coalesce(sum(s.blessees), 0)::int from expedition_escorte s join expedition x on x.id = s.expedition_id
+  where x.territoire_id = e.territoire_id and s.espece_id = e.espece_id and x.rentree_le is not null and ${gueriLe("$2")} > $3`;
+
+/**
  * US-0904 : les Bêtes que le joueur peut emmener en escorte, Espèce par Espèce, lues à chaque affichage de l'écran
  * d'Expédition : l'effectif du Territoire, mâles et femelles ensemble (l'escorte ne choisit pas le sexe), moins les Bêtes
- * déjà sorties. Seules les Espèces qui en ont au moins une, de la plus commune à la plus rare, puis par nom ; aucune pour
- * un Territoire sans Bête. Lire ne retient rien : rien ne change avant le départ.
+ * déjà sorties. Seules les Espèces qui en ont au moins une au Foyer, de la plus commune à la plus rare, puis par nom ;
+ * aucune pour un Territoire sans Bête. Lire ne retient rien : rien ne change avant le départ.
  * US-0905 : la force d'une Bête vient de l'attaque et de la vie de son Espèce, rien du Territoire : aucune Recherche.
  * US-0937 : combien de mâles et de femelles le joueur en possède, au Foyer comme en escorte, pour savoir lequel lui manque
  * tant que le Couple de l'Espèce n'est pas réuni. US-0956 : les Bêtes d'un Couple réuni ont quitté l'effectif pour la
  * Réserve, d'où elles ne sortent jamais (src/monde/couple.ts) : elles ne sont ni disponibles ni comptées ; et le
  * Couple réuni se dit, le sexe ne comptant plus. US-0957 : c'est l'Élevage acquis (src/monde/elevage.ts).
+ * US-0953 : les Blessés au Foyer, à l'instant du jeu `instant`, restent dans l'effectif et y comptent parmi les mâles et
+ * les femelles, mais ne sont jamais disponibles : le départ, qui relit les disponibles, les refuse (src/expeditions/depart.ts).
+ * Jamais plus de Blessés que de Bêtes au Foyer. Une Espèce dont toutes les Bêtes au Foyer sont blessées reste proposée,
+ * sans aucune disponible, pour que ses Blessés se lisent (US-0952).
  */
-export async function betesDisponibles(base: Pool | PoolClient, territoireId: number): Promise<EspeceDisponible[]> {
+export async function betesDisponibles(base: Pool | PoolClient, territoireId: number, instant: Date = maintenant()): Promise<EspeceDisponible[]> {
   const { rows } = await base.query<Omit<EspeceDisponible, "force"> & { attaque: number; vie: number }>(
-    `select es.id, es.nom, es.illustration, x.disponibles, es.attaque, es.vie, es.vitesse, x.males, x.femelles, x."coupleReuni"
+    `select es.id, es.nom, es.illustration, x.au_foyer - least(x.au_foyer, x.blesses) as disponibles, least(x.au_foyer, x.blesses) as blesses,
+       es.attaque, es.vie, es.vitesse, x.males, x.femelles, x."coupleReuni"
      from (
-       select e.espece_id, sum(e.nombre)::int - (${BETES_SORTIES}) as disponibles,
+       select e.espece_id, sum(e.nombre)::int - (${BETES_SORTIES}) as au_foyer, (${BLESSES_EN_GUERISON}) as blesses,
          coalesce(sum(e.nombre) filter (where e.sexe = 'male'), 0)::int as males,
          coalesce(sum(e.nombre) filter (where e.sexe = 'femelle'), 0)::int as femelles,
          ${ELEVAGE_ACQUIS} as "coupleReuni"
@@ -61,11 +79,11 @@ export async function betesDisponibles(base: Pool | PoolClient, territoireId: nu
      ) x
      join espece es on es.id = x.espece_id
      join rarete r on r.id = es.rarete_id
-     where x.disponibles > 0
+     where x.au_foyer > 0
      order by r.rang, es.nom`,
-    [territoireId],
+    [territoireId, GUERISON_DES_BLESSES_HEURES, instant],
   );
-  return rows.map(({ attaque, vie, ...espece }) => ({ ...espece, force: forceDUneBete({ attaque, vie }) }));
+  return rows.map(({ attaque, vie, blesses, ...espece }) => ({ ...espece, ...(blesses ? { blesses } : {}), force: forceDUneBete({ attaque, vie }) }));
 }
 
 /**
