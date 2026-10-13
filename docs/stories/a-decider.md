@@ -2,7 +2,7 @@
 
 Tous les « (à décider) » laissés dans les stories, jalon par jalon. On les tranche au moment d'attaquer la story concernée, pas avant. Une fois décidé, on remplace la mention dans la story par la règle retenue, et on met à jour [CONTEXT.md](../../CONTEXT.md) si un mot du jeu change.
 
-196 points au total.
+195 points au total.
 
 ## [Jalon 0 · Les fondations](00-fondations.md)
 
@@ -80,7 +80,6 @@ Tous les « (à décider) » laissés dans les stories, jalon par jalon. On les 
 - [US-0832](08-les-betes-a-la-maison.md) · Voir des Bêtes affamées retourner à l'état sauvage : un Élevage en cours continue pendant la Famine, ou se suspend.
 - [US-0832](08-les-betes-a-la-maison.md) · Voir des Bêtes affamées retourner à l'état sauvage : les Bêtes parties réapparaissent comme Bêtes sauvages sur la carte, ou disparaissent.
 - [US-0836](08-les-betes-a-la-maison.md) · Partager la Nourriture entre Habitants et Bêtes : quand la Nourriture ne suffit pas pour tous, les Habitants mangent d'abord, les Bêtes d'abord, ou chacun reçoit une part égale.
-- [US-0837](08-les-betes-a-la-maison.md) · Affecter une Bête à son Rôle : les Bêtes d'un Couple en Réserve peuvent être affectées à leur Rôle, ou non.
 - [US-0838](08-les-betes-a-la-maison.md) · Nourrir le Territoire avec les poules : les poules produisent de la Viande, des Végétaux, ou les deux.
 - [US-0838](08-les-betes-a-la-maison.md) · Nourrir le Territoire avec les poules : une poule rapporte plus de Nourriture qu'elle ne coûte d'Entretien.
 

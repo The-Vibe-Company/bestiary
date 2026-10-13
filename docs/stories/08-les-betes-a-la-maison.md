@@ -385,6 +385,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0837 · Affecter une Bête à son Rôle
 **En tant que** joueur, **je veux** affecter des Bêtes à leur Rôle, comme je donne un Métier à un Habitant, **afin de** tirer d'elles autre chose que leur force.
 
+- **Statut** : Livrée le 2026-10-13 (autopilot, Zewed/bestia-2#85, migration 0070). Sur la page Bêtes, la carte d'une Espèce dont le Rôle sert au Foyer (aujourd'hui la poule, Nourricier) montre son Rôle et le pas du kit « − affectées / effectif + » (« 3 / 6 ») ; l'Éclaireur s'affecte au départ d'une Expédition (US-0976). Seules les Bêtes valides au Foyer s'affectent : ni sorties en escorte, ni Blessées, soignées ou non ; une Bête affectée reste dans l'effectif, mange et occupe ses Places. Tranché : les Bêtes d'un Couple en Réserve ne s'affectent pas (elles ont quitté l'effectif) ; seul le Nourricier sert au Foyer pour l'instant (Porteur et Bâtisseur n'ont encore rien à servir) ; le compte d'affectées ne dépasse jamais les Bêtes valides : tout ce qui retire des Bêtes valides du Foyer appelle `bornerLesAffectations` dans sa transaction (départ d'une escorte, formation d'un Couple ; plus tard les étapes 54 et 57), et l'escorte prend d'abord les Bêtes non affectées.
 - **Débloquée par** : US-0806, US-0810
 - **Critères d'acceptation** :
   - Sur la page Bêtes, une Espèce dont le Rôle sert au Foyer (Nourricier) propose « + » et « − » pour affecter des Bêtes à son Rôle, avec le compte « affectées / effectif » ; un Éclaireur, lui, s'affecte au départ d'une Expédition (US-0976).

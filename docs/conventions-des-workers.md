@@ -35,6 +35,10 @@ Lis d'abord `AGENTS.md` (ce Next.js 16 a des changements cassants ; les guides s
 - Depuis US-0945, `evoluer` peut s'arrêter avant la fin de sa tranche (`arret`) : ce qu'une règle écrit pendant le temps ne couvre que `]depuis, arret]`. Après chaque fusion de main, regarde si `src/temps/avancer.ts` ou `src/temps/regles.ts` ont changé.
 - Une règle lue par plusieurs requêtes SQL (la guérison, la présence sur une Case) passe par un seul helper ; la PR qui fusionne en second y ramène tous les appels. Dans un `case … then $n`, type le paramètre (`$n::float8`).
 - L'inscription locale demande une confirmation par e-mail : le lien est écrit dans le journal du serveur de dev.
+- Un numéro de migration réservé peut être pris par une PR fusionnée avant la tienne : regarde `drizzle/` sur origin/main à chaque fusion de main et juste avant de pousser.
+- Une constante SQL de module qui lit les exports d'un autre module casse les essais qui moquent ce module : construis la requête à l'appel (comme `src/monde/couple.ts`).
+- Le relecteur isolé ne lance aucune commande git qui déplace HEAD (`checkout`, `switch`, `reset`) : lecture seule.
+- Tout ce qui retire des Bêtes valides du Foyer appelle `bornerLesAffectations` (`src/monde/roles.ts`) dans sa transaction (US-0837).
 - Tout état que lisent plusieurs Territoires (présence sur une Case, force d'escorte, départ d'une Bête) se prouve par un essai à deux joueurs sur une Case partagée, rattrapés dans les deux ordres.
 - Arrête tes serveurs par leurs PID, jamais par leur nom (`pkill -f …` arrête aussi ceux des autres agents). Un critère « sur mobile » se vérifie aussi téléphone couché.
 
