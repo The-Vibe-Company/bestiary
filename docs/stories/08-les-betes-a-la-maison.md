@@ -247,6 +247,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0823 · Loger au Foyer les Bêtes de tout Biome
 **En tant que** joueur, **je veux** loger au Foyer toutes les Bêtes que je ramène, quel que soit leur Biome, **afin de** ne pas être bloqué avant d'avoir des Habitats.
 
+- **Statut** : Livrée le 2026-10-13 (autopilot, Zewed/bestia-2#80). Les règles en place la font : le Foyer, en prairie, accueille les Bêtes de tous les Biomes, et leurs Places comptent toutes ; la fiche dit quand même leur Habitat (« Habitat Eau », « Habitat Montagne »). Prouvée par un essai qui ramène une Bête commune de chaque Biome hors prairie (désert, eau, forêt, montagne, savane, toundra) et vérifie l'effectif, les Places et les fiches ; vérifiée en vrai avec une gerboise, une grenouille, un écureuil, une marmotte et un suricate.
 - **Débloquée par** : US-0822
 - **Critères d'acceptation** :
   - Jusqu'aux Habitats par Biome (étape 51), les Places du Foyer accueillent les Bêtes de toutes les Espèces, quel que soit leur Biome d'Habitat.
