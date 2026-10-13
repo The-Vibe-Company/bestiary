@@ -569,6 +569,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0952 · Voir ses Blessés
 **En tant que** joueur, **je veux** voir mes Blessés à part dans l'effectif, **afin de** savoir sur quelles Bêtes je peux compter.
 
+- **Statut** : Livrée le 2026-10-13 (autopilot, Zewed/bestia-2#61). Les Blessés au Foyer se lisent à part dans l'effectif de chaque Espèce, un groupe par ligne avec le temps avant sa guérison : page Bêtes (« Poule, Commune, 797 Bêtes, dont 2 Blessés, guéris dans 5 h »), fiche de l'Espèce sous l'Effectif (« dont 6 Blessés, guéris dans 5 h ») et bloc Escorte de l'écran d'Expédition. Sans Blessé, aucune ligne. Tranché : un groupe = les Blessés d'une Espèce rentrés au Foyer au même instant ; guérison 24 h de jeu après le retour (`GUERISON_DES_BLESSES_HEURES`, provisoire, à régler avec US-0954) ; rien ne s'écrit en base, tout se relit du retour ; les Blessés comptent dans l'effectif (« dont ») ; dans l'Escorte, ils restent parmi les disponibles jusqu'à US-0953 ; jamais plus de Blessés affichés que l'Espèce n'en a. Vérifié en vrai après un vrai combat contre un Loup gris.
 - **Débloquée par** : US-0951
 - **Critères d'acceptation** :
   - L'effectif de chaque Espèce distingue les Bêtes valides et les Blessés.
