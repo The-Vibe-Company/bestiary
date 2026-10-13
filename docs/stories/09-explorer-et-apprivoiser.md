@@ -726,6 +726,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0968 · La simulation des chances
 **En tant que** développeur, **je veux** simuler un grand nombre de Rencontres disputées, **afin de** vérifier que les chances suivent bien les forces.
 
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#70). La page de contrôle interne mène à « Simulation des chances » (/controle/chances) : 10 000 Rencontres disputées jugées par le vrai tirage du jeu (US-0963), un tableau par simulation (forces, victoires, part obtenue et attendue) et le contrôle en tête ; d'emblée 1 et 3 (24,8 % pour 25 % attendus), puis 1, 2 et 3, et des forces saisies. Tranché : tolérance de 2 points à 10 000 Rencontres (`SIMULATION_DES_CHANCES_TOLERANCE_POINTS`, provisoire) ; même protection et même apparence que la simulation des Raretés ; rien n'est lu ni écrit en base.
 - **Débloquée par** : US-0963
 - **Critères d'acceptation** :
   - Un outil de la page de contrôle interne simule un grand nombre de Rencontres entre plusieurs Expéditions de forces différentes.
