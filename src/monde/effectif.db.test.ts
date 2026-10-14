@@ -66,8 +66,8 @@ describe.skipIf(!URL_TEST)("les Bêtes disponibles pour l'escorte (US-0904, sur 
     ]);
     // Ni le pigeon ni les souris d'un autre Territoire ; de la plus commune à la plus rare, puis par nom.
     expect(await betesDisponibles(pool, t)).toEqual([
-      { id: "poule", nom: "Poule", illustration: "especes/poule.webp", disponibles: 1, force: 9457, vitesse: 14, males: 0, femelles: 1, coupleReuni: false },
-      { id: "souris", nom: "Souris grise", illustration: "especes/souris.webp", disponibles: 3, force: 473, vitesse: 13, males: 2, femelles: 1, coupleReuni: false },
+      { id: "poule", nom: "Poule", illustration: "especes/poule.webp", disponibles: 1, force: 9457, vitesse: 14, males: 0, femelles: 1, coupleReuni: false, seule: "femelle" },
+      { id: "souris", nom: "Souris grise", illustration: "especes/souris.webp", disponibles: 3, force: 473, vitesse: 13, males: 2, femelles: 1, coupleReuni: false, seule: "femelle" },
     ]);
   });
 
@@ -84,7 +84,7 @@ describe.skipIf(!URL_TEST)("les Bêtes disponibles pour l'escorte (US-0904, sur 
     ]);
     expect(await betesDisponibles(pool, t)).toEqual([
       { id: "souris", nom: "Souris grise", illustration: "especes/souris.webp", disponibles: 4, force: 473, vitesse: 13, males: 4, femelles: 0, coupleReuni: false },
-      { id: rare.id, nom: rare.nom, illustration: null, disponibles: 1, force: forceDUneBete(rare), vitesse: rare.vitesse, males: 0, femelles: 1, coupleReuni: false },
+      { id: rare.id, nom: rare.nom, illustration: null, disponibles: 1, force: forceDUneBete(rare), vitesse: rare.vitesse, males: 0, femelles: 1, coupleReuni: false, seule: "femelle" },
     ]);
   });
 
@@ -162,6 +162,32 @@ describe.skipIf(!URL_TEST)("les Bêtes disponibles pour l'escorte (US-0904, sur 
       ["poule", false],
       ["souris", true],
     ]);
+  });
+
+  it("dit, tant que son Couple n'est pas réuni, le sexe dont l'Espèce n'a qu'une Bête, au Foyer et valide : celle qu'une escorte emmènerait (US-0961)", async () => {
+    const [t, voisin] = [(await nouveauTerritoire()).territoireId, (await nouveauTerritoire()).territoireId];
+    await ajouter(t, [
+      ["pigeon", "femelle", 1],
+      ["poule", "femelle", 2],
+      ["souris", "male", 1],
+      ["souris", "femelle", 1],
+    ]);
+    // La seule femelle de souris est partie en escorte : au Foyer, il ne reste que le seul mâle.
+    const { rows } = await pool.query<{ id: number }>(
+      `insert into expedition (territoire_id, case_id, part_le, trajet_minutes, sejour_minutes)
+       select $1, c.id, now(), 30, 60 from case_du_monde c where c.monde_id = $2 and c.chef_id is null order by c.id limit 1 returning id`,
+      [t, mondeId],
+    );
+    await pool.query("insert into expedition_escorte (expedition_id, espece_id, nombre, males) values ($1, 'souris', 1, 0)", [rows[0].id]);
+    // Couple réuni : le sexe ne compte plus.
+    await ajouter(voisin, [["pigeon", "male", 1]]);
+    await pool.query("insert into couple (territoire_id, espece_id, reuni_le) values ($1, 'pigeon', now())", [voisin]);
+    expect((await betesDisponibles(pool, t)).map((e) => [e.id, e.seule])).toEqual([
+      ["pigeon", "femelle"],
+      ["poule", undefined],
+      ["souris", "male"],
+    ]);
+    expect((await betesDisponibles(pool, voisin)).map((e) => [e.id, e.seule])).toEqual([["pigeon", undefined]]);
   });
 
   it("refuse un nombre de Bêtes négatif, un sexe inconnu, une Espèce inconnue, et deux lignes pour la même Espèce et le même sexe", async () => {

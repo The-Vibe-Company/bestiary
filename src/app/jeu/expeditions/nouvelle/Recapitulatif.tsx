@@ -31,6 +31,10 @@ const AUCUNE = "—";
 /** « Souris grise × 3 » : une Espèce de l'escorte et ses Bêtes qui partent, que le nombre ne quitte jamais (espaces insécables). */
 const uneEspece = (nom: string, nombre: number) => `${nom} × ${nombre}`;
 
+/** US-0961 : « Seule femelle de Poule : sans elle, pas de Couple. », pour la seule Bête d'un sexe qu'emmène l'escorte. */
+const seuleDeSonSexe = ({ nom, seule }: Pick<EspeceDisponible, "nom" | "seule">) =>
+  seule === "male" ? `Seul mâle de ${nom} : sans lui, pas de Couple.` : `Seule femelle de ${nom} : sans elle, pas de Couple.`;
+
 /**
  * US-0910 : la destination choisie, telle que le récapitulatif la montre : son Biome (null sous le brouillard) et sa
  * distance au Foyer. US-0911 : et sa Case, que « Partir » envoie.
@@ -62,6 +66,9 @@ export type BeteAChercher = { espece: string; force: number; rareteId: string; j
  * nommant, en braise au-dessus du retour prévu, gardée en vue même replié.
  * US-0976 : après la force de l'escorte, ses Éclaireurs, Espèce par Espèce, quand il y en a : ils n'y ajoutent rien, et
  * « Partir » les envoie aussi.
+ * US-0961 : quand l'escorte emmène la seule Bête d'un sexe d'une Espèce sans Couple (`seule`, betesDisponibles), une ligne
+ * le dit en nommant l'Espèce et le sexe, en braise au-dessus du retour prévu, gardée en vue même replié : un simple
+ * avertissement, « Partir » ne demande rien de plus. Les Éclaireurs ne combattent pas : ils ne la risquent pas.
  */
 export function Recapitulatif({
   libres,
@@ -94,6 +101,7 @@ export function Recapitulatif({
   const explorateurs = explorateursChoisis(recherche, libres);
   const choix = escorteChoisie(recherche, especes);
   const escorte = especes.filter((e) => choix.get(e.id)! > 0);
+  const risquees = escorte.filter((e) => e.seule && !e.coupleReuni);
   const eclaireurs = eclaireursChoisis(recherche, especes);
   const eclaireuses = especes.filter((e) => eclaireurs.get(e.id)! > 0);
   const force = sansEscorte(choix) ? null : forceDeLEscorte(escorte.map((e) => ({ force: e.force, nombre: choix.get(e.id)! })));
@@ -172,6 +180,13 @@ export function Recapitulatif({
         {/* L'aller, le séjour et le retour, chacun sa durée et son trait à sa mesure. */}
         <Frise durees={{ aller, sejour, retour: aller }} className={styles.frise} />
         <dl className={styles.retourPrevu}>
+          {/* US-0961 : la seule Bête d'un sexe d'une Espèce sans Couple, emmenée en escorte. */}
+          {risquees.map((e) => (
+            <div key={e.id} data-essentiel="" data-alerte="">
+              <dt>Attention</dt>
+              <dd>{seuleDeSonSexe(e)}</dd>
+            </div>
+          ))}
           {/* US-0949 : une Bête repérée partie avant l'arrivée prévue ne sera plus là. */}
           {betes.map((bete, i) =>
             horaire && bete.jusquA <= horaire.debut ? (

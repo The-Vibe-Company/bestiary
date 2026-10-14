@@ -18,6 +18,8 @@ import { ELEVAGE_ACQUIS } from "./elevage";
  * US-0956 : et si son Couple est réuni : le sexe ne compte plus. US-0953 : et ses Blessés au Foyer, qui guérissent sans être
  * disponibles (absent : aucun). US-0842 : et ses Bêtes affectées à leur Rôle, qui ne combattent plus (absent : aucune).
  * US-0976 : et si elle est Éclaireuse, son Rôle (US-0806) : ses Bêtes peuvent partir en Éclaireurs (absent : non).
+ * US-0961 : et, tant que son Couple n'est pas réuni, le sexe dont le joueur n'a qu'une Bête, au Foyer et valide : une
+ * escorte de l'Espèce l'emmènerait (absent : aucun).
  */
 export type EspeceDisponible = {
   id: string;
@@ -32,6 +34,7 @@ export type EspeceDisponible = {
   blesses?: number;
   affectees?: number;
   eclaireuse?: boolean;
+  seule?: Sexe;
 };
 
 /**
@@ -162,6 +165,12 @@ export const BLESSES_EN_GUERISON = `select ${blessesPlafonnes({
 })}`;
 
 /**
+ * US-0960 : les Bêtes valides au Foyer d'un sexe (`males` ou `femelles`), sur une ligne `x` d'AU_FOYER : celles du sexe au
+ * Foyer, moins ses Blessés, jamais moins de zéro.
+ */
+const VALIDES_DU_SEXE = (sexe: "males" | "femelles") => `(greatest(x.${sexe}_au_foyer, 0) - least(greatest(x.${sexe}_au_foyer, 0), x.blesses_${sexe}))`;
+
+/**
  * US-0904 : les Bêtes que le joueur peut emmener en escorte, Espèce par Espèce, lues à chaque affichage de l'écran
  * d'Expédition : l'effectif du Territoire, mâles et femelles ensemble (l'escorte ne choisit pas le sexe), moins les Bêtes
  * déjà sorties. Seules les Espèces qui en ont au moins une au Foyer, de la plus commune à la plus rare, puis par nom ;
@@ -180,26 +189,35 @@ export const BLESSES_EN_GUERISON = `select ${blessesPlafonnes({
  * valides sont affectées reste proposée, sans aucune disponible. Les disponibles sont les Bêtes qui peuvent combattre :
  * l'Attaque (étape 57) partira d'elles comme l'escorte, et la défense du Foyer contre une Incursion (étape 54) ne comptera
  * qu'elles, sans perte pour les affectées.
+ * US-0961 : tant que son Couple n'est pas réuni, une Espèce n'a au Foyer que des Bêtes d'un seul sexe (un mâle et une
+ * femelle au Foyer le réunissent aussitôt, src/monde/couple.ts), et c'est ce sexe que l'escorte emmène (src/expeditions/
+ * depart.ts) : quand le joueur ne possède qu'une Bête de ce sexe, au Foyer et valide, `seule` le dit, pour que le
+ * récapitulatif prévienne avant de la risquer. Rien quand le sexe des Bêtes au Foyer ne se sait pas (validesParSexe).
  */
 export async function betesDisponibles(base: Pool | PoolClient, territoireId: number, instant: Date = maintenant()): Promise<EspeceDisponible[]> {
   const [normale, soignee] = dureesDeGuerison();
   const { rows } = await base.query<Omit<EspeceDisponible, "force"> & { attaque: number; vie: number }>(
     `select es.id, es.nom, es.illustration, v.valides - v.affectees as disponibles, x.blesses, v.affectees,
-       es.attaque, es.vie, es.vitesse, x.males, x.femelles, x."coupleReuni", es.role_id = 'eclaireur' as eclaireuse
+       es.attaque, es.vie, es.vitesse, x.males, x.femelles, x."coupleReuni", es.role_id = 'eclaireur' as eclaireuse,
+       case when not x."coupleReuni" and x.sorties_sans_sexe = 0 and x.blesses_sans_sexe = 0 then
+         case when x.males = 1 and s.males = 1 then 'male' when x.femelles = 1 and s.femelles = 1 then 'femelle' end
+       end as seule
      from (${AU_FOYER}) x
      cross join lateral (select x.au_foyer - x.blesses as valides) w
      cross join lateral (select w.valides, least(coalesce(x.retenues, 0), w.valides) as affectees) v
+     cross join lateral (select ${VALIDES_DU_SEXE("males")} as males, ${VALIDES_DU_SEXE("femelles")} as femelles) s
      join espece es on es.id = x.espece_id
      join rarete r on r.id = es.rarete_id
      where x.au_foyer > 0
      order by r.rang, es.nom`,
     [territoireId, normale, instant, soignee],
   );
-  return rows.map(({ attaque, vie, blesses, affectees, eclaireuse, ...espece }) => ({
+  return rows.map(({ attaque, vie, blesses, affectees, eclaireuse, seule, ...espece }) => ({
     ...espece,
     ...(blesses ? { blesses } : {}),
     ...(affectees ? { affectees } : {}),
     ...(eclaireuse ? { eclaireuse } : {}),
+    ...(seule ? { seule } : {}),
     force: forceDUneBete({ attaque, vie }),
   }));
 }
@@ -233,8 +251,7 @@ export async function validesParSexe(base: Pool | PoolClient, territoireId: numb
   const [normale, soignee] = dureesDeGuerison();
   const { rows } = await base.query<{ especeId: string; males: number; femelles: number; connus: boolean }>(
     `select x.espece_id as "especeId", x.sorties_sans_sexe = 0 and x.blesses_sans_sexe = 0 as connus,
-       greatest(x.males_au_foyer, 0) - least(greatest(x.males_au_foyer, 0), x.blesses_males) as males,
-       greatest(x.femelles_au_foyer, 0) - least(greatest(x.femelles_au_foyer, 0), x.blesses_femelles) as femelles
+       ${VALIDES_DU_SEXE("males")} as males, ${VALIDES_DU_SEXE("femelles")} as femelles
      from (${AU_FOYER}) x
      where x.espece_id = any($5::text[]) and x.au_foyer > 0`,
     [territoireId, normale, instant, soignee, especes],

@@ -394,6 +394,43 @@ describe("revenir chercher une Bête repérée (US-0949)", () => {
   });
 });
 
+describe("prévenir avant de risquer une Bête précieuse (US-0961)", () => {
+  /** La seule femelle de Poule, et le seul mâle de Pigeon biset, de deux Espèces sans Couple. */
+  const POULE_SEULE: EspeceDisponible = { ...POULE, seule: "femelle" };
+  const PIGEON_SEUL: EspeceDisponible = { id: "pigeon", nom: "Pigeon biset", illustration: null, disponibles: 1, force: 2216, vitesse: 80, males: 1, femelles: 0, coupleReuni: false, seule: "male" };
+  const alertes = () => [...bloc().querySelectorAll("dl > [data-alerte]")].map((l) => l.querySelector("dd")!.textContent);
+
+  it("prévient, en nommant l'Espèce et le sexe, quand l'escorte emmène la seule Bête d'un sexe d'une Espèce sans Couple", () => {
+    ouvrir("?explorateurs=1&escorte=poule.1", { especes: [POULE_SEULE, SOURIS] });
+    expect(alertes()).toEqual(["Seule femelle de Poule : sans elle, pas de Couple."]);
+    cleanup();
+    ouvrir("?explorateurs=1&escorte=pigeon.1&escorte=souris.2", { especes: [POULE_SEULE, PIGEON_SEUL, SOURIS] });
+    expect(alertes()).toEqual(["Seul mâle de Pigeon biset : sans lui, pas de Couple."]);
+  });
+
+  it("le garde en vue, replié, au-dessus du retour prévu, sans rien retenir du départ", () => {
+    ouvrir("?explorateurs=1&escorte=poule.1", { especes: [POULE_SEULE, SOURIS] });
+    const essentielles = [...bloc().querySelectorAll("dl > [data-essentiel]")].map((l) => l.querySelector("dt")!.textContent);
+    expect(essentielles).toEqual(["Attention", "Retour prévu"]);
+    expect(partir().disabled).toBe(false);
+  });
+
+  it("ne dit rien tant que l'escorte ne l'emmène pas, ni pour une Espèce dont le Couple est réuni, ni sans seule Bête d'un sexe", () => {
+    ouvrir("?explorateurs=1&escorte=souris.2", { especes: [POULE_SEULE, SOURIS] });
+    expect(alertes()).toEqual([]);
+    choisir("?explorateurs=1&escorte=poule.1");
+    expect(alertes()).toHaveLength(1);
+    choisir("?explorateurs=1");
+    expect(alertes()).toEqual([]);
+    cleanup();
+    ouvrir("?explorateurs=1&escorte=poule.1", { especes: [{ ...POULE_SEULE, coupleReuni: true }, SOURIS] });
+    expect(alertes()).toEqual([]);
+    cleanup();
+    ouvrir("?explorateurs=1&escorte=poule.1", { especes: [POULE, SOURIS] });
+    expect(alertes()).toEqual([]);
+  });
+});
+
 describe("le récapitulatif sur un téléphone (US-0910)", () => {
   it("garde en vue, replié, l'heure de retour prévue, seule ligne essentielle, et « Partir », hors des lignes", () => {
     ouvrir("?explorateurs=2");

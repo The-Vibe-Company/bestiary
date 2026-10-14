@@ -97,6 +97,11 @@ section.recap {
   justify-content: space-between;
 }
 
+/* Le libellé ne se coupe jamais : c'est la phrase, à droite, qui passe à la ligne. */
+.retourPrevu dt {
+  flex: none;
+}
+
 .retourPrevu dd {
   margin: 0;
   color: var(--cuivre-clair);
@@ -104,12 +109,15 @@ section.recap {
   font-variant-numeric: tabular-nums;
 }
 
-/* US-0949 : une Bête repérée qui ne sera plus là à l'arrivée, en braise, au-dessus du retour prévu. */
-.retourPrevu [data-partie] {
+/* US-0949 : une Bête repérée qui ne sera plus là à l'arrivée, en braise, au-dessus du retour prévu. US-0961 : de même, la
+   seule Bête d'un sexe d'une Espèce sans Couple, emmenée en escorte. */
+.retourPrevu [data-partie],
+.retourPrevu [data-alerte] {
   margin-bottom: 9px;
 }
 
-.retourPrevu [data-partie] dd {
+.retourPrevu [data-partie] dd,
+.retourPrevu [data-alerte] dd {
   color: var(--braise);
   font-size: 14px;
   line-height: 1.25;
