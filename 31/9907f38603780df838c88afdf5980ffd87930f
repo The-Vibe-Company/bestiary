@@ -1,0 +1,21 @@
+src/expeditions/depart.ts
+  s_7c7d151152e4a5::t_8903d426b303bc 49-51
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_a42e4c686c1039 215-218
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "319907f38603780df838c88afdf5980ffd87930f",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
