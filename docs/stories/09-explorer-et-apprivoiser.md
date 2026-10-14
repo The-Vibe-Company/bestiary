@@ -746,6 +746,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0976 · Emmener des Éclaireurs
 **En tant que** joueur, **je veux** affecter des pigeons à leur Rôle d'Éclaireur au départ d'une Expédition, **afin de** mieux explorer sans les exposer au combat.
 
+- **Statut** : Livrée le 2026-10-14 (autopilot, Zewed/bestia-2#92, migration 0075). Sur l'écran d'Expédition, une Espèce Éclaireuse (le pigeon) propose, sous ses choix d'escorte, « − n + Éclaireurs » ; escorte et Éclaireurs ne dépassent jamais les disponibles, et le récapitulatif ajoute « Éclaireurs : Pigeon biset × 2 » sans changer la force. La liste des Expéditions en cours et la carte les montrent à part de l'escorte. Au combat, seule l'escorte compte, dans la force comme dans les pertes : les Éclaireurs fuient avec les explorateurs, ne sont jamais perdus, et sont de nouveau proposés au retour. Tranché : une table à part (`expedition_eclaireur`), que le combat ne lit pas ; les Éclaireurs ne règlent pas l'allure ; ni « Tous » ni « Aucun » ; le départ retient leur sexe comme pour l'escorte (US-0960) ; le récit ne les nomme pas encore (US-0972, US-0973). Aucune Recherche demandée.
 - **Débloquée par** : US-0904, US-0945
 - **Critères d'acceptation** :
   - Pour une Espèce Éclaireuse (le pigeon), l'écran d'Expédition propose de choisir combien de Bêtes partent comme Éclaireurs, à côté de l'escorte ; une même Bête est l'un ou l'autre, jamais les deux.
