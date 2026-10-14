@@ -295,3 +295,22 @@ describe("les Blessés de l'effectif (US-0952)", () => {
     expect(within(bloc()).queryByText(/Blessé/)).toBeNull();
   });
 });
+
+describe("les Bêtes affectées à leur Rôle (US-0842)", () => {
+  it("dit, sous les disponibles d'une Espèce, combien de ses Bêtes sont affectées : elles ne sont pas parmi les disponibles", () => {
+    render(<Escorte especes={[{ ...POULE, disponibles: 3, affectees: 2 }, SOURIS]} blesses={{ poule: [{ nombre: 1, dansMinutes: 60 }] }} />);
+    expect(textes().slice(1, 6)).toEqual(["Poule", "3 disponibles", "0 mâle · 1 femelle", "2 affectées", "1 Blessé, guéri dans 1 h"]);
+  });
+
+  it("une Espèce dont toutes les Bêtes valides sont affectées n'en propose aucune : ses affectées ne partent pas", () => {
+    render(<Escorte especes={[{ ...POULE, disponibles: 0, affectees: 1 }]} />);
+    expect(within(ligne("Poule")).getByText("0 disponible")).toBeTruthy();
+    expect(within(ligne("Poule")).getByText("1 affectée")).toBeTruthy();
+    expect(grises("Poule")).toEqual(["Une Bête de moins", "Une Bête de plus", "Toutes", "Aucune"]);
+  });
+
+  it("sans affectée, rien de plus", () => {
+    ecran();
+    expect(within(bloc()).queryByText(/affectée/)).toBeNull();
+  });
+});

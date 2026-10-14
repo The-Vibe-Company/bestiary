@@ -33,6 +33,9 @@ export function escorteChoisie(recherche: URLSearchParams, especes: Pick<EspeceD
 /** « 3 disponibles », « 1 disponible ». */
 const disponibles = (n: number) => `${n} disponible${n > 1 ? "s" : ""}`;
 
+/** US-0842 : « 1 affectée », « 2 affectées ». */
+const affectees = (n: number) => `${n} affectée${n > 1 ? "s" : ""}`;
+
 /** US-0937 : « 2 mâles · 1 femelle », « 0 mâle · 3 femelles ». */
 const sexes = ({ males, femelles }: Pick<EspeceDisponible, "males" | "femelles">) =>
   `${males} mâle${males > 1 ? "s" : ""} · ${femelles} femelle${femelles > 1 ? "s" : ""}`;
@@ -54,6 +57,8 @@ export const entier = (n: number) => new Intl.NumberFormat("fr-FR").format(n).re
  * US-0952 : puis chaque groupe de Blessés de l'Espèce au Foyer (`blesses`, par Espèce) et le temps qui lui reste avant sa
  * guérison ; rien sans Blessé. US-0953 : les Blessés ne sont pas parmi les disponibles, et ne partent pas ; une Espèce
  * dont toutes les Bêtes au Foyer sont blessées a sa ligne, sans aucune à choisir.
+ * US-0842 : avant les Blessés, combien de Bêtes de l'Espèce sont affectées à leur Rôle ; elles ne combattent plus, ne sont
+ * pas parmi les disponibles et ne partent pas ; rien sans affectée.
  */
 export function Escorte({ especes, blesses = {} }: { especes: EspeceDisponible[]; blesses?: Record<string, BlessesAffiches[]> }) {
   const recherche = useSearchParams();
@@ -87,6 +92,7 @@ export function Escorte({ especes, blesses = {} }: { especes: EspeceDisponible[]
                 <span id={idNom}>{e.nom}</span>
                 <span className={styles.disponibles}>{disponibles(e.disponibles)}</span>
                 {!e.coupleReuni && <span className={styles.disponibles}>{sexes(e)}</span>}
+                {e.affectees ? <span className={styles.disponibles}>{affectees(e.affectees)}</span> : null}
                 {(blesses[e.id] ?? []).map((groupe, i) => (
                   <span key={i} className={styles.disponibles}>
                     {blessesDans(groupe)}

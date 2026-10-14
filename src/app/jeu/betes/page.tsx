@@ -22,6 +22,9 @@ import { RoleDeLEspece } from "./RoleDeLEspece";
 
 export const metadata: Metadata = { title: "Bêtes" };
 
+/** US-0842 : « 1 affectée », « 2 affectées ». */
+const affectees = (nombre: number) => `${nombre} affectée${nombre > 1 ? "s" : ""}`;
+
 /** « 1 Bête », « 12 Bêtes ». */
 const betes = (nombre: number) => (nombre > 1 ? "Bêtes" : "Bête");
 
@@ -42,7 +45,8 @@ const betes = (nombre: number) => (nombre > 1 ? "Bêtes" : "Bête");
  *
  * US-0837 : au pied de la carte d'une Espèce dont le Rôle sert au Foyer (rolesAuFoyer, le Nourricier), son Rôle et le pas
  * du kit, « − affectées / effectif + », pour lui affecter des Bêtes (RoleDeLEspece) ; le lien vers la fiche reste sur le
- * reste de la carte, sans ses boutons.
+ * reste de la carte, sans ses boutons. US-0842 : sous le nom et la Rareté, avant les Blessés, combien de ses Bêtes sont
+ * affectées (« dont 2 affectées »), à part des autres, qui seules combattent ; rien sans affectée.
  *
  * Sur le fond du jeu, à la marge des autres écrans : le titre de l'écran, puis un panneau orné en bandeau, le mammouth
  * peint à droite, fondu vers la gauche, où se lisent le total en grand et les Places et leur jauge fine (qui ne sert
@@ -89,8 +93,8 @@ export default async function Betes() {
       {especes.length > 0 ? (
         <ul className={styles.especes} aria-label="Effectif">
           {especes.map((espece) => {
-            const lignes = blesses(espece.especeId, espece.effectif);
             const role = roles.get(espece.especeId);
+            const lignes = [...(role?.affectees ? [`dont ${affectees(role.affectees)}`] : []), ...blesses(espece.especeId, espece.effectif)];
             return (
               <li key={espece.especeId} className={`${kit.panneau} ${styles.carte}`}>
                 <Link

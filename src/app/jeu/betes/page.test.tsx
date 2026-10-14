@@ -262,7 +262,8 @@ describe("affecter des Bêtes à leur Rôle (US-0837)", () => {
     const html = renderToStaticMarkup(await Betes());
     expect(roles.rolesAuFoyer).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, MAINTENANT);
     const [poule, souris, pigeon] = especesMontrees(html);
-    expect(poule.texte).toBe("Poule · Commune · 5 · Nourricier · − · 2 / 5 · +");
+    // US-0842 : les affectées se lisent à part, sous le nom, comme les Blessés.
+    expect(poule.texte).toBe("Poule · Commune · dont 2 affectées · 5 · Nourricier · − · 2 / 5 · +");
     // Les autres n'ont aucun Rôle qui serve au Foyer : rien de plus sur leur carte.
     expect(souris.texte).toBe("Souris grise · Commune · 12");
     expect(pigeon.texte).toBe("Pigeon biset · Peu commune · 3");
@@ -297,5 +298,16 @@ describe("affecter des Bêtes à leur Rôle (US-0837)", () => {
     effectif.effectifParEspece.mockResolvedValue([]);
     await Betes();
     expect(roles.rolesAuFoyer).not.toHaveBeenCalled();
+  });
+
+  it("sépare, Espèce par Espèce, les Bêtes affectées des autres : « dont 2 affectées » sous le nom, rien sans affectée (US-0842)", async () => {
+    connecte([["poule", { role: NOURRICIER, affectees: 1, valides: 5 }]]);
+    let [poule] = especesMontrees(renderToStaticMarkup(await Betes()));
+    expect(poule.texte).toBe("Poule · Commune · dont 1 affectée · 5 · Nourricier · − · 1 / 5 · +");
+    expect(poule.nom).toBe("Poule, Commune, 5 Bêtes, dont 1 affectée");
+    connecte([["poule", { role: NOURRICIER, affectees: 0, valides: 5 }]]);
+    [poule] = especesMontrees(renderToStaticMarkup(await Betes()));
+    expect(poule.texte).toBe("Poule · Commune · 5 · Nourricier · − · 0 / 5 · +");
+    expect(poule.nom).toBe("Poule, Commune, 5 Bêtes");
   });
 });

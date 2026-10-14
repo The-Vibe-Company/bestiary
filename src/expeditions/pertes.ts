@@ -88,8 +88,8 @@ async function subirLeCombat(base: Pool | PoolClient, { expeditionId, especeId }
     ].filter((s) => s.nombre > 0);
   });
   if (sorties.length === 0) return;
-  // US-0837 : les Bêtes tuées étaient sorties en escorte, pas au Foyer : les Bêtes affectées à leur Rôle, bornées au départ
-  // (bornerLesAffectations, src/monde/roles.ts), n'en changent pas. Qui retire des Bêtes valides du Foyer doit les borner.
+  // US-0837 : les Bêtes tuées étaient sorties en escorte, pas au Foyer ; US-0842 : jamais une Bête affectée à son Rôle, que
+  // l'escorte n'emmène pas (src/monde/roles.ts). Qui retire des Bêtes valides du Foyer doit borner les affectées.
   await base.query(
     `update effectif e set nombre = e.nombre - v.nombre from unnest($2::text[], $3::sexe[], $4::int[]) as v(espece_id, sexe, nombre)
      where e.territoire_id = $1 and e.espece_id = v.espece_id and e.sexe = v.sexe`,

@@ -141,10 +141,10 @@ describe.skipIf(!URL_TEST)("voir l'effectif par Espèce, sur base (US-0810)", ()
       ["pigeon", "male", 2],
     ]);
     // Le pigeon est Éclaireur : il s'affecte au départ d'une Expédition (US-0976), pas d'ici.
-    const avant = `Bêtes · 5 · Bêtes · Places : · 112 / ${TOTAL} · Pigeon biset · Commune · 2 · Poule · Commune · 3 · Nourricier · − · `;
-    expect((await page(t.territoireId)).texte).toBe(`${avant}0 / 3 · +`);
+    const avant = `Bêtes · 5 · Bêtes · Places : · 112 / ${TOTAL} · Pigeon biset · Commune · 2 · Poule · Commune · `;
+    expect((await page(t.territoireId)).texte).toBe(`${avant}3 · Nourricier · − · 0 / 3 · +`);
     expect(await affecterUneBete(pool, t.territoireId, "poule", t.ne)).toBe(true);
-    // Affectée, la poule reste dans l'effectif, avec ses Places.
-    expect((await page(t.territoireId)).texte).toBe(`${avant}1 / 3 · +`);
+    // Affectée, la poule reste dans l'effectif, avec ses Places ; US-0842 : elle se lit à part des autres.
+    expect((await page(t.territoireId)).texte).toBe(`${avant}dont 1 affectée · 3 · Nourricier · − · 1 / 3 · +`);
   });
 });

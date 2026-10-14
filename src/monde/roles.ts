@@ -5,10 +5,12 @@
 // l'effectif, ne le sont pas (décidé le 2026-10-13).
 //
 // Le nombre retenu (table affectation) ne dépasse jamais les Bêtes valides au Foyer : il ne change qu'à « + » et « − », et
-// aux deux seuls instants où des Bêtes valides quittent le Foyer, qui le bornent (bornerLesAffectations) : le départ d'une
-// escorte (src/expeditions/depart.ts), qui emmène d'abord les Bêtes non affectées, et la réunion d'un Couple
-// (src/monde/couple.ts). Une affectée qui part en escorte n'est donc plus affectée, même rentrée. Les Blessés sont des
-// Bêtes de l'escorte, sorties dès leur départ, et les Bêtes tuées aussi. Côté serveur uniquement.
+// à la réunion d'un Couple (src/monde/couple.ts), qui le borne (bornerLesAffectations). US-0842 : une Bête affectée ne
+// combat plus ; elle n'est pas disponible pour l'escorte (betesDisponibles), et le départ ne l'emmène jamais. Les Blessés
+// sont des Bêtes de l'escorte, et les Bêtes tuées aussi. Tout ce qui retirera un jour des Bêtes valides du Foyer devra
+// borner les affectées de même ; la défense du Foyer (étape 54) et l'Attaque (étape 57) ne compteront que les disponibles.
+// Les Éclaireurs (US-0976), affectés à leur Rôle au départ d'une Expédition, suivent la même règle : seule l'escorte
+// (expedition_escorte) combat. Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
 import { dureesDeGuerison } from "./blesses";
@@ -125,8 +127,8 @@ export async function retirerUneBete(pool: Pool, territoireId: number, especeId:
 /**
  * US-0837 : borne les Bêtes affectées de chaque Espèce du Territoire à ses Bêtes valides au Foyer à l'instant du jeu
  * `instant`, aucune pour une Espèce dont toutes les Bêtes sont en Réserve. Appelée là où des Bêtes valides quittent le
- * Foyer, dans leur transaction : au départ d'une escorte (src/expeditions/depart.ts), qui emmène ainsi d'abord les Bêtes
- * non affectées, et à la réunion d'un Couple (src/monde/couple.ts). Ne touche jamais une Espèce qui en garde assez.
+ * Foyer, dans leur transaction : à la réunion d'un Couple (src/monde/couple.ts). US-0842 : le départ d'une escorte n'en a
+ * plus besoin, il n'emmène jamais de Bête affectée. Ne touche jamais une Espèce qui en garde assez.
  */
 export async function bornerLesAffectations(client: PoolClient, territoireId: number, instant: Date): Promise<void> {
   await client.query(
