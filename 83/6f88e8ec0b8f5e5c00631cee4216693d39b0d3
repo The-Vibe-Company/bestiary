@@ -1,0 +1,19 @@
+src/expeditions/depart.db.test.ts
+  s_7c7d151152e4a5::t_d2b85e8eeea6ac 7,83-103,313-314,380-381,383-385
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "836f88e8ec0b8f5e5c00631cee4216693d39b0d3",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
