@@ -37,7 +37,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0804 · Lire l'attaque, la vie, la vitesse et la charge
 **En tant que** joueur, **je veux** lire les chiffres de combat et de transport d'une Espèce, **afin de** savoir ce que vaut chacune de ses Bêtes.
 
-- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#56). Sous l'effectif, la fiche d'une Espèce donne son Attaque, sa Vie, sa Vitesse (en km/h) et sa Charge, avec les valeurs de la base, à la française (« 14 953 », « 87,5 »). Tranché : une Espèce sans masse ou sans vitesse ne peut pas entrer en base (les données la refusent) ; la charge s'affiche sans unité, son explication vient avec US-0807. Reste : l'ordre de « Fermer » sur un téléphone couché, à revoir avec US-0807.
+- **Statut** : Livrée le 2026-10-12 (autopilot, Zewed/bestia-2#56). Sous l'effectif, la fiche d'une Espèce donne son Attaque, sa Vie, sa Vitesse (en km/h) et sa Charge, avec les valeurs de la base, à la française (« 14 953 », « 87,5 »). Tranché : une Espèce sans masse ou sans vitesse ne peut pas entrer en base (les données la refusent) ; la charge s'affiche sans unité, son explication vient avec US-0807. L'ordre de « Fermer » sur un téléphone couché est réglé avec US-0807 (au clavier, « Fermer » vient en dernier).
 - **Débloquée par** : US-0803
 - **Critères d'acceptation** :
   - La fiche affiche l'attaque, la vie, la vitesse et la charge de l'Espèce, avec les valeurs enregistrées pour elle.
@@ -66,6 +66,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0807 · Comprendre une caractéristique
 **En tant que** nouveau joueur, **je veux** qu'on m'explique chaque caractéristique d'une Espèce, **afin de** comprendre ce que veulent dire les chiffres.
 
+- **Statut** : Livrée le 2026-10-14 (autopilot, Zewed/bestia-2#86). Sur la fiche d'une Espèce, le nom de l'Effectif et de chaque caractéristique (Attaque, Vie, Vitesse, Charge, Taille, Régime, Entretien, Habitat, Rôle) est souligné en pointillé ; le toucher ouvre une explication d'une phrase sous sa ligne (« Une Expédition avance au pas de la Bête la plus lente de son escorte, jamais plus vite que ses explorateurs. »). Elle se ferme d'un toucher ailleurs, de sa croix, d'Échap ou d'un second toucher ; une seule à la fois ; clavier et lecteur d'écran compris. Tranché : la fermeture se fait au doigt levé, jamais pendant le geste, pour que rien ne glisse sous le doigt, et un défilement ne la ferme pas ; Habitat et Rôle ne disent que ce qui existe aujourd'hui. Vérifié en émulation tactile, pas sur un vrai iPhone.
 - **Débloquée par** : US-0804, US-0805, US-0806
 - **Critères d'acceptation** :
   - Toucher le nom d'une caractéristique affiche une explication d'une phrase (par exemple, pour la charge : ce qu'une Bête peut porter).
@@ -160,6 +161,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0815 · Lancer un Élevage
 **En tant que** joueur, **je veux** lancer l'Élevage de la quantité choisie, **afin de** voir grandir mon effectif.
 
+- **Statut** : Livrée le 2026-10-14 (autopilot, Zewed/bestia-2#88, migration 0073). Avec un éleveur libre, « Élever » lance la quantité choisie : le coût total quitte aussitôt les Stocks de Nourriture et la barre du haut le montre (Végétaux « 1 000 PLEIN » → « 160 »), le bloc dit « Élevage lancé : 1 Bête, confié à Hael. », l'éleveur passe « à l'Élevage · Poule », et l'Élevage démarre à l'heure de jeu du clic ; un double clic ne lance qu'un Élevage et ne fait payer qu'une fois (bouton grisé pendant la demande, Territoire tenu côté serveur). Tranché : une seule transaction relit le Couple, l'absence d'Élevage en cours de l'Espèce (un éleveur par Espèce, US-0844), l'éleveur et la Nourriture, et un refus ne garde rien ni ne fait rien payer ; un omnivore paie d'abord sur le Stock le plus plein ; un éleveur à l'Élevage ne part pas en Famine, comme un explorateur parti (US-0834). Nouvelle table `elevage`. Reste : après un lancement, le bloc dit « Aucun éleveur libre. » jusqu'à ce qu'US-0818 montre l'Élevage en cours ; le refus faute de Nourriture à l'avance est US-0816.
 - **Débloquée par** : US-0814, US-0843
 - **Critères d'acceptation** :
   - Le bouton « Élever » retire aussitôt le coût total des stocks, et la barre du haut se met à jour.
@@ -385,7 +387,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0837 · Affecter une Bête à son Rôle
 **En tant que** joueur, **je veux** affecter des Bêtes à leur Rôle, comme je donne un Métier à un Habitant, **afin de** tirer d'elles autre chose que leur force.
 
-- **Statut** : Livrée le 2026-10-13 (autopilot, Zewed/bestia-2#85, migration 0070). Sur la page Bêtes, la carte d'une Espèce dont le Rôle sert au Foyer (aujourd'hui la poule, Nourricier) montre son Rôle et le pas du kit « − affectées / effectif + » (« 3 / 6 ») ; l'Éclaireur s'affecte au départ d'une Expédition (US-0976). Seules les Bêtes valides au Foyer s'affectent : ni sorties en escorte, ni Blessées, soignées ou non ; une Bête affectée reste dans l'effectif, mange et occupe ses Places. Tranché : les Bêtes d'un Couple en Réserve ne s'affectent pas (elles ont quitté l'effectif) ; seul le Nourricier sert au Foyer pour l'instant (Porteur et Bâtisseur n'ont encore rien à servir) ; le compte d'affectées ne dépasse jamais les Bêtes valides : tout ce qui retire des Bêtes valides du Foyer appelle `bornerLesAffectations` dans sa transaction (départ d'une escorte, formation d'un Couple ; plus tard les étapes 54 et 57), et l'escorte prend d'abord les Bêtes non affectées.
+- **Statut** : Livrée le 2026-10-13 (autopilot, Zewed/bestia-2#85, migration 0070). Sur la page Bêtes, la carte d'une Espèce dont le Rôle sert au Foyer (aujourd'hui la poule, Nourricier) montre son Rôle et le pas du kit « − affectées / effectif + » (« 3 / 6 ») ; l'Éclaireur s'affecte au départ d'une Expédition (US-0976). Seules les Bêtes valides au Foyer s'affectent : ni sorties en escorte, ni Blessées, soignées ou non ; une Bête affectée reste dans l'effectif, mange et occupe ses Places. Tranché : les Bêtes d'un Couple en Réserve ne s'affectent pas (elles ont quitté l'effectif) ; seul le Nourricier sert au Foyer pour l'instant (Porteur et Bâtisseur n'ont encore rien à servir) ; le compte d'affectées ne dépasse jamais les Bêtes valides : tout ce qui retire des Bêtes valides du Foyer appelle `bornerLesAffectations` dans sa transaction (formation d'un Couple ; plus tard les étapes 54 et 57) ; depuis US-0842, l'escorte ne prend plus aucune Bête affectée.
 - **Débloquée par** : US-0806, US-0810
 - **Critères d'acceptation** :
   - Sur la page Bêtes, une Espèce dont le Rôle sert au Foyer (Nourricier) propose « + » et « − » pour affecter des Bêtes à son Rôle, avec le compte « affectées / effectif » ; un Éclaireur, lui, s'affecte au départ d'une Expédition (US-0976).
@@ -433,6 +435,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0842 · Une Bête affectée ne combat plus
 **En tant que** joueur, **je veux** qu'une Bête affectée à son Rôle reste hors des combats, **afin de** savoir sur quelles Bêtes compter pour me défendre et explorer.
 
+- **Statut** : Livrée le 2026-10-14 (autopilot, Zewed/bestia-2#91). Une Bête affectée à son Rôle n'est plus proposée en escorte : le bloc Escorte dit « 2 disponibles · 3 affectées », « Toutes » ne prend que les disponibles, et un départ qui en emmènerait une est refusé ; une Espèce dont toutes les Bêtes valides sont affectées reste listée, sans rien à choisir. La page Bêtes sépare les affectées, Espèce par Espèce (« dont 3 affectées »). Tranché : la défense du Foyer (étape 54) et l'Attaque (étape 57) n'existent pas encore ; la règle est écrite là où elles la liront (`betesDisponibles`, en-tête de `src/monde/roles.ts`) : elles partiront des disponibles, sans les affectées, qui ne subiront aucune perte. Les Éclaireurs (US-0976) suivent la même règle.
 - **Débloquée par** : US-0837
 - **Critères d'acceptation** :
   - Une Bête affectée à son Rôle n'est plus proposée en escorte (US-0904), et ne partira pas à l'Attaque (étape 57).

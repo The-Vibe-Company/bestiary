@@ -39,6 +39,10 @@ Lis d'abord `AGENTS.md` (ce Next.js 16 a des changements cassants ; les guides s
 - Une constante SQL de module qui lit les exports d'un autre module casse les essais qui moquent ce module : construis la requête à l'appel (comme `src/monde/couple.ts`).
 - Le relecteur isolé ne lance aucune commande git qui déplace HEAD (`checkout`, `switch`, `reset`) : lecture seule.
 - Tout ce qui retire des Bêtes valides du Foyer appelle `bornerLesAffectations` (`src/monde/roles.ts`) dans sa transaction (US-0837).
+- Un essai qui doit modifier une table du jeu (`espece`, `biome`) le fait dans une copie propre à sa transaction (`create temp table espece on commit drop as table public.espece`, lue avant la table du jeu), jamais dans la table partagée que les autres fichiers rechargent (#89).
+- Avant de changer le balisage d'une page, cherche dans tous les essais ceux qui la lisent : d'autres dossiers la parcourent aussi.
+- Une explication ou un menu en ligne ne se ferme jamais pendant le geste (au `pointerdown`) : ce qui est dessous glisserait sous le doigt et recevrait le toucher. Ferme au doigt levé ou au clic, et avale le clic qui suit ; Safari sur iPhone n'envoie pas de clic au document pour un toucher sur du texte.
+- Sous forte charge, plusieurs gros fichiers sur base relancés ensemble dépassent leurs délais en cascade : compare la durée d'un fichier sur ta branche et sur main avant de soupçonner ton changement.
 - Tout état que lisent plusieurs Territoires (présence sur une Case, force d'escorte, départ d'une Bête) se prouve par un essai à deux joueurs sur une Case partagée, rattrapés dans les deux ordres.
 - Arrête tes serveurs par leurs PID, jamais par leur nom (`pkill -f …` arrête aussi ceux des autres agents). Un critère « sur mobile » se vérifie aussi téléphone couché.
 
