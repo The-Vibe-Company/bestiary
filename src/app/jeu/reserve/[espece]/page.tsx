@@ -12,7 +12,7 @@ import { getPool } from "@/db";
 import { blessesAuFoyer } from "@/monde/blesses";
 import { blessesAffiches, blessesDans } from "@/monde/blesses-affiches";
 import { coutDUneBeteElevee, dureeDUneBeteEleveeMinutes, maxAElever } from "@/monde/cout-d-elevage";
-import { especeDuTerritoire, type Regime } from "@/monde/effectif";
+import { blessesParEspece, especeDuTerritoire, type Regime } from "@/monde/effectif";
 import { elevageAcquis, eleveurLibre } from "@/monde/elevage";
 import { placesDeLHabitat } from "@/monde/habitat";
 import { caracteristiqueAffichee as nombre } from "@/monde/quantite";
@@ -56,7 +56,8 @@ const IDENTIFIANT = /^[a-z0-9_]{1,64}$/;
  * ses seules Bêtes forment le Couple. Ouverte depuis la page Bêtes (`?depuis=betes`), « Fermer » y ramène.
  *
  * US-0952 : sous l'effectif, avant les caractéristiques, chaque groupe de Blessés au Foyer de l'Espèce et le temps qui lui
- * reste avant sa guérison, comme sur la page Bêtes, en note discrète ; rien sans Blessé.
+ * reste avant sa guérison, comme sur la page Bêtes, en note discrète ; rien sans Blessé. US-0960 : jamais plus que ses
+ * Blessés au Foyer (blessesParEspece).
  *
  * US-0804 : sous l'effectif, ses caractéristiques telles que la base les a enregistrées, les mêmes pour tous les
  * joueurs : l'attaque, la vie, la vitesse en km/h et la charge, un nom et une valeur chacune, sans phrase à vue. Toutes
@@ -90,7 +91,9 @@ export default async function FicheDeLEspece({
   const retour = (await searchParams).depuis === "betes" ? "/jeu/betes" : "/jeu/reserve";
   const instant = maintenant();
   const groupes = fiche.effectif > 0 && territoireId !== null ? ((await blessesAuFoyer(getPool(), territoireId, instant)).get(fiche.especeId) ?? []) : [];
-  const blesses = blessesAffiches(groupes, instant, fiche.effectif);
+  // US-0960 : jamais plus que ses Blessés au Foyer, sexe par sexe (un Blessé parti en Réserve avec son Couple n'y est plus).
+  const plafond = groupes.length > 0 && territoireId !== null ? ((await blessesParEspece(getPool(), territoireId, instant)).get(fiche.especeId) ?? 0) : 0;
+  const blesses = blessesAffiches(groupes, instant, plafond);
   return (
     <main className={styles.page}>
       <article className={`${kit.panneau} ${styles.fiche}`}>

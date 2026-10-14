@@ -13,7 +13,7 @@ import { PlacesDeLHabitat } from "@/components/PlacesDeLHabitat";
 import { getPool } from "@/db";
 import { blessesAuFoyer, type GroupeDeBlesses } from "@/monde/blesses";
 import { blessesAffiches, blessesDans } from "@/monde/blesses-affiches";
-import { effectifParEspece } from "@/monde/effectif";
+import { blessesParEspece, effectifParEspece } from "@/monde/effectif";
 import { placesDeLHabitat } from "@/monde/habitat";
 import { type RoleAuFoyer, rolesAuFoyer } from "@/monde/roles";
 import { maintenant } from "@/temps/horloge";
@@ -34,7 +34,8 @@ const betes = (nombre: number) => (nombre > 1 ? "Bêtes" : "Bête");
  * effectif. Les Bêtes d'un Couple, en Réserve, n'y comptent pas. Toucher une Espèce ouvre sa fiche (US-0803), qui se
  * referme ici. Sans session, la garde mène à la connexion, qui ramène ici. US-0952 : sous le nom et la Rareté d'une Espèce,
  * chaque groupe de ses Blessés au Foyer (blessesAuFoyer, à l'heure du jeu, jamais plus que son effectif) et le temps qui lui
- * reste avant sa guérison : « dont 3 Blessés, guéris dans 5 h » ; rien sans Blessé.
+ * reste avant sa guérison : « dont 3 Blessés, guéris dans 5 h » ; rien sans Blessé. US-0960 : jamais plus que ses Blessés
+ * au Foyer (blessesParEspece) : un Blessé parti en Réserve avec son Couple n'en est plus un ici.
  *
  * US-0811 : tant que le joueur n'a aucune Bête, la page, sobre, dit seulement « Aucune Bête pour l'instant », sans autre
  * phrase, avec un bouton « Envoyer une Expédition » vers l'écran d'Expédition (US-0901), comme la Réserve vide (US-0809) ;
@@ -61,7 +62,9 @@ export default async function Betes() {
   const especes = territoireId === null ? [] : await effectifParEspece(getPool(), territoireId);
   const instant = maintenant();
   const groupes = territoireId === null || especes.length === 0 ? new Map<string, GroupeDeBlesses[]>() : await blessesAuFoyer(getPool(), territoireId, instant);
-  const blesses = (especeId: string, effectif: number) => blessesAffiches(groupes.get(especeId) ?? [], instant, effectif).map((g) => `dont ${blessesDans(g)}`);
+  // US-0960 : jamais plus de Blessés que l'Espèce n'en a au Foyer, sexe par sexe (un Blessé parti en Réserve n'y est plus).
+  const plafonds = groupes.size === 0 || territoireId === null ? new Map<string, number>() : await blessesParEspece(getPool(), territoireId, instant);
+  const blesses = (especeId: string) => blessesAffiches(groupes.get(especeId) ?? [], instant, plafonds.get(especeId) ?? 0).map((g) => `dont ${blessesDans(g)}`);
   const total = especes.reduce((somme, espece) => somme + espece.effectif, 0);
   const places = territoireId === null || especes.length === 0 ? null : await placesDeLHabitat(getPool(), territoireId);
   const roles = territoireId === null || especes.length === 0 ? new Map<string, RoleAuFoyer>() : await rolesAuFoyer(getPool(), territoireId, instant);
@@ -94,7 +97,7 @@ export default async function Betes() {
         <ul className={styles.especes} aria-label="Effectif">
           {especes.map((espece) => {
             const role = roles.get(espece.especeId);
-            const lignes = [...(role?.affectees ? [`dont ${affectees(role.affectees)}`] : []), ...blesses(espece.especeId, espece.effectif)];
+            const lignes = [...(role?.affectees ? [`dont ${affectees(role.affectees)}`] : []), ...blesses(espece.especeId)];
             return (
               <li key={espece.especeId} className={`${kit.panneau} ${styles.carte}`}>
                 <Link

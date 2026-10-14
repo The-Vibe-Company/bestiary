@@ -17,7 +17,11 @@ const chefs = vi.hoisted(() => ({
 vi.mock("@/chefs/chef", () => chefs);
 // L'Espèce de la fiche, avec son effectif, lue sur base (page.db.test.tsx) : ici, ce que la fiche en montre. US-0810 :
 // une Espèce dont le joueur a des Bêtes, ou dont il a réuni le Couple.
-const effectif = vi.hoisted(() => ({ especeDuTerritoire: vi.fn(async (): Promise<FicheDEspece | null> => null) }));
+// US-0960 : et ses Blessés au Foyer, que les groupes affichés ne dépassent jamais.
+const effectif = vi.hoisted(() => ({
+  especeDuTerritoire: vi.fn(async (): Promise<FicheDEspece | null> => null),
+  blessesParEspece: vi.fn(async () => new Map<string, number>()),
+}));
 vi.mock("@/monde/effectif", () => effectif);
 // US-0952 : les Blessés au Foyer, lus sur base (src/monde/blesses.db.test.ts), à l'heure du jeu de la fiche.
 const blesses = vi.hoisted(() => ({
@@ -123,10 +127,17 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
   it("distingue, sous l'effectif, chaque groupe de Blessés au Foyer et le temps qui lui reste avant sa guérison (US-0952)", async () => {
     connecte();
     blesses.blessesAuFoyer.mockResolvedValueOnce(new Map([["poule", [{ nombre: 3, gueriLe: new Date("2026-10-09T12:42:13.250Z") }]]]));
+    effectif.blessesParEspece.mockResolvedValueOnce(new Map([["poule", 3]]));
     const html = await ouvrir("poule");
     expect(blesses.blessesAuFoyer).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, MAINTENANT);
+    expect(effectif.blessesParEspece).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, MAINTENANT);
     // Sous l'effectif et son explication, cachée tant qu'on ne la demande pas (US-0807).
     expect(html).toMatch(/<strong[^>]*>12<\/strong><\/p><p[^>]*hidden=""[^>]*>.*?<\/p><p[^>]*>dont 3 Blessés, guéris dans 5 h<\/p>/);
+    // US-0960 : un Blessé parti en Réserve avec son Couple n'est plus au Foyer : deux seulement.
+    connecte();
+    blesses.blessesAuFoyer.mockResolvedValueOnce(new Map([["poule", [{ nombre: 3, gueriLe: new Date("2026-10-09T12:42:13.250Z") }]]]));
+    effectif.blessesParEspece.mockResolvedValueOnce(new Map([["poule", 2]]));
+    expect(await ouvrir("poule")).toMatch(/<p[^>]*>dont 2 Blessés, guéris dans 5 h<\/p>/);
     // Sans Blessé, rien de plus.
     connecte();
     expect(await ouvrir("poule")).not.toContain("Blessé");
@@ -135,6 +146,7 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
   it("dit les Blessés soignés à leur retour, et le temps plus court qui leur reste (US-0955)", async () => {
     connecte();
     blesses.blessesAuFoyer.mockResolvedValueOnce(new Map([["poule", [{ nombre: 2, gueriLe: new Date("2026-10-09T12:42:13.250Z"), soignes: true }]]]));
+    effectif.blessesParEspece.mockResolvedValueOnce(new Map([["poule", 2]]));
     expect(await ouvrir("poule")).toMatch(/<strong[^>]*>12<\/strong><\/p><p[^>]*hidden=""[^>]*>.*?<\/p><p[^>]*>dont 2 Blessés soignés, guéris dans 5 h<\/p>/);
   });
 

@@ -62,7 +62,9 @@ export function blessesParmi(nombre: number): number {
 /**
  * US-0944 : combien de mâles et de femelles quittent l'effectif d'une Espèce (`effectif`, ses mâles et ses femelles)
  * quand l'escorte en perd `nombre` : l'escorte ne choisit pas le sexe (US-0937), chaque Bête perdue est donc prise au sexe
- * le plus nombreux, un mâle à égalité (décidé pour US-0944) ; jamais plus que l'effectif n'en compte.
+ * le plus nombreux, un mâle à égalité (décidé pour US-0944) ; jamais plus que l'effectif n'en compte. US-0960 : la même
+ * règle dit quelles Bêtes valides partent en escorte (src/expeditions/depart.ts), et quelles Bêtes de l'escorte partie
+ * meurent ou sont blessées au combat (src/expeditions/pertes.ts) ; malesPris (src/monde/effectif.ts) l'écrit en SQL.
  */
 export function sexesDesPertes(effectif: { males: number; femelles: number }, nombre: number): { males: number; femelles: number } {
   const reste = { ...effectif };

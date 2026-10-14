@@ -287,7 +287,8 @@ describe.skipIf(!URL_TEST)("réunir le Couple (US-0956, sur base)", () => {
            ($1, 'pigeon', 'male', 1), ($1, 'pigeon', 'femelle', 1)`,
         [t.territoireId],
       );
-      // Une souris et une poule sorties en escorte d'une Expédition encore en cours, au sexe que l'escorte ne dit pas.
+      // Une souris et une poule sorties en escorte d'une Expédition encore en cours, au sexe que l'escorte ne dit pas : partie
+      // avant que le départ ne retienne le sexe de son escorte (US-0960, src/monde/couple-absent.db.test.ts).
       const { rows } = await pool.query<{ id: number }>(
         `insert into expedition (territoire_id, case_id, part_le, trajet_minutes, sejour_minutes)
          select $1, c.id, $2, 30, 60 from case_du_monde c where c.monde_id = $3 and c.chef_id is null order by c.id limit 1 returning id`,

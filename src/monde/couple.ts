@@ -7,7 +7,7 @@
 import "server-only";
 import type { Pool, PoolClient } from "pg";
 import { inscrireAuBestiaire } from "@/bestiaire/bestiaire";
-import { BETES_SORTIES } from "./effectif";
+import { FEMELLES_SORTIES, MALES_SORTIS } from "./effectif";
 import { ELEVAGE_ACQUIS } from "./elevage";
 import { bornerLesAffectations } from "./roles";
 
@@ -26,11 +26,14 @@ export type CoupleReuni = { especeId: string; reuniLe: Date };
  * dans la transaction du temps qui avance : le même Couple, au même instant, en direct, au rattrapage ou par la tâche
  * planifiée.
  *
- * Les Bêtes d'une escorte en cours ne sont pas au Foyer (BETES_SORTIES). L'escorte ne choisit pas le sexe : le Couple ne
- * se forme que si un mâle et une femelle y sont sûrement, quelles que soient les Bêtes sorties, soit plus de mâles que de
- * Bêtes sorties de l'Espèce, et plus de femelles ; sinon au retour de l'escorte, qui repasse par ici. Jamais une Bête
- * sortie n'entre en Réserve ; mais faute de connaître leur sexe, le Couple peut attendre ce retour alors que son mâle et
- * sa femelle sont déjà au Foyer (deux mâles, dont un sorti, puis une femelle) : US-0960 dira mieux les absents.
+ * Les Bêtes d'une escorte en cours ne sont pas au Foyer. US-0960 : le départ retient le sexe de son escorte, et le combat
+ * en prend ses mortes (MALES_SORTIS, FEMELLES_SORTIES) : le Couple se forme dès qu'un mâle et une femelle sont au Foyer,
+ * quelles que soient les Bêtes encore dehors. La seule Bête d'un sexe sortie en escorte réunit le Couple à son retour, si
+ * elle revient vivante ; morte au combat, elle ne le réunit jamais, et l'Espèce reste « apprivoisée ». Jamais une Bête
+ * sortie n'entre en Réserve. Une escorte partie avant US-0960, sans sexe retenu, compte encore pour l'un et pour l'autre.
+ * US-0960 : un Blessé au Foyer (US-0951) y est : le Couple se forme aussitôt, sans attendre sa guérison, et il guérit en
+ * Réserve ; parmi plusieurs Bêtes d'un sexe, le Couple prend d'abord une valide (les Blessés de l'Espèce au Foyer ne
+ * dépassent jamais ses Bêtes au Foyer).
  */
 export async function reunirLesCouples(client: PoolClient, territoireId: number, le: Date): Promise<string[]> {
   const { rows } = await client.query<{ especeId: string }>(
@@ -39,8 +42,8 @@ export async function reunirLesCouples(client: PoolClient, territoireId: number,
        from effectif e
        where e.territoire_id = $1 and not ${ELEVAGE_ACQUIS}
        group by e.territoire_id, e.espece_id
-       having coalesce(sum(e.nombre) filter (where e.sexe = 'male'), 0) > (${BETES_SORTIES})
-         and coalesce(sum(e.nombre) filter (where e.sexe = 'femelle'), 0) > (${BETES_SORTIES})
+       having coalesce(sum(e.nombre) filter (where e.sexe = 'male'), 0) > (${MALES_SORTIS})
+         and coalesce(sum(e.nombre) filter (where e.sexe = 'femelle'), 0) > (${FEMELLES_SORTIES})
      ),
      reunis as (
        insert into couple (territoire_id, espece_id, reuni_le) select $1, espece_id, $2 from a_reunir

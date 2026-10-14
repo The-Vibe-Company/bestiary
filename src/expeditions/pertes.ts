@@ -45,11 +45,24 @@ export async function subirLesCombats(base: Pool | PoolClient, combats: readonly
  * US-0944 : le combat de la Bête de l'Espèce `especeId` contre l'escorte de l'Expédition `expeditionId` : ses pertes,
  * Espèce par Espèce (pertesDuCombat), s'ajoutent à celles de l'escorte et quittent l'effectif du Territoire, chacune au
  * sexe que dit sexesDesPertes. US-0951 : seules les mortes ; les Blessés parmi elles (blessesParmi) s'ajoutent à ceux de
- * l'escorte et restent dans l'effectif, hors de combat.
+ * l'escorte et restent dans l'effectif, hors de combat. US-0960 : les mortes sont prises à l'escorte partie, dont le
+ * départ a retenu le sexe (expedition_escorte.males), toutes ses mortes depuis son départ par la même règle : la seule
+ * femelle d'une escorte qui meurt sort de l'effectif, jamais un mâle resté au Foyer à sa place. Une escorte sans sexe
+ * retenu (partie avant US-0960) les prend encore à l'effectif de l'Espèce.
  */
 async function subirLeCombat(base: Pool | PoolClient, { expeditionId, especeId }: Combat): Promise<void> {
-  const { rows: escorte } = await base.query<{ especeId: string; attaque: number; vie: number; nombre: number; territoireId: number }>(
-    `select s.espece_id as "especeId", e.attaque, e.vie, s.nombre - s.perdues as nombre, x.territoire_id as "territoireId"
+  const { rows: escorte } = await base.query<{
+    especeId: string;
+    attaque: number;
+    vie: number;
+    nombre: number;
+    territoireId: number;
+    partie: { males: number; femelles: number } | null;
+    mortes: number;
+  }>(
+    `select s.espece_id as "especeId", e.attaque, e.vie, s.nombre - s.perdues as nombre, x.territoire_id as "territoireId",
+       case when s.males is null then null else json_build_object('males', s.males, 'femelles', s.nombre - s.males) end as partie,
+       s.perdues - s.blessees as mortes
      from expedition_escorte s join espece e on e.id = s.espece_id join expedition x on x.id = s.expedition_id
      where s.expedition_id = $1
      order by s.espece_id`,
@@ -70,7 +83,7 @@ async function subirLeCombat(base: Pool | PoolClient, { expeditionId, especeId }
      where s.expedition_id = $1 and s.espece_id = v.espece_id`,
     [expeditionId, pertes.map((p) => p.especeId), pertes.map((p) => p.nombre), blesses],
   );
-  // US-0951 : seules les mortes quittent l'effectif.
+  // US-0951 : seules les mortes quittent l'effectif. US-0960 : jamais plus qu'il n'en compte, filet de l'effectif jamais négatif.
   const mortes = pertes.map((p, i) => ({ especeId: p.especeId, nombre: p.nombre - blesses[i] })).filter((p) => p.nombre > 0);
   if (mortes.length === 0) return;
   const { rows: effectif } = await base.query<{ especeId: string; males: number; femelles: number }>(
@@ -80,8 +93,12 @@ async function subirLeCombat(base: Pool | PoolClient, { expeditionId, especeId }
     [territoireId, mortes.map((p) => p.especeId)],
   );
   const parEspece = new Map(effectif.map(({ especeId, ...sexes }) => [especeId, sexes]));
+  const escorteDe = new Map(escorte.map((e) => [e.especeId, e]));
   const sorties = mortes.flatMap(({ especeId, nombre }) => {
-    const { males, femelles } = sexesDesPertes(parEspece.get(especeId) ?? { males: 0, femelles: 0 }, nombre);
+    const { partie, mortes: avant } = escorteDe.get(especeId)!;
+    const { males, femelles } = partie
+      ? ecart(sexesDesPertes(partie, avant + nombre), sexesDesPertes(partie, avant))
+      : sexesDesPertes(parEspece.get(especeId) ?? { males: 0, femelles: 0 }, nombre);
     return [
       { especeId, sexe: "male", nombre: males },
       { especeId, sexe: "femelle", nombre: femelles },
@@ -91,8 +108,14 @@ async function subirLeCombat(base: Pool | PoolClient, { expeditionId, especeId }
   // US-0837 : les Bêtes tuées étaient sorties en escorte, pas au Foyer ; US-0842 : jamais une Bête affectée à son Rôle, que
   // l'escorte n'emmène pas (src/monde/roles.ts). Qui retire des Bêtes valides du Foyer doit borner les affectées.
   await base.query(
-    `update effectif e set nombre = e.nombre - v.nombre from unnest($2::text[], $3::sexe[], $4::int[]) as v(espece_id, sexe, nombre)
+    `update effectif e set nombre = e.nombre - least(v.nombre, e.nombre) from unnest($2::text[], $3::sexe[], $4::int[]) as v(espece_id, sexe, nombre)
      where e.territoire_id = $1 and e.espece_id = v.espece_id and e.sexe = v.sexe`,
     [territoireId, sorties.map((s) => s.especeId), sorties.map((s) => s.sexe), sorties.map((s) => s.nombre)],
   );
 }
+
+/** US-0960 : les mâles et les femelles de `apres` qui ne sont pas dans `avant`. */
+const ecart = (apres: { males: number; femelles: number }, avant: { males: number; femelles: number }) => ({
+  males: apres.males - avant.males,
+  femelles: apres.femelles - avant.femelles,
+});

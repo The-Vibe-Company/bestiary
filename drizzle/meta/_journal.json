@@ -477,6 +477,13 @@
       "when": 1791898149086,
       "tag": "0073_elevage",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1791967921764,
+      "tag": "0074_sexes_de_l_escorte",
+      "breakpoints": true
     }
   ]
 }

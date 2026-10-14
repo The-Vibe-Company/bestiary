@@ -2,9 +2,10 @@
 // Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
-import { betesDisponibles } from "@/monde/effectif";
+import { betesDisponibles, validesParSexe } from "@/monde/effectif";
 import type { Coordonnees } from "@/monde/hex";
 import { type BetesDeLEscorte, dureeDuTrajetMinutes } from "./allure";
+import { sexesDesPertes } from "./combat";
 import { destinationDUneCase } from "./destination";
 import { programmerLeRetour } from "./retour";
 
@@ -43,6 +44,13 @@ class Refus extends Error {}
  * du même Territoire envoyés au même instant passent l'un après l'autre, et le second relit ce que le premier a pris ;
  * jamais deux fois le même explorateur ni la même Bête. Les lignes de l'effectif des Espèces de l'escorte et celles des
  * explorateurs qui partent sont tenues aussi, contre tout autre changement envoyé au même instant.
+ *
+ * US-0960 : le départ retient le sexe des Bêtes de son escorte (expedition_escorte.males), que le joueur ne choisit pas :
+ * prises parmi les Bêtes valides au Foyer (celles affectées à leur Rôle, US-0842, comprises : leur sexe n'est pas retenu à
+ * part ; combien peuvent partir, c'est betesDisponibles), une à une au sexe le plus nombreux, un mâle à égalité (la règle
+ * des pertes, sexesDesPertes). Tant que son Couple n'est pas réuni, une Espèce n'a au Foyer que des Bêtes d'un seul sexe : un mâle et
+ * une femelle au Foyer le réunissent aussitôt (src/monde/couple.ts) ; ce sont elles qui partent. Le sexe reste inconnu
+ * (null) quand celui des Bêtes au Foyer ne se sait pas (validesParSexe).
  */
 export async function lancerLExpedition(pool: Pool, territoireId: number, choix: ChoixDuDepart, instant: Date): Promise<Depart> {
   const client = await pool.connect();
@@ -111,10 +119,21 @@ async function partir(client: PoolClient, territoireId: number, { destination, e
   // US-0953 : les Blessés au Foyer à l'instant du départ ne sont pas disponibles ; US-0842 : ni les Bêtes affectées à leur Rôle.
   const disponibles = new Map((await betesDisponibles(client, territoireId, instant)).map((e) => [e.id, e.disponibles]));
   if (betes.some(([especeId, nombre]) => nombre > (disponibles.get(especeId) ?? 0))) throw new Refus(BETE_PLUS_DISPONIBLE);
-  await client.query(`insert into expedition_escorte (expedition_id, espece_id, nombre) select $1, e, n from unnest($2::text[], $3::int[]) as l(e, n)`, [
-    expeditionId,
+  const valides = await validesParSexe(
+    client,
+    territoireId,
     betes.map(([especeId]) => especeId),
-    betes.map(([, nombre]) => nombre),
-  ]);
+    instant,
+  );
+  const males = betes.map(([especeId, nombre]) => {
+    const auFoyer = valides.get(especeId);
+    if (!auFoyer) return null;
+    const parties = sexesDesPertes(auFoyer, nombre);
+    return parties.males + parties.femelles === nombre ? parties.males : null;
+  });
+  await client.query(
+    `insert into expedition_escorte (expedition_id, espece_id, nombre, males) select $1, e, n, m from unnest($2::text[], $3::int[], $4::int[]) as l(e, n, m)`,
+    [expeditionId, betes.map(([especeId]) => especeId), betes.map(([, nombre]) => nombre), males],
+  );
   return expeditionId;
 }
