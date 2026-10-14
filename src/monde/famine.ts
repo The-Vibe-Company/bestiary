@@ -3,6 +3,7 @@
 // qu'un Récit raconte (US-0327), comme sa fin (US-0328). Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
+import { LIBRE_EN_SQL } from "./etat-habitant";
 import { ecrireUnRecit, type NouveauRecit } from "./recits";
 
 /**
@@ -19,10 +20,10 @@ const FUSEAU = "Europe/Paris";
 /**
  * US-0921 : un Habitant resté au Foyer, qui peut s'en aller en Famine (condition sur la table habitant) : un explorateur
  * absent ne part pas. Le départ (FAIRE_PARTIR) et le calcul qui le programme (PRODUIRE) le lisent tous deux ici.
- * US-0843 : un éleveur à l'Élevage est au Foyer, et peut donc s'en aller ; aucun Élevage ne se lance encore : le lancement
- * (US-0815) devra trancher ce qu'une Famine fait de son éleveur (et de l'Élevage, US-0834).
+ * US-0815 : un éleveur à l'Élevage ne part pas non plus : son Élevage continue, la Famine passée (US-0834). C'est la
+ * règle de l'Habitant libre (LIBRE_EN_SQL), celle qui verrouille aussi son Métier.
  */
-export const AU_FOYER = "expedition_id is null";
+export const AU_FOYER = LIBRE_EN_SQL;
 
 /**
  * US-0326 : l'Habitant du Territoire $1 qui s'en va à l'instant $2 : un sans Métier d'abord, puis le dernier arrivé

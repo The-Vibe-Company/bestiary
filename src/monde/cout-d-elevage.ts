@@ -1,6 +1,6 @@
 // Ce que coûte l'Élevage d'une Espèce (US-0813) : le coût d'une Bête élevée, la Nourriture qui le paie, et le plus grand
 // nombre de Bêtes que les Stocks permettent de payer, que « Max » propose dans le bloc « Élever ». US-0814 : et ce que dure
-// l'Élevage d'une Bête ; le bloc dit l'un et l'autre, qui se paieront au lancement (US-0815). Côté serveur uniquement.
+// l'Élevage d'une Bête ; le bloc dit l'un et l'autre, que le lancement retient et paie (US-0815). Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
 import type { Regime } from "./effectif";
@@ -33,8 +33,8 @@ export function dureeDUneBeteEleveeMinutes(taille: number): number {
 
 /**
  * US-0813 : les Stocks qui paient l'Élevage d'une Espèce, selon son régime, comme ses Bêtes mangent : la Viande pour un
- * carnivore, les Végétaux pour un herbivore, l'une ou l'autre pour un omnivore. Tranché au plus simple en attendant
- * US-0814, qui le dira, et US-0815, qui le paiera.
+ * carnivore, les Végétaux pour un herbivore, l'une ou l'autre pour un omnivore ; le bloc le dit (US-0814), le lancement
+ * le paie (US-0815, le Stock le plus fourni d'abord).
  */
 export function nourritureQuiPaie(regime: Regime): ("viande" | "vegetaux")[] {
   return NOURRITURE_DU_REGIME[regime];

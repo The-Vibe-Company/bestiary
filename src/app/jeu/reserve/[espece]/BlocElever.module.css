@@ -115,7 +115,7 @@
   white-space: nowrap;
 }
 
-/* Le bouton « Élever », au pouce : l'action principale du kit, éteinte tant que l'Élevage ne se lance pas. */
+/* Le bouton « Élever », au pouce : l'action principale du kit, éteinte sans éleveur libre, sans quantité valable ou pendant l'envoi. */
 .bouton {
   min-height: 44px;
   padding: 0 26px;
@@ -131,6 +131,22 @@
   margin-top: 10px;
   color: var(--braise);
   font: var(--graisse-titre) 13.5px / 1.35 var(--police);
+}
+
+/* US-0815 : l'Élevage lancé, juste sous le bouton, en vert clair, son texte en clair ; vide, la région ne prend pas de place. */
+.lance {
+  margin-top: 10px;
+  color: var(--cuivre-clair);
+  font: var(--graisse-titre) 13.5px / 1.35 var(--police);
+}
+
+.lance:empty {
+  margin-top: 0;
+}
+
+.lance:focus-visible {
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: 2px;
 }
 
 .quantite .refus {

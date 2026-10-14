@@ -1,0 +1,3617 @@
+{
+  "id": "5dd8d3e7-5f7b-42b9-9413-c65e07886f2c",
+  "prevId": "877a42b6-01d1-431f-909e-4e7e97d1575a",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.affectation": {
+      "name": "affectation",
+      "schema": "",
+      "columns": {
+        "territoire_id": {
+          "name": "territoire_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "espece_id": {
+          "name": "espece_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "affectation_territoire_id_territoire_id_fk": {
+          "name": "affectation_territoire_id_territoire_id_fk",
+          "tableFrom": "affectation",
+          "tableTo": "territoire",
+          "columnsFrom": [
+            "territoire_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "affectation_espece_id_espece_id_fk": {
+          "name": "affectation_espece_id_espece_id_fk",
+          "tableFrom": "affectation",
+          "tableTo": "espece",
+          "columnsFrom": [
+            "espece_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "affectation_territoire_id_espece_id_pk": {
+          "name": "affectation_territoire_id_espece_id_pk",
+          "columns": [
+            "territoire_id",
+            "espece_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "affectation_jamais_negative": {
+          "name": "affectation_jamais_negative",
+          "value": "\"affectation\".\"nombre\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.bestiaire": {
+      "name": "bestiaire",
+      "schema": "",
+      "columns": {
+        "territoire_id": {
+          "name": "territoire_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "espece_id": {
+          "name": "espece_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "etat": {
+          "name": "etat",
+          "type": "etat_au_bestiaire",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "croisee_le": {
+          "name": "croisee_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rencontre_id": {
+          "name": "rencontre_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "bestiaire_territoire_id_territoire_id_fk": {
+          "name": "bestiaire_territoire_id_territoire_id_fk",
+          "tableFrom": "bestiaire",
+          "tableTo": "territoire",
+          "columnsFrom": [
+            "territoire_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "bestiaire_espece_id_espece_id_fk": {
+          "name": "bestiaire_espece_id_espece_id_fk",
+          "tableFrom": "bestiaire",
+          "tableTo": "espece",
+          "columnsFrom": [
+            "espece_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "bestiaire_rencontre_id_rencontre_id_fk": {
+          "name": "bestiaire_rencontre_id_rencontre_id_fk",
+          "tableFrom": "bestiaire",
+          "tableTo": "rencontre",
+          "columnsFrom": [
+            "rencontre_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "bestiaire_territoire_id_espece_id_pk": {
+          "name": "bestiaire_territoire_id_espece_id_pk",
+          "columns": [
+            "territoire_id",
+            "espece_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "bestiaire_une_espece_par_rencontre": {
+          "name": "bestiaire_une_espece_par_rencontre",
+          "nullsNotDistinct": false,
+          "columns": [
+            "rencontre_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.bete_de_naissance": {
+      "name": "bete_de_naissance",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "bete_de_naissance_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "territoire_id": {
+          "name": "territoire_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "case_id": {
+          "name": "case_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "espece_id": {
+          "name": "espece_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "arrivee": {
+          "name": "arrivee",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "depart": {
+          "name": "depart",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "bete_de_naissance_territoire_id_territoire_id_fk": {
+          "name": "bete_de_naissance_territoire_id_territoire_id_fk",
+          "tableFrom": "bete_de_naissance",
+          "tableTo": "territoire",
+          "columnsFrom": [
+            "territoire_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "bete_de_naissance_case_id_case_du_monde_id_fk": {
+          "name": "bete_de_naissance_case_id_case_du_monde_id_fk",
+          "tableFrom": "bete_de_naissance",
+          "tableTo": "case_du_monde",
+          "columnsFrom": [
+            "case_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "bete_de_naissance_espece_id_espece_id_fk": {
+          "name": "bete_de_naissance_espece_id_espece_id_fk",
+          "tableFrom": "bete_de_naissance",
+          "tableTo": "espece",
+          "columnsFrom": [
+            "espece_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "bete_de_naissance_une_par_case": {
+          "name": "bete_de_naissance_une_par_case",
+          "nullsNotDistinct": false,
+          "columns": [
+            "territoire_id",
+            "case_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "bete_de_naissance_depart_apres_arrivee": {
+          "name": "bete_de_naissance_depart_apres_arrivee",
+          "value": "\"bete_de_naissance\".\"depart\" > \"bete_de_naissance\".\"arrivee\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.bete_partie": {
+      "name": "bete_partie",
+      "schema": "",
+      "columns": {
+        "case_id": {
+          "name": "case_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "numero": {
+          "name": "numero",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "partie_le": {
+          "name": "partie_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "bete_partie_case_id_case_du_monde_id_fk": {
+          "name": "bete_partie_case_id_case_du_monde_id_fk",
+          "tableFrom": "bete_partie",
+          "tableTo": "case_du_monde",
+          "columnsFrom": [
+            "case_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "bete_partie_case_id_numero_pk": {
+          "name": "bete_partie_case_id_numero_pk",
+          "columns": [
+            "case_id",
+            "numero"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.biome": {
+      "name": "biome",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ordre": {
+          "name": "ordre",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.case_decouverte": {
+      "name": "case_decouverte",
+      "schema": "",
+      "columns": {
+        "territoire_id": {
+          "name": "territoire_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "case_id": {
+          "name": "case_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expedition_id": {
+          "name": "expedition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "case_decouverte_par_expedition": {
+          "name": "case_decouverte_par_expedition",
+          "columns": [
+            {
+              "expression": "expedition_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"case_decouverte\".\"expedition_id\" is not null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "case_decouverte_territoire_id_territoire_id_fk": {
+          "name": "case_decouverte_territoire_id_territoire_id_fk",
+          "tableFrom": "case_decouverte",
+          "tableTo": "territoire",
+          "columnsFrom": [
+            "territoire_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "case_decouverte_case_id_case_du_monde_id_fk": {
+          "name": "case_decouverte_case_id_case_du_monde_id_fk",
+          "tableFrom": "case_decouverte",
+          "tableTo": "case_du_monde",
+          "columnsFrom": [
+            "case_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "case_decouverte_expedition_id_expedition_id_fk": {
+          "name": "case_decouverte_expedition_id_expedition_id_fk",
+          "tableFrom": "case_decouverte",
+          "tableTo": "expedition",
+          "columnsFrom": [
+            "expedition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "case_decouverte_territoire_id_case_id_pk": {
+          "name": "case_decouverte_territoire_id_case_id_pk",
+          "columns": [
+            "territoire_id",
+            "case_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.case_du_monde": {
+      "name": "case_du_monde",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "case_du_monde_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "monde_id": {
+          "name": "monde_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "q": {
+          "name": "q",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "r": {
+          "name": "r",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "anneau": {
+          "name": "anneau",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "couronne": {
+          "name": "couronne",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "coeur": {
+          "name": "coeur",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "eloignement": {
+          "name": "eloignement",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "biome_id": {
+          "name": "biome_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "variante_id": {
+          "name": "variante_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "chef_id": {
+          "name": "chef_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "imprenable": {
+          "name": "imprenable",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {
+        "case_par_anneau": {
+          "name": "case_par_anneau",
+          "columns": [
+            {
+              "expression": "monde_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "anneau",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "case_par_chef": {
+          "name": "case_par_chef",
+          "columns": [
+            {
+              "expression": "chef_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "case_du_monde_monde_id_monde_id_fk": {
+          "name": "case_du_monde_monde_id_monde_id_fk",
+          "tableFrom": "case_du_monde",
+          "tableTo": "monde",
+          "columnsFrom": [
+            "monde_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "case_du_monde_biome_id_biome_id_fk": {
+          "name": "case_du_monde_biome_id_biome_id_fk",
+          "tableFrom": "case_du_monde",
+          "tableTo": "biome",
+          "columnsFrom": [
+            "biome_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "case_du_monde_variante_id_variante_biome_id_fk": {
+          "name": "case_du_monde_variante_id_variante_biome_id_fk",
+          "tableFrom": "case_du_monde",
+          "tableTo": "variante_biome",
+          "columnsFrom": [
+            "variante_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "case_du_monde_chef_id_chef_id_fk": {
+          "name": "case_du_monde_chef_id_chef_id_fk",
+          "tableFrom": "case_du_monde",
+          "tableTo": "chef",
+          "columnsFrom": [
+            "chef_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "case_unique_dans_le_monde": {
+          "name": "case_unique_dans_le_monde",
+          "nullsNotDistinct": false,
+          "columns": [
+            "monde_id",
+            "q",
+            "r"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "case_anneau_exact": {
+          "name": "case_anneau_exact",
+          "value": "\"case_du_monde\".\"anneau\" = greatest(abs(\"case_du_monde\".\"q\"), abs(\"case_du_monde\".\"r\"), abs(\"case_du_monde\".\"q\" + \"case_du_monde\".\"r\"))"
+        },
+        "case_coeur_a_zero": {
+          "name": "case_coeur_a_zero",
+          "value": "\"case_du_monde\".\"eloignement\" >= 0 and \"case_du_monde\".\"coeur\" = (\"case_du_monde\".\"eloignement\" = 0)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.chef": {
+      "name": "chef",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "chef_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "compte_id": {
+          "name": "compte_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "monde_id": {
+          "name": "monde_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cle_nom": {
+          "name": "cle_nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cree_le": {
+          "name": "cree_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "chef_compte_id_compte_id_fk": {
+          "name": "chef_compte_id_compte_id_fk",
+          "tableFrom": "chef",
+          "tableTo": "compte",
+          "columnsFrom": [
+            "compte_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "chef_monde_id_monde_id_fk": {
+          "name": "chef_monde_id_monde_id_fk",
+          "tableFrom": "chef",
+          "tableTo": "monde",
+          "columnsFrom": [
+            "monde_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "chef_un_par_monde": {
+          "name": "chef_un_par_monde",
+          "nullsNotDistinct": false,
+          "columns": [
+            "compte_id",
+            "monde_id"
+          ]
+        },
+        "chef_nom_unique_dans_le_monde": {
+          "name": "chef_nom_unique_dans_le_monde",
+          "nullsNotDistinct": false,
+          "columns": [
+            "monde_id",
+            "cle_nom"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "chef_cle_nom_a_plat": {
+          "name": "chef_cle_nom_a_plat",
+          "value": "\"chef\".\"cle_nom\" ~ '^[a-z0-9]+$'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.compte": {
+      "name": "compte",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "compte_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "empreinte_mot_de_passe": {
+          "name": "empreinte_mot_de_passe",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cree_le": {
+          "name": "cree_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "email_confirme_le": {
+          "name": "email_confirme_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "derniere_connexion_le": {
+          "name": "derniere_connexion_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "compte_email_unique": {
+          "name": "compte_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "compte_email_normalise": {
+          "name": "compte_email_normalise",
+          "value": "\"compte\".\"email\" = lower(\"compte\".\"email\") and \"compte\".\"email\" !~ '[[:space:]]'"
+        },
+        "compte_empreinte_scrypt": {
+          "name": "compte_empreinte_scrypt",
+          "value": "\"compte\".\"empreinte_mot_de_passe\" ~ '^scrypt\\$[0-9]+\\$[0-9]+\\$[0-9]+\\$[A-Za-z0-9+/=]+\\$[A-Za-z0-9+/=]+$'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.couple": {
+      "name": "couple",
+      "schema": "",
+      "columns": {
+        "territoire_id": {
+          "name": "territoire_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "espece_id": {
+          "name": "espece_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reuni_le": {
+          "name": "reuni_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "couple_territoire_id_territoire_id_fk": {
+          "name": "couple_territoire_id_territoire_id_fk",
+          "tableFrom": "couple",
+          "tableTo": "territoire",
+          "columnsFrom": [
+            "territoire_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "couple_espece_id_espece_id_fk": {
+          "name": "couple_espece_id_espece_id_fk",
+          "tableFrom": "couple",
+          "tableTo": "espece",
+          "columnsFrom": [
+            "espece_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "couple_territoire_id_espece_id_pk": {
+          "name": "couple_territoire_id_espece_id_pk",
+          "columns": [
+            "territoire_id",
+            "espece_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.couple_de_depart": {
+      "name": "couple_de_depart",
+      "schema": "",
+      "columns": {
+        "espece_id": {
+          "name": "espece_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "ordre": {
+          "name": "ordre",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "style": {
+          "name": "style",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phrase": {
+          "name": "phrase",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "couple_de_depart_espece_id_espece_id_fk": {
+          "name": "couple_de_depart_espece_id_espece_id_fk",
+          "tableFrom": "couple_de_depart",
+          "tableTo": "espece",
+          "columnsFrom": [
+            "espece_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "couple_de_depart_ordre_unique": {
+          "name": "couple_de_depart_ordre_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "ordre"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.echec_connexion": {
+      "name": "echec_connexion",
+      "schema": "",
+      "columns": {
+        "empreinte_adresse": {
+          "name": "empreinte_adresse",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "echecs": {
+          "name": "echecs",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dernier_echec": {
+          "name": "dernier_echec",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "bloque_jusqua": {
+          "name": "bloque_jusqua",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.effectif": {
+      "name": "effectif",
+      "schema": "",
+      "columns": {
+        "territoire_id": {
+          "name": "territoire_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "espece_id": {
+          "name": "espece_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sexe": {
+          "name": "sexe",
+          "type": "sexe",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "effectif_territoire_id_territoire_id_fk": {
+          "name": "effectif_territoire_id_territoire_id_fk",
+          "tableFrom": "effectif",
+          "tableTo": "territoire",
+          "columnsFrom": [
+            "territoire_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "effectif_espece_id_espece_id_fk": {
+          "name": "effectif_espece_id_espece_id_fk",
+          "tableFrom": "effectif",
+          "tableTo": "espece",
+          "columnsFrom": [
+            "espece_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "effectif_territoire_id_espece_id_sexe_pk": {
+          "name": "effectif_territoire_id_espece_id_sexe_pk",
+          "columns": [
+            "territoire_id",
+            "espece_id",
+            "sexe"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "effectif_jamais_negatif": {
+          "name": "effectif_jamais_negatif",
+          "value": "\"effectif\".\"nombre\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.elevage": {
+      "name": "elevage",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "elevage_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "territoire_id": {
+          "name": "territoire_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "espece_id": {
+          "name": "espece_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "eleveur_id": {
+          "name": "eleveur_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "quantite": {
+          "name": "quantite",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "duree_minutes": {
+          "name": "duree_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cout": {
+          "name": "cout",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lance_le": {
+          "name": "lance_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "elevage_par_territoire": {
+          "name": "elevage_par_territoire",
+          "columns": [
+            {
+              "expression": "territoire_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "elevage_par_eleveur": {
+          "name": "elevage_par_eleveur",
+          "columns": [
+            {
+              "expression": "eleveur_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "elevage_territoire_id_territoire_id_fk": {
+          "name": "elevage_territoire_id_territoire_id_fk",
+          "tableFrom": "elevage",
+          "tableTo": "territoire",
+          "columnsFrom": [
+            "territoire_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "elevage_espece_id_espece_id_fk": {
+          "name": "elevage_espece_id_espece_id_fk",
+          "tableFrom": "elevage",
+          "tableTo": "espece",
+          "columnsFrom": [
+            "espece_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "elevage_eleveur_id_habitant_id_fk": {
+          "name": "elevage_eleveur_id_habitant_id_fk",
+          "tableFrom": "elevage",
+          "tableTo": "habitant",
+          "columnsFrom": [
+            "eleveur_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "elevage_au_moins_une_bete": {
+          "name": "elevage_au_moins_une_bete",
+          "value": "\"elevage\".\"quantite\" > 0"
+        },
+        "elevage_duree_positive": {
+          "name": "elevage_duree_positive",
+          "value": "\"elevage\".\"duree_minutes\" > 0"
+        },
+        "elevage_cout_positif": {
+          "name": "elevage_cout_positif",
+          "value": "\"elevage\".\"cout\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.espece": {
+      "name": "espece",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attaque": {
+          "name": "attaque",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vie": {
+          "name": "vie",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vitesse": {
+          "name": "vitesse",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "charge": {
+          "name": "charge",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "taille": {
+          "name": "taille",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "regime": {
+          "name": "regime",
+          "type": "regime",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entretien_par_heure": {
+          "name": "entretien_par_heure",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "biome_id": {
+          "name": "biome_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rarete_id": {
+          "name": "rarete_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role_id": {
+          "name": "role_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "masse_g": {
+          "name": "masse_g",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "facteur_arme": {
+          "name": "facteur_arme",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "illustration": {
+          "name": "illustration",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "espece_biome_id_biome_id_fk": {
+          "name": "espece_biome_id_biome_id_fk",
+          "tableFrom": "espece",
+          "tableTo": "biome",
+          "columnsFrom": [
+            "biome_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "espece_rarete_id_rarete_id_fk": {
+          "name": "espece_rarete_id_rarete_id_fk",
+          "tableFrom": "espece",
+          "tableTo": "rarete",
+          "columnsFrom": [
+            "rarete_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "espece_role_id_role_id_fk": {
+          "name": "espece_role_id_role_id_fk",
+          "tableFrom": "espece",
+          "tableTo": "role",
+          "columnsFrom": [
+            "role_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "espece_attaque_positive": {
+          "name": "espece_attaque_positive",
+          "value": "\"espece\".\"attaque\" >= 0"
+        },
+        "espece_vie_positive": {
+          "name": "espece_vie_positive",
+          "value": "\"espece\".\"vie\" > 0"
+        },
+        "espece_vitesse_positive": {
+          "name": "espece_vitesse_positive",
+          "value": "\"espece\".\"vitesse\" > 0"
+        },
+        "espece_charge_positive": {
+          "name": "espece_charge_positive",
+          "value": "\"espece\".\"charge\" >= 0"
+        },
+        "espece_taille_positive": {
+          "name": "espece_taille_positive",
+          "value": "\"espece\".\"taille\" > 0"
+        },
+        "espece_entretien_positif": {
+          "name": "espece_entretien_positif",
+          "value": "\"espece\".\"entretien_par_heure\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.evenement": {
+      "name": "evenement",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "evenement_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "element": {
+          "name": "element",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "element_id": {
+          "name": "element_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "survient_le": {
+          "name": "survient_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "donnees": {
+          "name": "donnees",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "traite_le": {
+          "name": "traite_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "evenement_a_traiter": {
+          "name": "evenement_a_traiter",
+          "columns": [
+            {
+              "expression": "element",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "element_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "survient_le",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.expedition": {
+      "name": "expedition",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "expedition_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "territoire_id": {
+          "name": "territoire_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "case_id": {
+          "name": "case_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "part_le": {
+          "name": "part_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "trajet_minutes": {
+          "name": "trajet_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sejour_minutes": {
+          "name": "sejour_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rentree_le": {
+          "name": "rentree_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rappelee_le": {
+          "name": "rappelee_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "en_fuite": {
+          "name": "en_fuite",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "blesses_soignes": {
+          "name": "blesses_soignes",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {
+        "expedition_par_territoire": {
+          "name": "expedition_par_territoire",
+          "columns": [
+            {
+              "expression": "territoire_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "expedition_par_case": {
+          "name": "expedition_par_case",
+          "columns": [
+            {
+              "expression": "case_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "expedition_territoire_id_territoire_id_fk": {
+          "name": "expedition_territoire_id_territoire_id_fk",
+          "tableFrom": "expedition",
+          "tableTo": "territoire",
+          "columnsFrom": [
+            "territoire_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "expedition_case_id_case_du_monde_id_fk": {
+          "name": "expedition_case_id_case_du_monde_id_fk",
+          "tableFrom": "expedition",
+          "tableTo": "case_du_monde",
+          "columnsFrom": [
+            "case_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "expedition_trajet_positif": {
+          "name": "expedition_trajet_positif",
+          "value": "\"expedition\".\"trajet_minutes\" > 0"
+        },
+        "expedition_sejour_positif": {
+          "name": "expedition_sejour_positif",
+          "value": "\"expedition\".\"sejour_minutes\" > 0"
+        },
+        "expedition_rappelee_apres_son_depart": {
+          "name": "expedition_rappelee_apres_son_depart",
+          "value": "\"expedition\".\"rappelee_le\" >= \"expedition\".\"part_le\""
+        },
+        "expedition_en_fuite_a_fait_demi_tour": {
+          "name": "expedition_en_fuite_a_fait_demi_tour",
+          "value": "not \"expedition\".\"en_fuite\" or \"expedition\".\"rappelee_le\" is not null"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.expedition_escorte": {
+      "name": "expedition_escorte",
+      "schema": "",
+      "columns": {
+        "expedition_id": {
+          "name": "expedition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "espece_id": {
+          "name": "espece_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "perdues": {
+          "name": "perdues",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "blessees": {
+          "name": "blessees",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "expedition_escorte_expedition_id_expedition_id_fk": {
+          "name": "expedition_escorte_expedition_id_expedition_id_fk",
+          "tableFrom": "expedition_escorte",
+          "tableTo": "expedition",
+          "columnsFrom": [
+            "expedition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "expedition_escorte_espece_id_espece_id_fk": {
+          "name": "expedition_escorte_espece_id_espece_id_fk",
+          "tableFrom": "expedition_escorte",
+          "tableTo": "espece",
+          "columnsFrom": [
+            "espece_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "expedition_escorte_expedition_id_espece_id_pk": {
+          "name": "expedition_escorte_expedition_id_espece_id_pk",
+          "columns": [
+            "expedition_id",
+            "espece_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "expedition_escorte_au_moins_une": {
+          "name": "expedition_escorte_au_moins_une",
+          "value": "\"expedition_escorte\".\"nombre\" > 0"
+        },
+        "expedition_escorte_perdues_parmi_elles": {
+          "name": "expedition_escorte_perdues_parmi_elles",
+          "value": "\"expedition_escorte\".\"perdues\" between 0 and \"expedition_escorte\".\"nombre\""
+        },
+        "expedition_escorte_blessees_parmi_les_perdues": {
+          "name": "expedition_escorte_blessees_parmi_les_perdues",
+          "value": "\"expedition_escorte\".\"blessees\" between 0 and \"expedition_escorte\".\"perdues\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.habitant": {
+      "name": "habitant",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "habitant_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "territoire_id": {
+          "name": "territoire_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metier": {
+          "name": "metier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "arrive_le": {
+          "name": "arrive_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "prenom": {
+          "name": "prenom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expedition_id": {
+          "name": "expedition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "espece_elevee": {
+          "name": "espece_elevee",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "habitant_par_territoire": {
+          "name": "habitant_par_territoire",
+          "columns": [
+            {
+              "expression": "territoire_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "habitant_par_expedition": {
+          "name": "habitant_par_expedition",
+          "columns": [
+            {
+              "expression": "expedition_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "habitant_territoire_id_territoire_id_fk": {
+          "name": "habitant_territoire_id_territoire_id_fk",
+          "tableFrom": "habitant",
+          "tableTo": "territoire",
+          "columnsFrom": [
+            "territoire_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "habitant_metier_metier_id_fk": {
+          "name": "habitant_metier_metier_id_fk",
+          "tableFrom": "habitant",
+          "tableTo": "metier",
+          "columnsFrom": [
+            "metier"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "habitant_expedition_id_expedition_id_fk": {
+          "name": "habitant_expedition_id_expedition_id_fk",
+          "tableFrom": "habitant",
+          "tableTo": "expedition",
+          "columnsFrom": [
+            "expedition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "habitant_espece_elevee_espece_id_fk": {
+          "name": "habitant_espece_elevee_espece_id_fk",
+          "tableFrom": "habitant",
+          "tableTo": "espece",
+          "columnsFrom": [
+            "espece_elevee"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.horloge": {
+      "name": "horloge",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "default": 1
+        },
+        "facteur": {
+          "name": "facteur",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "reel_ancre": {
+          "name": "reel_ancre",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "jeu_ancre": {
+          "name": "jeu_ancre",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "horloge_une_seule_ligne": {
+          "name": "horloge_une_seule_ligne",
+          "value": "\"horloge\".\"id\" = 1"
+        },
+        "horloge_facteur_positif": {
+          "name": "horloge_facteur_positif",
+          "value": "\"horloge\".\"facteur\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.inscription_recente": {
+      "name": "inscription_recente",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "inscription_recente_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "empreinte_reseau": {
+          "name": "empreinte_reseau",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "le": {
+          "name": "le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "inscription_recente_par_connexion": {
+          "name": "inscription_recente_par_connexion",
+          "columns": [
+            {
+              "expression": "empreinte_reseau",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "le",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.lien_confirmation": {
+      "name": "lien_confirmation",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "lien_confirmation_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "compte_id": {
+          "name": "compte_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "empreinte_jeton": {
+          "name": "empreinte_jeton",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cree_le": {
+          "name": "cree_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expire_le": {
+          "name": "expire_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "utilise_le": {
+          "name": "utilise_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "lien_confirmation_par_compte": {
+          "name": "lien_confirmation_par_compte",
+          "columns": [
+            {
+              "expression": "compte_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "cree_le",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "lien_confirmation_compte_id_compte_id_fk": {
+          "name": "lien_confirmation_compte_id_compte_id_fk",
+          "tableFrom": "lien_confirmation",
+          "tableTo": "compte",
+          "columnsFrom": [
+            "compte_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "lien_confirmation_empreinte_jeton_unique": {
+          "name": "lien_confirmation_empreinte_jeton_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "empreinte_jeton"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.lien_reinitialisation": {
+      "name": "lien_reinitialisation",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "lien_reinitialisation_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "compte_id": {
+          "name": "compte_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "empreinte_jeton": {
+          "name": "empreinte_jeton",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cree_le": {
+          "name": "cree_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expire_le": {
+          "name": "expire_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "utilise_le": {
+          "name": "utilise_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "lien_reinitialisation_par_compte": {
+          "name": "lien_reinitialisation_par_compte",
+          "columns": [
+            {
+              "expression": "compte_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "cree_le",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "lien_reinitialisation_compte_id_compte_id_fk": {
+          "name": "lien_reinitialisation_compte_id_compte_id_fk",
+          "tableFrom": "lien_reinitialisation",
+          "tableTo": "compte",
+          "columnsFrom": [
+            "compte_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "lien_reinitialisation_empreinte_jeton_unique": {
+          "name": "lien_reinitialisation_empreinte_jeton_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "empreinte_jeton"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.metier": {
+      "name": "metier",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phrase": {
+          "name": "phrase",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "servira": {
+          "name": "servira",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ordre": {
+          "name": "ordre",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.monde": {
+      "name": "monde",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "monde_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ne_le": {
+          "name": "ne_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "calcule_jusqu_a": {
+          "name": "calcule_jusqu_a",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "rayon": {
+          "name": "rayon",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "anneaux_couronne": {
+          "name": "anneaux_couronne",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "graine": {
+          "name": "graine",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rayon_coeur": {
+          "name": "rayon_coeur",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ouvert_le": {
+          "name": "ouvert_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ferme_le": {
+          "name": "ferme_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "monde_un_seul_ouvert": {
+          "name": "monde_un_seul_ouvert",
+          "columns": [
+            {
+              "expression": "(true)",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"monde\".\"ouvert_le\" is not null and \"monde\".\"ferme_le\" is null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "monde_nom_unique": {
+          "name": "monde_nom_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "nom"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "monde_graine_sur_32_bits": {
+          "name": "monde_graine_sur_32_bits",
+          "value": "\"monde\".\"graine\" between 0 and 4294967295"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.mot_interdit": {
+      "name": "mot_interdit",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "mot_interdit_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "mot": {
+          "name": "mot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entier": {
+          "name": "entier",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "cree_le": {
+          "name": "cree_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "mot_interdit_mot_unique": {
+          "name": "mot_interdit_mot_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "mot"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "mot_interdit_a_plat": {
+          "name": "mot_interdit_a_plat",
+          "value": "\"mot_interdit\".\"mot\" ~ '^[a-z0-9]+$'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.passage_tache": {
+      "name": "passage_tache",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "passage_tache_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "debut": {
+          "name": "debut",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "duree_ms": {
+          "name": "duree_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rattrapes": {
+          "name": "rattrapes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "echecs": {
+          "name": "echecs",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "restants": {
+          "name": "restants",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "erreurs": {
+          "name": "erreurs",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.prenom": {
+      "name": "prenom",
+      "schema": "",
+      "columns": {
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "ordre": {
+          "name": "ordre",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.production_biome": {
+      "name": "production_biome",
+      "schema": "",
+      "columns": {
+        "biome_id": {
+          "name": "biome_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ressource_id": {
+          "name": "ressource_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "par_heure": {
+          "name": "par_heure",
+          "type": "numeric(24, 6)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "production_biome_biome_id_biome_id_fk": {
+          "name": "production_biome_biome_id_biome_id_fk",
+          "tableFrom": "production_biome",
+          "tableTo": "biome",
+          "columnsFrom": [
+            "biome_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "production_biome_ressource_id_ressource_id_fk": {
+          "name": "production_biome_ressource_id_ressource_id_fk",
+          "tableFrom": "production_biome",
+          "tableTo": "ressource",
+          "columnsFrom": [
+            "ressource_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "production_biome_biome_id_ressource_id_pk": {
+          "name": "production_biome_biome_id_ressource_id_pk",
+          "columns": [
+            "biome_id",
+            "ressource_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "production_jamais_negative": {
+          "name": "production_jamais_negative",
+          "value": "\"production_biome\".\"par_heure\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.rarete": {
+      "name": "rarete",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rang": {
+          "name": "rang",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "s_elevent": {
+          "name": "s_elevent",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "rarete_rang_unique": {
+          "name": "rarete_rang_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "rang"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.recit": {
+      "name": "recit",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "recit_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "territoire_id": {
+          "name": "territoire_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "titre": {
+          "name": "titre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "texte": {
+          "name": "texte",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "survenu_le": {
+          "name": "survenu_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lu_le": {
+          "name": "lu_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rencontres": {
+          "name": "rencontres",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "recit_par_territoire": {
+          "name": "recit_par_territoire",
+          "columns": [
+            {
+              "expression": "territoire_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "survenu_le",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "recit_territoire_id_territoire_id_fk": {
+          "name": "recit_territoire_id_territoire_id_fk",
+          "tableFrom": "recit",
+          "tableTo": "territoire",
+          "columnsFrom": [
+            "territoire_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.rencontre": {
+      "name": "rencontre",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "rencontre_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "expedition_id": {
+          "name": "expedition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "numero": {
+          "name": "numero",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bete_de_naissance_id": {
+          "name": "bete_de_naissance_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "espece_id": {
+          "name": "espece_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "apparue_le": {
+          "name": "apparue_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vue_le": {
+          "name": "vue_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "apprivoisee": {
+          "name": "apprivoisee",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "sexe": {
+          "name": "sexe",
+          "type": "sexe",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "attaque_le": {
+          "name": "attaque_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "rencontre_par_bete_de_naissance": {
+          "name": "rencontre_par_bete_de_naissance",
+          "columns": [
+            {
+              "expression": "bete_de_naissance_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "rencontre_une_expedition_par_bete_de_naissance": {
+          "name": "rencontre_une_expedition_par_bete_de_naissance",
+          "columns": [
+            {
+              "expression": "bete_de_naissance_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"rencontre\".\"apprivoisee\"",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "rencontre_expedition_id_expedition_id_fk": {
+          "name": "rencontre_expedition_id_expedition_id_fk",
+          "tableFrom": "rencontre",
+          "tableTo": "expedition",
+          "columnsFrom": [
+            "expedition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "rencontre_bete_de_naissance_id_bete_de_naissance_id_fk": {
+          "name": "rencontre_bete_de_naissance_id_bete_de_naissance_id_fk",
+          "tableFrom": "rencontre",
+          "tableTo": "bete_de_naissance",
+          "columnsFrom": [
+            "bete_de_naissance_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "rencontre_espece_id_espece_id_fk": {
+          "name": "rencontre_espece_id_espece_id_fk",
+          "tableFrom": "rencontre",
+          "tableTo": "espece",
+          "columnsFrom": [
+            "espece_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "rencontre_une_par_bete_sauvage": {
+          "name": "rencontre_une_par_bete_sauvage",
+          "nullsNotDistinct": false,
+          "columns": [
+            "expedition_id",
+            "numero"
+          ]
+        },
+        "rencontre_une_par_bete_de_naissance": {
+          "name": "rencontre_une_par_bete_de_naissance",
+          "nullsNotDistinct": false,
+          "columns": [
+            "expedition_id",
+            "bete_de_naissance_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "rencontre_une_bete": {
+          "name": "rencontre_une_bete",
+          "value": "(\"rencontre\".\"numero\" is null) <> (\"rencontre\".\"bete_de_naissance_id\" is null)"
+        },
+        "rencontre_apres_l_apparition": {
+          "name": "rencontre_apres_l_apparition",
+          "value": "\"rencontre\".\"vue_le\" >= \"rencontre\".\"apparue_le\""
+        },
+        "rencontre_sexe_de_l_apprivoisee": {
+          "name": "rencontre_sexe_de_l_apprivoisee",
+          "value": "(\"rencontre\".\"sexe\" is not null) = \"rencontre\".\"apprivoisee\""
+        },
+        "rencontre_attaque_de_la_bete_restee": {
+          "name": "rencontre_attaque_de_la_bete_restee",
+          "value": "\"rencontre\".\"attaque_le\" is null or (not \"rencontre\".\"apprivoisee\" and \"rencontre\".\"attaque_le\" >= \"rencontre\".\"vue_le\")"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.ressource": {
+      "name": "ressource",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "famille": {
+          "name": "famille",
+          "type": "famille_de_ressource",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ordre": {
+          "name": "ordre",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "au_depart": {
+          "name": "au_depart",
+          "type": "numeric(24, 6)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "limite_au_depart": {
+          "name": "limite_au_depart",
+          "type": "numeric(24, 6)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "ressource_au_depart_positif": {
+          "name": "ressource_au_depart_positif",
+          "value": "\"ressource\".\"au_depart\" >= 0"
+        },
+        "ressource_limite_positive": {
+          "name": "ressource_limite_positive",
+          "value": "\"ressource\".\"limite_au_depart\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.role": {
+      "name": "role",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phrase": {
+          "name": "phrase",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ordre": {
+          "name": "ordre",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.session": {
+      "name": "session",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "session_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "compte_id": {
+          "name": "compte_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "empreinte_jeton": {
+          "name": "empreinte_jeton",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cree_le": {
+          "name": "cree_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expire_le": {
+          "name": "expire_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "session_par_compte": {
+          "name": "session_par_compte",
+          "columns": [
+            {
+              "expression": "compte_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "session_compte_id_compte_id_fk": {
+          "name": "session_compte_id_compte_id_fk",
+          "tableFrom": "session",
+          "tableTo": "compte",
+          "columnsFrom": [
+            "compte_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "session_empreinte_jeton_unique": {
+          "name": "session_empreinte_jeton_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "empreinte_jeton"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.stock": {
+      "name": "stock",
+      "schema": "",
+      "columns": {
+        "territoire_id": {
+          "name": "territoire_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ressource_id": {
+          "name": "ressource_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quantite": {
+          "name": "quantite",
+          "type": "numeric(24, 6)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "produit_depuis_visite": {
+          "name": "produit_depuis_visite",
+          "type": "numeric(24, 6)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "reste": {
+          "name": "reste",
+          "type": "numeric(30, 6)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "limite": {
+          "name": "limite",
+          "type": "numeric(24, 6)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plein_depuis": {
+          "name": "plein_depuis",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "stock_territoire_id_territoire_id_fk": {
+          "name": "stock_territoire_id_territoire_id_fk",
+          "tableFrom": "stock",
+          "tableTo": "territoire",
+          "columnsFrom": [
+            "territoire_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "stock_ressource_id_ressource_id_fk": {
+          "name": "stock_ressource_id_ressource_id_fk",
+          "tableFrom": "stock",
+          "tableTo": "ressource",
+          "columnsFrom": [
+            "ressource_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "stock_territoire_id_ressource_id_pk": {
+          "name": "stock_territoire_id_ressource_id_pk",
+          "columns": [
+            "territoire_id",
+            "ressource_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "stock_jamais_negatif": {
+          "name": "stock_jamais_negatif",
+          "value": "\"stock\".\"quantite\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.territoire": {
+      "name": "territoire",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "territoire_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "chef_id": {
+          "name": "chef_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "foyer_case_id": {
+          "name": "foyer_case_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ne_le": {
+          "name": "ne_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "calcule_jusqu_a": {
+          "name": "calcule_jusqu_a",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "recit_lu_le": {
+          "name": "recit_lu_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vu_le": {
+          "name": "vu_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "famine_imminente_depuis": {
+          "name": "famine_imminente_depuis",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "famine_depuis": {
+          "name": "famine_depuis",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "betes_de_naissance_le": {
+          "name": "betes_de_naissance_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "territoire_chef_id_chef_id_fk": {
+          "name": "territoire_chef_id_chef_id_fk",
+          "tableFrom": "territoire",
+          "tableTo": "chef",
+          "columnsFrom": [
+            "chef_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "territoire_foyer_case_id_case_du_monde_id_fk": {
+          "name": "territoire_foyer_case_id_case_du_monde_id_fk",
+          "tableFrom": "territoire",
+          "tableTo": "case_du_monde",
+          "columnsFrom": [
+            "foyer_case_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "territoire_chef_id_unique": {
+          "name": "territoire_chef_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "chef_id"
+          ]
+        },
+        "territoire_foyer_case_id_unique": {
+          "name": "territoire_foyer_case_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "foyer_case_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.variante_biome": {
+      "name": "variante_biome",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "biome_id": {
+          "name": "biome_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ordre": {
+          "name": "ordre",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "variante_biome_biome_id_biome_id_fk": {
+          "name": "variante_biome_biome_id_biome_id_fk",
+          "tableFrom": "variante_biome",
+          "tableTo": "biome",
+          "columnsFrom": [
+            "biome_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.voyageur": {
+      "name": "voyageur",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "voyageur_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "territoire_id": {
+          "name": "territoire_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "prenom": {
+          "name": "prenom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "arrive_le": {
+          "name": "arrive_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sort": {
+          "name": "sort",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sort_le": {
+          "name": "sort_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "voyageur_par_territoire": {
+          "name": "voyageur_par_territoire",
+          "columns": [
+            {
+              "expression": "territoire_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "voyageur_aux_portes": {
+          "name": "voyageur_aux_portes",
+          "columns": [
+            {
+              "expression": "territoire_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"voyageur\".\"sort\" is null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "voyageur_territoire_id_territoire_id_fk": {
+          "name": "voyageur_territoire_id_territoire_id_fk",
+          "tableFrom": "voyageur",
+          "tableTo": "territoire",
+          "columnsFrom": [
+            "territoire_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "voyageur_sort_connu": {
+          "name": "voyageur_sort_connu",
+          "value": "\"voyageur\".\"sort\" in ('accueilli', 'refuse', 'reparti')"
+        },
+        "voyageur_sort_date": {
+          "name": "voyageur_sort_date",
+          "value": "(\"voyageur\".\"sort\" is null) = (\"voyageur\".\"sort_le\" is null)"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.etat_au_bestiaire": {
+      "name": "etat_au_bestiaire",
+      "schema": "public",
+      "values": [
+        "croisee",
+        "apprivoisee",
+        "couple_reuni"
+      ]
+    },
+    "public.famille_de_ressource": {
+      "name": "famille_de_ressource",
+      "schema": "public",
+      "values": [
+        "nourriture",
+        "materiaux"
+      ]
+    },
+    "public.regime": {
+      "name": "regime",
+      "schema": "public",
+      "values": [
+        "carnivore",
+        "herbivore",
+        "omnivore"
+      ]
+    },
+    "public.sexe": {
+      "name": "sexe",
+      "schema": "public",
+      "values": [
+        "male",
+        "femelle"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

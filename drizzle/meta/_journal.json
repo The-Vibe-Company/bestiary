@@ -470,6 +470,13 @@
       "when": 1791896609662,
       "tag": "0070_affectation",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1791898149086,
+      "tag": "0073_elevage",
+      "breakpoints": true
     }
   ]
 }

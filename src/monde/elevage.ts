@@ -5,7 +5,7 @@
 // Espèce sans Couple. US-0843 : et l'éleveur libre que demande son lancement. Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
-import { LIBRE_EN_SQL } from "./etat-habitant";
+import { ELEVEUR_LIBRE_EN_SQL } from "./etat-habitant";
 
 /**
  * US-0957 : vrai quand l'Élevage de l'Espèce est acquis au Territoire, dès son Couple réuni et à jamais (expression sur
@@ -37,15 +37,14 @@ export const ELEVAGE_SANS_ELEVEUR = "Aucun éleveur libre.";
 /**
  * US-0843 : l'éleveur libre du Territoire, qui s'occupera du prochain Élevage : un Habitant au Métier d'éleveur qui ne
  * s'occupe d'aucun autre Élevage (habitant.espece_elevee, posée au lancement, US-0815) ; le premier par prénom, comme la
- * liste des Habitants les range ; null quand il n'y en a aucun. Une simple lecture, sans verrou : le lancement (US-0815)
- * devra prendre son éleveur d'une seule requête qui relit tout, `update habitant set espece_elevee = … where id = … and
- * metier = 'eleveur' and LIBRE_EN_SQL`, pour qu'un changement de Métier envoyé au même instant ne le laisse pas, Chasseur,
- * à l'Élevage.
+ * liste des Habitants les range ; null quand il n'y en a aucun. Une simple lecture, sans verrou, pour le bloc et les refus
+ * d'avance : le lancement (lancer-un-elevage.ts, US-0815) prend son éleveur d'une seule requête qui relit tout, pour
+ * qu'un changement de Métier envoyé au même instant ne le laisse pas, Chasseur, à l'Élevage.
  */
 export async function eleveurLibre(base: Pool | PoolClient, territoireId: number): Promise<{ id: number; prenom: string } | null> {
   const { rows } = await base.query<{ id: number; prenom: string }>(
     `select id, prenom from habitant
-     where territoire_id = $1 and metier = 'eleveur' and ${LIBRE_EN_SQL}
+     where territoire_id = $1 and ${ELEVEUR_LIBRE_EN_SQL}
      order by prenom, id limit 1`,
     [territoireId],
   );

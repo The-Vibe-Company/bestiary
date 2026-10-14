@@ -26,3 +26,10 @@ export const occupe = (etat: string) => etat !== LIBRE;
  * Habitant libre change de Métier, se renvoie, ou s'occupe d'un Élevage. Un état ajouté s'ajoute ici et à `occupe`.
  */
 export const LIBRE_EN_SQL = "expedition_id is null and espece_elevee is null";
+
+/**
+ * US-0843, US-0815 : un éleveur libre, en SQL, sur une ligne de `habitant` : au Métier d'éleveur et libre (LIBRE_EN_SQL).
+ * Le bloc « Élever » (eleveurLibre), le lancement d'un Élevage et les soins des Blessés (US-0955) le lisent tous ici ;
+ * quand un éleveur redeviendra libre autrement (sa file finie ou annulée, US-0819, US-0844), c'est ici que cela change.
+ */
+export const ELEVEUR_LIBRE_EN_SQL = `metier = 'eleveur' and ${LIBRE_EN_SQL}`;

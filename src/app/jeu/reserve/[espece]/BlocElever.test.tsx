@@ -5,7 +5,8 @@ import { act } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // L'action serveur d'un Élevage demandé (actions.test.ts, actions.db.test.ts) : ici, ce que le bloc en montre.
-const actions = vi.hoisted(() => ({ elever: vi.fn<(avant: { refus: string | null }, formulaire: FormData) => Promise<{ refus: string | null }>>(async () => ({ refus: null })) }));
+type Etat = { refus: string | null; lance?: { quantite: number; eleveur: string } };
+const actions = vi.hoisted(() => ({ elever: vi.fn<(avant: Etat, formulaire: FormData) => Promise<Etat>>(async () => ({ refus: null })) }));
 vi.mock("./actions", () => actions);
 
 import { BlocElever } from "./BlocElever";
@@ -33,10 +34,10 @@ describe("le bloc « Élever » de la fiche d'une Espèce (US-0812)", () => {
     expect(document.getElementById("elever")?.contains(bloc())).toBe(true);
   });
 
-  it("y met le bouton « Élever » pour l'Espèce de la fiche, grisé tant que l'Élevage ne se lance pas encore (US-0815)", () => {
+  it("y met le bouton « Élever » pour l'Espèce de la fiche, actif avec un éleveur libre et une quantité valable (US-0815)", () => {
     render(<BlocElever especeId="poule" places={PLACES} max={MAX} eleveur="Brune" elevage={POULE_ELEVEE} maintenant={MAINTENANT} />);
     const bouton = within(bloc()).getByRole("button", { name: "Élever" });
-    expect((bouton as HTMLButtonElement).disabled).toBe(true);
+    expect((bouton as HTMLButtonElement).disabled).toBe(false);
     const formulaire = bouton.closest("form")!;
     expect(new FormData(formulaire).get("espece")).toBe("poule");
   });
@@ -102,7 +103,8 @@ describe("choisir combien de Bêtes élever (US-0813)", () => {
   it("dit aux lecteurs d'écran la quantité que « − », « + » ou « Max » donnent, la main restant sur le bouton ; rien quand on l'écrit", async () => {
     const u = userEvent.setup();
     render(<BlocElever especeId="poule" places={PLACES} max={MAX} eleveur="Brune" elevage={POULE_ELEVEE} maintenant={MAINTENANT} />);
-    const annonce = () => screen.getByRole("status").textContent;
+    // La sortie de la quantité, à côté de la région de l'Élevage lancé (US-0815).
+    const annonce = () => screen.getAllByRole("status").find((r) => r.tagName === "OUTPUT")!.textContent;
     expect(annonce()).toBe("");
     await u.click(bouton("Une Bête de plus"));
     expect(annonce()).toBe("Quantité : 2");
@@ -301,6 +303,56 @@ describe("voir le coût et la durée d'un Élevage (US-0814)", () => {
     // Une minute réelle, une heure de jeu.
     await act(async () => vi.advanceTimersByTime(60_000));
     expect(valeur("Dernière Bête")).toBe("13 octobre à 20:54");
+  });
+});
+
+describe("lancer l'Élevage (US-0815)", () => {
+  afterEach(() => {
+    cleanup();
+    actions.elever.mockReset();
+  });
+
+  const bloc = () => screen.getByRole("heading", { name: "Élever" }).closest("section")!;
+  const boutonElever = () => within(bloc()).getByRole("button", { name: "Élever" }) as HTMLButtonElement;
+  const champ = () => screen.getByLabelText("Quantité") as HTMLInputElement;
+
+  it("envoie l'Espèce et la quantité choisie, et dit l'Élevage lancé et son éleveur", async () => {
+    const u = userEvent.setup();
+    actions.elever.mockResolvedValue({ refus: null, lance: { quantite: 3, eleveur: "Brune" } });
+    render(<BlocElever especeId="poule" places={PLACES} max={MAX} eleveur="Brune" elevage={POULE_ELEVEE} maintenant={MAINTENANT} />);
+    await u.clear(champ());
+    await u.type(champ(), "3");
+    await u.click(boutonElever());
+    const dit = await within(bloc()).findByText("Élevage lancé : 3 Bêtes, confié à Brune.");
+    // Dit aux lecteurs d'écran dans une région toujours là, où va la main, le bouton s'étant grisé.
+    expect(dit.getAttribute("role")).toBe("status");
+    expect(document.activeElement).toBe(dit);
+    const envoye = actions.elever.mock.lastCall![1];
+    expect([envoye.get("espece"), envoye.get("quantite")]).toEqual(["poule", "3"]);
+  });
+
+  it("garde la région de l'Élevage lancé dans le bloc, vide tant que rien n'est lancé", () => {
+    render(<BlocElever especeId="poule" places={PLACES} max={MAX} eleveur="Brune" elevage={POULE_ELEVEE} maintenant={MAINTENANT} />);
+    const regions = within(bloc()).getAllByRole("status").filter((r) => r.tagName === "P");
+    expect(regions.map((r) => r.textContent)).toEqual([""]);
+  });
+
+  it("grise « Élever » d'une quantité refusée, et pendant l'envoi : un double clic n'envoie qu'une demande", async () => {
+    const u = userEvent.setup();
+    let finir: (etat: { refus: string | null }) => void = () => {};
+    actions.elever.mockImplementation(() => new Promise((f) => (finir = f)));
+    render(<BlocElever especeId="poule" places={PLACES} max={MAX} eleveur="Brune" elevage={POULE_ELEVEE} maintenant={MAINTENANT} />);
+    await u.clear(champ());
+    await u.type(champ(), "0");
+    expect(boutonElever().disabled).toBe(true);
+    await u.clear(champ());
+    await u.type(champ(), "2");
+    expect(boutonElever().disabled).toBe(false);
+    await u.dblClick(boutonElever());
+    expect(boutonElever().disabled).toBe(true);
+    expect(actions.elever).toHaveBeenCalledOnce();
+    await act(async () => finir({ refus: null }));
+    expect(boutonElever().disabled).toBe(false);
   });
 });
 

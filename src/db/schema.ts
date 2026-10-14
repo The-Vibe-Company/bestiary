@@ -890,3 +890,35 @@ export const couple = pgTable(
   },
   (t) => [primaryKey({ columns: [t.territoireId, t.especeId] })],
 );
+
+/**
+ * US-0815 : un Élevage lancé au Territoire : l'Espèce, l'éleveur qui s'en occupe (l'Habitant qui l'élève,
+ * habitant.espece_elevee ; null s'il n'est plus là), le nombre de Bêtes demandées, la durée d'Élevage d'une Bête et le coût
+ * payé, fixés au lancement, et l'heure du clic. Les naissances (US-0817), le suivi (US-0818), la file (US-0819) et
+ * l'annulation (US-0820) le liront.
+ */
+export const elevage = pgTable(
+  "elevage",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    territoireId: integer("territoire_id")
+      .notNull()
+      .references(() => territoire.id, { onDelete: "cascade" }),
+    especeId: text("espece_id")
+      .notNull()
+      .references(() => espece.id),
+    eleveurId: integer("eleveur_id").references(() => habitant.id, { onDelete: "set null" }),
+    quantite: integer("quantite").notNull(),
+    dureeMinutes: integer("duree_minutes").notNull(),
+    cout: bigint("cout", { mode: "number" }).notNull(),
+    lanceLe: timestamp("lance_le", { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    index("elevage_par_territoire").on(t.territoireId),
+    // Un Habitant qui s'en va met son Élevage sans éleveur (set null) : retrouvé par cet index.
+    index("elevage_par_eleveur").on(t.eleveurId),
+    check("elevage_au_moins_une_bete", sql`${t.quantite} > 0`),
+    check("elevage_duree_positive", sql`${t.dureeMinutes} > 0`),
+    check("elevage_cout_positif", sql`${t.cout} >= 0`),
+  ],
+);

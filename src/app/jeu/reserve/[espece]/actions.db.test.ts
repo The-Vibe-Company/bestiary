@@ -12,6 +12,8 @@ const garde = vi.hoisted(() => ({ exigerCompte: vi.fn() }));
 vi.mock("@/comptes/garde", () => garde);
 const base = vi.hoisted(() => ({ pool: null as Pool | null }));
 vi.mock("@/db", async (original) => ({ ...(await original<object>()), getPool: () => base.pool }));
+// US-0815 : la page relue après un lancement, hors de toute requête ici.
+vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
 import { elever } from "./actions";
 
@@ -87,16 +89,20 @@ describe.skipIf(!URL_TEST)("refuser l'Élevage d'une Espèce sans Couple, sur ba
     expect(await demander(t.territoireId, "souris")).toEqual({ refus: ELEVAGE_SANS_ELEVEUR });
     await nommerUnEleveur(t.territoireId);
     await nommerUnEleveur(voisin.territoireId);
-    expect(await demander(t.territoireId, "souris")).toEqual({ refus: null });
-    expect(await demander(voisin.territoireId, "pigeon")).toEqual({ refus: null });
+    // US-0815 : de quoi payer une souris et un pigeon ; l'Élevage se lance.
+    await pool.query("update stock set quantite = 1000, limite = 1000 where territoire_id = any($1) and ressource_id in ('viande', 'vegetaux')", [[t.territoireId, voisin.territoireId]]);
+    const lance = { refus: null, lance: { quantite: 1, eleveur: expect.any(String) } };
+    expect(await demander(t.territoireId, "souris")).toEqual(lance);
+    expect(await demander(voisin.territoireId, "pigeon")).toEqual(lance);
   });
 
-  it("refuse le lancement quand le seul éleveur s'occupe déjà d'un Élevage (US-0843)", async () => {
+  it("refuse le lancement quand le seul éleveur s'occupe déjà d'un Élevage (US-0843) : celui qu'un premier lancement lui a confié (US-0815)", async () => {
     const t = await naitre();
     await reunir(t, "souris");
     await nommerUnEleveur(t.territoireId);
-    expect(await demander(t.territoireId, "souris")).toEqual({ refus: null });
-    await pool.query("update habitant set espece_elevee = 'poule' where territoire_id = $1 and metier = 'eleveur'", [t.territoireId]);
+    await pool.query("update stock set quantite = 1000, limite = 1000 where territoire_id = $1 and ressource_id in ('viande', 'vegetaux')", [t.territoireId]);
+    expect(await demander(t.territoireId, "souris")).toMatchObject({ refus: null, lance: { quantite: 1 } });
+    expect((await pool.query("select espece_elevee from habitant where territoire_id = $1 and metier = 'eleveur'", [t.territoireId])).rows).toEqual([{ espece_elevee: "souris" }]);
     expect(await demander(t.territoireId, "souris")).toEqual({ refus: ELEVAGE_SANS_ELEVEUR });
   });
 });

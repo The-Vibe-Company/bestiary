@@ -8,13 +8,13 @@
 import "server-only";
 import type { PoolClient } from "pg";
 import { dureesDeGuerison, gueriLe } from "./blesses";
-import { LIBRE_EN_SQL } from "./etat-habitant";
+import { ELEVEUR_LIBRE_EN_SQL } from "./etat-habitant";
 import { type GuerisonDUneEspece, recitDeGuerison } from "./recit-de-guerison";
 import { ecrireUnRecit } from "./recits";
 
 /**
  * US-0955 : au retour au Foyer de l'Expédition `expeditionId` du Territoire, ses Blessés sont soignés si un éleveur libre
- * l'attend au Foyer : un Habitant éleveur qui ne s'occupe d'aucun Élevage (US-0843, LIBRE_EN_SQL). Les soins se décident
+ * l'attend au Foyer : un Habitant éleveur qui ne s'occupe d'aucun Élevage (US-0843, ELEVEUR_LIBRE_EN_SQL). Les soins se décident
  * à cet instant, une fois pour toutes : un éleveur libéré ou engagé plus tard n'y change rien. Sans Blessé, rien ne se
  * note. Dans la transaction du retour (rentrerAuFoyer).
  */
@@ -23,7 +23,7 @@ export async function soignerLesBlesses(client: PoolClient, territoireId: number
     `update expedition x set blesses_soignes = true
      where x.id = $2 and x.territoire_id = $1
        and exists (select 1 from expedition_escorte s where s.expedition_id = x.id and s.blessees > 0)
-       and exists (select 1 from habitant h where h.territoire_id = $1 and h.metier = 'eleveur' and ${LIBRE_EN_SQL})`,
+       and exists (select 1 from habitant h where h.territoire_id = $1 and ${ELEVEUR_LIBRE_EN_SQL})`,
     [territoireId, expeditionId],
   );
 }
