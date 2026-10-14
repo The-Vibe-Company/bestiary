@@ -1,0 +1,67 @@
+docs/conventions-des-workers.md
+  s_7c7d151152e4a5::t_71bc72c43b4d28 35-41
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_a797c17ebc0fed 388
+docs/stories/09-explorer-et-apprivoiser.md
+  s_7c7d151152e4a5::t_18508783985cb3 604
+docs/stories/README.md
+  s_7c7d151152e4a5::t_d12b6f74f2c3a6 7
+docs/stories/a-decider.md
+  s_7c7d151152e4a5::t_d9fa7539b260bd 5
+drizzle/0070_affectation.sql
+  s_7c7d151152e4a5::t_49c7eadd369a3d 1-12
+drizzle/meta/0070_snapshot.json
+  s_7c7d151152e4a5::t_a859c38017834e 1-3461
+drizzle/meta/0071_snapshot.json
+  s_7c7d151152e4a5::t_3a4f3caa2348a0 2-3,7-77
+drizzle/meta/_journal.json
+  s_7c7d151152e4a5::t_3d54abf2b9231b 467-473,477
+src/app/jeu/betes/RoleDeLEspece.test.tsx
+  s_7c7d151152e4a5::t_0747e765eddf57 1-88
+src/app/jeu/betes/RoleDeLEspece.tsx
+  s_7c7d151152e4a5::t_72e821e614ccbd 1-57
+src/app/jeu/betes/actions.test.ts
+  s_7c7d151152e4a5::t_3e86723b27f3f8 1-68
+src/app/jeu/betes/actions.ts
+  s_7c7d151152e4a5::t_31677b67cc3390 1-42
+src/app/jeu/betes/page.css.test.ts
+  s_7c7d151152e4a5::t_d62a8d9ec7c682 39-49
+src/app/jeu/betes/page.db.test.tsx
+  s_7c7d151152e4a5::t_be7a50560641e5 8,118-121,136-149
+src/app/jeu/betes/page.module.css
+  s_7c7d151152e4a5::t_4865a98f7249cf 106-124,128,133,176-191,291-295
+src/app/jeu/betes/page.test.tsx
+  s_7c7d151152e4a5::t_46a6e6dad38664 4,33-37,269-327
+src/app/jeu/betes/page.tsx
+  s_7c7d151152e4a5::t_879ce04588ed5a 18,21,44-47,66,96,98,101,116-125
+src/db/schema.ts
+  s_7c7d151152e4a5::t_b45eac69d543c4 655-656,673-692
+src/expeditions/depart.ts
+  s_7c7d151152e4a5::t_a3ddbd7f53060b 7,138-139
+src/expeditions/pertes.ts
+  s_7c7d151152e4a5::t_d595c7d3faa737 108-109
+src/monde/couple.ts
+  s_7c7d151152e4a5::t_703fafca86e2c8 12,61-62
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_32535199e42626 85-86,95-98,100-116,131-150
+src/monde/roles.db.test.ts
+  s_7c7d151152e4a5::t_01c299e83f11c1 1-279
+src/monde/roles.ts
+  s_7c7d151152e4a5::t_909c37c8e126c1 1-138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bca5c614be245d4a383868752b8af58eada99f66",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
