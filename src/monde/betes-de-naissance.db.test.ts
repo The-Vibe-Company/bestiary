@@ -172,7 +172,17 @@ describe.skipIf(!URL_TEST)("les Bêtes de naissance d'un Foyer (US-0975, sur bas
         [genereId, ...[territoire.foyer.q, territoire.foyer.r].flatMap((x) => [x - PORTEE_D_EXPLORATION_CASES, x + PORTEE_D_EXPLORATION_CASES])],
       );
       const aPortee = cases.filter((c) => distance(c, territoire.foyer) <= PORTEE_D_EXPLORATION_CASES);
-      const [prairie, sansCommune] = [aPortee.find((c) => c.biome === "prairie")!, aPortee.find((c) => c.biome !== "prairie")!];
+      // Une Case d'un Biome qui a des communes, quand il y en a une à portée : leur rendre rares éprouve le filtre des
+      // communes ; sinon, une Case d'un Biome qui n'en a jamais eu (la banquise, la jungle).
+      const { rows: avecCommunes } = await client.query<{ biome: string }>("select distinct biome_id as biome from espece where rarete_id = 'commune'");
+      const aDesCommunes = new Set(avecCommunes.map((b) => b.biome));
+      const prairie = aPortee.find((c) => c.biome === "prairie")!;
+      const sansCommune = aPortee.find((c) => c.biome !== "prairie" && aDesCommunes.has(c.biome)) ?? aPortee.find((c) => c.biome !== "prairie")!;
+      // Ses communes deviennent rares dans une copie des Espèces propre à cette transaction : une table temporaire, que
+      // Postgres lit avant celle du jeu. Les Espèces du jeu, que les autres fichiers rechargent en même temps
+      // (preparerMondeDeTest), ne sont jamais verrouillées : les modifier elles-mêmes, le temps de l'essai, interbloquait
+      // ce rechargement.
+      await client.query("create temp table espece on commit drop as table public.espece");
       await client.query("update espece set rarete_id = 'rare' where biome_id = $1 and rarete_id = 'commune'", [sansCommune.biome]);
       const prises = aPortee.filter((c) => c !== prairie && c !== sansCommune).map((c) => c.id);
       // Une portée de 8 Cases en compte plus de 200, mais 80 seulement autour d'un Foyer né au coin du Monde, environ une
