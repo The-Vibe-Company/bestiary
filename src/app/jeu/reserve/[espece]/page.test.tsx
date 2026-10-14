@@ -48,6 +48,7 @@ vi.mock("next/server", async (original) => ({ ...(await original<object>()), con
 import { coutDUneBeteElevee, dureeDUneBeteEleveeMinutes } from "@/monde/cout-d-elevage";
 import { formaterJourEtHeure, formaterMinutes } from "@/temps/affichage";
 import { BlocElever } from "./BlocElever";
+import { EXPLICATIONS } from "./explications";
 import FicheDeLEspece, { metadata } from "./page";
 
 /** La fiche de la poule, son effectif, et les caractéristiques que donne pour elle la base (donnees/especes.yaml, par le barème). */
@@ -71,7 +72,7 @@ const POULE: FicheDEspece = {
 /** US-0804 : les caractéristiques de la fiche, nom et valeur, les espaces des milliers lues comme des espaces. */
 const caracteristiques = (html: string) =>
   [...(html.match(/<dl[^>]*>(.*?)<\/dl>/)?.[1] ?? "").matchAll(/<dt[^>]*>(.*?)<\/dt><dd[^>]*>(.*?)<\/dd>/g)].map(([, nom, valeur]) => [
-    nom,
+    nom.replace(/<[^>]+>/g, ""),
     valeur.replace(/<[^>]+>/g, "").replace(/[\u00a0\u202f]/g, " "),
   ]);
 
@@ -112,11 +113,11 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
   it("rappelle l'effectif de l'Espèce, sous son nom et sa Rareté (US-0810)", async () => {
     connecte();
     const html = await ouvrir("poule");
-    expect(html).toMatch(/<p[^>]*><span>Effectif<\/span> <strong[^>]*>12<\/strong><\/p>/);
+    expect(html).toMatch(/<p[^>]*><button[^>]*>Effectif<\/button> <strong[^>]*>12<\/strong><\/p>/);
     expect(html.indexOf("Commune")).toBeLessThan(html.indexOf("Effectif"));
     // Une Espèce dont toutes les Bêtes forment le Couple, en Réserve, a un effectif vide : la fiche le dit.
     connecte({ ...POULE, effectif: 0 });
-    expect(await ouvrir("poule")).toMatch(/<span>Effectif<\/span> <strong[^>]*>0<\/strong>/);
+    expect(await ouvrir("poule")).toMatch(/<button[^>]*>Effectif<\/button> <strong[^>]*>0<\/strong>/);
   });
 
   it("distingue, sous l'effectif, chaque groupe de Blessés au Foyer et le temps qui lui reste avant sa guérison (US-0952)", async () => {
@@ -124,7 +125,8 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
     blesses.blessesAuFoyer.mockResolvedValueOnce(new Map([["poule", [{ nombre: 3, gueriLe: new Date("2026-10-09T12:42:13.250Z") }]]]));
     const html = await ouvrir("poule");
     expect(blesses.blessesAuFoyer).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, MAINTENANT);
-    expect(html).toMatch(/<strong[^>]*>12<\/strong><\/p><p[^>]*>dont 3 Blessés, guéris dans 5 h<\/p>/);
+    // Sous l'effectif et son explication, cachée tant qu'on ne la demande pas (US-0807).
+    expect(html).toMatch(/<strong[^>]*>12<\/strong><\/p><p[^>]*hidden=""[^>]*>.*?<\/p><p[^>]*>dont 3 Blessés, guéris dans 5 h<\/p>/);
     // Sans Blessé, rien de plus.
     connecte();
     expect(await ouvrir("poule")).not.toContain("Blessé");
@@ -133,7 +135,7 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
   it("dit les Blessés soignés à leur retour, et le temps plus court qui leur reste (US-0955)", async () => {
     connecte();
     blesses.blessesAuFoyer.mockResolvedValueOnce(new Map([["poule", [{ nombre: 2, gueriLe: new Date("2026-10-09T12:42:13.250Z"), soignes: true }]]]));
-    expect(await ouvrir("poule")).toMatch(/<strong[^>]*>12<\/strong><\/p><p[^>]*>dont 2 Blessés soignés, guéris dans 5 h<\/p>/);
+    expect(await ouvrir("poule")).toMatch(/<strong[^>]*>12<\/strong><\/p><p[^>]*hidden=""[^>]*>.*?<\/p><p[^>]*>dont 2 Blessés soignés, guéris dans 5 h<\/p>/);
   });
 
   it("propose sous la fiche le bloc « Élever » quand le joueur a réuni le Couple de l'Espèce (US-0812)", async () => {
@@ -371,14 +373,14 @@ describe("lire le Biome d'Habitat et le Rôle (US-0806)", () => {
       ["Rôle", "Nourricier"],
     ]);
     // Le pictogramme du Biome : sa Case, dessinée comme sur la carte et sa légende, de la couleur du Biome.
-    const habitat = html.match(/<dt>Habitat<\/dt><dd[^>]*>(.*?)<\/dd>/)?.[1] ?? "";
+    const habitat = html.match(/<dt><button[^>]*>Habitat<\/button><\/dt><dd[^>]*>(.*?)<\/dd>/)?.[1] ?? "";
     expect(habitat).toMatch(/^<svg[^>]*aria-hidden="true"/);
     expect(habitat).toContain("fill:var(--biome-prairie)");
   });
 
   it("donne à chaque Biome son pictogramme : sa Case de la carte, de sa couleur et de son motif", async () => {
     const habitat = async (biome: { id: string; nom: string }) =>
-      (await fiche({ ...POULE, biome })).html.match(/<dt>Habitat<\/dt><dd[^>]*>(.*?)<\/dd>/)?.[1] ?? "";
+      (await fiche({ ...POULE, biome })).html.match(/<dt><button[^>]*>Habitat<\/button><\/dt><dd[^>]*>(.*?)<\/dd>/)?.[1] ?? "";
     const foret = await habitat({ id: "foret", nom: "Forêt" });
     expect(foret).toBe(`${renderToStaticMarkup(<Echantillon teinte="foret" />)}Forêt`);
     expect(foret).toContain("fill:var(--biome-foret)");
@@ -392,5 +394,25 @@ describe("lire le Biome d'Habitat et le Rôle (US-0806)", () => {
       ["Habitat", "Prairie"],
       ["Rôle", "Aucun Rôle"],
     ]);
+  });
+});
+
+describe("comprendre une caractéristique (US-0807)", () => {
+  afterEach(() => {
+    session.compteDeLaSession.mockReset();
+    cookie.jetonDeSession.mockReset();
+    effectif.especeDuTerritoire.mockReset();
+  });
+
+  it("le nom de l'effectif et de chaque caractéristique est un bouton qui désigne son explication d'une phrase, cachée tant qu'on ne la demande pas", async () => {
+    cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
+    session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
+    effectif.especeDuTerritoire.mockResolvedValue(POULE);
+    const html = await ouvrir("poule");
+    const noms = [...html.matchAll(/<button[^>]*aria-expanded="false"[^>]*aria-controls="([^"]+)"[^>]*>([^<]+)<\/button>/g)].map(([, id, nom]) => {
+      const explication = html.match(new RegExp(`<(dd|p) id="${id.replace(/[^\w-]/g, "\\$&")}"[^>]*hidden=""[^>]*><span>([^<]+)</span>`));
+      return [nom, explication?.[2].replace(/&#x27;/g, "'")];
+    });
+    expect(noms).toEqual(Object.entries(EXPLICATIONS));
   });
 });

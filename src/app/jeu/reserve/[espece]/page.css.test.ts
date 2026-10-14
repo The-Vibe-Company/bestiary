@@ -47,9 +47,36 @@ describe("la fiche d'une Espèce (US-0803)", () => {
   });
 
   it("met le pictogramme du Biome devant son nom, le nom de la ligne à sa hauteur (US-0806)", () => {
-    expect(regle(".caracteristiques > .habitat > dd")).toMatch(/display: flex;[^}]*align-items: center;/);
+    expect(regle(".caracteristiques > .habitat > dd:not(.explication)")).toMatch(/display: flex;[^}]*align-items: center;/);
     expect(regle(".caracteristiques > .habitat > *")).toContain("align-self: center;");
     // Les autres lignes gardent leurs noms et leurs valeurs sur une même ligne d'écriture.
     expect(regle(".caracteristiques")).toContain("align-items: baseline;");
+  });
+});
+
+describe("comprendre une caractéristique de la fiche (US-0807)", () => {
+  it("son nom se touche : un pointillé de cuivre le souligne, plein une fois ouvert, et un contour au clavier", () => {
+    expect(regle(".terme")).toContain("text-decoration: underline dotted var(--cuivre);");
+    expect(CSS).toMatch(/\n\.terme\[aria-expanded="true"\] \{\s*text-decoration-style: solid;/);
+    expect(regle(".terme:focus-visible")).toContain("outline: 2px solid var(--cuivre-clair);");
+    // Sa cible déborde le texte sans bouger la ligne.
+    expect(regle(".terme")).toMatch(/margin: -5px -4px;[^}]*padding: 5px 4px;/);
+  });
+
+  it("son explication prend toute la largeur de la liste, et ne se voit pas tant qu'elle est fermée", () => {
+    expect(regle(".entete .explication")).toContain("grid-column: 1 / -1;");
+    expect(regle(".entete .explication[hidden]")).toContain("display: none;");
+    // La liste garde sa largeur, ouverte ou non ; la ligne du Biome ne règle pas son explication.
+    expect(regle(".caracteristiques")).toContain("justify-self: stretch;");
+    expect(CSS).not.toMatch(/\.habitat > dd \{/);
+  });
+
+  it("l'étiquette de l'effectif, un bouton, a sa cible de 24 px de haut au moins", () => {
+    expect(regle(".effectif > .terme")).toMatch(/margin: -7px -4px;[^}]*padding: 7px 4px;/);
+  });
+
+  it("le bouton qui la referme a sa cible et son contour au clavier", () => {
+    expect(regle(".fermerExplication")).toMatch(/width: 32px;[^}]*height: 32px;/);
+    expect(regle(".fermerExplication:focus-visible")).toContain("outline: 2px solid var(--cuivre-clair);");
   });
 });

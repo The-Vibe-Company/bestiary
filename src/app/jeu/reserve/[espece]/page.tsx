@@ -18,6 +18,7 @@ import { placesDeLHabitat } from "@/monde/habitat";
 import { caracteristiqueAffichee as nombre } from "@/monde/quantite";
 import { maintenant, vitesse } from "@/temps/horloge";
 import { BlocElever } from "./BlocElever";
+import { Caracteristique, Effectif } from "./Explication";
 import styles from "./page.module.css";
 
 // Le titre reste celui de la Réserve : le nom d'une Espèce ne se lit pas sans la garde.
@@ -57,12 +58,16 @@ const IDENTIFIANT = /^[a-z0-9_]{1,64}$/;
  * US-0952 : sous l'effectif, avant les caractéristiques, chaque groupe de Blessés au Foyer de l'Espèce et le temps qui lui
  * reste avant sa guérison, comme sur la page Bêtes, en note discrète ; rien sans Blessé.
  *
- * US-0804 : sous l'effectif, ses caractéristiques telles que la base les a enregistrées, les mêmes pour tous les joueurs :
- * l'attaque, la vie, la vitesse en km/h et la charge, un nom et une valeur chacune, sans phrase (leurs explications
- * arrivent avec US-0807). Toutes sont toujours là : une Espèce à qui il en manque une ne se charge pas en base
- * (src/donnees/jeux.ts). US-0805 : puis sa taille en Places occupées par Bête, son régime et son Entretien par heure et
- * par Bête, dans la Nourriture de son régime. US-0806 : enfin son Biome d'Habitat, son nom précédé de son pictogramme,
- * la Case du Biome dessinée comme sur la carte et sa légende, et son Rôle, ou « Aucun Rôle ».
+ * US-0804 : sous l'effectif, ses caractéristiques telles que la base les a enregistrées, les mêmes pour tous les
+ * joueurs : l'attaque, la vie, la vitesse en km/h et la charge, un nom et une valeur chacune, sans phrase à vue. Toutes
+ * sont toujours là : une Espèce à qui il en manque une ne se charge pas en base (src/donnees/jeux.ts). US-0805 : puis
+ * sa taille en Places occupées par Bête, son régime et son Entretien par heure et par Bête, dans la Nourriture de son
+ * régime. US-0806 : enfin son Biome d'Habitat, son nom précédé de son pictogramme, la Case du Biome dessinée comme sur
+ * la carte et sa légende, et son Rôle, ou « Aucun Rôle ».
+ *
+ * US-0807 : le nom de l'effectif et de chaque caractéristique ouvre son explication d'une phrase, dessous ; un toucher
+ * ailleurs, Échap ou son bouton la referment (Explication.tsx, explications.ts). Au clavier, l'ordre reste celui de la
+ * lecture, « Fermer » en dernier, même sur un téléphone couché où il s'affiche en haut à droite.
  *
  * Sur le fond du jeu, un panneau orné : la peinture de l'Espèce dans son filet vert ; son nom en Bree Serif, sa Rareté
  * en puce, l'effectif en grand, puis ses caractéristiques sous un filet doux ; « Fermer », un bouton au contour vert.
@@ -93,56 +98,27 @@ export default async function FicheDeLEspece({
         <div className={styles.entete}>
           <h1 className={styles.nom}>{fiche.nom}</h1>
           <PastilleRarete rarete={fiche.rarete} />
-          <p className={styles.effectif}>
-            <span>Effectif</span> <strong className={styles.nombre}>{fiche.effectif}</strong>
-          </p>
+          <Effectif nombre={fiche.effectif} />
           {blesses.map((groupe, i) => (
             <p key={i} className={`${kit.note} ${styles.blesses}`}>
               {`dont ${blessesDans(groupe)}`}
             </p>
           ))}
           <dl className={styles.caracteristiques}>
-            <div>
-              <dt>Attaque</dt>
-              <dd>{nombre(fiche.attaque)}</dd>
-            </div>
-            <div>
-              <dt>Vie</dt>
-              <dd>{nombre(fiche.vie)}</dd>
-            </div>
-            <div>
-              <dt>Vitesse</dt>
-              <dd>{nombre(fiche.vitesse)}&nbsp;km/h</dd>
-            </div>
-            <div>
-              <dt>Charge</dt>
-              <dd>{nombre(fiche.charge)}</dd>
-            </div>
-            <div>
-              <dt>Taille</dt>
-              <dd>{places(fiche.taille)}</dd>
-            </div>
-            <div>
-              <dt>Régime</dt>
-              <dd>{REGIMES[fiche.regime].nom}</dd>
-            </div>
-            <div>
-              <dt>Entretien</dt>
-              <dd>
-                {nombre(fiche.entretienParHeure)}&nbsp;{REGIMES[fiche.regime].nourriture}&nbsp;/&nbsp;h
-              </dd>
-            </div>
-            <div className={styles.habitat}>
-              <dt>Habitat</dt>
-              <dd>
-                <Echantillon teinte={teinteDuBiome(fiche.biome.id)} />
-                {fiche.biome.nom}
-              </dd>
-            </div>
-            <div>
-              <dt>Rôle</dt>
-              <dd>{fiche.role ? fiche.role.nom : "Aucun Rôle"}</dd>
-            </div>
+            <Caracteristique nom="Attaque">{nombre(fiche.attaque)}</Caracteristique>
+            <Caracteristique nom="Vie">{nombre(fiche.vie)}</Caracteristique>
+            <Caracteristique nom="Vitesse">{nombre(fiche.vitesse)}&nbsp;km/h</Caracteristique>
+            <Caracteristique nom="Charge">{nombre(fiche.charge)}</Caracteristique>
+            <Caracteristique nom="Taille">{places(fiche.taille)}</Caracteristique>
+            <Caracteristique nom="Régime">{REGIMES[fiche.regime].nom}</Caracteristique>
+            <Caracteristique nom="Entretien">
+              {nombre(fiche.entretienParHeure)}&nbsp;{REGIMES[fiche.regime].nourriture}&nbsp;/&nbsp;h
+            </Caracteristique>
+            <Caracteristique nom="Habitat" className={styles.habitat}>
+              <Echantillon teinte={teinteDuBiome(fiche.biome.id)} />
+              {fiche.biome.nom}
+            </Caracteristique>
+            <Caracteristique nom="Rôle">{fiche.role ? fiche.role.nom : "Aucun Rôle"}</Caracteristique>
           </dl>
         </div>
         <Link href={retour} className={`${kit.bouton} ${kit.secondaire} ${styles.fermer}`}>

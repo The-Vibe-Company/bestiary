@@ -132,7 +132,8 @@ describe.skipIf(!URL_TEST)("loger au Foyer les Bêtes de tout Biome (US-0823, su
     garde.exigerCompte.mockResolvedValue({ id: 1, email: "nom@exemple.fr", nomDeChef: "Ourse", territoireId, recitLu: true });
     const html = renderToStaticMarkup(await FicheDeLEspece({ params: Promise.resolve({ espece }), searchParams: Promise.resolve({}) }));
     return [...(html.match(/<dl[^>]*>(.*?)<\/dl>/)?.[1] ?? "").matchAll(/<dt[^>]*>(.*?)<\/dt><dd[^>]*>(.*?)<\/dd>/g)].map(
-      ([, nom, valeur]) => `${nom} ${valeur.replace(/<[^>]+>/g, "")}`,
+      // US-0807 : le nom est un bouton qui ouvre son explication : son texte seul.
+      ([, nom, valeur]) => `${nom.replace(/<[^>]+>/g, "")} ${valeur.replace(/<[^>]+>/g, "")}`,
     );
   };
 

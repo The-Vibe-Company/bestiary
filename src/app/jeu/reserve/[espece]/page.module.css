@@ -52,7 +52,10 @@
   margin-top: 6px;
 }
 
-.effectif > span {
+/* US-0807 : la petite étiquette est un bouton, sa cible portée à 24 px de haut au moins. */
+.effectif > .terme {
+  margin: -7px -4px;
+  padding: 7px 4px;
   color: var(--cuivre);
   font: var(--graisse-moyenne) var(--taille-etiquette) / 1 var(--police-etroite);
   letter-spacing: var(--espacement-etiquette);
@@ -80,6 +83,8 @@
   grid-template-columns: max-content minmax(0, 1fr);
   gap: 9px 28px;
   align-self: stretch;
+  /* US-0807 : de toute la largeur de sa colonne, qu'une explication soit ouverte ou non. */
+  justify-self: stretch;
   align-items: baseline;
   margin: 8px 0 0;
   padding-top: 14px;
@@ -110,11 +115,105 @@
   align-self: center;
 }
 
-.caracteristiques > .habitat > dd {
+.caracteristiques > .habitat > dd:not(.explication) {
   display: flex;
   gap: 10px;
   align-items: center;
   min-width: 0;
+}
+
+/*
+ * US-0807 : le nom d'une caractéristique, et de l'effectif, est un bouton qui ouvre son explication : il garde l'allure de
+ * sa ligne, souligné d'un pointillé de cuivre qui dit qu'on peut le toucher ; ouvert, il passe en cuivre clair et son
+ * trait devient plein (jamais la couleur seule). Sa cible déborde le texte sans bouger la ligne : au moins 24 px de haut.
+ */
+.terme {
+  margin: -5px -4px;
+  padding: 5px 4px;
+  border: 0;
+  border-radius: var(--arrondi-net);
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: start;
+  text-transform: inherit;
+  text-decoration: underline dotted var(--cuivre);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.terme:hover,
+.terme[aria-expanded="true"] {
+  color: var(--cuivre-clair);
+}
+
+.terme[aria-expanded="true"] {
+  text-decoration-style: solid;
+}
+
+.terme:focus-visible {
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: 2px;
+}
+
+/*
+ * US-0807 : l'explication ouverte, sous sa ligne, de toute la largeur de la liste : une phrase en parchemin sur un voile de
+ * cuivre, un trait de cuivre à gauche ; à droite, le bouton qui la referme.
+ */
+.entete .explication {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-between;
+  justify-self: stretch;
+  margin: 0;
+  padding: 8px 4px 8px 12px;
+  border-left: 2px solid var(--cuivre);
+  background: var(--cuivre-voile);
+  color: var(--parchemin);
+  font: var(--graisse-texte) 13.5px / 1.4 var(--police);
+  font-variant-numeric: normal;
+  overflow-wrap: anywhere;
+}
+
+.entete .explication[hidden] {
+  display: none;
+}
+
+/* Le bouton qui referme l'explication : une croix discrète, 32 px de côté, en cuivre clair au survol et au clavier. */
+.fermerExplication {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: -6px 0;
+  border: 0;
+  border-radius: var(--arrondi-net);
+  background: none;
+  color: var(--mousse);
+  cursor: pointer;
+}
+
+.fermerExplication svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.6;
+}
+
+.fermerExplication:hover {
+  color: var(--cuivre-clair);
+}
+
+.fermerExplication:focus-visible {
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: 2px;
 }
 
 /* « Fermer », au pouce : 44 px de haut, le bouton au contour vert d'une action secondaire. */

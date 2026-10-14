@@ -53,7 +53,7 @@ describe.skipIf(!URL_TEST)("ouvrir la fiche d'une Espèce, sur base (US-0803)", 
     garde.exigerCompte.mockResolvedValue({ id: 1, email: "nom@exemple.fr", nomDeChef: "Ourse", territoireId, recitLu: true });
     const html = renderToStaticMarkup(await FicheDeLEspece({ params: Promise.resolve({ espece }), searchParams: Promise.resolve({}) }));
     return [...(html.match(/<dl[^>]*>(.*?)<\/dl>/)?.[1] ?? "").matchAll(/<dt[^>]*>(.*?)<\/dt><dd[^>]*>(.*?)<\/dd>/g)].map(
-      ([, nom, valeur]) => `${nom} ${valeur.replace(/<[^>]+>/g, "").replace(/[\u00a0\u202f]/g, " ")}`,
+      ([, nom, valeur]) => `${nom.replace(/<[^>]+>/g, "")} ${valeur.replace(/<[^>]+>/g, "").replace(/[\u00a0\u202f]/g, " ")}`,
     );
   };
   /**
@@ -67,7 +67,7 @@ describe.skipIf(!URL_TEST)("ouvrir la fiche d'une Espèce, sur base (US-0803)", 
       titre: html.match(/<h1[^>]*>(.*?)<\/h1>/)?.[1],
       rarete: html.match(/data-rarete="([^"]*)"[^>]*>(.*?)</)?.slice(1).join(" "),
       image: decodeURIComponent(html.match(/<img[^>]*src="([^"]*)"/)?.[1] ?? "").match(/especes\/[a-z_]+\.webp/)?.[0],
-      effectif: html.match(/<span>Effectif<\/span> <strong[^>]*>(\d+)<\/strong>/)?.[1],
+      effectif: html.match(/<button[^>]*>Effectif<\/button> <strong[^>]*>(\d+)<\/strong>/)?.[1],
     };
   };
 
