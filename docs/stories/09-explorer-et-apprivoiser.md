@@ -653,6 +653,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0960 · Le mâle ou la femelle n'est pas au Foyer
 **En tant que** joueur, **je veux** que le Couple se forme correctement même quand l'une des deux Bêtes est absente ou blessée, **afin de** ne pas être pénalisé par un mauvais moment.
 
+- **Statut** : Livrée le 2026-10-14 (autopilot, Zewed/bestia-2#87, migration 0074). Le Couple se forme dès qu'un mâle et une femelle sont au Foyer, quelles que soient les Bêtes encore dehors ; quand la seule Bête d'un sexe est en escorte, il se forme à son retour, si elle revient vivante (le départ enregistre le sexe de son escorte, `expedition_escorte.males`). Si la seule Bête d'un sexe meurt, aucun Couple ne se forme. Tranché : un Blessé rejoint le Couple aussitôt et guérit en Réserve (les Blessés étaient déjà dans l'effectif) ; le Couple prend d'abord une Bête valide ; un Blessé parti en Réserve ne compte plus comme Blessé au Foyer ; au combat, les morts sont prises dans l'escorte, et la dernière Bête d'un sexe ne meurt jamais avant les autres de son escorte. Vérifié en vrai : deux poules mâles parties, une morte et une Blessée, le Couple réuni au retour.
 - **Débloquée par** : US-0956, US-0953
 - **Critères d'acceptation** :
   - Si l'une des deux Bêtes est en Expédition, le Couple se forme à son retour, si elle revient vivante.
