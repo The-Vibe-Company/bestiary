@@ -3,7 +3,7 @@
 
 /**
  * Passe à true le jour où Antoine décide d'ouvrir le jeu au public, à la main (ADR 0008) ; il faut
- * aussi que les e-mails partent (Zewed/bestia-2#1). Jusque-là : « Ouverture prochaine ».
+ * aussi que les e-mails partent (The-Vibe-Company/bestiary#58). Jusque-là : « Ouverture prochaine ».
  */
 export const COMPTES_OUVERTS_EN_PRODUCTION = false;
 
