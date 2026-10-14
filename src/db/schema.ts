@@ -801,6 +801,33 @@ export const expeditionEscorte = pgTable(
 );
 
 /**
+ * Les Éclaireurs d'une Expédition (US-0976) : Espèce par Espèce, combien de Bêtes d'une Espèce Éclaireuse partent affectées
+ * à leur Rôle, à côté de l'escorte : une même Bête est l'un ou l'autre. Comme celles de l'escorte, elles restent dans
+ * l'effectif et se retranchent des disponibles jusqu'au retour (src/monde/effectif.ts) ; mais elles ne combattent pas,
+ * n'ajoutent rien à la force de l'escorte, et rentrent toutes avec les explorateurs, jamais perdues. Elles partent avec
+ * l'Expédition. `males`, combien sont des mâles, les autres des femelles, que le départ retient comme pour l'escorte
+ * (US-0960) ; null quand le sexe des Bêtes au Foyer ne se savait pas.
+ */
+export const expeditionEclaireur = pgTable(
+  "expedition_eclaireur",
+  {
+    expeditionId: integer("expedition_id")
+      .notNull()
+      .references(() => expedition.id, { onDelete: "cascade" }),
+    especeId: text("espece_id")
+      .notNull()
+      .references(() => espece.id),
+    nombre: integer("nombre").notNull(),
+    males: integer("males"),
+  },
+  (t) => [
+    primaryKey({ columns: [t.expeditionId, t.especeId] }),
+    check("expedition_eclaireur_au_moins_un", sql`${t.nombre} > 0`),
+    check("expedition_eclaireur_males_parmi_eux", sql`${t.males} between 0 and ${t.nombre}`),
+  ],
+);
+
+/**
  * Une Rencontre (US-0932) : une Bête sauvage qu'une Expédition a vue sur sa Case pendant son séjour, à `vue_le`, un
  * instant du jeu : celui de l'apparition de la Bête, ou celui de l'arrivée de l'Expédition si la Bête était déjà là. Une
  * Bête sauvage ordinaire s'y désigne par son numéro sur la Case de l'Expédition (src/monde/betes-sauvages.ts), une Bête

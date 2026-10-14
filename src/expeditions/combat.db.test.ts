@@ -170,9 +170,12 @@ describe.skipIf(!URL_TEST)("le combat par la somme des forces (US-0944, sur base
    * Des Expéditions du chef, chacune d'un explorateur et de l'escorte `escorte`, lancées depuis le Foyer pour arriver une
    * heure après la Bête et repartir une heure avant elle, l'une après l'autre jusqu'à ce que la Bête en attaque une,
    * d'après ses tirages : la dernière. L'effectif compte pour elles assez de mâles de chaque Espèce, et une femelle.
+   * US-0976 : et ses Éclaireurs `eclaireurs`, à côté de l'escorte, qui ne règlent pas l'allure.
    */
-  const lancerJusquALAttaque = async (chef: Chef, escorte: Map<string, number>): Promise<Lancee[]> => {
-    for (const [especeId, nombre] of escorte) {
+  const lancerJusquALAttaque = async (chef: Chef, escorte: Map<string, number>, eclaireurs = new Map<string, number>()): Promise<Lancee[]> => {
+    const parties = new Map(escorte);
+    for (const [especeId, nombre] of eclaireurs) parties.set(especeId, (parties.get(especeId) ?? 0) + nombre);
+    for (const [especeId, nombre] of parties) {
       await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, $2, 'male', $3), ($1, $2, 'femelle', 1)", [
         chef.territoireId,
         especeId,
@@ -186,7 +189,7 @@ describe.skipIf(!URL_TEST)("le combat par la somme des forces (US-0944, sur base
     const lancees: Lancee[] = [];
     while (!lancees.at(-1)?.attaque) {
       if (lancees.length === LANCEES_AU_PLUS) throw new Error(`${LANCEES_AU_PLUS} Expéditions lancées sans qu'aucune soit attaquée.`);
-      const lancee = await lancerLExpedition(pool, chef.territoireId, { destination: chef.place, explorateurs: 1, escorte, sejourMinutes: SEJOUR }, partLe);
+      const lancee = await lancerLExpedition(pool, chef.territoireId, { destination: chef.place, explorateurs: 1, escorte, eclaireurs, sejourMinutes: SEJOUR }, partLe);
       if (!("expeditionId" in lancee)) throw new Error(lancee.refus);
       const id = lancee.expeditionId;
       const attaque = instantDeLAttaque(
@@ -585,6 +588,100 @@ describe.skipIf(!URL_TEST)("le combat par la somme des forces (US-0944, sur base
         enFuite: true,
         escorte: [],
       });
+    }, 60_000);
+
+    it("un Éclaireur ne combat pas (US-0976) : seule l'escorte fait la force et perd des Bêtes ; ses Éclaireurs fuient avec les explorateurs, jamais perdus, et rentrent dans l'effectif ; le même page ouverte, d'un bloc ou par la tâche planifiée", async () => {
+      const chef = await naitrePresDUneBeteRare();
+      const escorte = presqueAussiForte(chef);
+      const eclaireurs = new Map([["pigeon", 3]]);
+      // Les Couples des trois Espèces déjà réunis : au retour, aucun autre ne se réunit (US-0956), l'effectif ne bouge pas.
+      await pool.query("insert into couple (territoire_id, espece_id, reuni_le) values ($1, 'poule', $2), ($1, 'souris', $2), ($1, 'pigeon', $2)", [
+        chef.territoireId,
+        chef.ne,
+      ]);
+      const lancees = await lancerJusquALAttaque(chef, escorte, eclaireurs);
+      const x = lancees.at(-1)!;
+      const le = x.attaque!;
+      const [debut, fin] = [lancees[0].partLe, apres(new Date(Math.max(...lancees.map((l) => l.retour.getTime()))), HEURE)];
+      await rattraperA(chef.territoireId, debut);
+      /** Ce que le combat laisse au Territoire (bilan), ses Éclaireurs, ses pigeons proposés à la fin, et le récit du combat. */
+      const avecLesEclaireurs = async (jeu: Pool) => ({
+        ...(await bilan(jeu, chef.territoireId)),
+        eclaireurs: (
+          await jeu.query(
+            `select c.expedition_id, c.espece_id, c.nombre from expedition_eclaireur c join expedition x on x.id = c.expedition_id
+             where x.territoire_id = $1 order by 1, 2`,
+            [chef.territoireId],
+          )
+        ).rows,
+        pigeons: (await proposees(chef.territoireId, eclaireurs, jeu)).pigeon,
+        recits: (await recitsDuTerritoire(jeu, chef.territoireId)).filter((r) => r.texte.includes("\nCombat le ")).map((r) => r.texte),
+      });
+      const bilans = [
+        // Page ouverte toutes les sept minutes, et de part et d'autre de l'attaque.
+        await enEssai(async (jeu) => {
+          const pas = new Set([le.getTime(), le.getTime() + 1]);
+          for (let t = debut.getTime(); t < fin.getTime(); t += 7 * MINUTE_MS + 3_123) pas.add(t);
+          for (const t of [...pas, fin.getTime()].sort((a, b) => a - b)) await rattraperA(chef.territoireId, new Date(t), jeu);
+          return avecLesEclaireurs(jeu);
+        }),
+        // D'un bloc, au retour du joueur.
+        await enEssai(async (jeu) => {
+          await rattraperA(chef.territoireId, fin, jeu);
+          return avecLesEclaireurs(jeu);
+        }),
+        // Par la seule tâche planifiée, toutes les heures.
+        await enEssai(async (jeu) => {
+          for (let t = debut.getTime(); t <= fin.getTime() + (HEURE + RATTRAPER_APRES_MINUTES) * MINUTE_MS; t += HEURE * MINUTE_MS) {
+            await rattraperLesAbsents({ pool: jeu, maintenant: new Date(t), parmi: { territoire: [chef.territoireId] } });
+          }
+          return avecLesEclaireurs(jeu);
+        }),
+      ];
+      expect(bilans[1]).toEqual(bilans[0]);
+      expect(bilans[2]).toEqual(bilans[0]);
+
+      // L'escorte seule a perdu des Bêtes, celles que dit la règle face à sa seule force ; aucun pigeon parmi elles.
+      const pertes = new Map(pertesAttendues(chef, escorte).map((p) => [p.especeId, p.nombre]));
+      expect(bilans[0].escortes.filter((s) => s.expedition_id === x.id)).toEqual(
+        [...escorte]
+          .map(([id, nombre]) => ({ expedition_id: x.id, espece_id: id, nombre, perdues: pertes.get(id) ?? 0, blessees: blessesParmi(pertes.get(id) ?? 0) }))
+          .sort((a, b) => (a.espece_id < b.espece_id ? -1 : 1)),
+      );
+      // Chaque Expédition garde ses trois Éclaireurs, rentrés avec elle : tous les pigeons sont de nouveau proposés.
+      expect(bilans[0].eclaireurs).toEqual(lancees.map((l) => ({ expedition_id: l.id, espece_id: "pigeon", nombre: 3 })));
+      expect(bilans[0].pigeons).toEqual({ disponibles: 3 * LANCEES_AU_PLUS + 1, males: 3 * LANCEES_AU_PLUS, femelles: 1 });
+      // L'Expédition attaquée s'est terminée normalement, rentrée à l'heure de sa fuite.
+      expect(bilans[0].expeditions.find((e) => e.id === x.id)).toEqual({ id: x.id, rappelee_le: le, en_fuite: true, rentree_le: apres(le, x.aller), dehors: 0 });
+      // Le récit oppose la Bête à la force de l'escorte seule, et ne compte aucun pigeon parmi les pertes.
+      const force = [...escorte].reduce((n, [id, nombre]) => n + especes.get(id)!.force * nombre, 0);
+      const entier = (n: number) => new Intl.NumberFormat("fr-FR").format(n).replace(/\s/g, " ");
+      expect(bilans[0].recits).toHaveLength(1);
+      const lignes = bilans[0].recits[0].split("\n");
+      expect(lignes.at(-3)!.endsWith(`, contre votre escorte, de force ${entier(force)}.`)).toBe(true);
+      expect(lignes.at(-2)).not.toMatch(/Pigeon/);
+      expect(lignes.at(-1)).toBe("Vos explorateurs ont fui et sont tous rentrés au Foyer.");
+
+      // Dès le combat, en fuite, elle rentre avec ses explorateurs, ses Bêtes d'escorte survivantes et tous ses Éclaireurs.
+      await rattraperA(chef.territoireId, apres(le, 1 / 60_000));
+      expect((await expeditionsEnCours(pool, chef.territoireId, apres(le, 1 / 60_000))).find((e) => e.id === x.id)).toMatchObject({
+        phase: "retour",
+        enFuite: true,
+        eclaireurs: [{ id: "pigeon", nom: "Pigeon biset", nombre: 3 }],
+      });
+    }, 60_000);
+
+    it("attaquée avec ses seuls Éclaireurs, sans escorte, l'Expédition ne perd rien (US-0976) : ils fuient avec les explorateurs et rentrent dans l'effectif", async () => {
+      const chef = await naitrePresDUneBeteRare();
+      await pool.query("insert into couple (territoire_id, espece_id, reuni_le) values ($1, 'pigeon', $2)", [chef.territoireId, chef.ne]);
+      const lancees = await lancerJusquALAttaque(chef, new Map(), new Map([["pigeon", 2]]));
+      const x = lancees.at(-1)!;
+      await rattraperA(chef.territoireId, new Date(Math.max(...lancees.map((l) => l.retour.getTime()))));
+      expect(await rentreeLe(x.id)).toEqual(apres(x.attaque!, x.aller));
+      expect(await proposees(chef.territoireId, new Map([["pigeon", 0]]))).toEqual({ pigeon: { disponibles: 2 * LANCEES_AU_PLUS + 1, males: 2 * LANCEES_AU_PLUS, femelles: 1 } });
+      const recit = (await recitsDuTerritoire(pool, chef.territoireId)).find((r) => r.texte.includes("\nAttaque le "))!;
+      expect(recit.texte.split("\n").slice(-2)).toEqual(["Aucune perte.", "Vos explorateurs ont fui et sont tous rentrés au Foyer."]);
+      expect(recit.texte).toMatch(/contre vos explorateurs, sans escorte\./);
     }, 60_000);
   });
   describe("plusieurs combats, dans l'ordre du temps (subirLesCombats)", () => {

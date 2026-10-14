@@ -418,3 +418,38 @@ describe("le récapitulatif sur un téléphone (US-0910)", () => {
     expect(deplier.getAttribute("aria-expanded")).toBe("false");
   });
 });
+
+describe("les Éclaireurs au récapitulatif (US-0976)", () => {
+  /** Une Espèce Éclaireuse : ses Bêtes peuvent partir en Éclaireurs, à côté de l'escorte. */
+  const PIGEON: EspeceDisponible = { id: "pigeon", nom: "Pigeon biset", illustration: "especes/pigeon.webp", disponibles: 3, force: 2216, vitesse: 80, males: 2, femelles: 1, coupleReuni: false, eclaireuse: true };
+  afterEach(() => actions.partir.mockReset());
+
+  it("les montre à part de l'escorte, après sa force, sans rien y ajouter ; aucune ligne sans Éclaireur", () => {
+    ouvrir("?explorateurs=1&escorte=souris.2&eclaireurs=pigeon.2", { especes: [SOURIS, PIGEON] });
+    expect(ligne("Escorte")).toBe("Souris grise × 2");
+    expect(ligne("Force")).toBe("946");
+    expect(ligne("Éclaireurs")).toBe("Pigeon biset × 2");
+    expect(lignes().map(([etiquette]) => etiquette).slice(0, 4)).toEqual(["Explorateurs", "Escorte", "Force", "Éclaireurs"]);
+    choisir("?explorateurs=1&escorte=souris.2");
+    expect(lignes().map(([etiquette]) => etiquette)).not.toContain("Éclaireurs");
+  });
+
+  it("sans escorte, l'Expédition reste « Sans escorte », ses Éclaireurs à part, sans force", () => {
+    ouvrir("?explorateurs=1&eclaireurs=pigeon.3", { especes: [SOURIS, PIGEON] });
+    expect(ligne("Escorte")).toBe("Sans escorte : Bêtes communes seulement");
+    expect(ligne("Force")).toBeUndefined();
+    expect(ligne("Éclaireurs")).toBe("Pigeon biset × 3");
+  });
+
+  it("envoie les Éclaireurs que l'écran montre, après l'escorte, jamais plus que ce qu'elle laisse", async () => {
+    const joueur = userEvent.setup();
+    actions.partir.mockResolvedValue({ refus: null });
+    ouvrir("?explorateurs=1&escorte=pigeon.1&eclaireurs=pigeon.9", { especes: [SOURIS, PIGEON] });
+    await joueur.click(partir());
+    const envoye = [...actions.partir.mock.calls[0][1].entries()].filter(([nom]) => nom === "escorte" || nom === "eclaireurs");
+    expect(envoye).toEqual([
+      ["escorte", "pigeon.1"],
+      ["eclaireurs", "pigeon.2"],
+    ]);
+  });
+});

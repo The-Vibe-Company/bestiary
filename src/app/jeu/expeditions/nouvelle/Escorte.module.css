@@ -64,6 +64,22 @@
   align-items: center;
 }
 
+/*
+ * US-0976 : sous les choix d'escorte d'une Espèce Éclaireuse, combien partent comme Éclaireurs : « − », le nombre, « + »,
+ * juste sous ceux de l'escorte, puis le mot.
+ */
+.eclaireurs {
+  display: flex;
+  grid-column: 3;
+  gap: 10px;
+  align-items: center;
+}
+
+.role {
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 13px / 1.25 var(--police);
+}
+
 /* US-0905 : sous les Espèces, la force de l'escorte : son libellé, puis le total, sous un filet doux. */
 .force {
   display: grid;
@@ -92,6 +108,7 @@
 
 /* US-0904 : au pouce, sur un téléphone : « − », « + », « Toutes » et « Aucune » ont 44 px de surface (plus précis que le kit). */
 @media (max-width: 820px), (max-height: 500px) {
+  .eclaireurs .bouton,
   .choix .bouton {
     width: 44px;
     height: 44px;
@@ -113,5 +130,9 @@
   .choix {
     grid-column: 1 / -1;
     justify-content: space-between;
+  }
+
+  .eclaireurs {
+    grid-column: 1 / -1;
   }
 }

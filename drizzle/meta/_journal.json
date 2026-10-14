@@ -484,6 +484,13 @@
       "when": 1791967921764,
       "tag": "0074_sexes_de_l_escorte",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1791971919887,
+      "tag": "0075_eclaireurs_de_l_expedition",
+      "breakpoints": true
     }
   ]
 }

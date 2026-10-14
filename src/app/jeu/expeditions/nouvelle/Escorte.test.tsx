@@ -296,6 +296,86 @@ describe("les Blessés de l'effectif (US-0952)", () => {
   });
 });
 
+describe("emmener des Éclaireurs (US-0976)", () => {
+  /** Une Espèce Éclaireuse, son Rôle (US-0806) : ses Bêtes peuvent partir en Éclaireurs. */
+  const PIGEON: EspeceDisponible = { id: "pigeon", nom: "Pigeon biset", illustration: "especes/pigeon.webp", disponibles: 3, force: 2216, vitesse: 80, males: 2, femelles: 1, coupleReuni: false, eclaireuse: true };
+  /** Les choix des Éclaireurs d'une Espèce, nommés par eux et par elle ; un de leurs boutons, et leur nombre. */
+  const eclaireurs = (nom: string) => within(bloc()).getByRole("group", { name: `Éclaireurs ${nom}` });
+  const boutonEclaireur = (nom: string, b: string) => within(eclaireurs(nom)).getByRole("button", { name: b }) as HTMLButtonElement;
+  const eclaireursChoisis = (nom: string) => within(eclaireurs(nom)).getByRole("status").textContent;
+
+  it("pour une Espèce Éclaireuse, propose à côté de l'escorte combien de ses Bêtes partent comme Éclaireurs ; pas pour les autres", () => {
+    ecran([SOURIS, PIGEON]);
+    expect(within(ligne("Pigeon biset")).getAllByText("Éclaireurs")).toHaveLength(1);
+    expect(eclaireursChoisis("Pigeon biset")).toBe("0");
+    expect(within(ligne("Souris grise")).queryByText("Éclaireurs")).toBeNull();
+    expect(within(bloc()).queryByRole("group", { name: "Éclaireurs Souris grise" })).toBeNull();
+  });
+
+  it("une même Bête est l'un ou l'autre : l'escorte et les Éclaireurs d'une Espèce ne dépassent jamais ses disponibles", async () => {
+    const joueur = userEvent.setup();
+    ecran([SOURIS, PIGEON]);
+    await joueur.click(boutonEclaireur("Pigeon biset", "Un Éclaireur de plus"));
+    await joueur.click(boutonEclaireur("Pigeon biset", "Un Éclaireur de plus"));
+    expect(eclaireursChoisis("Pigeon biset")).toBe("2");
+    // Il ne reste qu'un pigeon pour l'escorte : « Toutes » le prend, et plus rien ne s'ajoute, ni d'un côté ni de l'autre.
+    await joueur.click(bouton("Pigeon biset", "Toutes"));
+    expect(choisies("Pigeon biset")).toBe("1");
+    expect(grises("Pigeon biset")).toEqual(["Une Bête de plus", "Toutes"]);
+    expect(boutonEclaireur("Pigeon biset", "Un Éclaireur de plus").disabled).toBe(true);
+    // Un pigeon rendu à l'escorte peut partir en Éclaireur.
+    await joueur.click(bouton("Pigeon biset", "Une Bête de moins"));
+    await joueur.click(boutonEclaireur("Pigeon biset", "Un Éclaireur de plus"));
+    expect([choisies("Pigeon biset"), eclaireursChoisis("Pigeon biset")]).toEqual(["0", "3"]);
+    expect(boutonEclaireur("Pigeon biset", "Un Éclaireur de moins").disabled).toBe(false);
+    // Les disponibles ne bougent pas tant qu'on choisit.
+    expect(within(ligne("Pigeon biset")).getByText("3 disponibles")).toBeTruthy();
+  });
+
+  it("les Éclaireurs n'ajoutent rien à la force de l'escorte", async () => {
+    const joueur = userEvent.setup();
+    ecran([SOURIS, PIGEON]);
+    await joueur.click(bouton("Pigeon biset", "Une Bête de plus"));
+    expect(force()).toBe("2\u00a0216");
+    await joueur.click(boutonEclaireur("Pigeon biset", "Un Éclaireur de plus"));
+    await joueur.click(boutonEclaireur("Pigeon biset", "Un Éclaireur de plus"));
+    expect(force()).toBe("2\u00a0216");
+  });
+
+  it("garde les Éclaireurs dans l'adresse, avec l'escorte, pour les retrouver au rechargement ; à zéro, l'adresse n'en dit rien", async () => {
+    const joueur = userEvent.setup();
+    ouvrir("?q=3&r=-5");
+    ecran([SOURIS, PIGEON]);
+    await joueur.click(bouton("Pigeon biset", "Une Bête de plus"));
+    await joueur.click(boutonEclaireur("Pigeon biset", "Un Éclaireur de plus"));
+    expect(window.location.search).toBe("?q=3&r=-5&escorte=pigeon.1&eclaireurs=pigeon.1");
+    cleanup();
+    ecran([SOURIS, PIGEON]);
+    expect([choisies("Pigeon biset"), eclaireursChoisis("Pigeon biset")]).toEqual(["1", "1"]);
+    await joueur.click(boutonEclaireur("Pigeon biset", "Un Éclaireur de moins"));
+    expect(window.location.search).toBe("?q=3&r=-5&escorte=pigeon.1");
+  });
+
+  it("ne croit pas l'adresse : jamais plus que ce que l'escorte laisse, ni d'Éclaireurs d'une Espèce qui n'en a pas le Rôle", () => {
+    for (const [recherche, escorte, partis] of [
+      ["?eclaireurs=pigeon.9", "0", "3"],
+      ["?escorte=pigeon.2&eclaireurs=pigeon.9", "2", "1"],
+      ["?escorte=pigeon.9&eclaireurs=pigeon.1", "3", "0"],
+      ["?eclaireurs=pigeon.-1", "0", "0"],
+      ["?eclaireurs=pigeon.2&eclaireurs=pigeon.1", "0", "2"],
+    ] as const) {
+      ouvrir(recherche);
+      ecran([SOURIS, PIGEON]);
+      expect([recherche, choisies("Pigeon biset"), eclaireursChoisis("Pigeon biset")]).toEqual([recherche, escorte, partis]);
+      cleanup();
+    }
+    ouvrir("?eclaireurs=souris.2");
+    ecran([SOURIS, PIGEON]);
+    expect(choisies("Souris grise")).toBe("0");
+    expect(within(bloc()).queryByRole("group", { name: "Éclaireurs Souris grise" })).toBeNull();
+  });
+});
+
 describe("les Bêtes affectées à leur Rôle (US-0842)", () => {
   it("dit, sous les disponibles d'une Espèce, combien de ses Bêtes sont affectées : elles ne sont pas parmi les disponibles", () => {
     render(<Escorte especes={[{ ...POULE, disponibles: 3, affectees: 2 }, SOURIS]} blesses={{ poule: [{ nombre: 1, dansMinutes: 60 }] }} />);

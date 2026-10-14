@@ -38,4 +38,13 @@ describe("la force de l'escorte (US-0905)", () => {
     expect(regle(".force dt", ESCORTE)).toContain("color: var(--mousse);");
     expect(regle(".total", ESCORTE)).toMatch(/font: var\(--graisse-titre\)[^}]*font-variant-numeric: tabular-nums;/);
   });
+
+  it("US-0976 : les Éclaireurs se choisissent au pouce comme l'escorte, juste sous elle, et sous le nom en portrait", () => {
+    const mobile = ESCORTE.match(/@media \(max-width: 820px\), \(max-height: 500px\) \{([\s\S]*?)\n\}/)?.[1] ?? "";
+    const portrait = ESCORTE.match(/@media \(max-width: 560px\) \{([\s\S]*?)\n\}/)?.[1] ?? "";
+    expect(mobile).toMatch(/\.eclaireurs \.bouton,\s*\.choix \.bouton \{[^}]*width: 44px;[^}]*height: 44px;/);
+    expect(regle(".eclaireurs", ESCORTE)).toContain("grid-column: 3;");
+    expect(regle(".eclaireurs", portrait)).toContain("grid-column: 1 / -1;");
+    expect(regle(".role", ESCORTE)).toContain("color: var(--mousse);");
+  });
 });

@@ -4,15 +4,19 @@ import type { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
+import { betesSauvagesDUneCase } from "@/monde/betes-sauvages";
 import { betesDisponibles } from "@/monde/effectif";
 import { explorateursDuTerritoire, prochainRetourDUnExplorateur } from "@/monde/explorateurs";
 import { enregistrerLeMetier, habitantsDuTerritoire, renvoyerLHabitant, retirerUnHabitantDuMetier } from "@/monde/habitants";
 import type { Coordonnees } from "@/monde/hex";
 import { PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE, PORTEE_D_EXPLORATION_CASES } from "@/reglages";
+import { lireMarquePage } from "@/temps/marque-page";
+import { rattraper } from "@/temps/rattraper";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { CASE_D_UN_TERRITOIRE, CASE_HORS_DE_PORTEE } from "./choix-de-destination";
-import { BETE_PLUS_DISPONIBLE, type ChoixDuDepart, EXPLORATEUR_PLUS_LIBRE, lancerLExpedition } from "./depart";
+import { BETE_PLUS_DISPONIBLE, type ChoixDuDepart, ECLAIREUR_SANS_LE_ROLE, EXPLORATEUR_PLUS_LIBRE, lancerLExpedition } from "./depart";
 import { expeditionsEnCours } from "./en-cours";
+import { forcesDesEscortes } from "./forces-en-base";
 
 const MINUTE_MS = 60_000;
 
@@ -65,13 +69,49 @@ describe.skipIf(!URL_TEST)("lancer l'Expédition (US-0911, sur base)", () => {
   /** Le Foyer du Territoire. */
   const foyer = async (territoireId: number): Promise<Coordonnees> =>
     (await pool.query<Coordonnees>("select c.q, c.r from territoire t join case_du_monde c on c.id = t.foyer_case_id where t.id = $1", [territoireId])).rows[0];
-  /** Un départ vers `destination` : `n` explorateurs, l'escorte donnée Espèce par Espèce, et 4 h de séjour. */
-  const choix = (destination: Coordonnees, n: number, escorte: [string, number][] = []): ChoixDuDepart => ({
+  /**
+   * Un départ vers `destination` : `n` explorateurs, l'escorte donnée Espèce par Espèce, et 4 h de séjour ; US-0976 : et
+   * ses Éclaireurs, Espèce par Espèce, s'il en a.
+   */
+  const choix = (destination: Coordonnees, n: number, escorte: [string, number][] = [], eclaireurs?: [string, number][]): ChoixDuDepart => ({
     destination,
     explorateurs: n,
     escorte: new Map(escorte),
+    ...(eclaireurs ? { eclaireurs: new Map(eclaireurs) } : {}),
     sejourMinutes: 240,
   });
+  /**
+   * US-0976 : une Case libre à `ecart` Cases du Foyer du Territoire où ne se montre aucune Bête, sauvage ni de naissance,
+   * pendant toute l'Expédition qui y part à `part` au pas des explorateurs pour `sejour` minutes : elle y séjourne sans
+   * Rencontre, sans Bête qui la suive ni l'attaque, et rentre à son heure. Elle s'éloigne d'une Case, jusqu'à trois fois,
+   * s'il n'y en a aucune ; rend la Case et sa distance.
+   */
+  const uneCaseSansBete = async (territoireId: number, ecart: number, part: Date, sejour = 240): Promise<Coordonnees & { distance: number }> => {
+    for (let d = ecart; d <= ecart + 3; d++) {
+      const { rows } = await pool.query<Coordonnees & { id: number }>(
+        `select c.id, c.q, c.r from territoire t join case_du_monde f on f.id = t.foyer_case_id
+           join case_du_monde c on c.monde_id = f.monde_id and c.chef_id is null
+         where t.id = $1 and greatest(abs(c.q - f.q), abs(c.r - f.r), abs(c.q - f.q + c.r - f.r)) = $2
+           and not exists (select 1 from bete_de_naissance n where n.case_id = c.id)
+         order by c.q, c.r`,
+        [territoireId, d],
+      );
+      const fin = new Date(part.getTime() + (2 * d * PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE + sejour) * MINUTE_MS);
+      for (const c of rows) if ((await betesSauvagesDUneCase(pool, c.id, part, fin)).length === 0) return { q: c.q, r: c.r, distance: d };
+    }
+    throw new Error(`Aucune Case sans Bête de ${ecart} à ${ecart + 3} Cases du Foyer.`);
+  };
+  /** US-0976 : les Éclaireurs que le Territoire a fait partir, Espèce par Espèce. */
+  const eclaireursPartis = async (territoireId: number) =>
+    Object.fromEntries(
+      (
+        await pool.query<{ espece_id: string; n: number }>(
+          `select c.espece_id, sum(c.nombre)::int as n from expedition_eclaireur c join expedition x on x.id = c.expedition_id
+           where x.territoire_id = $1 group by c.espece_id`,
+          [territoireId],
+        )
+      ).rows.map((r) => [r.espece_id, r.n]),
+    );
   /** Ce que le Territoire a retenu : ses Expéditions, leurs escortes, et ses explorateurs partis. */
   const retenu = async (territoireId: number) =>
     (
@@ -257,6 +297,141 @@ describe.skipIf(!URL_TEST)("lancer l'Expédition (US-0911, sur base)", () => {
     expect(await lancerLExpedition(pool, t, choix(await foyer(t), 1), INSTANT)).toEqual({ refus: CASE_D_UN_TERRITOIRE });
     expect(await lancerLExpedition(pool, t, choix(await aLEcart(t, PORTEE_D_EXPLORATION_CASES + 1), 1), INSTANT)).toEqual({ refus: CASE_HORS_DE_PORTEE });
     expect(await retenu(t)).toEqual({ expeditions: 0, escortes: 0, partis: 0 });
+  });
+
+  describe("emmener des Éclaireurs (US-0976)", () => {
+    it("emmène des Éclaireurs à côté de l'escorte : ni les uns ni les autres ne sont plus proposés ; au retour, tous le sont de nouveau", async () => {
+      const t = await nouveauTerritoire();
+      await explorateurs(t, 1);
+      // Des mâles seulement : aucun Couple ne se réunit au retour (US-0956), l'effectif ne bouge pas.
+      await betes(t, [
+        ["pigeon", "male", 4],
+        ["souris", "male", 2],
+      ]);
+      // Parti à l'heure de sa naissance, pour que le temps du Territoire le ramène.
+      const part = await lireMarquePage(pool, "territoire", t);
+      const calme = await uneCaseSansBete(t, 2, part);
+      const depart = await lancerLExpedition(pool, t, choix({ q: calme.q, r: calme.r }, 1, [["pigeon", 1], ["souris", 1]], [["pigeon", 2]]), part);
+      expect(depart).toEqual({ expeditionId: expect.any(Number) });
+      expect(await eclaireursPartis(t)).toEqual({ pigeon: 2 });
+      // La force de l'Expédition, celle que lisent les Rencontres disputées de tous les joueurs (US-0963) : son escorte seule.
+      const { expeditionId } = depart as { expeditionId: number };
+      expect(await forcesDesEscortes(pool, [expeditionId])).toEqual(new Map([[expeditionId, 2216 + 473]]));
+      expect(await retenu(t)).toEqual({ expeditions: 1, escortes: 2, partis: 1 });
+      // Le pigeon de l'escorte et les deux Éclaireurs sont sortis : il en reste un au Foyer.
+      expect(await betesDisponibles(pool, t, part)).toEqual([
+        expect.objectContaining({ id: "pigeon", disponibles: 1 }),
+        expect.objectContaining({ id: "souris", disponibles: 1 }),
+      ]);
+      // Au retour, tous rentrent dans l'effectif, libres pour la sortie suivante.
+      const retour = (await expeditionsEnCours(pool, t, part))[0];
+      const rentree = new Date(retour.partLe.getTime() + (2 * retour.trajetMinutes! + retour.sejourMinutes) * MINUTE_MS);
+      await rattraper("territoire", t, { pool, jusqua: rentree });
+      expect(await betesDisponibles(pool, t, rentree)).toEqual([
+        expect.objectContaining({ id: "pigeon", disponibles: 4 }),
+        expect.objectContaining({ id: "souris", disponibles: 2 }),
+      ]);
+    });
+
+    it("une même Bête est l'un ou l'autre : jamais plus d'Éclaireurs et de Bêtes d'escorte que de disponibles, sans rien retenir", async () => {
+      const t = await nouveauTerritoire();
+      await explorateurs(t, 1);
+      await betes(t, [["pigeon", "male", 2]]);
+      expect(await lancerLExpedition(pool, t, choix(await aLEcart(t, 2), 1, [["pigeon", 1]], [["pigeon", 2]]), INSTANT)).toEqual({ refus: BETE_PLUS_DISPONIBLE });
+      expect(await lancerLExpedition(pool, t, choix(await aLEcart(t, 2), 1, [], [["pigeon", 3]]), INSTANT)).toEqual({ refus: BETE_PLUS_DISPONIBLE });
+      expect(await retenu(t)).toEqual({ expeditions: 0, escortes: 0, partis: 0 });
+      expect(await eclaireursPartis(t)).toEqual({});
+      expect(await betesDisponibles(pool, t, INSTANT)).toEqual([expect.objectContaining({ id: "pigeon", disponibles: 2 })]);
+    });
+
+    it("seule une Espèce Éclaireuse part en Éclaireurs, d'où que vienne la demande, sans rien retenir", async () => {
+      const t = await nouveauTerritoire();
+      await explorateurs(t, 1);
+      await betes(t, [["souris", "male", 2]]);
+      expect(await lancerLExpedition(pool, t, choix(await aLEcart(t, 2), 1, [], [["souris", 1]]), INSTANT)).toEqual({ refus: ECLAIREUR_SANS_LE_ROLE });
+      expect(await retenu(t)).toEqual({ expeditions: 0, escortes: 0, partis: 0 });
+      expect(await eclaireursPartis(t)).toEqual({});
+    });
+
+    it("n'emmène jamais deux fois le même pigeon, en escorte comme en Éclaireur, même pour deux départs envoyés au même instant", async () => {
+      const t = await nouveauTerritoire();
+      await explorateurs(t, 2);
+      await betes(t, [["pigeon", "male", 3]]);
+      const destination = await aLEcart(t, 3);
+      const departs = await Promise.all([
+        lancerLExpedition(pool, t, choix(destination, 1, [], [["pigeon", 2]]), INSTANT),
+        lancerLExpedition(pool, t, choix(destination, 1, [["pigeon", 1]], [["pigeon", 1]]), INSTANT),
+      ]);
+      expect(departs).toEqual(expect.arrayContaining([{ expeditionId: expect.any(Number) }, { refus: BETE_PLUS_DISPONIBLE }]));
+      expect(await retenu(t)).toEqual(expect.objectContaining({ expeditions: 1, partis: 1 }));
+      expect(await betesDisponibles(pool, t, INSTANT)).toEqual([expect.objectContaining({ id: "pigeon", disponibles: 1 })]);
+    });
+
+    it("retient le sexe des Éclaireurs comme celui de l'escorte, pris après elle aux Bêtes valides du Foyer (US-0960)", async () => {
+      const t = await nouveauTerritoire();
+      await explorateurs(t, 1);
+      // Le Couple déjà réuni : mâles et femelles au Foyer ensemble, sans Couple à former.
+      await pool.query("insert into couple (territoire_id, espece_id, reuni_le) values ($1, 'pigeon', $2)", [t, INSTANT]);
+      await betes(t, [
+        ["pigeon", "male", 3],
+        ["pigeon", "femelle", 2],
+      ]);
+      const depart = await lancerLExpedition(pool, t, choix(await aLEcart(t, 2), 1, [["pigeon", 2]], [["pigeon", 2]]), INSTANT);
+      const { expeditionId } = depart as { expeditionId: number };
+      // L'escorte d'abord, au sexe le plus nombreux, un mâle à égalité : deux mâles ; puis les Éclaireurs parmi les deux
+      // femelles et le mâle qui restent : une femelle, puis le mâle à égalité.
+      const males = async (table: string) => (await pool.query(`select males from ${table} where expedition_id = $1`, [expeditionId])).rows[0].males;
+      expect([await males("expedition_escorte"), await males("expedition_eclaireur")]).toEqual([2, 1]);
+    });
+
+    /**
+     * US-0960 : un Territoire avec les pigeons `pigeons` au Foyer ; un pigeon part en Éclaireur pour une longue Expédition (au
+     * sexe retenu, ou inconnu avec `sansSexe`), puis `avant` s'ajoute à l'effectif, et une courte Expédition rentre la
+     * première. Les Couples réunis au retour de la courte, puis à celui de la longue.
+     */
+    const couplesAuxRetours = async (pigeons: [string, "male" | "femelle", number][], avant: [string, "male" | "femelle", number][], sansSexe = false) => {
+      const t = await nouveauTerritoire();
+      await explorateurs(t, 2);
+      await betes(t, [...pigeons, ["souris", "male", 1]]);
+      const part = await lireMarquePage(pool, "territoire", t);
+      const loin = await uneCaseSansBete(t, 3, part);
+      const { expeditionId } = (await lancerLExpedition(pool, t, choix({ q: loin.q, r: loin.r }, 1, [], [["pigeon", 1]]), part)) as { expeditionId: number };
+      if (sansSexe) await pool.query("update expedition_eclaireur set males = null where expedition_id = $1", [expeditionId]);
+      if (avant.length > 0) await betes(t, avant);
+      // Une autre Expédition, plus courte, rentre la première : le temps du Territoire repasse par la réunion des Couples.
+      const pres = await uneCaseSansBete(t, 1, part, 30);
+      expect(pres.distance).toBeLessThanOrEqual(loin.distance);
+      await lancerLExpedition(pool, t, { ...choix({ q: pres.q, r: pres.r }, 1, [["souris", 1]]), sejourMinutes: 30 }, part);
+      const [longue, courte] = await expeditionsEnCours(pool, t, part);
+      const rentree = (x: typeof longue) => new Date(x.partLe.getTime() + (2 * x.trajetMinutes! + x.sejourMinutes) * MINUTE_MS);
+      expect(rentree(courte) < rentree(longue)).toBe(true);
+      const couples = async () => (await pool.query<{ espece_id: string }>("select espece_id from couple where territoire_id = $1", [t])).rows.map((c) => c.espece_id);
+      await rattraper("territoire", t, { pool, jusqua: rentree(courte) });
+      const auPremierRetour = await couples();
+      await rattraper("territoire", t, { pool, jusqua: rentree(longue) });
+      return [auPremierRetour, await couples()];
+    };
+
+    it("la seule Bête d'un sexe partie en Éclaireur ne réunit le Couple de son Espèce qu'à son retour (US-0956, US-0960)", async () => {
+      // Le seul mâle part en Éclaireur ; une femelle arrive au Foyer pendant son absence.
+      expect(await couplesAuxRetours([["pigeon", "male", 1]], [["pigeon", "femelle", 1]])).toEqual([[], ["pigeon"]]);
+    });
+
+    it("le sexe retenu de l'Éclaireur compte pour le Couple ; inconnu, il compte pour l'un et pour l'autre (US-0960)", async () => {
+      // Deux mâles et une femelle : un mâle part en Éclaireur ; le mâle et la femelle restés au Foyer réunissent le Couple dès
+      // le premier retour.
+      expect(await couplesAuxRetours([["pigeon", "male", 2], ["pigeon", "femelle", 1]], [])).toEqual([["pigeon"], ["pigeon"]]);
+      // Le sexe de l'Éclaireur inconnu, il pourrait être la femelle : le Couple attend son retour.
+      expect(await couplesAuxRetours([["pigeon", "male", 2], ["pigeon", "femelle", 1]], [], true)).toEqual([[], ["pigeon"]]);
+    });
+
+    it("les Éclaireurs ne règlent pas l'allure : sans escorte, l'Expédition va au pas de ses explorateurs", async () => {
+      const t = await nouveauTerritoire();
+      await explorateurs(t, 1);
+      await betes(t, [["pigeon", "male", 2]]);
+      await lancerLExpedition(pool, t, choix(await aLEcart(t, 3), 1, [], [["pigeon", 2]]), INSTANT);
+      expect((await expeditionsEnCours(pool, t, INSTANT)).map((x) => [x.trajetMinutes, x.escorte])).toEqual([[3 * PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE, []]]);
+    });
   });
 
   it("ne mêle jamais les Territoires : les explorateurs et les Bêtes d'un autre ne partent pas", async () => {

@@ -11,9 +11,16 @@ import { programmerLeRetour } from "./retour";
 
 /**
  * US-0911 : ce que le joueur a choisi sur l'écran d'Expédition : la destination, le nombre d'explorateurs qui partent,
- * l'escorte (Espèce par Espèce, le nombre de Bêtes) et la durée du séjour, en minutes de jeu.
+ * l'escorte (Espèce par Espèce, le nombre de Bêtes) et la durée du séjour, en minutes de jeu. US-0976 : et ses
+ * Éclaireurs, Espèce par Espèce, à côté de l'escorte (absents : aucun).
  */
-export type ChoixDuDepart = { destination: Coordonnees; explorateurs: number; escorte: ReadonlyMap<string, number>; sejourMinutes: number };
+export type ChoixDuDepart = {
+  destination: Coordonnees;
+  explorateurs: number;
+  escorte: ReadonlyMap<string, number>;
+  eclaireurs?: ReadonlyMap<string, number>;
+  sejourMinutes: number;
+};
 
 /** US-0911 : un départ fait, et l'Expédition qu'il a lancée, ou le refus que le joueur lit à la place. */
 export type Depart = { expeditionId: number } | { refus: string };
@@ -21,8 +28,11 @@ export type Depart = { expeditionId: number } | { refus: string };
 /** US-0911 : le refus d'un départ dont un explorateur choisi n'est plus libre au moment de confirmer. */
 export const EXPLORATEUR_PLUS_LIBRE = "Départ refusé : un explorateur n'est plus libre.";
 
-/** US-0911 : le refus d'un départ dont une Bête de l'escorte n'est plus disponible au moment de confirmer. */
-export const BETE_PLUS_DISPONIBLE = "Départ refusé : une Bête de l'escorte n'est plus disponible.";
+/** US-0911 : le refus d'un départ dont une Bête de l'escorte, ou US-0976 un Éclaireur, n'est plus disponible au moment de confirmer. */
+export const BETE_PLUS_DISPONIBLE = "Départ refusé : une Bête n'est plus disponible.";
+
+/** US-0976 : le refus d'un départ dont des Éclaireurs seraient d'une Espèce qui n'a pas ce Rôle ; l'écran ne l'envoie jamais. */
+export const ECLAIREUR_SANS_LE_ROLE = "Départ refusé : seule une Espèce Éclaireuse part en Éclaireurs.";
 
 /** US-0911 : les refus d'un départ sans destination que le Monde du joueur connaisse, ou sans explorateur (US-0910). */
 export const SANS_DESTINATION = "Il faut une destination.";
@@ -51,6 +61,9 @@ class Refus extends Error {}
  * des pertes, sexesDesPertes). Tant que son Couple n'est pas réuni, une Espèce n'a au Foyer que des Bêtes d'un seul sexe : un mâle et
  * une femelle au Foyer le réunissent aussitôt (src/monde/couple.ts) ; ce sont elles qui partent. Le sexe reste inconnu
  * (null) quand celui des Bêtes au Foyer ne se sait pas (validesParSexe).
+ * US-0976 : ses Éclaireurs partent avec elle, à côté de l'escorte (expedition_eclaireur) : seules des Bêtes d'une Espèce
+ * Éclaireuse, et une même Bête est l'un ou l'autre : l'escorte et les Éclaireurs d'une Espèce ne dépassent jamais ses
+ * disponibles. Ils ne règlent pas l'allure, et ne comptent pas dans la force de l'escorte.
  */
 export async function lancerLExpedition(pool: Pool, territoireId: number, choix: ChoixDuDepart, instant: Date): Promise<Depart> {
   const client = await pool.connect();
@@ -81,12 +94,18 @@ async function betesDeLEscorte(client: PoolClient, betes: [string, number][]): P
 }
 
 /** US-0911 : le départ, dans la transaction de lancerLExpedition ; un Refus l'annule. */
-async function partir(client: PoolClient, territoireId: number, { destination, explorateurs, escorte, sejourMinutes }: ChoixDuDepart, instant: Date): Promise<number> {
+async function partir(
+  client: PoolClient,
+  territoireId: number,
+  { destination, explorateurs, escorte, eclaireurs = new Map(), sejourMinutes }: ChoixDuDepart,
+  instant: Date,
+): Promise<number> {
   if (explorateurs < 1) throw new Refus(SANS_EXPLORATEUR);
   const laCase = await destinationDUneCase(client, territoireId, destination);
   if (!laCase) throw new Refus(SANS_DESTINATION);
   if ("refus" in laCase) throw new Refus(laCase.refus);
   const betes = [...escorte].filter(([, nombre]) => nombre > 0);
+  const eclaireuses = [...eclaireurs].filter(([, nombre]) => nombre > 0);
   const trajetMinutes = dureeDuTrajetMinutes(laCase.fiche.distance, await betesDeLEscorte(client, betes));
   const { rows } = await client.query<{ id: number }>(
     `insert into expedition (territoire_id, case_id, part_le, trajet_minutes, sejour_minutes)
@@ -111,29 +130,43 @@ async function partir(client: PoolClient, territoireId: number, { destination, e
   );
   if (partis.rowCount !== explorateurs) throw new Refus(EXPLORATEUR_PLUS_LIBRE);
 
-  if (betes.length === 0) return expeditionId;
+  if (betes.length === 0 && eclaireuses.length === 0) return expeditionId;
   await client.query("select 1 from effectif where territoire_id = $1 and espece_id = any($2) order by espece_id, sexe for update", [
     territoireId,
-    betes.map(([especeId]) => especeId),
+    [...new Set([...betes, ...eclaireuses].map(([especeId]) => especeId))],
   ]);
   // US-0953 : les Blessés au Foyer à l'instant du départ ne sont pas disponibles ; US-0842 : ni les Bêtes affectées à leur Rôle.
-  const disponibles = new Map((await betesDisponibles(client, territoireId, instant)).map((e) => [e.id, e.disponibles]));
-  if (betes.some(([especeId, nombre]) => nombre > (disponibles.get(especeId) ?? 0))) throw new Refus(BETE_PLUS_DISPONIBLE);
-  const valides = await validesParSexe(
-    client,
-    territoireId,
-    betes.map(([especeId]) => especeId),
-    instant,
-  );
-  const males = betes.map(([especeId, nombre]) => {
-    const auFoyer = valides.get(especeId);
-    if (!auFoyer) return null;
-    const parties = sexesDesPertes(auFoyer, nombre);
-    return parties.males + parties.femelles === nombre ? parties.males : null;
-  });
-  await client.query(
-    `insert into expedition_escorte (expedition_id, espece_id, nombre, males) select $1, e, n, m from unnest($2::text[], $3::int[], $4::int[]) as l(e, n, m)`,
-    [expeditionId, betes.map(([especeId]) => especeId), betes.map(([, nombre]) => nombre), males],
-  );
+  const proposees = new Map((await betesDisponibles(client, territoireId, instant)).map((e) => [e.id, e]));
+  // US-0976 : seule une Espèce Éclaireuse part en Éclaireurs ; une même Bête est l'un ou l'autre.
+  if (eclaireuses.some(([especeId]) => proposees.has(especeId) && !proposees.get(especeId)!.eclaireuse)) throw new Refus(ECLAIREUR_SANS_LE_ROLE);
+  const [enEscorte, enEclaireurs] = [new Map(betes), new Map(eclaireuses)];
+  const sorties = (especeId: string) => (enEscorte.get(especeId) ?? 0) + (enEclaireurs.get(especeId) ?? 0);
+  if ([...betes, ...eclaireuses].some(([especeId]) => sorties(especeId) > (proposees.get(especeId)?.disponibles ?? 0))) throw new Refus(BETE_PLUS_DISPONIBLE);
+  // US-0960 : le sexe des Bêtes qui partent, pris aux Bêtes valides au Foyer : l'escorte d'abord, puis US-0976 les Éclaireurs
+  // parmi celles qui restent, par la même règle ; inconnu (null) quand celui des Bêtes au Foyer ne se sait pas.
+  const valides = await validesParSexe(client, territoireId, [...new Set([...betes, ...eclaireuses].map(([especeId]) => especeId))], instant);
+  const restantes = new Map([...valides].map(([especeId, auFoyer]) => [especeId, auFoyer && { ...auFoyer }]));
+  const malesDe = (lignes: [string, number][]) =>
+    lignes.map(([especeId, nombre]) => {
+      const auFoyer = restantes.get(especeId);
+      if (!auFoyer) return null;
+      const parties = sexesDesPertes(auFoyer, nombre);
+      if (parties.males + parties.femelles !== nombre) return null;
+      auFoyer.males -= parties.males;
+      auFoyer.femelles -= parties.femelles;
+      return parties.males;
+    });
+  for (const [table, lignes] of [
+    ["expedition_escorte", betes],
+    ["expedition_eclaireur", eclaireuses],
+  ] as const) {
+    if (lignes.length === 0) continue;
+    await client.query(`insert into ${table} (expedition_id, espece_id, nombre, males) select $1, e, n, m from unnest($2::text[], $3::int[], $4::int[]) as l(e, n, m)`, [
+      expeditionId,
+      lignes.map(([especeId]) => especeId),
+      lignes.map(([, nombre]) => nombre),
+      malesDe(lignes),
+    ]);
+  }
   return expeditionId;
 }

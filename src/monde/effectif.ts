@@ -17,6 +17,7 @@ import { ELEVAGE_ACQUIS } from "./elevage";
  * l'allure d'une escorte. US-0937 : et combien de mâles et de femelles le joueur en possède, Bêtes sorties comprises.
  * US-0956 : et si son Couple est réuni : le sexe ne compte plus. US-0953 : et ses Blessés au Foyer, qui guérissent sans être
  * disponibles (absent : aucun). US-0842 : et ses Bêtes affectées à leur Rôle, qui ne combattent plus (absent : aucune).
+ * US-0976 : et si elle est Éclaireuse, son Rôle (US-0806) : ses Bêtes peuvent partir en Éclaireurs (absent : non).
  */
 export type EspeceDisponible = {
   id: string;
@@ -30,6 +31,7 @@ export type EspeceDisponible = {
   coupleReuni: boolean;
   blesses?: number;
   affectees?: number;
+  eclaireuse?: boolean;
 };
 
 /**
@@ -38,10 +40,13 @@ export type EspeceDisponible = {
  * US-0916 : rentrées, elles n'en sont plus. US-0956 : sorties, elles ne sont pas au Foyer pour réunir un Couple ;
  * US-0960 : le Couple les compte sexe par sexe (MALES_SORTIS, FEMELLES_SORTIES, dont la somme est celle-ci pour les
  * escortes au sexe retenu). US-0944 : sans celles que l'escorte a perdues au combat, sorties de l'effectif. US-0951 : sauf
- * ses Blessés, restés dans l'effectif, qui rentrent au Foyer avec l'Expédition.
+ * ses Blessés, restés dans l'effectif, qui rentrent au Foyer avec l'Expédition. US-0976 : et ses
+ * Éclaireurs, partis à côté de l'escorte, qui rentrent tous avec elle ; le Couple les compte de même, sexe par sexe.
  */
-export const BETES_SORTIES = `select coalesce(sum(s.nombre - s.perdues + s.blessees), 0)::int from expedition_escorte s join expedition x on x.id = s.expedition_id
-  where x.territoire_id = e.territoire_id and s.espece_id = e.espece_id and x.rentree_le is null`;
+export const BETES_SORTIES = `select (select coalesce(sum(s.nombre - s.perdues + s.blessees), 0)::int from expedition_escorte s join expedition x on x.id = s.expedition_id
+    where x.territoire_id = e.territoire_id and s.espece_id = e.espece_id and x.rentree_le is null)
+  + (select coalesce(sum(c.nombre), 0)::int from expedition_eclaireur c join expedition x on x.id = c.expedition_id
+    where x.territoire_id = e.territoire_id and c.espece_id = e.espece_id and x.rentree_le is null)`;
 
 /**
  * US-0960 : combien de mâles prend la règle de sexesDesPertes (src/expeditions/combat.ts), une Bête après l'autre au sexe
@@ -65,19 +70,25 @@ const MALES_BLESSES = `(${MALES_PERDUS} - ${MALES_MORTS})`;
 const ESCORTES_DEHORS = `from expedition_escorte s join expedition x on x.id = s.expedition_id
   where x.territoire_id = e.territoire_id and s.espece_id = e.espece_id and x.rentree_le is null`;
 
+/** US-0976 : les Éclaireurs des Expéditions en cours de l'Espèce (sur `e`, comme ESCORTES_DEHORS). */
+const ECLAIREURS_DEHORS = `from expedition_eclaireur c join expedition x on x.id = c.expedition_id
+  where x.territoire_id = e.territoire_id and c.espece_id = e.espece_id and x.rentree_le is null`;
+
 /**
  * US-0960 : les mâles et les femelles sortis de l'Espèce (expressions sur `e`, comme BETES_SORTIES) : ceux des escortes de
  * ses Expéditions en cours, vivants, Blessés compris. Le départ retient le sexe de son escorte (expedition_escorte.males) ;
  * une escorte sans sexe retenu (null : partie avant US-0960) compte pour l'un et pour l'autre, chacune de ses Bêtes
  * pouvant être de l'un comme de l'autre : un Couple ne se forme alors que si un mâle et une femelle sont sûrement au
- * Foyer, comme avant.
+ * Foyer, comme avant. US-0976 : et ses Éclaireurs, tous vivants, au sexe que le départ a retenu pour eux aussi
+ * (expedition_eclaireur.males), ou pour l'un et pour l'autre s'il ne se savait pas.
  */
-const SORTIS_DU_SEXE = (vivants: string) =>
-  `select coalesce(sum(case when s.males is null then s.nombre - s.perdues + s.blessees else ${vivants} end), 0)::int ${ESCORTES_DEHORS}`;
-export const MALES_SORTIS = SORTIS_DU_SEXE(`s.males - ${MALES_MORTS}`);
-export const FEMELLES_SORTIES = SORTIS_DU_SEXE(`(s.nombre - s.males) - ((s.perdues - s.blessees) - ${MALES_MORTS})`);
-/** US-0960 : les escortes en cours de l'Espèce sans sexe retenu (sur `e`). */
-const SORTIES_SANS_SEXE = `select count(*)::int ${ESCORTES_DEHORS} and s.males is null`;
+const SORTIS_DU_SEXE = (vivants: string, eclaireurs: string) =>
+  `select (select coalesce(sum(case when s.males is null then s.nombre - s.perdues + s.blessees else ${vivants} end), 0)::int ${ESCORTES_DEHORS})
+    + (select coalesce(sum(case when c.males is null then c.nombre else ${eclaireurs} end), 0)::int ${ECLAIREURS_DEHORS})`;
+export const MALES_SORTIS = SORTIS_DU_SEXE(`s.males - ${MALES_MORTS}`, "c.males");
+export const FEMELLES_SORTIES = SORTIS_DU_SEXE(`(s.nombre - s.males) - ((s.perdues - s.blessees) - ${MALES_MORTS})`, "c.nombre - c.males");
+/** US-0960 : les escortes en cours de l'Espèce sans sexe retenu (sur `e`) ; US-0976 : et ses Éclaireurs sans sexe retenu. */
+const SORTIES_SANS_SEXE = `select (select count(*)::int ${ESCORTES_DEHORS} and s.males is null) + (select count(*)::int ${ECLAIREURS_DEHORS} and c.males is null)`;
 
 /**
  * US-0953 : les Blessés au Foyer de l'Espèce (expression sur `e`, comme BETES_SORTIES) à l'instant du jeu $3 : ceux des
@@ -174,7 +185,7 @@ export async function betesDisponibles(base: Pool | PoolClient, territoireId: nu
   const [normale, soignee] = dureesDeGuerison();
   const { rows } = await base.query<Omit<EspeceDisponible, "force"> & { attaque: number; vie: number }>(
     `select es.id, es.nom, es.illustration, v.valides - v.affectees as disponibles, x.blesses, v.affectees,
-       es.attaque, es.vie, es.vitesse, x.males, x.femelles, x."coupleReuni"
+       es.attaque, es.vie, es.vitesse, x.males, x.femelles, x."coupleReuni", es.role_id = 'eclaireur' as eclaireuse
      from (${AU_FOYER}) x
      cross join lateral (select x.au_foyer - x.blesses as valides) w
      cross join lateral (select w.valides, least(coalesce(x.retenues, 0), w.valides) as affectees) v
@@ -184,10 +195,11 @@ export async function betesDisponibles(base: Pool | PoolClient, territoireId: nu
      order by r.rang, es.nom`,
     [territoireId, normale, instant, soignee],
   );
-  return rows.map(({ attaque, vie, blesses, affectees, ...espece }) => ({
+  return rows.map(({ attaque, vie, blesses, affectees, eclaireuse, ...espece }) => ({
     ...espece,
     ...(blesses ? { blesses } : {}),
     ...(affectees ? { affectees } : {}),
+    ...(eclaireuse ? { eclaireuse } : {}),
     force: forceDUneBete({ attaque, vie }),
   }));
 }

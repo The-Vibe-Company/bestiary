@@ -14,7 +14,7 @@ import { horaireDuSejour } from "@/expeditions/sejour";
 import type { EspeceDisponible } from "@/monde/effectif";
 import type { Coordonnees } from "@/monde/hex";
 import { formaterJourEtHeure } from "@/temps/affichage";
-import { entier, escorteChoisie } from "./Escorte";
+import { eclaireursChoisis, entier, escorteChoisie } from "./Escorte";
 import { explorateursChoisis } from "./Explorateurs";
 import { Partir } from "./Partir";
 import styles from "./Recapitulatif.module.css";
@@ -60,6 +60,8 @@ export type BeteAChercher = { espece: string; force: number; rareteId: string; j
  * forte pour elle (aPortee), en feuille, ou la force qui lui manque (forceQuiManque), en braise : les mots le disent
  * toujours. Quand elle devrait être partie à l'arrivée prévue, qui avance avec l'heure du jeu, une ligne le dit en la
  * nommant, en braise au-dessus du retour prévu, gardée en vue même replié.
+ * US-0976 : après la force de l'escorte, ses Éclaireurs, Espèce par Espèce, quand il y en a : ils n'y ajoutent rien, et
+ * « Partir » les envoie aussi.
  */
 export function Recapitulatif({
   libres,
@@ -92,6 +94,8 @@ export function Recapitulatif({
   const explorateurs = explorateursChoisis(recherche, libres);
   const choix = escorteChoisie(recherche, especes);
   const escorte = especes.filter((e) => choix.get(e.id)! > 0);
+  const eclaireurs = eclaireursChoisis(recherche, especes);
+  const eclaireuses = especes.filter((e) => eclaireurs.get(e.id)! > 0);
   const force = sansEscorte(choix) ? null : forceDeLEscorte(escorte.map((e) => ({ force: e.force, nombre: choix.get(e.id)! })));
   const aller = destination ? dureeDuTrajetMinutes(destination.distance, escorte.map((e) => ({ vitesse: e.vitesse, nombre: choix.get(e.id)! }))) : null;
   // Un départ à l'heure du jeu, qui avance au rythme du jeu ; le retour dure autant que l'aller (US-0912), après le
@@ -132,6 +136,12 @@ export function Recapitulatif({
               <dd>{entier(force)}</dd>
             </div>
           )}
+          {eclaireuses.length > 0 ? (
+            <div>
+              <dt>Éclaireurs</dt>
+              <dd>{eclaireuses.map((e) => uneEspece(e.nom, eclaireurs.get(e.id)!)).join(", ")}</dd>
+            </div>
+          ) : null}
           <div>
             <dt>Destination</dt>
             <dd>{destination ? casesDuFoyer(destination.distance) : "Aucune"}</dd>
@@ -179,7 +189,13 @@ export function Recapitulatif({
         <p className={styles.manger}>Ceux qui partent continuent de manger pendant toute l&apos;absence.</p>
       </div>
       {/* US-0911 : un départ refusé se dit jusqu'au prochain choix du joueur, que l'adresse garde ; l'écran relu ne l'efface pas. */}
-      <Partir key={recherche.toString()} destination={destination && { q: destination.q, r: destination.r }} explorateurs={explorateurs} escorte={choix} />
+      <Partir
+        key={recherche.toString()}
+        destination={destination && { q: destination.q, r: destination.r }}
+        explorateurs={explorateurs}
+        escorte={choix}
+        eclaireurs={eclaireurs}
+      />
     </Bloc>
   );
 }

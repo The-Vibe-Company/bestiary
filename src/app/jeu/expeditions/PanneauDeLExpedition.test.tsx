@@ -147,6 +147,16 @@ describe("une Expédition en cours, dans son panneau (US-0918)", () => {
     expect(ligne().slice(0, 2)).toEqual(["Case inconnue", "1 Case de votre Foyer"]);
   });
 
+  it("montre ses Éclaireurs à part de l'escorte, Espèce par Espèce, et rien sans Éclaireur (US-0976)", () => {
+    const { rerender } = render(<PanneauDeLExpedition expedition={{ ...FORET, eclaireurs: [{ id: "pigeon", nom: "Pigeon biset", nombre: 2 }] }} instant={DEPART} />);
+    expect(Object.keys(detail())).toEqual(["Explorateurs", "Escorte", "Éclaireurs", "Retour prévu"]);
+    expect(detail()).toMatchObject({ Escorte: "Poule × 1 Souris grise × 2", Éclaireurs: "Pigeon biset × 2" });
+    rerender(<PanneauDeLExpedition expedition={{ ...FORET, escorte: [], eclaireurs: [{ id: "pigeon", nom: "Pigeon biset", nombre: 3 }] }} instant={DEPART} />);
+    expect(detail()).toMatchObject({ Escorte: "Sans escorte", Éclaireurs: "Pigeon biset × 3" });
+    rerender(<PanneauDeLExpedition expedition={FORET} instant={DEPART} />);
+    expect(Object.keys(detail())).not.toContain("Éclaireurs");
+  });
+
   it("dit « Sans escorte » quand aucune Bête n'est partie", () => {
     render(<PanneauDeLExpedition expedition={{ ...FORET, escorte: [], explorateurs: ["Joran"] }} instant={DEPART} />);
     expect(detail()).toMatchObject({ Explorateurs: "Joran", Escorte: "Sans escorte" });

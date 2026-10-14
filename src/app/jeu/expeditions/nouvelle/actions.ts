@@ -36,21 +36,31 @@ const ENTREE_D_ESCORTE = /^([a-z0-9_]+)\.(\d{1,6})$/;
 /**
  * US-0911 : ce que le formulaire de départ dit des choix de l'écran, lu sans le croire : la destination (q, r),
  * le nombre d'explorateurs, l'escorte (« souris.3 », une fois par Espèce : la première compte) et le séjour, une durée
- * qu'on aurait pu choisir (US-0906). Null pour un formulaire que l'écran n'enverrait pas. Ce qui reste libre ou
- * disponible, et la destination elle-même, le départ le relit.
+ * qu'on aurait pu choisir (US-0906). US-0976 : et les Éclaireurs (« pigeon.2 »), de même. Null pour un formulaire que
+ * l'écran n'enverrait pas. Ce qui reste libre ou disponible, et la destination elle-même, le départ le relit.
  */
 function choixDuFormulaire(formulaire: FormData): ChoixDuDepart | null {
   const [q, r] = [entier(champ(formulaire, "q")), entier(champ(formulaire, "r"))];
   const explorateurs = entier(champ(formulaire, "explorateurs"));
   const sejourMinutes = sejourChoisi(champ(formulaire, "sejour"));
   if (q === null || r === null || explorateurs === null || sejourMinutes === null) return null;
-  const escorte = new Map<string, number>();
-  for (const valeur of formulaire.getAll("escorte")) {
+  const [escorte, eclaireurs] = [betesDuFormulaire(formulaire, "escorte"), betesDuFormulaire(formulaire, "eclaireurs")];
+  if (!escorte || !eclaireurs) return null;
+  return { destination: { q, r }, explorateurs, escorte, eclaireurs, sejourMinutes };
+}
+
+/**
+ * US-0911 : les Bêtes que le formulaire dit sous le champ `nom`, Espèce par Espèce (« souris.3 », la première fois
+ * comptant) ; null pour une valeur que l'écran n'écrirait pas. US-0976 : l'escorte, ou les Éclaireurs.
+ */
+function betesDuFormulaire(formulaire: FormData, nom: "escorte" | "eclaireurs"): Map<string, number> | null {
+  const betes = new Map<string, number>();
+  for (const valeur of formulaire.getAll(nom)) {
     const [, especeId, nombre] = (typeof valeur === "string" && ENTREE_D_ESCORTE.exec(valeur)) || [];
     if (!especeId) return null;
-    if (!escorte.has(especeId)) escorte.set(especeId, Number(nombre));
+    if (!betes.has(especeId)) betes.set(especeId, Number(nombre));
   }
-  return { destination: { q, r }, explorateurs, escorte, sejourMinutes };
+  return betes;
 }
 
 /**

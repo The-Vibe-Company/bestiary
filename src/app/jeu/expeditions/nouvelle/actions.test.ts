@@ -44,6 +44,7 @@ const CHOIX: ChoixDuDepart = {
     ["souris", 3],
     ["poule", 1],
   ]),
+  eclaireurs: new Map(),
   sejourMinutes: 240,
 };
 /** Un formulaire COMPLET, sauf le champ `nom`, remplacé par les `valeurs` (aucune : retiré). */
@@ -112,6 +113,7 @@ describe("lancer l'Expédition depuis l'écran (US-0911)", () => {
     ["sans séjour", sauf("sejour")],
     ["une escorte mal dite", sauf("escorte", "souris.trois")],
     ["une Espèce mal écrite", sauf("escorte", "Souris.3")],
+    ["des Éclaireurs mal dits (US-0976)", sauf("eclaireurs", "pigeon")],
   ])("ne fait rien d'un formulaire que l'écran n'enverrait pas : %s", async (_, donnees) => {
     connecte();
     expect(await partir({ refus: null }, donnees)).toEqual({ refus: null });
@@ -134,5 +136,11 @@ describe("lancer l'Expédition depuis l'écran (US-0911)", () => {
       },
       INSTANT,
     );
+  });
+
+  it("confie au départ les Éclaireurs que l'écran envoie, à côté de l'escorte, la première fois qu'une Espèce est dite (US-0976)", async () => {
+    connecte();
+    await expect(partir({ refus: null }, sauf("eclaireurs", "pigeon.2", "pigeon.5"))).rejects.toThrow("NEXT_REDIRECT");
+    expect(depart.lancerLExpedition).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, { ...CHOIX, eclaireurs: new Map([["pigeon", 2]]) }, INSTANT);
   });
 });

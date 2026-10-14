@@ -65,7 +65,7 @@ export function PanneauDeLExpedition({ expedition, instant, serre = false }: { e
   const [rappelEnCours, demarrer] = useTransition();
   const prefixe = useId();
   const id = (morceau: string) => `${prefixe}-${morceau}`;
-  const { destination, explorateurs, escorte } = expedition;
+  const { destination, explorateurs, escorte, eclaireurs = [] } = expedition;
   const inconnue = "inconnue" in destination;
   const phase = phaseDUneExpedition(expedition, instant);
   const fin = finDeLaPhase(expedition, instant);
@@ -162,6 +162,26 @@ export function PanneauDeLExpedition({ expedition, instant, serre = false }: { e
               )}
             </dd>
           </div>
+          {/* US-0976 : ses Éclaireurs, partis à côté de l'escorte, chaque Espèce son portrait. */}
+          {eclaireurs.length > 0 ? (
+            <div>
+              <dt>Éclaireurs</dt>
+              <dd>
+                {eclaireurs.map((espece, i) => (
+                  <Fragment key={espece.id}>
+                    {i > 0 ? " " : null}
+                    <span className={styles.bete}>
+                      <span className={styles.portrait} aria-hidden="true">
+                        <Illustration chemin={portraitDeLEspece(espece.id)} alt="" sizes="32px" className={styles.peinture} />
+                      </span>
+                      {`${espece.nom} `}
+                      <em>{`× ${espece.nombre}`}</em>
+                    </span>
+                  </Fragment>
+                ))}
+              </dd>
+            </div>
+          ) : null}
         </dl>
         <div className={styles.pied}>
           <dl className={styles.retour}>

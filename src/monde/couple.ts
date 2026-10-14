@@ -34,6 +34,8 @@ export type CoupleReuni = { especeId: string; reuniLe: Date };
  * US-0960 : un Blessé au Foyer (US-0951) y est : le Couple se forme aussitôt, sans attendre sa guérison, et il guérit en
  * Réserve ; parmi plusieurs Bêtes d'un sexe, le Couple prend d'abord une valide (les Blessés de l'Espèce au Foyer ne
  * dépassent jamais ses Bêtes au Foyer).
+ * US-0976 : les Éclaireurs d'une Expédition en cours non plus : le départ retient leur sexe comme celui de l'escorte, et ils
+ * rentrent tous.
  */
 export async function reunirLesCouples(client: PoolClient, territoireId: number, le: Date): Promise<string[]> {
   const { rows } = await client.query<{ especeId: string }>(

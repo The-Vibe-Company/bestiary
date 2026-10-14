@@ -26,9 +26,19 @@ const SANS_REFUS: EtatDuDepart = { refus: null };
  * US-0911 : il confirme le départ : il envoie la destination, les `explorateurs` et l'`escorte` choisis (Espèce par
  * Espèce, telle que l'écran la montre), et le séjour du curseur. Grisé le temps de l'envoi, pour ne partir qu'une fois.
  * Fait, le départ mène à la liste des Expéditions en cours ; refusé, rien n'est retenu, et il dit pourquoi, juste dessous,
- * dans la couleur d'alerte, sur l'écran relu.
+ * dans la couleur d'alerte, sur l'écran relu. US-0976 : et les `eclaireurs`, Espèce par Espèce, à côté de l'escorte.
  */
-export function Partir({ destination, explorateurs, escorte }: { destination: Coordonnees | null; explorateurs: number; escorte: ReadonlyMap<string, number> }) {
+export function Partir({
+  destination,
+  explorateurs,
+  escorte,
+  eclaireurs = new Map(),
+}: {
+  destination: Coordonnees | null;
+  explorateurs: number;
+  escorte: ReadonlyMap<string, number>;
+  eclaireurs?: ReadonlyMap<string, number>;
+}) {
   const [{ refus }, envoyer, enCours] = useActionState(partir, SANS_REFUS);
   const idRaison = useId();
   const raison = ceQuiManque(destination !== null, explorateurs);
@@ -43,6 +53,9 @@ export function Partir({ destination, explorateurs, escorte }: { destination: Co
       ) : null}
       <input type="hidden" name="explorateurs" value={explorateurs} />
       {[...escorte].map(([especeId, nombre]) => (nombre > 0 ? <input key={especeId} type="hidden" name="escorte" value={`${especeId}.${nombre}`} /> : null))}
+      {[...eclaireurs].map(([especeId, nombre]) =>
+        nombre > 0 ? <input key={`eclaireurs-${especeId}`} type="hidden" name="eclaireurs" value={`${especeId}.${nombre}`} /> : null,
+      )}
       <button
         type="submit"
         className={`${kit.bouton} ${kit.principal} ${kit.large}`}
