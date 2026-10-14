@@ -29,7 +29,7 @@ export async function envoyerEmail(email: Email, env: Record<string, string | un
   // Le contenu n'est jamais écrit dans le journal en ligne : il peut porter un lien personnel.
   const trace = `« ${email.sujet} » pour ${masquerAdresse(email.a)}`;
   if (!cle) {
-    console.error(`E-mail non envoyé, ${trace} : RESEND_API_KEY manquante (voir Zewed/bestia-2#1).`);
+    console.error(`E-mail non envoyé, ${trace} : RESEND_API_KEY manquante (voir The-Vibe-Company/bestiary#58).`);
     return false;
   }
   try {

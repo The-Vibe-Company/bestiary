@@ -12,7 +12,7 @@ Le visiteur devient joueur : il crée son compte, se choisit un nom de chef, pui
   - La page d'accueil montre « Créer un compte » et « Se connecter », visibles sans défiler, sur ordinateur comme sur mobile.
   - « Créer un compte » mène au formulaire d'inscription, « Se connecter » au formulaire de connexion.
   - Une courte phrase présente le jeu : « Faites votre sac : l'aventure vous attend. »
-  - En production, « Ouverture prochaine » tient la place des deux boutons jusqu'à ce qu'Antoine ouvre le jeu : il en décide seul, à la main, quand il le veut, sans attendre une story précise (décidé le 2026-10-05). Il faut seulement que les e-mails partent pour de vrai (Zewed/bestia-2#1), sans quoi un joueur ne pourrait ni confirmer son adresse ni changer de mot de passe.
+  - En production, « Ouverture prochaine » tient la place des deux boutons jusqu'à ce qu'Antoine ouvre le jeu : il en décide seul, à la main, quand il le veut, sans attendre une story précise (décidé le 2026-10-05). Il faut seulement que les e-mails partent pour de vrai (The-Vibe-Company/bestiary#58), sans quoi un joueur ne pourrait ni confirmer son adresse ni changer de mot de passe.
 
 ### US-0102 · Ouvrir le formulaire d'inscription
 **En tant que** visiteur, **je veux** un formulaire court qui ne demande que mon adresse e-mail et un mot de passe, **afin de** créer mon compte en moins d'une minute.
@@ -124,7 +124,7 @@ Le visiteur devient joueur : il crée son compte, se choisit un nom de chef, pui
 ### US-0113 · Envoyer des e-mails depuis le jeu
 **En tant que** développeur, **je veux** que le jeu puisse envoyer des e-mails, **afin de** permettre la confirmation d'adresse et la réinitialisation du mot de passe.
 
-- **Statut** : Livrée le 2026-10-03 sans envoi réel : Resend n'est pas encore branché (offre payante ou compte existant à trancher, DNS chez Cloudflare), voir Zewed/bestia-2#1. D'ici là, les e-mails restent dans le journal, et en ligne leur échec est noté.
+- **Statut** : Livrée le 2026-10-03 sans envoi réel : Resend n'est pas encore branché (offre payante ou compte existant à trancher, DNS chez Cloudflare), voir The-Vibe-Company/bestiary#58. D'ici là, les e-mails restent dans le journal, et en ligne leur échec est noté.
 - **Débloquée par** : Étape 1
 - **Critères d'acceptation** :
   - Le jeu envoie ses e-mails depuis une adresse d'expédition au nom de Bestia : « Bestia <bonjour@bestia.thevibecompany.co> ».
@@ -135,7 +135,7 @@ Le visiteur devient joueur : il crée son compte, se choisit un nom de chef, pui
 ### US-0114 · Confirmer son adresse e-mail
 **En tant que** nouveau joueur, **je veux** recevoir un lien pour confirmer mon adresse e-mail, **afin de** prouver qu'elle m'appartient et pouvoir récupérer mon compte plus tard.
 
-- **Statut** : Livrée le 2026-10-03. Les e-mails ne partent pas encore pour de vrai (Zewed/bestia-2#1). Un lien déjà utilisé affiche « Adresse déjà confirmée » : un nouveau lien n'y servirait à rien. Le rappel de confirmer viendra avec les premiers écrans du jeu.
+- **Statut** : Livrée le 2026-10-03. Les e-mails ne partent pas encore pour de vrai (The-Vibe-Company/bestiary#58). Un lien déjà utilisé affiche « Adresse déjà confirmée » : un nouveau lien n'y servirait à rien. Le rappel de confirmer viendra avec les premiers écrans du jeu.
 - **Débloquée par** : US-0107, US-0113
 - **Critères d'acceptation** :
   - Juste après l'inscription, un e-mail part avec un lien de confirmation valable 24 heures (LIEN_CONFIRMATION_HEURES), à usage unique ; seule l'empreinte du jeton est gardée.
@@ -251,7 +251,7 @@ Le visiteur devient joueur : il crée son compte, se choisit un nom de chef, pui
 ### US-0126 · Demander un lien de réinitialisation du mot de passe
 **En tant que** joueur, **je veux** demander un lien pour changer mon mot de passe oublié, **afin de** retrouver l'accès à mon compte.
 
-- **Statut** : Livrée le 2026-10-04. Le lien part vers toute adresse qui a un compte, confirmée ou non ; pas plus d'un par minute pour une même adresse. Durée provisoire : 60 minutes (US-0127). Les e-mails ne partent pas encore pour de vrai (Zewed/bestia-2#1).
+- **Statut** : Livrée le 2026-10-04. Le lien part vers toute adresse qui a un compte, confirmée ou non ; pas plus d'un par minute pour une même adresse. Durée provisoire : 60 minutes (US-0127). Les e-mails ne partent pas encore pour de vrai (The-Vibe-Company/bestiary#58).
 - **Débloquée par** : US-0113, US-0117
 - **Critères d'acceptation** :
   - Un lien « Mot de passe oublié » apparaît sous le formulaire de connexion et dans le message d'erreur de connexion.
@@ -509,7 +509,7 @@ Le visiteur devient joueur : il crée son compte, se choisit un nom de chef, pui
 ### US-0159 · Prévenir quand la Couronne est pleine
 **En tant que** nouveau joueur, **je veux** un message clair s'il n'y a plus de place sur la Couronne, **afin de** ne pas rester devant une erreur incompréhensible.
 
-- **Statut** : Livrée le 2026-10-06. Le nom et la Case naissent ensemble ou pas du tout (US-0153) : un Monde plein n'enregistre rien. Sous 10 places, chaque naissance écrit une alerte dans le journal de Vercel, et la page de contrôle affiche le nombre de places en couleur d'alerte. Une alerte par e-mail viendra avec l'envoi réel des e-mails (Zewed/bestia-2#1).
+- **Statut** : Livrée le 2026-10-06. Le nom et la Case naissent ensemble ou pas du tout (US-0153) : un Monde plein n'enregistre rien. Sous 10 places, chaque naissance écrit une alerte dans le journal de Vercel, et la page de contrôle affiche le nombre de places en couleur d'alerte. Une alerte par e-mail viendra avec l'envoi réel des e-mails (The-Vibe-Company/bestiary#58).
 - **Débloquée par** : US-0153
 - **Critères d'acceptation** :
   - S'il ne reste aucune Case où naître, la naissance n'a pas lieu et le joueur voit sous le champ du nom : « Aube est complet. Un nouveau Monde ouvre bientôt. »

@@ -24,7 +24,7 @@ export const MOT_DE_PASSE_MAX = 128;
 export const INSCRIPTION_DELAI_MAX_MS = 15_000;
 /** US-0112 : au plus 5 comptes créés en une heure depuis une même connexion. */
 export const INSCRIPTIONS_PAR_HEURE_MAX = 5;
-/** US-0113 : l'adresse d'où partent les e-mails du jeu (domaine à vérifier chez Resend, voir Zewed/bestia-2#1). */
+/** US-0113 : l'adresse d'où partent les e-mails du jeu (domaine à vérifier chez Resend, voir The-Vibe-Company/bestiary#58). */
 export const EXPEDITEUR_EMAILS = "Bestia <bonjour@bestia.thevibecompany.co>";
 /** US-0113 : au-delà, l'envoi d'un e-mail est abandonné et noté comme raté. */
 export const ENVOI_EMAIL_DELAI_MAX_MS = 10_000;

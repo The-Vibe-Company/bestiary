@@ -18,7 +18,7 @@ runtime_group = "Agent runtime"
 runtimes = ["Claude Code", "Codex", "Conductor", "Herdr"]
 
 [github]
-repository = "Zewed/bestia-2"
+repository = "The-Vibe-Company/bestiary"
 
 # Optional features: uncomment the examples you need; `armada doctor` lists suggestions.
 # Owner alerts and digests are configured on Organization > Notifications, not in TOML.
