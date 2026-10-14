@@ -47,7 +47,6 @@ const FORET: ExpeditionEnCours = {
 const ligne = () => [...document.querySelectorAll("[data-ligne] > *")].map((morceau) => morceau.textContent).filter(Boolean);
 /** Son détail : chaque étiquette et ce qu'elle dit. */
 const detail = () => Object.fromEntries([...document.querySelectorAll("dl > div")].map((l) => [l.querySelector("dt")!.textContent, l.querySelector("dd")!.textContent]));
-const deplier = () => screen.getByRole("button", { name: "Détail" });
 
 describe("le détail d'une Expédition en cours (US-0918)", () => {
   it("montre sa destination et sa distance, sa phase et son temps restant, puis ses explorateurs, son escorte et son retour prévu", () => {
@@ -108,23 +107,7 @@ describe("le détail d'une Expédition en cours (US-0918)", () => {
     expect(detail()["Retour prévu"]).toBe("—");
   });
 
-  it("repliable, se déplie d'un toucher pour montrer son détail, et se replie de même", async () => {
-    render(<DetailDeLExpedition expedition={FORET} instant={DEPART} repliable />);
-    expect(deplier().getAttribute("aria-expanded")).toBe("false");
-    expect(document.getElementById(deplier().getAttribute("aria-controls")!)?.tagName).toBe("DL");
-    // Un lecteur d'écran entend aussi de quelle Expédition il s'agit, et où elle en est.
-    const decrit = deplier()
-      .getAttribute("aria-describedby")!
-      .split(" ")
-      .map((id) => document.getElementById(id)?.textContent);
-    expect(decrit).toEqual(["Forêt", "Aller", "arrive dans 1 h"]);
-    await userEvent.click(deplier());
-    expect(deplier().getAttribute("aria-expanded")).toBe("true");
-    await userEvent.click(deplier());
-    expect(deplier().getAttribute("aria-expanded")).toBe("false");
-  });
-
-  it("sans être repliable, montre tout, sans rien à déplier", () => {
+  it("montre tout, sans rien à déplier", () => {
     render(<DetailDeLExpedition expedition={FORET} instant={DEPART} />);
     expect(screen.queryByRole("button", { name: "Détail" })).toBeNull();
   });

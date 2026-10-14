@@ -1,4 +1,4 @@
-/* US-0918 : une Expédition en cours : sa ligne, puis son détail, sur le fond d'une ligne de liste. */
+/* US-0918 : une Expédition en cours, dans la fiche de la carte : sa ligne, puis son détail. */
 .expedition {
   min-width: 0;
   padding: 10px 12px;
@@ -26,7 +26,7 @@
   color: var(--texte-discret);
 }
 
-/* La phase, sur deux rangs, dans la puce du kit (kit.puce), comme dans la liste des Expéditions. */
+/* La phase, sur deux rangs, dans la puce du kit (kit.puce). */
 .phase {
   grid-row: 1 / span 2;
   grid-column: 2;
@@ -99,11 +99,6 @@
   outline-offset: 2px;
 }
 
-/* Sur ordinateur, tout se lit : rien à déplier. */
-.deplier {
-  display: none;
-}
-
 @media (max-width: 820px), (max-height: 500px) {
   /* Le détail, une étiquette par ligne, alignées comme au récapitulatif. */
   .detail {
@@ -126,107 +121,6 @@
   .rappeler {
     width: 100%;
   }
-
-  /*
-   * Repliable : 44 px de haut au moins, au pouce, sur une seule ligne, la même repliée ou dépliée : la destination, la
-   * phase, le temps restant, sans son annonce, et le chevron. Dépliée, la distance passe dessous, sur toute la largeur.
-   */
-  .repliable {
-    padding: 12px;
-  }
-
-  .repliable .ligne {
-    grid-template-columns: minmax(0, 1fr) auto auto 12px;
-    gap: 2px 8px;
-  }
-
-  .repliable .ligne > * {
-    grid-row: 1;
-  }
-
-  .repliable .distance {
-    grid-row: 2;
-    grid-column: 1 / -1;
-  }
-
-  .repliable .annonce {
-    display: none;
-  }
-
-  /* Repliée, la destination se coupe plutôt que de passer à la ligne ; la distance et le détail attendent. */
-  .repliable:not(.deplie) .destination {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  .repliable:not(.deplie) .distance,
-  .repliable:not(.deplie) .detail {
-    display: none;
-  }
-
-  /* US-0920 : « Rappeler » attend aussi qu'on la déplie, sous son détail. */
-  .repliable:not(.deplie) .rappeler {
-    display: none;
-  }
-
-  /*
-   * Toute sa ligne se touche pour la déplier ou la replier : le bouton la couvre, marges comprises, son chevron au bout ;
-   * le détail déplié, lui, reste à lire et à sélectionner.
-   */
-  .repliable .ligne {
-    position: relative;
-  }
-
-  .deplier {
-    display: flex;
-    grid-column: 4;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: var(--texte-discret);
-    cursor: pointer;
-  }
-
-  .deplier::after {
-    position: absolute;
-    inset: -12px;
-    border-radius: var(--arrondi-petit);
-    content: "";
-  }
-
-  .deplier:focus-visible {
-    outline: none;
-  }
-
-  .deplier:focus-visible::after {
-    outline: 2px solid var(--encre);
-    outline-offset: -2px;
-  }
-
-  .fleche {
-    width: 12px;
-    height: 12px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.6;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .deplie .fleche {
-    transform: rotate(180deg);
-  }
-}
-
-/* Le chevron tourne sans animation quand le joueur réduit les animations. */
-@media (prefers-reduced-motion: reduce) {
-  .fleche {
-    transition: none;
-  }
 }
 
 /*
@@ -234,7 +128,7 @@
  * ordinateur : la destination et sa phase au premier rang, la distance dessous, puis le temps restant, plutôt que de
  * couper la destination lettre à lettre ; le détail, une étiquette par ligne, comme sur un téléphone. À plat, sans le
  * fond d'une ligne de liste : la fiche est déjà un bloc, et le panneau plafonné d'un téléphone garde sa place. Sans
- * conteneur, comme dans la liste des Expéditions, rien ne change.
+ * conteneur, rien ne change.
  */
 @container (max-width: 480px) {
   .expedition {
