@@ -1,0 +1,99 @@
+docs/conventions-des-workers.md
+  s_7c7d151152e4a5::t_610833a69b1f2c 42-45
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_53aad7635fa242 40,69,164,390,438
+docs/stories/README.md
+  s_7c7d151152e4a5::t_b2e0c971bbbd88 7
+drizzle/0073_elevage.sql
+  s_7c7d151152e4a5::t_a834ed035f5c58 1-22
+drizzle/meta/0073_snapshot.json
+  s_7c7d151152e4a5::t_609c53208dd65a 2,1109-1264
+drizzle/meta/0075_snapshot.json
+  s_7c7d151152e4a5::t_8bb8f3d6542761 1-3688
+drizzle/meta/_journal.json
+  s_7c7d151152e4a5::t_ff2734d9167870 475,477-485
+src/app/jeu/betes/page.db.test.tsx
+  s_7c7d151152e4a5::t_a9cd160e03eaaf 144-145,147-148
+src/app/jeu/betes/page.test.tsx
+  s_7c7d151152e4a5::t_fe6c674207a7be 265-266,302-312
+src/app/jeu/betes/page.tsx
+  s_7c7d151152e4a5::t_47b46e717251ff 25-27,48-49,97
+src/app/jeu/betes/tout-biome.db.test.tsx
+  s_7c7d151152e4a5::t_91b1977150a3ab 135-136
+src/app/jeu/expeditions/nouvelle/Escorte.test.tsx
+  s_7c7d151152e4a5::t_3c8b7fe09e4c88 378-396
+src/app/jeu/expeditions/nouvelle/Escorte.tsx
+  s_7c7d151152e4a5::t_ef063692fb2050 56-58,80-81,130
+src/app/jeu/reserve/[espece]/BlocElever.module.css
+  s_7c7d151152e4a5::t_f5696a1718af1f 118,136-151
+src/app/jeu/reserve/[espece]/BlocElever.test.tsx
+  s_7c7d151152e4a5::t_f2f2fd91857f94 8-9,37,40,106-107,309-358
+src/app/jeu/reserve/[espece]/BlocElever.tsx
+  s_7c7d151152e4a5::t_26e5ee1db8a6cd 4,48-51,86-91,195-200,208-210
+src/app/jeu/reserve/[espece]/Explication.test.tsx
+  s_7c7d151152e4a5::t_51243cdd44352c 1-170
+src/app/jeu/reserve/[espece]/Explication.tsx
+  s_7c7d151152e4a5::t_2eb09479005f5c 1-164
+src/app/jeu/reserve/[espece]/actions.db.test.ts
+  s_7c7d151152e4a5::t_896e0241594232 15-16,92-96,99,103-105
+src/app/jeu/reserve/[espece]/actions.test.ts
+  s_7c7d151152e4a5::t_207a51c178914f 20-30,35,39-41,97,100,142,182,185-232
+src/app/jeu/reserve/[espece]/actions.ts
+  s_7c7d151152e4a5::t_f7368960fff2ba 3,8-9,12-16,27-30,37-44,48-51
+src/app/jeu/reserve/[espece]/explications.test.ts
+  s_7c7d151152e4a5::t_94dea1d1e86005 1-19
+src/app/jeu/reserve/[espece]/explications.ts
+  s_7c7d151152e4a5::t_c7ee97f7fcc749 1-19
+src/app/jeu/reserve/[espece]/page.css.test.ts
+  s_7c7d151152e4a5::t_9f1cecf862c233 50,56-82
+src/app/jeu/reserve/[espece]/page.db.test.tsx
+  s_7c7d151152e4a5::t_e301c5589e5a0a 56,70
+src/app/jeu/reserve/[espece]/page.module.css
+  s_7c7d151152e4a5::t_08e89184b194d5 55-58,86-87,118,125-218
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_cb182506d4bdd8 51,75,116,120,128-129,138,376,383,399-418
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_85153d5574220e 21,61-70,101,108-121
+src/db/schema.ts
+  s_7c7d151152e4a5::t_f28cf38807ae88 655-657,915-946
+src/expeditions/depart.ts
+  s_7c7d151152e4a5::t_a7ea43a6f17bc9 131
+src/expeditions/pertes.ts
+  s_7c7d151152e4a5::t_228841e3e3e8da 91-92
+src/monde/cout-d-elevage.ts
+  s_7c7d151152e4a5::t_1b5f669415ff52 3,36-37
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_a40610869ef301 19-20,33,73-77,82,86,94-95,102,105
+src/monde/elevage.ts
+  s_7c7d151152e4a5::t_53d8409a22be72 8,40-42,47
+src/monde/etat-habitant.ts
+  s_7c7d151152e4a5::t_ee3560a503dfb8 29-35
+src/monde/famine.ts
+  s_7c7d151152e4a5::t_24cf107ab44f08 6,23-24,26
+src/monde/guerison.ts
+  s_7c7d151152e4a5::t_c24480a3def4f4 11,17,26
+src/monde/lancer-un-elevage.db.test.ts
+  s_7c7d151152e4a5::t_a69151f411798c 1-286
+src/monde/lancer-un-elevage.ts
+  s_7c7d151152e4a5::t_7b896ea538faeb 1-111
+src/monde/roles.db.test.ts
+  s_7c7d151152e4a5::t_1cf43e21f4e35f 7,88-93,171-172,196,199-207,210-225,230,287-296
+src/monde/roles.ts
+  s_7c7d151152e4a5::t_b55e42e93043bb 8-13,130-131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f9cc94ce52b48c3b59a3c54cd9994eba986d9feb",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
