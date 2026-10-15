@@ -1,13 +1,13 @@
-// Ce que coûte l'Élevage d'une Espèce (US-0813) : le coût d'une Bête élevée, la Nourriture qui le paie, et le plus grand
-// nombre de Bêtes que les Stocks permettent de payer, que « Max » propose dans le bloc « Élever ». US-0814 : et ce que dure
-// l'Élevage d'une Bête ; le bloc dit l'un et l'autre, que le lancement retient et paie (US-0815). Côté serveur uniquement.
+// Ce que coûte l'Élevage d'une Espèce (US-0813) : le coût d'une Bête élevée et la Nourriture qui le paie. US-0814 : et ce
+// que dure l'Élevage d'une Bête ; le bloc dit l'un et l'autre, que le lancement retient et paie (US-0815). US-0816 : les
+// Stocks qui paient, que le bloc fait monter comme la barre du haut pour dire, à chaque instant, ce que « Max » propose
+// (betesPayables) et ce qui manque (src/monde/payer-un-elevage.ts). Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
 import type { Regime } from "./effectif";
+import type { StockQuiPaie } from "./payer-un-elevage";
+import { stocksDuTerritoire } from "./stocks";
 import { JOURS_D_ENTRETIEN_PAR_BETE_ELEVEE, MINUTES_D_ELEVAGE_PAR_PLACE } from "@/reglages";
-
-/** La Nourriture en Stock au Territoire, Viande et Végétaux, en quantités exactes. */
-export type NourritureDisponible = { viande: number; vegetaux: number };
 
 /** US-0813 : la Nourriture qui paie, régime par régime : un régime ajouté à la base sans la sienne ici ne compile pas. */
 const NOURRITURE_DU_REGIME: Record<Regime, ("viande" | "vegetaux")[]> = { carnivore: ["viande"], herbivore: ["vegetaux"], omnivore: ["viande", "vegetaux"] };
@@ -41,27 +41,14 @@ export function nourritureQuiPaie(regime: Regime): ("viande" | "vegetaux")[] {
 }
 
 /**
- * US-0813 : le plus grand nombre entier de Bêtes de l'Espèce que les Stocks de sa Nourriture permettent de payer : ce que
- * « Max » propose. Aucune pour une Espèce sans Entretien, dont aucun coût ne borne l'Élevage (aucune Espèce du jeu).
+ * US-0816 : les Stocks du Territoire qui paient l'Élevage d'une Espèce du régime `regime` (nourritureQuiPaie), tels que la
+ * barre du haut les lit (stocksDuTerritoire) : leur quantité exacte, leur limite, leur production et l'Entretien pris
+ * dessus par heure. Le bloc « Élever » les fait monter comme elle, pour dire à chaque instant ce que « Max » propose et ce
+ * qui manque ; le lancement, lui, les relit au clic.
  */
-export function betesPayables(stocks: NourritureDisponible, espece: { regime: Regime; entretienParHeure: number }): number {
-  const cout = coutDUneBeteElevee(espece.entretienParHeure);
-  if (cout <= 0) return 0;
-  const disponible = nourritureQuiPaie(espece.regime).reduce((somme, ressource) => somme + stocks[ressource], 0);
-  // Au milliardième près : 100 de Viande pour une Bête de 10 en paient 10, malgré les décimales du calcul.
-  return Math.max(0, Math.floor(disponible / cout + 1e-9));
-}
-
-/** US-0813 : ce que « Max » propose pour l'Espèce `especeId` au Territoire, d'après ses Stocks à l'instant. */
-export async function maxAElever(base: Pool | PoolClient, territoireId: number, especeId: string): Promise<number> {
-  const { rows } = await base.query<{ regime: Regime; entretienParHeure: number; viande: string | null; vegetaux: string | null }>(
-    `select es.regime, es.entretien_par_heure as "entretienParHeure",
-       (select s.quantite from stock s where s.territoire_id = $1 and s.ressource_id = 'viande') as viande,
-       (select s.quantite from stock s where s.territoire_id = $1 and s.ressource_id = 'vegetaux') as vegetaux
-     from espece es where es.id = $2`,
-    [territoireId, especeId],
-  );
-  if (rows.length === 0) return 0;
-  const { regime, entretienParHeure, viande, vegetaux } = rows[0];
-  return betesPayables({ viande: Number(viande ?? 0), vegetaux: Number(vegetaux ?? 0) }, { regime, entretienParHeure });
+export async function nourritureDuRegime(base: Pool | PoolClient, territoireId: number, regime: Regime): Promise<StockQuiPaie[]> {
+  const qui = nourritureQuiPaie(regime);
+  return (await stocksDuTerritoire(base, territoireId))
+    .filter((s) => (qui as string[]).includes(s.id))
+    .map(({ quantite, limite, parHeure, entretienParHeure }) => ({ quantite, limite, parHeure, entretienParHeure }));
 }
