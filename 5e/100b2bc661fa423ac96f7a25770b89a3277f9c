@@ -1,0 +1,27 @@
+src/components/BarreHaut.module.css
+  s_7c7d151152e4a5::t_2c6500eebfd9a4 309,311,394,865-869,902-985
+src/components/BarreHaut.test.tsx
+  s_7c7d151152e4a5::t_969bd132172d46 55-56,58,78-79,84-127
+src/components/Navigation.test.tsx
+  s_7c7d151152e4a5::t_9508e971aba033 33-38
+src/components/Navigation.tsx
+  s_7c7d151152e4a5::t_62817a1750888b 45-46
+src/styles/formes.css
+  s_7c7d151152e4a5::t_195edd5de85d74 79-83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5e100b2bc661fa423ac96f7a25770b89a3277f9c",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
