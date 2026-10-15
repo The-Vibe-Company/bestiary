@@ -325,7 +325,7 @@ export const MARCHE_DES_EXPLORATEURS_KMH = 5;
 /**
  * US-0914 : là où passe une Expédition, le brouillard se lève à son passage sur 1 Case autour de chaque Case de son chemin,
  * et à son arrivée sur 2 Cases autour de sa destination (valeurs provisoires, à régler en jouant). Les Éclaireurs les
- * agrandiront (US-0969).
+ * agrandissent (US-0969, BROUILLARD_LEVE_PAR_ECLAIREUR_CASES, à la fin de ce fichier).
  */
 export const BROUILLARD_LEVE_SUR_LE_CHEMIN_CASES = 1;
 export const BROUILLARD_LEVE_AUTOUR_DE_LA_DESTINATION_CASES = 2;
@@ -401,3 +401,12 @@ export const MINUTES_D_ELEVAGE_PAR_PLACE = 15;
  * provisoire, à régler en jouant) ; src/monde/guerison.ts.
  */
 export const GUERISON_DES_BLESSES_SOIGNES_HEURES = 12;
+
+/**
+ * US-0969 : chaque Éclaireur d'une Expédition (US-0976) agrandit d'1 Case le rayon du brouillard qu'elle lève sur son
+ * chemin et autour de sa destination (valeur provisoire, à régler en jouant), jusqu'à 2 Cases de plus (plafond provisoire) :
+ * avec 1 Éclaireur, 2 Cases autour de chaque Case du chemin et 3 autour de la destination ; avec 2 ou plus, 3 et 4
+ * (src/expeditions/brouillard.ts).
+ */
+export const BROUILLARD_LEVE_PAR_ECLAIREUR_CASES = 1;
+export const BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES = 2;

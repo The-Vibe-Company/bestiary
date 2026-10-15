@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { casesDansLeRayon, type Coordonnees } from "@/monde/hex";
-import { BROUILLARD_LEVE_AUTOUR_DE_LA_DESTINATION_CASES, BROUILLARD_LEVE_SUR_LE_CHEMIN_CASES } from "@/reglages";
-import { casesRevelees } from "./brouillard";
+import {
+  BROUILLARD_LEVE_AUTOUR_DE_LA_DESTINATION_CASES,
+  BROUILLARD_LEVE_PAR_ECLAIREUR_CASES,
+  BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES,
+  BROUILLARD_LEVE_SUR_LE_CHEMIN_CASES,
+} from "@/reglages";
+import { casesRevelees, rayonDesEclaireurs } from "./brouillard";
 import { cheminDUneExpedition } from "./chemin";
 import type { HorairesDUneExpedition } from "./phase";
 
@@ -94,5 +99,43 @@ describe("le brouillard d'une Expédition rappelée (US-0920)", () => {
 
   it("rappelée en séjour, garde tout ce que son aller a levé, destination comprise", () => {
     expect(a(30 * 24 * 60, { ...EXPEDITION, rappeleeLe: apres(121) })).toEqual(a(120));
+  });
+});
+
+describe("les Éclaireurs lèvent plus de brouillard (US-0969)", () => {
+  /** Les Cases qu'une Expédition de `eclaireurs` Éclaireurs a sorties du brouillard `minutes` après son départ, sous forme de clés. */
+  const avec = (eclaireurs: number, minutes: number) => new Set(casesRevelees(FOYER, DESTINATION, EXPEDITION, apres(minutes), eclaireurs).map(cle));
+
+  it(`chaque Éclaireur agrandit le rayon de ${BROUILLARD_LEVE_PAR_ECLAIREUR_CASES} Case, jusqu'à ${BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES} Cases de plus`, () => {
+    expect([0, 1, 2, 3, 10].map(rayonDesEclaireurs)).toEqual([0, 1, 2, 2, 2]);
+    // Sans Éclaireur, rien ne change.
+    for (const minutes of [0, 20, 40, 120, 30 * 24 * 60]) expect(avec(0, minutes)).toEqual(a(minutes));
+  });
+
+  it("sur le chemin, au passage de chaque Case, et autour de la destination, à l'arrivée, le rayon s'agrandit", () => {
+    for (const [eclaireurs, enPlus] of [
+      [1, 1],
+      [2, 2],
+    ]) {
+      expect(avec(eclaireurs, 19)).toEqual(new Set());
+      expect(avec(eclaireurs, 20)).toEqual(new Set(autour(CHEMIN[0], BROUILLARD_LEVE_SUR_LE_CHEMIN_CASES + enPlus)));
+      const toutLeChemin = CHEMIN.slice(0, -1).flatMap((c) => autour(c, BROUILLARD_LEVE_SUR_LE_CHEMIN_CASES + enPlus));
+      expect(avec(eclaireurs, 120)).toEqual(new Set([...toutLeChemin, ...autour(DESTINATION, BROUILLARD_LEVE_AUTOUR_DE_LA_DESTINATION_CASES + enPlus)]));
+    }
+  });
+
+  it("l'effet grandit avec le nombre d'Éclaireurs, jusqu'au plafond : au-delà, pas une Case de plus", () => {
+    const [un, deux, trois, dix] = [1, 2, 3, 10].map((n) => avec(n, 120));
+    expect(un.size).toBeGreaterThan(a(120).size);
+    expect(deux.size).toBeGreaterThan(un.size);
+    for (const c of a(120)) expect(un.has(c)).toBe(true);
+    for (const c of un) expect(deux.has(c)).toBe(true);
+    expect(trois).toEqual(deux);
+    expect(dix).toEqual(deux);
+  });
+
+  it("garde le rythme de l'Expédition : rien de plus au départ, rien de neuf pendant le séjour ni au retour", () => {
+    expect(avec(2, 0)).toEqual(new Set());
+    for (const minutes of [120 + 239, 120 + 240 + 61, 30 * 24 * 60]) expect(avec(2, minutes)).toEqual(avec(2, 120));
   });
 });
