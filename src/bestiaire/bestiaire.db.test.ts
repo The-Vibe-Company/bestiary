@@ -86,9 +86,12 @@ describe.skipIf(!URL_TEST)("l'Espèce croisée entre au Bestiaire (US-0933, sur 
   /**
    * Une Bête sauvage seule, qui convient à `voulue`, sur une Case libre à 2 Cases du Foyer du Territoire, apparue après
    * `apresLe` : aucune autre n'apparaît sur sa Case de CALME heures avant elle à CALME heures après. Sa Case et la Bête.
+   * La plus tôt venue de toutes : l'essai met le Territoire à l'heure jusqu'à elle, et une Bête lointaine lui faisait
+   * rejouer des semaines.
    */
   const uneBeteSeule = async (territoireId: number, apresLe: Date, voulue: (b: BeteSauvage) => boolean = () => true) => {
     const fin = apres(apresLe, 30 * JOUR);
+    let choisie: { place: Coordonnees; caseId: number; bete: BeteSauvage } | null = null;
     for (let rang = 0, ici = await aLEcart(territoireId, 2); ici; ici = await aLEcart(territoireId, 2, ++rang)) {
       if (prises.has(ici.caseId)) continue;
       const betes = await betesSauvagesDUneCase(pool, ici.caseId, apresLe, fin);
@@ -100,12 +103,11 @@ describe.skipIf(!URL_TEST)("l'Espèce croisée entre au Bestiaire (US-0933, sur 
           (i === 0 || betes[i - 1].arrivee <= apres(b.arrivee, -CALME)) &&
           (i === betes.length - 1 || betes[i + 1].arrivee >= apres(b.arrivee, CALME)),
       );
-      if (bete) {
-        prises.add(ici.caseId);
-        return { ...ici, bete };
-      }
+      if (bete && (!choisie || bete.arrivee < choisie.bete.arrivee)) choisie = { ...ici, bete };
     }
-    throw new Error("Aucune Bête seule qui convienne.");
+    if (!choisie) throw new Error("Aucune Bête seule qui convienne.");
+    prises.add(choisie.caseId);
+    return choisie;
   };
 
   /** Une Bête plus rare que commune : sans escorte, elle ne suit aucune Expédition et reste sur sa Case, où d'autres la revoient (US-0935). */
@@ -207,19 +209,20 @@ describe.skipIf(!URL_TEST)("l'Espèce croisée entre au Bestiaire (US-0933, sur 
   it("inscrit les mêmes Espèces, signalées nouvelles aux mêmes Rencontres, en direct, par morceaux, d'un bloc ou par la tâche planifiée", async () => {
     const territoires = [await naitre(), await naitre(), await naitre(), await naitre()];
     // Une Case où deux Bêtes au moins se montrent à moins de dix heures d'écart, la première plus rare que commune, que
-    // plusieurs Expéditions voient donc (US-0935) : la période commence une heure avant elle.
+    // plusieurs Expéditions voient donc (US-0935) : la période commence une heure avant elle. La plus tôt animée de
+    // toutes : chaque Territoire est mis à l'heure jusqu'à elle.
     const uneCaseAnimee = async () => {
       const { territoireId, ne } = territoires[0];
+      let animee: { caseId: number; debut: Date } | null = null;
       for (let rang = 0, ici = await aLEcart(territoireId, 2); ici; ici = await aLEcart(territoireId, 2, ++rang)) {
         if (prises.has(ici.caseId)) continue;
         const betes = await betesSauvagesDUneCase(pool, ici.caseId, apres(ne, 3 * JOUR), apres(ne, 30 * JOUR));
         const i = betes.findIndex((b, j) => plusRare(b) && j + 1 < betes.length && betes[j + 1].arrivee < apres(b.arrivee, 10 * HEURE));
-        if (i >= 0) {
-          prises.add(ici.caseId);
-          return { caseId: ici.caseId, debut: apres(betes[i].arrivee, -HEURE) };
-        }
+        if (i >= 0 && (!animee || apres(betes[i].arrivee, -HEURE) < animee.debut)) animee = { caseId: ici.caseId, debut: apres(betes[i].arrivee, -HEURE) };
       }
-      throw new Error("Aucune Case animée.");
+      if (!animee) throw new Error("Aucune Case animée.");
+      prises.add(animee.caseId);
+      return animee;
     };
     const { caseId, debut } = await uneCaseAnimee();
     // Pour chaque Territoire, les mêmes Expéditions sur la Case, qui se suivent et se chevauchent : chaque Bête plus rare y
