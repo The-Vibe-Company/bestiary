@@ -1,0 +1,25 @@
+src/app/jeu/recits/lecture-du-recit.test.ts
+  s_7c7d151152e4a5::t_baec402585727b 85-96
+src/expeditions/pigeon-en-escorte.db.test.ts
+  s_7c7d151152e4a5::t_0a3901b3650d96 158-161,174,176-177,179,182-186,192,194,198,205-207
+src/expeditions/recit-de-retour.test.ts
+  s_7c7d151152e4a5::t_5f0e3178fd4326 413,421
+src/expeditions/recit-de-retour.ts
+  s_7c7d151152e4a5::t_941cdac4621839 151-155,165
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7afca8b37f5cecae446c4827b87cd5e8d2b846ab",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
