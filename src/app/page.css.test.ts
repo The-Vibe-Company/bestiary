@@ -12,8 +12,13 @@ describe("l'accueil tient dans le premier écran d'un ordinateur", () => {
   const telephone = CSS.match(/@media \(max-width: 820px\) \{([\s\S]*?)\n\}/)?.[1] ?? "";
 
   it("donne à la scène la hauteur de l'écran, moins le panneau des espèces dessous : tout tient sans défiler", () => {
-    expect(regle(".accueil")).toContain("--vignette: clamp(");
-    expect(regle(".scene")).toMatch(/min-height: clamp\(\d+px, calc\(var\(--hauteur-utile\) - var\(--vignette\) - [^)]*\), 720px\);/);
+    expect(regle(".accueil")).toContain("--vignette: clamp(120px, min(20dvh, 25vw - 81px), 190px);");
+    // La scène compte exactement ce qui la suit : le panneau (peintures, marges, filets), l'écart, le bas de la page.
+    expect(regle(".scene").replace(/\s+/g, " ")).toContain(
+      "min-height: clamp( 400px, calc(var(--hauteur-utile) - var(--vignette) - 2 * var(--marge-galerie) - 2px - var(--ecart) - var(--bas)), 720px );",
+    );
+    expect(regle(".accueil")).toMatch(/gap: var\(--ecart\);[^}]*padding: 0 0 var\(--bas\);/);
+    expect(regle(".galerie")).toContain("padding: var(--marge-galerie);");
   });
 
   it("règle la hauteur des peintures du panneau sur celle de l'écran, sur un ordinateur", () => {

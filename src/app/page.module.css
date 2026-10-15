@@ -9,28 +9,40 @@
 .accueil {
   /* Les bords de la page : 40 px au moins, et sur un grand écran, une colonne de 1 200 px au milieu. */
   --marge: max(40px, calc((100% - 1200px) / 2));
-  /* La hauteur des peintures du panneau, sur un ordinateur : un cinquième de l'écran, entre 120 et 190 px. */
-  --vignette: clamp(120px, 20dvh, 190px);
+  /*
+   * La hauteur des peintures du panneau, sur un ordinateur : un cinquième de l'écran, entre 120 et 190 px, et jamais plus
+   * que leur largeur (une tablette tenue droite garde des peintures carrées).
+   */
+  --vignette: clamp(120px, min(20dvh, 25vw - 81px), 190px);
+  /* L'écart entre la scène et le panneau, le bas de la page, et la marge intérieure du panneau : la scène les compte. */
+  --ecart: 24px;
+  --bas: 24px;
+  --marge-galerie: 12px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--ecart);
   min-height: var(--hauteur-utile);
   margin: 0 calc(-1 * var(--bord-droit)) 0 calc(-1 * var(--bord-gauche));
-  padding: 0 0 24px;
+  padding: 0 0 var(--bas);
 }
 
 /* ---------- La scène ---------- */
 
 /*
- * La scène prend la hauteur de l'écran, moins le panneau des espèces (ses peintures, ses 24 px de marges intérieures et son
- * filet de 1 px en haut et en bas), l'écart entre les deux et le bas de la page : tout tient dans le premier écran d'un
- * ordinateur, sans défiler d'un pixel. Jamais moins de 440 px, ni plus de 720.
+ * La scène prend la hauteur de l'écran, moins le panneau des espèces (ses peintures, ses marges intérieures et son filet de
+ * 1 px en haut et en bas), l'écart entre les deux et le bas de la page : tout tient dans le premier écran d'un ordinateur
+ * dont la page a 720 px de haut ou plus, sans défiler d'un pixel. Jamais moins de 400 px, ni plus de 720 : sur un écran plus
+ * bas, le panneau passe sous le pli.
  */
 .scene {
   position: relative;
   display: flex;
   align-items: center;
-  min-height: clamp(440px, calc(var(--hauteur-utile) - var(--vignette) - 26px - 24px - 24px), 720px);
+  min-height: clamp(
+    400px,
+    calc(var(--hauteur-utile) - var(--vignette) - 2 * var(--marge-galerie) - 2px - var(--ecart) - var(--bas)),
+    720px
+  );
   padding: 24px var(--marge);
 }
 
@@ -108,7 +120,7 @@
   grid-template-columns: minmax(170px, 0.8fr) repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin: 0 var(--marge);
-  padding: 12px;
+  padding: var(--marge-galerie);
 }
 
 /* « 2000+ espèces à découvrir » : le grand nombre en crème, l'étiquette de cuivre dessous. */
@@ -128,12 +140,17 @@
 
 /*
  * Une peinture du jeu en vignette, de la hauteur réglée sur l'écran (--vignette) : coins de 2 px, un filet de cuivre
- * par-dessus son bord. Plus large que haute sur un ordinateur, elle se recadre sur son milieu.
+ * par-dessus son bord. Plus large que haute sur un ordinateur, elle se recadre un peu au-dessus de son milieu, où sont les
+ * têtes des Bêtes.
  */
 .galerie .vignette {
   height: var(--vignette);
   border-radius: var(--arrondi-image);
   background: var(--panneau-releve);
+}
+
+.galerie .vignette img {
+  object-position: 50% 40%;
 }
 
 .vignette::after {
@@ -150,7 +167,6 @@
 /* Le Monde en tête de la page, d'un bord à l'autre ; la devise posée sur son pied ; les entrées côte à côte. */
 @media (max-width: 820px) {
   .accueil {
-    gap: 24px;
     padding-bottom: 32px;
   }
 
