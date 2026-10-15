@@ -172,6 +172,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0816 · Refuser un Élevage faute de Nourriture
 **En tant que** joueur, **je veux** qu'on m'empêche de lancer un Élevage que je ne peux pas payer, **afin de** ne jamais me retrouver avec des stocks négatifs.
 
+- **Statut** : Livrée le 2026-10-15 (autopilot, The-Vibe-Company/bestiary#66). Tant que la Nourriture du régime de l'Espèce ne paie pas la quantité choisie, « Élever » est grisé et le bloc dit ce qui manque (« Il manque 680 Viande ou Végétaux. »), à chaque changement de quantité ; les Stocks y montent au rythme du jeu comme dans la barre du haut, et « Élever » se dégrise dès qu'il y a assez. Si les Stocks ont baissé entre l'affichage et le clic, le serveur refuse avec les mêmes mots et ne retire rien. Aucun Stock ne descend sous zéro. Tranché : un seul texte pour « ce qui manque », côté navigateur et côté serveur, arrondi à l'unité supérieure ; un refus du serveur ne vaut que pour la demande qui l'a provoqué.
 - **Débloquée par** : US-0815
 - **Critères d'acceptation** :
   - Tant que la Nourriture manque pour la quantité choisie, le bouton « Élever » est désactivé et dit ce qui manque.
