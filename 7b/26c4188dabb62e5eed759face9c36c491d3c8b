@@ -1,0 +1,25 @@
+src/components/BarreHaut.module.css
+  s_4ce34ec42d9105::t_5cdadbcea95cd3 951-960
+src/components/BarreHaut.test.tsx
+  s_4ce34ec42d9105::t_917fe361d80ed3 56-59,93-102,125-128
+src/components/Navigation.test.tsx
+  s_4ce34ec42d9105::t_e1e0798b61b1ad 2,39-56
+src/components/Navigation.tsx
+  s_4ce34ec42d9105::t_6894dcb7bf445d 6,46-47,51-52,70-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7b26c4188dabb62e5eed759face9c36c491d3c8b",
+  "prompts": {},
+  "sessions": {
+    "s_4ce34ec42d9105": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "986afa6c-8f0b-494f-9694-d93f52c5ef9e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
