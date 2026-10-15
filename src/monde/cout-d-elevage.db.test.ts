@@ -3,12 +3,12 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
-import { coutDUneBeteElevee, maxAElever, nourritureDisponible } from "./cout-d-elevage";
+import { nourritureDuRegime } from "./cout-d-elevage";
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
 const MONDE_D_ESSAI = "Essai du coût d'un Élevage (US-0813)";
 
-describe.skipIf(!URL_TEST)("« Max » : les Bêtes que les Stocks permettent de payer (US-0813, sur base)", () => {
+describe.skipIf(!URL_TEST)("les Stocks qui paient un Élevage, d'où « Max » et ce qui manque (US-0813, US-0816, sur base)", () => {
   let pool: Pool;
   let mondeId: number;
   const lancement = `cout-elevage-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -29,10 +29,6 @@ describe.skipIf(!URL_TEST)("« Max » : les Bêtes que les Stocks permettent de 
       viande,
       vegetaux,
     ]);
-  /** Le coût d'une Bête élevée de l'Espèce `id`, d'après son Entretien en base. */
-  const cout = async (id: string) =>
-    coutDUneBeteElevee((await pool.query<{ e: number }>("select entretien_par_heure as e from espece where id = $1", [id])).rows[0].e);
-
   beforeAll(async () => {
     pool = poolDeTest();
     await preparerMondeDeTest(pool);
@@ -43,35 +39,19 @@ describe.skipIf(!URL_TEST)("« Max » : les Bêtes que les Stocks permettent de 
     await pool.end();
   });
 
-  it("paie un omnivore en Viande et en Végétaux, un herbivore en Végétaux seuls, avec les Stocks de ce Territoire seulement", async () => {
-    const [t, voisin] = [await nouveauTerritoire(), await nouveauTerritoire()];
-    await nourriture(t, 300, 500);
-    await nourriture(voisin, 100_000, 100_000);
-    const [souris, pigeon] = [await cout("souris"), await cout("pigeon")];
-    // La souris (omnivore) mange de tout, le pigeon (herbivore) des Végétaux.
-    expect(await maxAElever(pool, t, "souris")).toBe(Math.floor(800 / souris));
-    expect(await maxAElever(pool, t, "pigeon")).toBe(Math.floor(500 / pigeon));
-    // Des deux côtés, de quoi payer : la souris paie avec les deux Nourritures, le pigeon avec les seuls Végétaux.
-    expect(await maxAElever(pool, t, "souris")).toBeGreaterThan(Math.floor(500 / souris));
-    expect(await maxAElever(pool, t, "pigeon")).toBeGreaterThan(0);
-    expect(await maxAElever(pool, t, "pigeon")).toBeLessThan(Math.floor(800 / pigeon));
-  });
-
-  it("dit la Nourriture qui paie l'Élevage d'une Espèce : celle de son régime, aux Stocks de ce Territoire seulement (US-0816)", async () => {
+  it("donne les Stocks qui paient l'Élevage selon le régime, ceux de ce Territoire seulement, tels que la barre du haut les lit (US-0816)", async () => {
     const [t, voisin] = [await nouveauTerritoire(), await nouveauTerritoire()];
     await nourriture(t, 300.5, 200.25);
     await nourriture(voisin, 100_000, 100_000);
-    // La souris (omnivore) : les deux ; le pigeon (herbivore) : les Végétaux seuls.
-    expect(await nourritureDisponible(pool, t, "souris")).toBe(500.75);
-    expect(await nourritureDisponible(pool, t, "pigeon")).toBe(200.25);
-    expect(await nourritureDisponible(pool, t, "espece_inconnue")).toBe(0);
-  });
-
-  it("ne propose rien quand les Stocks ne paient pas une Bête, ni pour une Espèce inconnue", async () => {
-    const t = await nouveauTerritoire();
-    await nourriture(t, 0, 0);
-    expect(await maxAElever(pool, t, "souris")).toBe(0);
-    await nourriture(t, 1000, 1000);
-    expect(await maxAElever(pool, t, "espece_inconnue")).toBe(0);
+    const quantites = async (regime: "carnivore" | "herbivore" | "omnivore") => (await nourritureDuRegime(pool, t, regime)).map((s) => Number(s.quantite));
+    // Un omnivore : la Viande et les Végétaux ; un herbivore : les Végétaux ; un carnivore : la Viande.
+    expect(await quantites("omnivore")).toEqual([300.5, 200.25]);
+    expect(await quantites("herbivore")).toEqual([200.25]);
+    expect(await quantites("carnivore")).toEqual([300.5]);
+    // De quoi les faire monter comme la barre : la limite, la production et l'Entretien par heure.
+    const [viande] = await nourritureDuRegime(pool, t, "carnivore");
+    expect(Object.keys(viande).sort()).toEqual(["entretienParHeure", "limite", "parHeure", "quantite"]);
+    expect(Number(viande.limite)).toBeGreaterThan(0);
+    expect(Number(viande.parHeure)).toBeGreaterThan(0);
   });
 });

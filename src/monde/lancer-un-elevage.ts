@@ -5,7 +5,7 @@ import { coutDUneBeteElevee, dureeDUneBeteEleveeMinutes, nourritureQuiPaie } fro
 import type { Regime } from "./effectif";
 import { ELEVAGE_SANS_COUPLE, ELEVAGE_SANS_ELEVEUR, elevageAcquis } from "./elevage";
 import { ELEVEUR_LIBRE_EN_SQL } from "./etat-habitant";
-import { ilManque } from "./nourriture-manquante";
+import { ilManque } from "./payer-un-elevage";
 
 /** US-0815 : le refus d'un Élevage d'une Espèce qui a déjà le sien en cours : une Espèce n'a qu'un éleveur à la fois (US-0844). */
 export const ELEVAGE_DEJA_EN_COURS = "Un Élevage de cette Espèce est déjà en cours.";

@@ -10,7 +10,7 @@ import { coutDUneBeteElevee, dureeDUneBeteEleveeMinutes } from "./cout-d-elevage
 import { ELEVAGE_SANS_COUPLE, ELEVAGE_SANS_ELEVEUR } from "./elevage";
 import { faireRepartirUnHabitant } from "./famine";
 import { ELEVAGE_DEJA_EN_COURS, lancerUnElevage } from "./lancer-un-elevage";
-import { ilManque } from "./nourriture-manquante";
+import { ilManque } from "./payer-un-elevage";
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
 const MONDE_D_ESSAI = "Essai du lancement d'un Élevage (US-0815)";
@@ -283,6 +283,21 @@ describe.skipIf(!URL_TEST)("lancer un Élevage (US-0815, sur base)", () => {
         ).rows[0].total,
       ) / 3_600_000_000;
     expect((await total(temoin.territoireId)) - (await total(t.territoireId))).toBeCloseTo(2 * (await cout("souris")), 6);
+  });
+
+  it("paie avec des Stocks tout juste suffisants, et refuse d'un millionième de moins en disant qu'il manque 1 (US-0816)", async () => {
+    const t = await naitre();
+    await reunir(t, "pigeon");
+    await eleveurs([t.habitants[0]]);
+    const unite = await cout("pigeon");
+    // Un millionième de moins que le coût d'un pigeon, en Végétaux : refusé, il manque 1, rien n'est retiré.
+    await nourriture(t.territoireId, "0", (unite - 0.000001).toFixed(6));
+    expect(await lancerUnElevage(pool, t.territoireId, "pigeon", 1, t.ne)).toEqual({ refus: "Il manque 1 Végétaux." });
+    expect((await stocks(t.territoireId)).vegetaux).toBe(unite - 0.000001);
+    // Tout juste le coût : payé, le Stock tombe à zéro, jamais en dessous.
+    await nourriture(t.territoireId, "0", String(unite));
+    expect(await lancerUnElevage(pool, t.territoireId, "pigeon", 1, t.ne)).toMatchObject({ lance: { quantite: 1 } });
+    expect(await stocks(t.territoireId)).toEqual({ viande: 0, vegetaux: 0 });
   });
 });
 
