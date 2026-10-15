@@ -36,22 +36,37 @@ describe("navigation du jeu (US-0302)", () => {
     expect(screen.getByRole("link", { name: "Foyer" }).querySelector("span")?.textContent).toBe("Foyer");
   });
 
-  it("ferme l'infobulle d'une entrée par Échap, jusqu'à ce que le focus ou le pointeur la quitte", () => {
+  it("ferme par Échap l'infobulle de l'entrée au focus, jusqu'à ce que le focus la quitte ; une autre touche ne la ferme pas", () => {
     render(<Navigation />);
     const carte = screen.getByRole("link", { name: "Carte" });
-    carte.focus();
+    fireEvent.focus(carte);
+    fireEvent.keyDown(carte, { key: "Enter" });
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(false);
     fireEvent.keyDown(carte, { key: "Escape" });
     expect(carte.hasAttribute("data-sans-bulle")).toBe(true);
     // Le nom du lien ne change pas.
     expect(screen.getByRole("link", { name: "Carte" })).toBe(carte);
     fireEvent.blur(carte);
     expect(carte.hasAttribute("data-sans-bulle")).toBe(false);
-    fireEvent.keyDown(carte, { key: "Escape" });
+  });
+
+  it("ferme par Échap, pressé n'importe où, l'infobulle de l'entrée survolée, jusqu'à ce que le pointeur la quitte", () => {
+    render(<Navigation />);
+    const [carte, reserve] = [screen.getByRole("link", { name: "Carte" }), screen.getByRole("link", { name: "Réserve" })];
+    fireEvent.mouseEnter(carte);
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(true);
     fireEvent.mouseLeave(carte);
     expect(carte.hasAttribute("data-sans-bulle")).toBe(false);
-    // Une autre touche ne la ferme pas.
-    fireEvent.keyDown(carte, { key: "Enter" });
-    expect(carte.hasAttribute("data-sans-bulle")).toBe(false);
+    // Fermée au focus, elle le reste quand le pointeur passe sur une autre entrée et la quitte, ou passe sur elle.
+    fireEvent.focus(carte);
+    fireEvent.keyDown(carte, { key: "Escape" });
+    fireEvent.mouseEnter(reserve);
+    fireEvent.mouseLeave(reserve);
+    fireEvent.mouseEnter(carte);
+    fireEvent.mouseLeave(carte);
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(true);
+    expect(reserve.hasAttribute("data-sans-bulle")).toBe(false);
   });
 
   it("porte sur l'entrée « Récits » le nombre de Récits non lus, en chiffres, et le dit dans son nom (US-0324)", () => {

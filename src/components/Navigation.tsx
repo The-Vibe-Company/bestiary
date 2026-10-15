@@ -3,7 +3,7 @@
 import { getImageProps } from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import styles from "./BarreHaut.module.css";
 import { ENTREES_DU_JEU, entreeOuverte, PAGE_HABITANTS, PAGE_RECITS } from "./entrees-du-jeu";
 
@@ -44,12 +44,32 @@ function signalesEnMots(sansMetier: number, voyageurs: number): string | null {
  * Habitants sont sans Métier ; le nom dit alors les deux (« Habitants, 2 sans Métier, un Voyageur attend »).
  * Sur ordinateur, où l'on survole, le médaillon seul, plus grand : le nom de l'entrée paraît en infobulle au survol et au
  * clavier, et reste le nom du lien (BarreHaut.module.css) ; sans survol, il reste sous ou à côté du médaillon. Échap
- * ferme l'infobulle jusqu'à ce que le pointeur ou le focus quitte l'entrée (data-sans-bulle).
+ * ferme l'infobulle de l'entrée survolée ou au focus, où qu'il soit pressé, jusqu'à ce que ni le pointeur ni le focus
+ * n'y soient plus (data-sans-bulle).
  */
 export function Navigation({ recitsNonLus = 0, voyageurs = 0, sansMetier = 0 }: { recitsNonLus?: number; voyageurs?: number; sansMetier?: number }) {
   const page = usePathname();
-  // L'entrée dont Échap a fermé l'infobulle, tant que le pointeur ou le focus y reste.
-  const [sansBulle, setSansBulle] = useState<string | null>(null);
+  // L'entrée sous le pointeur, celle qui a le focus, et celles dont Échap a fermé l'infobulle tant que l'un ou l'autre y reste.
+  const [survolee, setSurvolee] = useState<string | null>(null);
+  const [focalisee, setFocalisee] = useState<string | null>(null);
+  const [sansBulle, setSansBulle] = useState<ReadonlySet<string>>(new Set());
+  useEffect(() => {
+    const montrees = [survolee, focalisee].filter((chemin): chemin is string => chemin !== null);
+    if (montrees.length === 0) return;
+    const fermer = (evenement: KeyboardEvent) => {
+      if (evenement.key === "Escape") setSansBulle((avant) => new Set([...avant, ...montrees]));
+    };
+    document.addEventListener("keydown", fermer);
+    return () => document.removeEventListener("keydown", fermer);
+  }, [survolee, focalisee]);
+  /** L'entrée `chemin` n'a plus ni le pointeur ni le focus : son infobulle se montrera de nouveau. */
+  const rouvrir = (chemin: string) =>
+    setSansBulle((avant) => {
+      if (!avant.has(chemin)) return avant;
+      const apres = new Set(avant);
+      apres.delete(chemin);
+      return apres;
+    });
   return (
     <nav className={styles.navigation} data-onglets="">
       <ul className={styles.entrees}>
@@ -67,12 +87,17 @@ export function Navigation({ recitsNonLus = 0, voyageurs = 0, sansMetier = 0 }: 
                 data-hutte={entree.hutte ? "" : undefined}
                 aria-current={entreeOuverte(entree, page) ? "page" : undefined}
                 aria-label={precision ? `${entree.libelle}, ${precision}` : undefined}
-                data-sans-bulle={sansBulle === entree.chemin ? "" : undefined}
-                onKeyDown={(evenement) => {
-                  if (evenement.key === "Escape") setSansBulle(entree.chemin);
+                data-sans-bulle={sansBulle.has(entree.chemin) ? "" : undefined}
+                onMouseEnter={() => setSurvolee(entree.chemin)}
+                onMouseLeave={() => {
+                  setSurvolee(null);
+                  if (focalisee !== entree.chemin) rouvrir(entree.chemin);
                 }}
-                onBlur={() => setSansBulle(null)}
-                onMouseLeave={() => setSansBulle(null)}
+                onFocus={() => setFocalisee(entree.chemin)}
+                onBlur={() => {
+                  setFocalisee(null);
+                  if (survolee !== entree.chemin) rouvrir(entree.chemin);
+                }}
               >
                 <span className={styles.libelle}>{entree.libelle}</span>
                 {nonLus > 0 ? (
