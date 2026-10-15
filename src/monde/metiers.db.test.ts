@@ -4,7 +4,7 @@ import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { lireJeu } from "@/donnees/charger";
 import { METIERS } from "@/donnees/jeux";
-import { mondeDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
+import { donneesDeReferenceTenues, mondeDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { lesMetiers } from "./metiers";
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
@@ -37,8 +37,12 @@ describe.skipIf(!URL_TEST)("les Métiers (US-0307, sur base)", () => {
     const client = await pool.connect();
     try {
       await client.query("begin");
+      // Dans une copie des Métiers propre à cette transaction, que Postgres lit avant celle du jeu : les autres fichiers
+      // rechargent celle-ci en même temps (preparerMondeDeTest).
+      await client.query("create temp table metier on commit drop as table public.metier");
       await client.query("update metier set servira = null where id = 'bucheron'");
       expect((await lesMetiers(client)).find((m) => m.id === "bucheron")).toMatchObject({ nom: "Bûcheron", servira: null });
+      expect(await donneesDeReferenceTenues(client)).toEqual([]);
     } finally {
       await client.query("rollback");
       client.release();

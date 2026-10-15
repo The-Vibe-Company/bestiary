@@ -3,7 +3,7 @@ import { join } from "node:path";
 import type { Pool, PoolClient } from "pg";
 import { createPool } from "@/db";
 import { chargerJeu } from "@/donnees/charger";
-import { lireDonnees } from "@/donnees/jeux";
+import { JEUX, lireDonnees } from "@/donnees/jeux";
 import { graineDuMonde } from "@/monde/couronne";
 import { creerUnMonde } from "@/monde/generer";
 import { preparerCouronne } from "@/monde/preparer-couronne";
@@ -87,6 +87,27 @@ export function nomDEssai(debut: string, suffixe: string, n: number): string {
 export async function territoireDuCompte(base: Pick<Pool, "query">, compteId: number): Promise<number | null> {
   const { rows } = await base.query<{ id: number }>("select t.id from territoire t join chef ch on ch.id = t.chef_id where ch.compte_id = $1", [compteId]);
   return rows[0]?.id ?? null;
+}
+
+/**
+ * Les tables des données de référence (JEUX) que la transaction de `client` tient pour les écrire ou en verrouiller des
+ * lignes : celles du jeu, pas les copies temporaires qu'elle s'en est faites. Tous les fichiers de test les rechargent en
+ * même temps (preparerMondeDeTest) : tant qu'une transaction en tient une ligne, ils l'attendent, ou s'interbloquent avec
+ * elle.
+ *
+ * `lues` : les tables dont l'essai ne fait que lire des lignes pour vérifier une clé étrangère (RowShareLock, KEY SHARE sur
+ * chaque ligne). chargerJeu, qui ne change jamais leur clé, ne les attend pas. Pas les Raretés : il en change le rang, qui
+ * est unique.
+ */
+export async function donneesDeReferenceTenues(client: PoolClient, { lues = [] }: { lues?: string[] } = {}): Promise<string[]> {
+  const { rows } = await client.query<{ nom: string }>(
+    `select distinct c.relname as nom from pg_locks l join pg_class c on c.oid = l.relation join pg_namespace n on n.oid = c.relnamespace
+     where l.pid = pg_backend_pid() and n.nspname = 'public' and c.relname = any($1) and l.mode <> 'AccessShareLock'
+       and not (l.mode = 'RowShareLock' and c.relname = any($2))
+     order by 1`,
+    [[...new Set(JEUX.map((jeu) => jeu.table))], lues],
+  );
+  return rows.map((r) => r.nom);
 }
 
 /**
