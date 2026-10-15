@@ -1,0 +1,49 @@
+src/app/jeu/reserve/[espece]/BlocElever.module.css
+  s_7c7d151152e4a5::t_71f93149dc94f4 118-124
+src/app/jeu/reserve/[espece]/BlocElever.test.tsx
+  s_7c7d151152e4a5::t_e59be26d0d2535 18-19,35,40,48,53,61,82,93,107,121,130,137,145,151,187,195,209,231,243,262,272,279,285,295,303,324,337,346,361-415
+src/app/jeu/reserve/[espece]/BlocElever.tsx
+  s_7c7d151152e4a5::t_6f3f244e76d131 9,50-51,78,87,99,109-112,205-209,213-214
+src/app/jeu/reserve/[espece]/actions.test.ts
+  s_7c7d151152e4a5::t_842ae57b1e1933 216-217
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_0597801e9a625f 45-46,48,181-193
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_a77b4e11b0e685 14,131
+src/monde/cout-d-elevage.db.test.ts
+  s_7c7d151152e4a5::t_ab208f10479748 6,60-69
+src/monde/cout-d-elevage.ts
+  s_7c7d151152e4a5::t_832d45eccd6483 55-56,64,66-81
+src/monde/lancer-un-elevage.db.test.ts
+  s_7c7d151152e4a5::t_2fa525ca290ce5 12-13,126-127,141
+src/monde/lancer-un-elevage.ts
+  s_7c7d151152e4a5::t_a8cc60ec8e9979 8,83-86,89,93-95,98-99
+src/monde/nourriture-manquante.test.ts
+  s_4ce34ec42d9105::t_4a515335eedc9a 1-11
+src/monde/nourriture-manquante.ts
+  s_7c7d151152e4a5::t_a95afa1118e912 1-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "235857ef82a2053723191491ae1e54527950dd69",
+  "prompts": {},
+  "sessions": {
+    "s_4ce34ec42d9105": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "986afa6c-8f0b-494f-9694-d93f52c5ef9e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
