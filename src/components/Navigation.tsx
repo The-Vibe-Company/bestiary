@@ -3,7 +3,7 @@
 import { getImageProps } from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type CSSProperties, useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import styles from "./BarreHaut.module.css";
 import { ENTREES_DU_JEU, entreeOuverte, PAGE_HABITANTS, PAGE_RECITS } from "./entrees-du-jeu";
 
@@ -53,6 +53,9 @@ export function Navigation({ recitsNonLus = 0, voyageurs = 0, sansMetier = 0 }: 
   const [survolee, setSurvolee] = useState<string | null>(null);
   const [focalisee, setFocalisee] = useState<string | null>(null);
   const [sansBulle, setSansBulle] = useState<ReadonlySet<string>>(new Set());
+  // Un clic donne aussi le focus au lien, sans montrer l'infobulle (elle ne paraît qu'au focus clavier) : ce focus-là ne la
+  // tient pas fermée.
+  const parLePointeur = useRef<string | null>(null);
   useEffect(() => {
     const montrees = [survolee, focalisee].filter((chemin): chemin is string => chemin !== null);
     if (montrees.length === 0) return;
@@ -91,9 +94,16 @@ export function Navigation({ recitsNonLus = 0, voyageurs = 0, sansMetier = 0 }: 
                 onMouseEnter={() => setSurvolee(entree.chemin)}
                 onMouseLeave={() => {
                   setSurvolee(null);
+                  parLePointeur.current = null;
                   if (focalisee !== entree.chemin) rouvrir(entree.chemin);
                 }}
-                onFocus={() => setFocalisee(entree.chemin)}
+                onPointerDown={() => {
+                  parLePointeur.current = entree.chemin;
+                }}
+                onFocus={() => {
+                  if (parLePointeur.current !== entree.chemin) setFocalisee(entree.chemin);
+                  parLePointeur.current = null;
+                }}
                 onBlur={() => {
                   setFocalisee(null);
                   if (survolee !== entree.chemin) rouvrir(entree.chemin);

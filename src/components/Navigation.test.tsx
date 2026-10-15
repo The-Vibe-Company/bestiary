@@ -69,6 +69,25 @@ describe("navigation du jeu (US-0302)", () => {
     expect(reserve.hasAttribute("data-sans-bulle")).toBe(false);
   });
 
+  it("ne tient pas fermée l'infobulle d'une entrée cliquée : le focus d'un clic ne la montre pas, le pointeur parti, elle se rouvre", () => {
+    render(<Navigation />);
+    const carte = screen.getByRole("link", { name: "Carte" });
+    fireEvent.mouseEnter(carte);
+    fireEvent.pointerDown(carte);
+    fireEvent.focus(carte);
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(true);
+    fireEvent.mouseLeave(carte);
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(false);
+    // Au clavier ensuite, le même lien la tient fermée tant qu'il garde le focus.
+    fireEvent.blur(carte);
+    fireEvent.focus(carte);
+    fireEvent.keyDown(carte, { key: "Escape" });
+    fireEvent.mouseEnter(carte);
+    fireEvent.mouseLeave(carte);
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(true);
+  });
+
   it("porte sur l'entrée « Récits » le nombre de Récits non lus, en chiffres, et le dit dans son nom (US-0324)", () => {
     render(<Navigation recitsNonLus={2} />);
     const recits = screen.getByRole("link", { name: "Récits, 2 non lus" });
