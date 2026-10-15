@@ -1,0 +1,55 @@
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_061b6368443a62 429
+docs/stories/09-explorer-et-apprivoiser.md
+  s_7c7d151152e4a5::t_b40b2d48972757 666,761
+docs/stories/README.md
+  s_7c7d151152e4a5::t_3e5f2ee7eb9ab9 7
+docs/stories/a-decider.md
+  s_7c7d151152e4a5::t_96c39173eee76e 5
+src/app/jeu/betes/RoleDeLEspece.test.tsx
+  s_7c7d151152e4a5::t_bbeba9e05ea4a8 79-121
+src/app/jeu/betes/RoleDeLEspece.tsx
+  s_7c7d151152e4a5::t_03724a41c739d6 3,13-14,33-46,51,56-63,68
+src/app/jeu/expeditions/nouvelle/Recapitulatif.css.test.ts
+  s_7c7d151152e4a5::t_3350f438b68f71 41-51
+src/app/jeu/expeditions/nouvelle/Recapitulatif.module.css
+  s_7c7d151152e4a5::t_f1a970d81d3809 100-104,112-115,119-120,204-212,275-280
+src/app/jeu/expeditions/nouvelle/Recapitulatif.test.tsx
+  s_7c7d151152e4a5::t_b8b141b6c2e5fa 397-451
+src/app/jeu/expeditions/nouvelle/Recapitulatif.tsx
+  s_7c7d151152e4a5::t_4eb3743a3f2ca3 34-43,75-77,110,189-195
+src/app/jeu/reserve/[espece]/page.css.test.ts
+  s_7c7d151152e4a5::t_1c4075ed44b6cd 7-8,85-129
+src/app/jeu/reserve/[espece]/page.module.css
+  s_7c7d151152e4a5::t_5ae334ff74d057 242-330
+src/expeditions/brouillard.db.test.ts
+  s_7c7d151152e4a5::t_88ac7a315b1501 75-76,78-83,85,97-105,111,114,224-249
+src/expeditions/brouillard.test.ts
+  s_7c7d151152e4a5::t_3d991b75dc133d 3-9,104-154
+src/expeditions/brouillard.ts
+  s_7c7d151152e4a5::t_a242d1fa58f647 4-5,9-14,21-29,38-39,41-42,47,63-64,68,70,80,83
+src/monde/effectif.db.test.ts
+  s_7c7d151152e4a5::t_4048d5f4ca3855 69,87,167-219
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_22a4325eec72ff 21-22,37,167-172,192-196,202-205,209,216,221,255
+src/monde/roles.db.test.ts
+  s_7c7d151152e4a5::t_18925c3af80cad 297-334
+src/reglages.ts
+  s_7c7d151152e4a5::t_3868598578c465 328,404-412
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4a562e9b755d524e77e433e7703a40f24476a502",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
