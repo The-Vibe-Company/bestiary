@@ -138,4 +138,17 @@ describe("les Éclaireurs lèvent plus de brouillard (US-0969)", () => {
     expect(avec(2, 0)).toEqual(new Set());
     for (const minutes of [120 + 239, 120 + 240 + 61, 30 * 24 * 60]) expect(avec(2, minutes)).toEqual(avec(2, 120));
   });
+
+  it("rappelée (US-0920) ou en fuite (US-0945, qui s'écrit de même) : les Éclaireurs n'agrandissent que ce qu'elle a déjà passé", () => {
+    /** Les Cases d'une Expédition de 2 Éclaireurs rappelée à `rappel` minutes, `minutes` après son départ. */
+    const rappelee = (rappel: number, minutes: number) =>
+      new Set(casesRevelees(FOYER, DESTINATION, { ...EXPEDITION, rappeleeLe: apres(rappel) }, apres(minutes), 2).map(cle));
+    // Rappelée entre la deuxième et la troisième Case de son chemin : ses deux premières Cases, à 3 Cases autour, et rien de plus.
+    const auRappel = new Set([...autour(CHEMIN[0], BROUILLARD_LEVE_SUR_LE_CHEMIN_CASES + 2), ...autour(CHEMIN[1], BROUILLARD_LEVE_SUR_LE_CHEMIN_CASES + 2)]);
+    expect(rappelee(50, 50)).toEqual(auRappel);
+    for (const minutes of [60, 120, 120 + 240, 30 * 24 * 60]) expect(rappelee(50, minutes)).toEqual(auRappel);
+    expect(rappelee(50, 30 * 24 * 60).has(cle(DESTINATION))).toBe(false);
+    // Rappelée pendant son séjour : tout ce que son aller a levé avec ses Éclaireurs, destination comprise, et rien de plus.
+    expect(rappelee(121, 30 * 24 * 60)).toEqual(avec(2, 120));
+  });
 });
