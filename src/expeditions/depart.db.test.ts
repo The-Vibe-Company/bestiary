@@ -12,7 +12,7 @@ import type { Coordonnees } from "@/monde/hex";
 import { PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE, PORTEE_D_EXPLORATION_CASES } from "@/reglages";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
+import { donneesDeReferenceTenues, mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { CASE_D_UN_TERRITOIRE, CASE_HORS_DE_PORTEE } from "./choix-de-destination";
 import { BETE_PLUS_DISPONIBLE, type ChoixDuDepart, ECLAIREUR_SANS_LE_ROLE, EXPLORATEUR_PLUS_LIBRE, lancerLExpedition } from "./depart";
 import { expeditionsEnCours } from "./en-cours";
@@ -202,10 +202,14 @@ describe.skipIf(!URL_TEST)("lancer l'Expédition (US-0911, sur base)", () => {
     const migration = readFileSync(join(process.cwd(), "drizzle/0050_trajet_des_escortes.sql"), "utf8");
     const client = await pool.connect();
     let trajets: number[];
+    let tenues: string[];
     try {
-      // Le temps de l'essai, rien n'en reste : aucune Espèce du jeu ne va encore moins vite que les explorateurs.
+      // Le temps de l'essai, rien n'en reste : aucune Espèce du jeu ne va encore moins vite que les explorateurs. La souris
+      // ralentit dans une copie des Espèces propre à cette transaction, que Postgres lit avant celle du jeu (la migration
+      // ne nomme pas son schéma) : les autres fichiers rechargent celle-ci en même temps (preparerMondeDeTest).
       await client.query("begin");
       await client.query("set local lock_timeout = '10s'");
+      await client.query("create temp table espece on commit drop as table public.espece");
       await client.query("update espece set vitesse = 2.5 where id = 'souris'");
       await client.query("update expedition set trajet_minutes = null where id = any($1)", [parties.slice(0, 2)]);
       await client.query(migration);
@@ -213,12 +217,15 @@ describe.skipIf(!URL_TEST)("lancer l'Expédition (US-0911, sur base)", () => {
       await client.query(migration);
       const { rows } = await client.query<{ trajet: number }>(`select trajet_minutes as trajet from expedition where id = any($1) order by array_position($1, id)`, [parties]);
       trajets = rows.map((x) => x.trajet);
+      tenues = await donneesDeReferenceTenues(client);
     } finally {
       await client.query("rollback");
       client.release();
     }
     // À 2,5 km/h, deux fois moins vite que les explorateurs : 40 minutes par Case. Sans escorte, leur pas ; la dernière, déjà chiffrée, ne change pas.
     expect(trajets).toEqual([3 * 40, 2 * PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE, 4 * PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE]);
+    // Les Espèces du jeu, que les autres fichiers rechargent en même temps, ne sont pas tenues : seulement une copie.
+    expect(tenues).toEqual([]);
   });
 
   it("verrouille le Métier d'un explorateur parti jusqu'à son retour : ni changé, ni retiré, ni renvoyé, et il est « en Expédition »", async () => {
