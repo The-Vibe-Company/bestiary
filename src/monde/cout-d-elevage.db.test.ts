@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
-import { coutDUneBeteElevee, maxAElever } from "./cout-d-elevage";
+import { coutDUneBeteElevee, maxAElever, nourritureDisponible } from "./cout-d-elevage";
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
 const MONDE_D_ESSAI = "Essai du coût d'un Élevage (US-0813)";
@@ -55,6 +55,16 @@ describe.skipIf(!URL_TEST)("« Max » : les Bêtes que les Stocks permettent de 
     expect(await maxAElever(pool, t, "souris")).toBeGreaterThan(Math.floor(500 / souris));
     expect(await maxAElever(pool, t, "pigeon")).toBeGreaterThan(0);
     expect(await maxAElever(pool, t, "pigeon")).toBeLessThan(Math.floor(800 / pigeon));
+  });
+
+  it("dit la Nourriture qui paie l'Élevage d'une Espèce : celle de son régime, aux Stocks de ce Territoire seulement (US-0816)", async () => {
+    const [t, voisin] = [await nouveauTerritoire(), await nouveauTerritoire()];
+    await nourriture(t, 300.5, 200.25);
+    await nourriture(voisin, 100_000, 100_000);
+    // La souris (omnivore) : les deux ; le pigeon (herbivore) : les Végétaux seuls.
+    expect(await nourritureDisponible(pool, t, "souris")).toBe(500.75);
+    expect(await nourritureDisponible(pool, t, "pigeon")).toBe(200.25);
+    expect(await nourritureDisponible(pool, t, "espece_inconnue")).toBe(0);
   });
 
   it("ne propose rien quand les Stocks ne paient pas une Bête, ni pour une Espèce inconnue", async () => {

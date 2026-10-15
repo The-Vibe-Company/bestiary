@@ -52,8 +52,8 @@ export function betesPayables(stocks: NourritureDisponible, espece: { regime: Re
   return Math.max(0, Math.floor(disponible / cout + 1e-9));
 }
 
-/** US-0813 : ce que « Max » propose pour l'Espèce `especeId` au Territoire, d'après ses Stocks à l'instant. */
-export async function maxAElever(base: Pool | PoolClient, territoireId: number, especeId: string): Promise<number> {
+/** L'Espèce `especeId` (son régime et son Entretien) et la Nourriture en Stock au Territoire ; null pour une Espèce inconnue. */
+async function lireLaNourriture(base: Pool | PoolClient, territoireId: number, especeId: string) {
   const { rows } = await base.query<{ regime: Regime; entretienParHeure: number; viande: string | null; vegetaux: string | null }>(
     `select es.regime, es.entretien_par_heure as "entretienParHeure",
        (select s.quantite from stock s where s.territoire_id = $1 and s.ressource_id = 'viande') as viande,
@@ -61,7 +61,22 @@ export async function maxAElever(base: Pool | PoolClient, territoireId: number, 
      from espece es where es.id = $2`,
     [territoireId, especeId],
   );
-  if (rows.length === 0) return 0;
+  if (rows.length === 0) return null;
   const { regime, entretienParHeure, viande, vegetaux } = rows[0];
-  return betesPayables({ viande: Number(viande ?? 0), vegetaux: Number(vegetaux ?? 0) }, { regime, entretienParHeure });
+  return { espece: { regime, entretienParHeure }, stocks: { viande: Number(viande ?? 0), vegetaux: Number(vegetaux ?? 0) } };
+}
+
+/** US-0813 : ce que « Max » propose pour l'Espèce `especeId` au Territoire, d'après ses Stocks à l'instant. */
+export async function maxAElever(base: Pool | PoolClient, territoireId: number, especeId: string): Promise<number> {
+  const lu = await lireLaNourriture(base, territoireId, especeId);
+  return lu === null ? 0 : betesPayables(lu.stocks, lu.espece);
+}
+
+/**
+ * US-0816 : la Nourriture qui paie l'Élevage de l'Espèce `especeId` au Territoire, à l'instant : celle de son régime, en
+ * Stock ; 0 pour une Espèce inconnue. Le bloc « Élever » y compare le coût de la quantité choisie, et dit ce qui manque.
+ */
+export async function nourritureDisponible(base: Pool | PoolClient, territoireId: number, especeId: string): Promise<number> {
+  const lu = await lireLaNourriture(base, territoireId, especeId);
+  return lu === null ? 0 : nourritureQuiPaie(lu.espece.regime).reduce((somme, ressource) => somme + lu.stocks[ressource], 0);
 }

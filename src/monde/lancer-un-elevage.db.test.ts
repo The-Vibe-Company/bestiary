@@ -9,7 +9,8 @@ import { reunirLesCouples } from "./couple";
 import { coutDUneBeteElevee, dureeDUneBeteEleveeMinutes } from "./cout-d-elevage";
 import { ELEVAGE_SANS_COUPLE, ELEVAGE_SANS_ELEVEUR } from "./elevage";
 import { faireRepartirUnHabitant } from "./famine";
-import { ELEVAGE_DEJA_EN_COURS, lancerUnElevage, NOURRITURE_MANQUANTE } from "./lancer-un-elevage";
+import { ELEVAGE_DEJA_EN_COURS, lancerUnElevage } from "./lancer-un-elevage";
+import { ilManque } from "./nourriture-manquante";
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
 const MONDE_D_ESSAI = "Essai du lancement d'un Élevage (US-0815)";
@@ -122,7 +123,8 @@ describe.skipIf(!URL_TEST)("lancer un Élevage (US-0815, sur base)", () => {
     expect(await stocks(t.territoireId)).toEqual({ viande: 50 - (3 * unite - 60), vegetaux: 0 });
     // Le pigeon mange des Végétaux : la Viande ne le paie pas, même abondante.
     await nourriture(t.territoireId, "100000", "10");
-    expect(await lancerUnElevage(pool, t.territoireId, "pigeon", 1, t.ne)).toEqual({ refus: NOURRITURE_MANQUANTE });
+    // US-0816 : le refus dit ce qui manque, dans la Nourriture du régime.
+    expect(await lancerUnElevage(pool, t.territoireId, "pigeon", 1, t.ne)).toEqual({ refus: ilManque((await cout("pigeon")) - 10, "Végétaux") });
     await nourriture(t.territoireId, "0", "1000");
     expect(await lancerUnElevage(pool, t.territoireId, "pigeon", 1, t.ne)).toMatchObject({ lance: { quantite: 1 } });
     expect(await stocks(t.territoireId)).toEqual({ viande: 0, vegetaux: 1000 - (await cout("pigeon")) });
@@ -136,7 +138,7 @@ describe.skipIf(!URL_TEST)("lancer un Élevage (US-0815, sur base)", () => {
     expect(await lancerUnElevage(pool, t.territoireId, "souris", 1, t.ne)).toEqual({ refus: ELEVAGE_SANS_ELEVEUR });
     await eleveurs([t.habitants[0], t.habitants[1]]);
     // 10 + 10 ne paient pas une souris (29) : rien n'est retenu, l'éleveur reste libre.
-    expect(await lancerUnElevage(pool, t.territoireId, "souris", 1, t.ne)).toEqual({ refus: NOURRITURE_MANQUANTE });
+    expect(await lancerUnElevage(pool, t.territoireId, "souris", 1, t.ne)).toEqual({ refus: ilManque((await cout("souris")) - 20, "Viande ou Végétaux") });
     expect(await stocks(t.territoireId)).toEqual({ viande: 10, vegetaux: 10 });
     expect(await eleve(t.habitants)).toEqual([null, null, null]);
     expect(await elevages(t.territoireId)).toEqual([]);
