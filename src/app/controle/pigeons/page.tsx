@@ -53,7 +53,7 @@ export default async function SimulationDesPigeonsDuControle() {
             {`${nombre(s.expeditions)} Expéditions identiques sur ${nombre(s.jours)} jours · Séjour ${formaterMinutes(s.sejourMinutes)} · Écart minimal : ${nombre(s.ecartMinimal)}\u00a0%`}
           </p>
         </Bloc>
-        <Bloc titre="Avec et sans Éclaireurs" largeur={6}>
+        <Bloc titre="Avec et sans Éclaireurs">
           <div className={styles.defilement}>
             <table className={styles.tableau}>
               <thead>
