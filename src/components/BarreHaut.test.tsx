@@ -53,6 +53,10 @@ describe("barre du haut", () => {
   });
 
   it("sous 1 200 px, sans survol, passe les Stocks en rangée sous le blason, le nom et les onglets nommés (US-0324) ; avec, les laisse sur la ligne", () => {
+    // Aucune règle de 1 024 à 1 199 px sans condition de survol : avec le survol, ni rangée ni hauteur de bande.
+    for (const chemin of ["src/styles/formes.css", "src/components/BarreHaut.module.css"]) {
+      expect(lire(chemin), chemin).not.toContain("@media (min-width: 1024px) and (max-width: 1199px) {");
+    }
     expect(lire("src/styles/formes.css")).toMatch(/@media \(min-width: 1024px\) and \(max-width: 1199px\) and \(hover: none\) \{\s*:root:has\(\[data-bande-ressources\]\) \{\s*--hauteur-bande: 52px;/);
     const css = feuille();
     const moyen = css.slice(css.indexOf("@media (min-width: 1024px) and (max-width: 1199px) and (hover: none)"));
@@ -86,6 +90,16 @@ describe("barre du haut", () => {
     const serree = (css: string) => css.slice(css.indexOf("@media (min-width: 1024px) and (max-width: 1399px) and (hover: hover) {"));
 
     it("agrandit les médaillons et ôte le nom d'à côté ; un peu moins grands jusqu'à 1 400 px", () => {
+      // La cascade tient à l'ordre : le serré après le large, et tous deux après les médaillons nommés jusqu'à 1 400 px.
+      const css = feuille();
+      const [nommes, large, etroit] = [
+        "@media (min-width: 1024px) and (max-width: 1399px) {",
+        "@media (min-width: 1024px) and (hover: hover) {",
+        "@media (min-width: 1024px) and (max-width: 1399px) and (hover: hover) {",
+      ].map((bloc) => css.indexOf(bloc));
+      expect(nommes).toBeGreaterThan(0);
+      expect(large).toBeGreaterThan(nommes);
+      expect(etroit).toBeGreaterThan(large);
       const entree = regleDe(survol(feuille()), ".entree");
       expect(entree).toContain("--taille-medaillon: 40px;");
       expect(entree).toContain("gap: 0;");
@@ -108,6 +122,10 @@ describe("barre du haut", () => {
       expect(libelle).not.toMatch(/display: none|visibility: hidden/);
       expect(css).toMatch(/\.entree:hover \.libelle,\s*\.entree:focus-visible \.libelle \{[^}]*opacity: 1;/);
       expect(feuille()).toMatch(/@media \(min-width: 1024px\) and \(hover: hover\) and \(prefers-reduced-motion: reduce\) \{\s*\.libelle \{\s*transition: none;/);
+      // Échap la referme ; le contour du focus reste à l'écart de l'anneau du médaillon.
+      expect(regleDe(css, ".entree[data-sans-bulle] .libelle")).toContain("opacity: 0;");
+      expect(css.indexOf(".entree[data-sans-bulle] .libelle")).toBeGreaterThan(css.indexOf(".entree:focus-visible .libelle"));
+      expect(regleDe(css, ".entree:focus-visible")).toContain("outline-offset: -2px;");
     });
 
     it("pose la pastille des Récits et le point des Habitants sur le médaillon", () => {

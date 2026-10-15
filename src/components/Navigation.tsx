@@ -3,7 +3,7 @@
 import { getImageProps } from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { CSSProperties } from "react";
+import { type CSSProperties, useState } from "react";
 import styles from "./BarreHaut.module.css";
 import { ENTREES_DU_JEU, entreeOuverte, PAGE_HABITANTS, PAGE_RECITS } from "./entrees-du-jeu";
 
@@ -43,10 +43,13 @@ function signalesEnMots(sansMetier: number, voyageurs: number): string | null {
  * aux portes, et le dit dans son nom (« Habitants, un Voyageur attend »). US-0313 : le même point, un seul, quand des
  * Habitants sont sans Métier ; le nom dit alors les deux (« Habitants, 2 sans Métier, un Voyageur attend »).
  * Sur ordinateur, où l'on survole, le médaillon seul, plus grand : le nom de l'entrée paraît en infobulle au survol et au
- * clavier, et reste le nom du lien (BarreHaut.module.css) ; sans survol, il reste sous ou à côté du médaillon.
+ * clavier, et reste le nom du lien (BarreHaut.module.css) ; sans survol, il reste sous ou à côté du médaillon. Échap
+ * ferme l'infobulle jusqu'à ce que le pointeur ou le focus quitte l'entrée (data-sans-bulle).
  */
 export function Navigation({ recitsNonLus = 0, voyageurs = 0, sansMetier = 0 }: { recitsNonLus?: number; voyageurs?: number; sansMetier?: number }) {
   const page = usePathname();
+  // L'entrée dont Échap a fermé l'infobulle, tant que le pointeur ou le focus y reste.
+  const [sansBulle, setSansBulle] = useState<string | null>(null);
   return (
     <nav className={styles.navigation} data-onglets="">
       <ul className={styles.entrees}>
@@ -64,6 +67,12 @@ export function Navigation({ recitsNonLus = 0, voyageurs = 0, sansMetier = 0 }: 
                 data-hutte={entree.hutte ? "" : undefined}
                 aria-current={entreeOuverte(entree, page) ? "page" : undefined}
                 aria-label={precision ? `${entree.libelle}, ${precision}` : undefined}
+                data-sans-bulle={sansBulle === entree.chemin ? "" : undefined}
+                onKeyDown={(evenement) => {
+                  if (evenement.key === "Escape") setSansBulle(entree.chemin);
+                }}
+                onBlur={() => setSansBulle(null)}
+                onMouseLeave={() => setSansBulle(null)}
               >
                 <span className={styles.libelle}>{entree.libelle}</span>
                 {nonLus > 0 ? (

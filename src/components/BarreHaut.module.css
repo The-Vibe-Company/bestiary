@@ -948,6 +948,16 @@
     transform: translate(-50%, 0);
   }
 
+  /* Échap la referme, jusqu'à ce que le pointeur ou le focus quitte l'entrée (Navigation.tsx). */
+  .entree[data-sans-bulle] .libelle {
+    opacity: 0;
+  }
+
+  /* Le contour du focus contre le bord de l'entrée, à l'écart de l'anneau du médaillon. */
+  .entree:focus-visible {
+    outline-offset: -2px;
+  }
+
   .pastille {
     position: absolute;
     top: calc(50% - 26px);
