@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import {
   type CombatDuRetour,
   dureesReelles,
+  especesVuesGraceAuxEclaireurs,
   especesTropFortes,
   especesVuesSansSuite,
   type RetourARaconter,
@@ -461,5 +463,35 @@ describe("ce que les pigeons ont apporté (US-0973)", () => {
 
   it("sans rien grâce aux Éclaireurs, le récit d'avant", () => {
     expect(recitDeRetour(retour({ rencontres: 1, casesParSesEclaireurs: 0, graceAuxEclaireurs: [] }))).toEqual(recitDeRetour(retour({ rencontres: 1 })));
+  });
+});
+
+describe("les Bêtes rencontrées seulement grâce aux Éclaireurs (US-0973)", () => {
+  const HEURE = 3_600_000;
+  const apparue = aParis(9, 10);
+  /** La fin de la présence d'une Bête sauvage apparue à `apparue`. */
+  const fin = new Date(apparue.getTime() + PRESENCE_D_UNE_BETE_HEURES * HEURE);
+  const sauvage = (especeId: string, vueLe: Date) => ({ especeId, vueLe, apparueLe: apparue, beteDeNaissanceId: null });
+  const deNaissance = (especeId: string, vueLe: Date, id: number) => ({ especeId, vueLe, apparueLe: apparue, beteDeNaissanceId: id });
+
+  it("une Bête sauvage vue pendant sa présence ne doit rien aux Éclaireurs ; vue à sa fin ou après, si", () => {
+    expect(especesVuesGraceAuxEclaireurs([sauvage("renard", apparue), sauvage("loup", new Date(fin.getTime() - 1))], new Map())).toEqual([]);
+    expect(especesVuesGraceAuxEclaireurs([sauvage("renard", fin)], new Map())).toEqual(["renard"]);
+    expect(especesVuesGraceAuxEclaireurs([sauvage("renard", new Date(fin.getTime() + 20 * 60_000))], new Map())).toEqual(["renard"]);
+  });
+
+  it("une Bête de naissance, d'après son départ ; un départ inconnu, jamais", () => {
+    const depart = aParis(10, 8);
+    const departs = new Map([[7, depart]]);
+    expect(especesVuesGraceAuxEclaireurs([deNaissance("poule", new Date(depart.getTime() - 1), 7)], departs)).toEqual([]);
+    expect(especesVuesGraceAuxEclaireurs([deNaissance("poule", depart, 7)], departs)).toEqual(["poule"]);
+    expect(especesVuesGraceAuxEclaireurs([deNaissance("poule", depart, 8)], departs)).toEqual([]);
+  });
+
+  it("chaque Espèce une fois, dans l'ordre des vues, sans celles vues pendant leur présence", () => {
+    const apres = new Date(fin.getTime() + 60_000);
+    expect(
+      especesVuesGraceAuxEclaireurs([sauvage("loup", apres), sauvage("renard", apparue), sauvage("lievre", apres), sauvage("loup", apres)], new Map()),
+    ).toEqual(["loup", "lievre"]);
   });
 });

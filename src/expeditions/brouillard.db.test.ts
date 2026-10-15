@@ -253,6 +253,36 @@ describe.skipIf(!URL_TEST)("le brouillard se lève sur le chemin (US-0914, sur b
     expect(recit.texte.split("\n")).toContain(`${aLArrivee.size - abords.size} Cases sont sorties du brouillard, dont ${enPlus.length} grâce à vos Éclaireurs.`);
   });
 
+  it("ne compte en plus que les Cases que ses Éclaireurs ont été les premiers à révéler, hors du rayon sans eux (US-0973)", async () => {
+    const { territoireId, foyer, ne, abords } = await naitre();
+    await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, 'pigeon', 'male', 3)", [territoireId]);
+    const destination = await auBoutDeLaPortee(territoireId);
+    // Une première Expédition, un Éclaireur ; puis, arrivée la première partie, une seconde vers la même Case, deux Éclaireurs.
+    const premiere = await partir(territoireId, destination, decale(ne, MINUTE_MS), new Map([["pigeon", 1]]));
+    const seconde = await partir(territoireId, destination, sejourDUneExpedition(premiere)!.debut, new Map([["pigeon", 2]]));
+    const rentree = retourDUneExpedition(seconde)!;
+    await aLHeure(territoireId, rentree);
+    // Attendues : les Cases du Monde de son rayon à deux Éclaireurs, hors des abords, de ce que la première avait levé (son
+    // rayon à un Éclaireur) et du rayon sans Éclaireur.
+    const dejaVues = new Set([
+      ...abords,
+      ...casesRevelees(foyer, destination, premiere, rentree, 1).map(cle),
+      ...casesRevelees(foyer, destination, seconde, rentree, 0).map(cle),
+    ]);
+    const candidates = casesRevelees(foyer, destination, seconde, rentree, 2).filter((c) => !dejaVues.has(cle(c)));
+    const { rows } = await pool.query<{ nombre: number }>(
+      `select count(*)::int as nombre from case_du_monde c join unnest($2::int[], $3::int[]) as v(q, r) on c.q = v.q and c.r = v.r where c.monde_id = $1`,
+      [mondeId, candidates.map((c) => c.q), candidates.map((c) => c.r)],
+    );
+    expect(rows[0].nombre).toBeGreaterThan(0);
+    expect(await casesLeveesParSesEclaireurs(pool, seconde.id, foyer, destination, seconde, rentree)).toBe(rows[0].nombre);
+    // Le rayon gagné sur une Expédition sans Éclaireur en compterait davantage : celles que la première avait déjà levées.
+    const anneauDeLaPremiere = casesRevelees(foyer, destination, premiere, rentree, 1).filter(
+      (c) => !abords.has(cle(c)) && !casesRevelees(foyer, destination, seconde, rentree, 0).some((s) => cle(s) === cle(c)),
+    );
+    expect(anneauDeLaPremiere.length).toBeGreaterThan(0);
+  });
+
   it("le laisse levé pour toujours, et pour ce joueur seulement", async () => {
     const joueur = await naitre();
     const voisin = await naitre();

@@ -12,10 +12,9 @@
 // les Bêtes rencontrées grâce à eux. Côté serveur uniquement.
 import "server-only";
 import type { PoolClient } from "pg";
-import type { Sexe } from "@/monde/betes-sauvages";
+import { finDeSaPresence, type Sexe } from "@/monde/betes-sauvages";
 import { type Coordonnees, distance } from "@/monde/hex";
 import { ecrireUnRecit, type NouveauRecit } from "@/monde/recits";
-import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { formaterJourEtHeure, formaterMinutes } from "@/temps/affichage";
 import { COMMUNE, forceQuiManque } from "./apprivoisement";
 import { betesReperees } from "./betes-reperees";
@@ -604,20 +603,25 @@ async function eclaireursDuRetour(client: PoolClient, expeditionId: number): Pro
 /**
  * US-0973 : les Espèces des Bêtes `vues` (rencontresDUneExpedition) que l'Expédition n'a rencontrées que grâce à ses
  * Éclaireurs : vues à la fin de leur présence ou après (US-0970, finDeVue), quand une Expédition sans Éclaireur ne les voyait
- * plus. Une Bête sauvage ordinaire reste PRESENCE_D_UNE_BETE_HEURES sur sa Case depuis son apparition ; une Bête de
- * naissance, jusqu'à son départ (bete_de_naissance). Chaque Espèce une fois, dans l'ordre des apparitions.
+ * plus (vueLe : seulement avant leur départ). Une Bête sauvage ordinaire reste sur sa Case jusqu'à finDeSaPresence ; une
+ * Bête de naissance, jusqu'à son départ (`departsDeNaissance`, par sa ligne ; inconnu : jamais grâce à eux). Chaque Espèce
+ * une fois, dans l'ordre des vues.
  */
+export function especesVuesGraceAuxEclaireurs(
+  vues: readonly Pick<Rencontre, "vueLe" | "apparueLe" | "especeId" | "beteDeNaissanceId">[],
+  departsDeNaissance: ReadonlyMap<number, Date>,
+): string[] {
+  const fin = (r: (typeof vues)[number]) =>
+    r.beteDeNaissanceId !== null ? (departsDeNaissance.get(r.beteDeNaissanceId)?.getTime() ?? Infinity) : finDeSaPresence(r.apparueLe).getTime();
+  return [...new Set(vues.filter((r) => r.vueLe.getTime() >= fin(r)).map((r) => r.especeId))];
+}
+
+/** US-0973 : especesVuesGraceAuxEclaireurs, avec le départ des Bêtes de naissance vues, lu en base. */
 async function rencontreesGraceAuxEclaireurs(client: PoolClient, vues: readonly Rencontre[]): Promise<string[]> {
   const deNaissance = vues.filter((r) => r.beteDeNaissanceId !== null).map((r) => r.beteDeNaissanceId!);
   const departs =
     deNaissance.length > 0
-      ? new Map(
-          (await client.query<{ id: number; depart: Date }>("select id, depart from bete_de_naissance where id = any($1::int[])", [deNaissance])).rows.map((b) => [
-            b.id,
-            b.depart.getTime(),
-          ]),
-        )
-      : new Map<number, number>();
-  const fin = (r: Rencontre) => (r.beteDeNaissanceId !== null ? (departs.get(r.beteDeNaissanceId) ?? Infinity) : r.apparueLe.getTime() + PRESENCE_D_UNE_BETE_HEURES * 3_600_000);
-  return [...new Set(vues.filter((r) => r.vueLe.getTime() >= fin(r)).map((r) => r.especeId))];
+      ? new Map((await client.query<{ id: number; depart: Date }>("select id, depart from bete_de_naissance where id = any($1::int[])", [deNaissance])).rows.map((b) => [b.id, b.depart]))
+      : new Map<number, Date>();
+  return especesVuesGraceAuxEclaireurs(vues, departs);
 }
