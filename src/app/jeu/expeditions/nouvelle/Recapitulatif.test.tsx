@@ -79,7 +79,7 @@ describe("le récapitulatif avant le départ (US-0910)", () => {
     ouvrir("?explorateurs=2&sejour=240");
     expect(lignes()).toEqual([
       ["Explorateurs", "2"],
-      ["Escorte", "Sans escorte : Bêtes communes seulement"],
+      ["Escorte", "Sans escorte"],
       ["Destination", "7 Cases de votre Foyer"],
       ["Biome", "Forêt"],
       ["Aller", ALLER_EN_FORET],
@@ -127,7 +127,7 @@ describe("le récapitulatif avant le départ (US-0910)", () => {
     ouvrir("?explorateurs=1", { destination: null });
     expect(lignes()).toEqual([
       ["Explorateurs", "1"],
-      ["Escorte", "Sans escorte : Bêtes communes seulement"],
+      ["Escorte", "Sans escorte"],
       ["Destination", "Aucune"],
       ["Aller", "—"],
       ["Séjour", "1 h"],
@@ -138,7 +138,7 @@ describe("le récapitulatif avant le départ (US-0910)", () => {
 
   it("dit « Sans escorte » de même quand le Territoire n'a aucune Bête disponible (US-0909)", () => {
     ouvrir("?explorateurs=1&escorte=souris.2", { especes: [] });
-    expect(ligne("Escorte")).toBe("Sans escorte : Bêtes communes seulement");
+    expect(ligne("Escorte")).toBe("Sans escorte");
     expect(ligne("Force")).toBeUndefined();
     expect(ligne("Aller")).toBe(ALLER_EN_FORET);
   });
@@ -154,9 +154,9 @@ describe("le récapitulatif avant le départ (US-0910)", () => {
     expect(ligne("Explorateurs")).toBe("2");
   });
 
-  it("rappelle que ceux qui partent continuent de manger pendant toute l'absence", () => {
+  it("ne redit pas à chaque départ ce que coûte l'absence ni ce que ramène une Expédition sans escorte", () => {
     ouvrir("?explorateurs=2");
-    expect(within(bloc()).getByText("Ceux qui partent continuent de manger pendant toute l'absence.")).toBeTruthy();
+    expect(bloc().textContent).not.toMatch(/continuent de manger|Bêtes communes/);
   });
 
   it("suit chaque choix de l'écran, au fil de la composition, sans recharger la page", () => {
@@ -504,7 +504,7 @@ describe("les Éclaireurs au récapitulatif (US-0976)", () => {
 
   it("sans escorte, l'Expédition reste « Sans escorte », ses Éclaireurs à part, sans force", () => {
     ouvrir("?explorateurs=1&eclaireurs=pigeon.3", { especes: [SOURIS, PIGEON] });
-    expect(ligne("Escorte")).toBe("Sans escorte : Bêtes communes seulement");
+    expect(ligne("Escorte")).toBe("Sans escorte");
     expect(ligne("Force")).toBeUndefined();
     expect(ligne("Éclaireurs")).toBe("Pigeon biset × 3");
   });

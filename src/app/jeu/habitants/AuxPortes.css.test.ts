@@ -21,9 +21,9 @@ describe("la carte d'un Voyageur aux portes (US-0332, US-0343)", () => {
     expect(regle(".voyageur + .voyageur")).toContain("border-top: 1px solid var(--filet-cuivre-doux);");
   });
 
-  it("pose dans la colonne étroite le portrait au-dessus, son prénom dessus, puis l'arrivée et le départ, la jauge, le Métier, ce qu'il mangera et les boutons", () => {
+  it("pose dans la colonne étroite le portrait au-dessus, son prénom dessus, puis l'arrivée et le départ, la jauge, le Métier et les boutons", () => {
     expect(regle(".voyageur")).toMatch(
-      /grid-template-areas:\s*"portrait portrait"\s*"arrivee depart"\s*"temps temps"\s*"metier metier"\s*"metiers metiers"\s*"entretien entretien"\s*"choix choix";/,
+      /grid-template-areas:\s*"portrait portrait"\s*"arrivee depart"\s*"temps temps"\s*"metier metier"\s*"metiers metiers"\s*"choix choix";/,
     );
     expect(regle(".voyageur")).toContain("grid-template-columns: minmax(0, 1fr) auto;");
     // Le prénom se pose sur le pied du portrait, en Marcellus, au-dessus de son voile.
@@ -63,16 +63,16 @@ describe("accueillir ou refuser (US-0334, US-0336, US-0340)", () => {
     expect(regle(".choix", LARGE)).toContain("grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);");
   });
 
-  it("met ce qu'il mangera juste au-dessus des boutons, pour les yeux, quand il vient après eux pour un lecteur d'écran ; la confirmation à sa place", () => {
-    expect(regle(".entretien,\n.confirmation")).toContain("grid-area: entretien;");
-    const zones = regle(".voyageur").match(/grid-template-areas:([^;]*);/)?.[1] ?? "";
-    expect(zones.indexOf('"entretien entretien"')).toBeLessThan(zones.indexOf('"choix choix"'));
+  it("met la confirmation sous les boutons, sur toute la largeur, sans les déplacer : le second toucher tombe sur « Confirmer l'accueil »", () => {
+    // Une rangée à elle, après la dernière de la carte, qui n'existe que pendant la confirmation : aucune rangée vide au repos.
+    expect(regle(".confirmation")).toMatch(/grid-column: 1 \/ -1;[^}]*grid-row: -1;/);
+    expect(CSS).not.toContain("entretien");
   });
 
   it("met « Confirmer l'accueil » dans la couleur d'alerte, qu'il garde au survol, et la phrase de la famine imminente en alerte (US-0340)", () => {
     expect(regle(".accueillir[data-confirmer]")).toMatch(/border-color: var\(--braise\);[^}]*background: var\(--braise\);[^}]*color: var\(--sur-cuivre\);/);
     expect(regle(".accueillir[data-confirmer]:hover")).toContain("background: var(--braise-claire);");
-    expect(regle(".confirmation")).toMatch(/color: var\(--braise\);[^}]*font-weight: var\(--graisse-titre\);/);
+    expect(regle(".confirmation")).toMatch(/color: var\(--braise\);[^}]*font: var\(--graisse-titre\)/);
   });
 });
 

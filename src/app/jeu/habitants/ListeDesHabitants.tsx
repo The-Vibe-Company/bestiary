@@ -15,8 +15,11 @@ import { BoutonDuMetier, type MetierAuChoix, MetiersAuChoix } from "./MetiersAuC
 
 export type { MetierAuChoix };
 
-/** US-0307 : un Métier tel que le tableau le montre : son icône, sa phrase et, tant qu'il ne sert à rien, ce qu'il attend. */
-export type MetierDuTableau = MetierAuChoix & { phrase?: string; servira?: string | null };
+/**
+ * US-0307 : un Métier tel que le tableau le montre : son nom et son icône. Ce qu'il fait, et ce qu'il attend tant qu'il ne
+ * sert à rien, ne se redisent pas à chaque visite (retour d'Antoine, 2026-10-15).
+ */
+export type MetierDuTableau = MetierAuChoix;
 
 /**
  * Un Habitant tel que la liste le montre : son prénom, le nom de son Métier (null sans Métier), son état et, quand la
@@ -27,16 +30,13 @@ export type HabitantAffiche = { id: number; prenom: string; metier: string | nul
 /**
  * US-0309 : un compteur : « Sans Métier », ou un Métier avec son icône, le Métier qu'il compte tel que la liste le montre
  * (null : sans Métier), le nombre d'Habitants qui l'exercent, et combien d'entre eux sont en Expédition. US-0314 : son
- * identifiant est celui du filtre dans l'adresse (?metier=bucheron, ?metier=sans). US-0307 : il porte aussi la phrase du
- * Métier, et ce qu'il attend, que son groupe dit en tête.
+ * identifiant est celui du filtre dans l'adresse (?metier=bucheron, ?metier=sans).
  */
 type Effectif = {
   id: string;
   nom: string;
   icone: string | null;
   metier: string | null;
-  phrase?: string;
-  servira?: string | null;
   nombre: number;
   partis: number;
 };
@@ -81,7 +81,7 @@ function effectifsParMetier(habitants: HabitantAffiche[], metiers: MetierDuTable
   const horsDuChoix = new Set(habitants.flatMap((h) => (h.metier === null || metiers.some((m) => m.nom === h.metier) ? [] : [h.metier])));
   return [
     { id: "sans", nom: "Sans Métier", icone: null, metier: null, ...compter(null) },
-    ...metiers.map((m) => ({ id: m.id, nom: m.nom, icone: m.icone, phrase: m.phrase, servira: m.servira, metier: m.nom, ...compter(m.nom) })),
+    ...metiers.map((m) => ({ id: m.id, nom: m.nom, icone: m.icone, metier: m.nom, ...compter(m.nom) })),
     ...[...horsDuChoix].map((nom) => ({ id: nom, nom, icone: null, metier: nom, ...compter(nom) })),
   ];
 }
@@ -112,8 +112,8 @@ function dernierArrive(habitants: HabitantAffiche[], nom: string): HabitantAffic
  * Le registre (US-0303) : en tête, « Habitants », ce que montre le filtre et son nombre, et US-0313 le bandeau des sans
  * Métier ; puis une ligne par Habitant : son prénom, son Métier, son état, la date de son arrivée. Les lignes sont
  * groupées par Métier, ceux sans Métier d'abord, tant qu'il y en a ; en tête de chaque groupe (US-0307), le médaillon du
- * Métier, son nom, sa phrase et, tant qu'il ne sert à rien, ce qu'il attend. Sur ordinateur, le tableau défile dans son
- * panneau, l'en-tête de ses colonnes et celui de chaque groupe collés en haut.
+ * Métier et son nom. Sur ordinateur, le tableau défile dans son panneau, l'en-tête de ses colonnes et celui de chaque
+ * groupe collés en haut.
  *
  * US-0312 : au bout de l'en-tête de chaque Métier, son effectif entre « − » et « + ». « + » donne le Métier au premier
  * Habitant sans Métier de la liste, et se grise quand il n'en reste aucun ; « − » remet sans Métier le dernier arrivé de
@@ -131,8 +131,8 @@ function dernierArrive(habitants: HabitantAffiche[], nom: string): HabitantAffic
  * cas, la main suit le bouton de la ligne. US-0311 : « Sans Métier » le lui retire de même ; il rejoint aussitôt les sans
  * Métier (HabitantsMontres).
  *
- * US-0329 : sans aucun Habitant, ni rail ni tableau : une seule phrase, sous le titre : des Voyageurs finiront par passer
- * aux portes.
+ * US-0329 : sans aucun Habitant, ni rail ni tableau : une seule phrase, sous le titre : « Aucun Habitant pour
+ * l'instant. »
  *
  * US-0330 : dans le dépliant, à part et en dernier, « Renvoyer » fait partir l'Habitant pour de bon, après une
  * confirmation sur place : le premier toucher ne fait que changer le bouton en « Confirmer le renvoi », dans la couleur
@@ -272,12 +272,13 @@ export function ListeDesHabitants({ habitants, metiers }: { habitants: HabitantA
     </h1>
   );
 
-  // US-0329 : sans Habitant, ni compteurs à zéro, ni filtre, ni tableau : une phrase, sous le titre.
+  // US-0329 : sans Habitant, ni compteurs à zéro, ni filtre, ni tableau : une phrase, sous le titre, sans redire que des
+  // Voyageurs passeront (retour d'Antoine, 2026-10-15).
   if (affiches.length === 0) {
     return (
       <section className={`${kit.panneau} ${styles.registre}`} aria-labelledby={`${prefixe}-titre`} data-seul="">
         <header className={styles.enTete}>{titre}</header>
-        <p className={styles.personne}>Aucun Habitant pour l&apos;instant. Des Voyageurs finiront par passer aux portes.</p>
+        <p className={styles.personne}>Aucun Habitant pour l&apos;instant.</p>
       </section>
     );
   }
@@ -388,8 +389,6 @@ export function ListeDesHabitants({ habitants, metiers }: { habitants: HabitantA
                         <Medaillon src={e.icone ?? undefined} taille="md" className={styles.medaillonGroupe} />
                         <span className={styles.titreGroupe}>
                           <span className={styles.nomGroupe}>{e.nom}</span>
-                          {e.phrase ? <span className={styles.phrase}>{e.phrase}</span> : null}
-                          {e.servira ? <span className={styles.servira}>{`Servira ${e.servira}.`}</span> : null}
                         </span>
                         {metier ? (
                           <span className={`${kit.pas} ${styles.pas}`}>
