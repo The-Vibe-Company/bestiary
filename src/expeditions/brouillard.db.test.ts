@@ -6,6 +6,7 @@ import { casesDecouvertes } from "@/monde/brouillard";
 import { decouvertesDuJoueur } from "@/monde/carte";
 import { BROUILLARD } from "@/monde/couleurs-de-la-carte";
 import { ficheDUneCase } from "@/monde/fiche";
+import { recitsDuTerritoire } from "@/monde/recits";
 import { casesDansLeRayon, type Coordonnees, distance } from "@/monde/hex";
 import { ABORDS_DU_FOYER_CASES, BROUILLARD_LEVE_AUTOUR_DE_LA_DESTINATION_CASES, PORTEE_D_EXPLORATION_CASES } from "@/reglages";
 import { lireMarquePage } from "@/temps/marque-page";
@@ -13,7 +14,7 @@ import { DEPART_VOYAGEUR } from "@/monde/voyageurs";
 import { programmerEvenement } from "@/temps/avancer";
 import { rattraper } from "@/temps/rattraper";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
-import { casesLeveesParLExpedition, casesRevelees } from "./brouillard";
+import { casesLeveesParLExpedition, casesLeveesParSesEclaireurs, casesRevelees } from "./brouillard";
 import { cheminDUneExpedition } from "./chemin";
 import { lancerLExpedition } from "./depart";
 import { type HorairesDUneExpedition, retourDUneExpedition, sejourDUneExpedition } from "./phase";
@@ -245,6 +246,11 @@ describe.skipIf(!URL_TEST)("le brouillard se lève sur le chemin (US-0914, sur b
       await aLHeure(territoireId, instant);
       expect(await decouvertes(territoireId)).toEqual(aLArrivee);
     }
+    // US-0973 : le Récit du retour dit combien de Cases ses Éclaireurs lui ont révélées en plus : celles hors du rayon d'une
+    // Expédition sans Éclaireur.
+    expect(await casesLeveesParSesEclaireurs(pool, horaires.id, foyer, destination, horaires, rentree)).toBe(enPlus.length);
+    const recit = (await recitsDuTerritoire(pool, territoireId)).find((r) => r.titre === "Retour d'Expédition")!;
+    expect(recit.texte.split("\n")).toContain(`${aLArrivee.size - abords.size} Cases sont sorties du brouillard, dont ${enPlus.length} grâce à vos Éclaireurs.`);
   });
 
   it("le laisse levé pour toujours, et pour ce joueur seulement", async () => {

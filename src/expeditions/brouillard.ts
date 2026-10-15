@@ -105,3 +105,27 @@ export async function casesLeveesParLExpedition(base: Pool | PoolClient, expedit
   );
   return rows[0].nombre;
 }
+
+/**
+ * US-0973, pour le Récit du retour : parmi les Cases que l'Expédition `expeditionId` a sorties du brouillard la première
+ * (casesLeveesParLExpedition), celles que ses Éclaireurs lui ont révélées en plus : hors du rayon qu'elle aurait levé sans
+ * eux (casesRevelees sans Éclaireur), partie du `foyer` vers la `destination` avec ses `horaires`, à l'instant du jeu
+ * `instant` (son retour : tout son aller). 0 sans Éclaireur, ni Case nouvelle au-delà de ce rayon.
+ */
+export async function casesLeveesParSesEclaireurs(
+  base: Pool | PoolClient,
+  expeditionId: number,
+  foyer: Coordonnees,
+  destination: Coordonnees,
+  horaires: HorairesDUneExpedition,
+  instant: Date,
+): Promise<number> {
+  const { rows } = await base.query<Coordonnees>(
+    `select c.q, c.r from expedition x join case_decouverte d on d.territoire_id = x.territoire_id and d.expedition_id = x.id
+       join case_du_monde c on c.id = d.case_id
+     where x.id = $1`,
+    [expeditionId],
+  );
+  const sansEux = new Set(casesRevelees(foyer, destination, horaires, instant).map(({ q, r }) => `${q},${r}`));
+  return rows.filter(({ q, r }) => !sansEux.has(`${q},${r}`)).length;
+}

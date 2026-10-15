@@ -248,10 +248,12 @@ describe.skipIf(!URL_TEST)("les Éclaireurs gardent les Bêtes en vue (US-0970, 
     );
     const arriveeDeA = sejourDUneExpedition(horaires.A)!.debut;
     expect(bilans.A.recit.rencontres).toEqual(ramenee(arriveeDeA));
-    expect(bilans.A.recit.texte).toMatch(/^Une Bête s'est montrée\.\nBête ramenée au Foyer : .+\.$/m);
+    // US-0973 : le récit dit qu'elle ne l'a rencontrée que grâce à ses Éclaireurs.
+    expect(bilans.A.recit.texte).toMatch(/^Une Bête s'est montrée\.\nRencontrée grâce à vos Éclaireurs : .+\.\nBête ramenée au Foyer : .+\.$/m);
     expect(bilans.A.bestiaire).toEqual({ especeId: bete.especeId, etat: "apprivoisee", croiseeLe: arriveeDeA });
     // B était sur la Case quand A l'a rencontrée : sans Éclaireurs, elle n'y était déjà plus pour lui.
     expect(bilans.B.recit.rencontres ?? []).toEqual([]);
+    expect(bilans.B.recit.texte).not.toMatch(/grâce à vos Éclaireurs/);
     expect(bilans.B.bestiaire).toBeUndefined();
     // Aucune attaque : toutes deux finissent leur séjour, et rentrent à leur heure.
     for (const j of ["A", "B"] as const) expect(bilans[j].rentreeLe, j).toEqual(retourDUneExpedition(horaires[j]));

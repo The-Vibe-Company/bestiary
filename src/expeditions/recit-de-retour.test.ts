@@ -427,3 +427,39 @@ describe("les pigeons partis en escorte et ceux partis comme Éclaireurs (US-097
     expect(lignes({}).some((l) => l.startsWith("Éclaireurs"))).toBe(false);
   });
 });
+
+describe("ce que les pigeons ont apporté (US-0973)", () => {
+  const lignes = (autre: Partial<RetourARaconter>) => recitDeRetour(retour(autre)).texte.split("\n");
+
+  it("la ligne des Cases dit combien les Éclaireurs en ont révélé en plus", () => {
+    expect(lignes({ casesParSesEclaireurs: 5 })[2]).toBe("12 Cases sont sorties du brouillard, dont 5 grâce à vos Éclaireurs.");
+    expect(lignes({ casesParSesEclaireurs: 1 })[2]).toBe("12 Cases sont sorties du brouillard, dont 1 grâce à vos Éclaireurs.");
+    // Toutes révélées par eux, et au singulier.
+    expect(lignes({ casesParSesEclaireurs: 12 })[2]).toBe("12 Cases sont sorties du brouillard, grâce à vos Éclaireurs.");
+    expect(lignes({ casesLevees: 1, casesParSesEclaireurs: 1 })[2]).toBe("Une Case est sortie du brouillard, grâce à vos Éclaireurs.");
+    // Sans Case en plus, la ligne d'avant ; aucune Case, rien à dire de plus.
+    expect(lignes({ casesParSesEclaireurs: 0 })[2]).toBe("12 Cases sont sorties du brouillard.");
+    expect(lignes({ casesLevees: 0, casesParSesEclaireurs: 0 })[2]).toBe("Aucune Case n'est sortie du brouillard.");
+  });
+
+  it("une ligne, après les Bêtes, nomme celles rencontrées seulement grâce à eux", () => {
+    expect(lignes({ rencontres: 2, graceAuxEclaireurs: ["Renard roux"] }).slice(3)).toEqual([
+      "2 Bêtes se sont montrées.",
+      "Rencontrée grâce à vos Éclaireurs : Renard roux.",
+    ]);
+    expect(lignes({ rencontres: 2, graceAuxEclaireurs: ["Renard roux", "Loup gris"] }).at(-1)).toBe("Rencontrées grâce à vos Éclaireurs : Renard roux et Loup gris.");
+    // Après la ligne des Bêtes vues sans suite aussi, avant celles ramenées.
+    expect(
+      lignes({
+        rencontres: 2,
+        vuesSansSuite: ["Renard roux"],
+        graceAuxEclaireurs: ["Renard roux"],
+        ramenees: [{ nom: "Poule", sexe: "femelle" }],
+      }).slice(3, 5),
+    ).toEqual(["Vos explorateurs ont vu Renard roux, mais aucune Bête ne les a suivis.", "Rencontrée grâce à vos Éclaireurs : Renard roux."]);
+  });
+
+  it("sans rien grâce aux Éclaireurs, le récit d'avant", () => {
+    expect(recitDeRetour(retour({ rencontres: 1, casesParSesEclaireurs: 0, graceAuxEclaireurs: [] }))).toEqual(recitDeRetour(retour({ rencontres: 1 })));
+  });
+});
