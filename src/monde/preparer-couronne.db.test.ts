@@ -1,9 +1,7 @@
 import type { Pool, PoolClient } from "pg";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { chargerJeu } from "@/donnees/charger";
-import { lireDonnees } from "@/donnees/jeux";
 import { ECART_ENTRE_FOYERS, JOUEURS_PAR_MONDE } from "@/reglages";
-import { poolDeTest, preparerMondeDeTest, URL_TEST } from "@/test/base";
+import { donneesDeReferenceTenues, poolDeTest, preparerMondeDeTest, URL_TEST } from "@/test/base";
 import { casesDeLaCouronne, graineDuMonde } from "./couronne";
 import { emplacementsDeFoyers } from "./foyers";
 import { distance, type Coordonnees } from "./hex";
@@ -20,8 +18,11 @@ describe.skipIf(!URL_TEST)("préparer la Couronne en base (US-0151)", () => {
   let client: PoolClient;
   let mondeId: number;
 
-  beforeAll(() => {
+  // Les données de référence, chargées pour de bon comme dans les autres fichiers : les charger dans la transaction de
+  // chaque essai les tenait le temps de celui-ci, et les autres fichiers, qui les rechargent en même temps, l'attendaient.
+  beforeAll(async () => {
     pool = poolDeTest();
+    await preparerMondeDeTest(pool);
   });
   afterAll(async () => {
     await pool.end();
@@ -30,7 +31,6 @@ describe.skipIf(!URL_TEST)("préparer la Couronne en base (US-0151)", () => {
   beforeEach(async () => {
     client = await pool.connect();
     await client.query("begin");
-    for (const { jeu, entrees } of lireDonnees()) await chargerJeu(client, jeu, entrees);
     const { rows } = await client.query("insert into monde (nom) values ($1) returning id", [`Essai-${Date.now()}-${Math.random()}`]);
     mondeId = rows[0].id;
   });
@@ -41,6 +41,9 @@ describe.skipIf(!URL_TEST)("préparer la Couronne en base (US-0151)", () => {
 
   it("crée les 2 070 Cases de la Couronne, et fixe la taille du Monde, celle de son Cœur sauvage comprise (US-0403)", async () => {
     expect(await preparerCouronne(client, mondeId)).toEqual({ ajoutees: 2070, total: 2070 });
+    // Les données de référence, que les autres fichiers rechargent en même temps, ne sont pas tenues le temps de l'essai :
+    // les Cases ne font que lire les Biomes et leurs formes, pour leur clé étrangère.
+    expect(await donneesDeReferenceTenues(client, { lues: ["biome", "variante_biome"] })).toEqual([]);
     const { rows } = await client.query(
       `select count(*)::int as cases, bool_and(couronne) as toutes, bool_or(coeur) as "dansLeCoeur", min(anneau) as de, max(anneau) as a,
          bool_and(eloignement = anneau - 7) as "eloignees",

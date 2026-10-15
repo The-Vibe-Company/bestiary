@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { BETES_DE_NAISSANCE, PORTEE_D_EXPLORATION_CASES, PRESENCE_D_UNE_BETE_DE_NAISSANCE_HEURES, PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
-import { nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, URL_TEST } from "@/test/base";
+import { donneesDeReferenceTenues, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, URL_TEST } from "@/test/base";
 import { betesDeNaissanceDesCases, betesDeNaissancePresentes, poserLesBetesDeNaissance, recevoirLesBetesDeNaissance } from "./betes-de-naissance";
 import { creerUnMonde } from "./generer";
 import { type Coordonnees, distance } from "./hex";
@@ -194,6 +194,8 @@ describe.skipIf(!URL_TEST)("les Bêtes de naissance d'un Foyer (US-0975, sur bas
         await client.query("savepoint essai");
         expect(await poserLesBetesDeNaissance(client, territoire.id, new Date(), () => hasard)).toBe(1);
         expect((await betesDu(territoire.id, client)).map((b) => b.caseId)).toEqual([prairie.id]);
+        // Les Bêtes posées ne font que lire les Espèces du jeu, pour leur clé étrangère.
+        expect(await donneesDeReferenceTenues(client, { lues: ["espece"] })).toEqual([]);
         await client.query("rollback to savepoint essai");
       }
     } finally {

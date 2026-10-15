@@ -1,6 +1,6 @@
 import type { Pool, PoolClient } from "pg";
 import { afterAll, beforeAll, beforeEach, afterEach, describe, expect, it } from "vitest";
-import { poolDeTest, URL_TEST } from "@/test/base";
+import { donneesDeReferenceTenues, poolDeTest, URL_TEST } from "@/test/base";
 import { chargerJeu, lireJeu } from "./charger";
 import { biomesEnBase, especesEnBase, raretesEnBase, rolesEnBase } from "./en-base";
 import { lireDonnees, PRODUCTIONS } from "./jeux";
@@ -15,11 +15,18 @@ describe.skipIf(!URL_TEST)("données de référence lues en base", () => {
   afterAll(async () => {
     await pool.end();
   });
-  // Chaque essai charge les vrais fichiers dans une transaction annulée à la fin : la base de test reste intacte.
+  // Chaque essai charge les vrais fichiers dans une transaction annulée à la fin : la base de test reste intacte. Il les
+  // charge dans une copie des tables propre à cette transaction, que Postgres lit avant celles du jeu : tous les fichiers
+  // rechargent celles-ci en même temps (preparerMondeDeTest), et les tenir le temps de l'essai les faisait attendre.
   beforeEach(async () => {
     client = await pool.connect();
     await client.query("begin");
-    for (const { jeu, entrees } of lireDonnees()) await chargerJeu(client, jeu, entrees);
+    const lots = lireDonnees();
+    for (const table of new Set(lots.map(({ jeu }) => jeu.table))) {
+      await client.query(`create temp table "${table}" (like public."${table}" including all) on commit drop`);
+      await client.query(`insert into "${table}" select * from public."${table}"`);
+    }
+    for (const { jeu, entrees } of lots) await chargerJeu(client, jeu, entrees);
   });
   afterEach(async () => {
     await client.query("rollback");
@@ -75,6 +82,12 @@ describe.skipIf(!URL_TEST)("données de référence lues en base", () => {
   it("garde vides les champs vides, pour qu'on les repère", async () => {
     await client.query("update espece set source = null, illustration = null where id = 'souris'");
     expect((await especesEnBase(client)).find((e) => e.id === "souris")).toMatchObject({ source: null, illustration: null });
+  });
+
+  it("ne tient aucune donnée de référence du jeu, que les autres fichiers rechargent en même temps", async () => {
+    await client.query("update biome set nom = 'Prairie modifiée en base' where id = 'prairie'");
+    await client.query("update espece set source = null, illustration = null where id = 'souris'");
+    expect(await donneesDeReferenceTenues(client)).toEqual([]);
   });
 
   it("donne les Raretés dans leur rang et les Rôles dans leur ordre", async () => {
