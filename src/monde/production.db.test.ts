@@ -4,7 +4,7 @@ import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
-import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
+import { donneesDeReferenceTenues, mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { produire, PRODUIRE } from "./production";
 import { stocksDuTerritoire } from "./stocks";
 
@@ -132,6 +132,9 @@ describe.skipIf(!URL_TEST)("production continue du Foyer (US-0210, sur base)", (
          where id = (select id from case_du_monde where chef_id is null and biome_id = 'foret' order by id limit 1)`,
         [territoireId],
       );
+      // La prairie cesse de produire de la Pierre dans une copie de la production des Biomes propre à cette transaction, que
+      // Postgres lit avant celle du jeu : les autres fichiers rechargent celle-ci en même temps (preparerMondeDeTest).
+      await client.query("create temp table production_biome on commit drop as table public.production_biome");
       await client.query("update production_biome set par_heure = 0 where biome_id in ('prairie', 'foret') and ressource_id = 'pierre'");
       const depuis = new Date("2026-01-01T00:00:00Z");
       await produire(client, territoireId, depuis, new Date(depuis.getTime() + 2 * HEURE));
@@ -145,6 +148,7 @@ describe.skipIf(!URL_TEST)("production continue du Foyer (US-0210, sur base)", (
       const attendu = Object.fromEntries(parHeure.map((p) => [p.id, Number(p.somme) * 2]));
       expect(Object.fromEntries(rows.map((r) => [r.id, Number(r.total)]))).toEqual(attendu);
       expect(attendu.pierre).toBe(0);
+      expect(await donneesDeReferenceTenues(client)).toEqual([]);
     } finally {
       await client.query("rollback");
       client.release();
