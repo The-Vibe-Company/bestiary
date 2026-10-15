@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { chefParNom, enregistrerNomDeChef, naitreSurLaCouronne } from "@/chefs/chef";
 import { cleDuNom } from "@/chefs/nom";
 import { creerCompte } from "@/comptes/compte";
-import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
+import { donneesDeReferenceTenues, mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 import { fixerStock, stocksDuTerritoire } from "./stocks";
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
@@ -87,6 +87,11 @@ describe.skipIf(!URL_TEST)("Stocks du Territoire (US-0201, US-0202, sur base)", 
     const client = await pool.connect();
     try {
       await client.query("begin");
+      // Dans une copie des Ressources propre à cette transaction, que Postgres lit avant celle du jeu : les autres fichiers
+      // rechargent celle-ci en même temps (preparerMondeDeTest). Le déclencheur qui verse les Stocks à la naissance, s'il a
+      // déjà servi sur cette connexion, garde le plan qu'il y a fait, qui lit celle du jeu : il le refait.
+      await client.query("create temp table ressource on commit drop as table public.ressource");
+      await client.query("discard plans");
       await client.query("update ressource set au_depart = 250.5 where id = 'pierre'");
       const compte = (await creerCompte(client, `${lancement}-${++numero}@essai.test`, "une phrase de passe"))!;
       const nom = nomUnique();
@@ -104,6 +109,7 @@ describe.skipIf(!URL_TEST)("Stocks du Territoire (US-0201, US-0202, sur base)", 
       );
       const { rows: pierre } = await client.query("select quantite from stock where territoire_id = $1 and ressource_id = 'pierre'", [rows[0].id]);
       expect(pierre).toEqual([{ quantite: "250.500000" }]);
+      expect(await donneesDeReferenceTenues(client)).toEqual([]);
     } finally {
       await client.query("rollback");
       client.release();

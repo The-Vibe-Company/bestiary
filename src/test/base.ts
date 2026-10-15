@@ -90,14 +90,16 @@ export async function territoireDuCompte(base: Pick<Pool, "query">, compteId: nu
 }
 
 /**
- * Les tables des données de référence (JEUX) que la transaction de `client` tient pour les écrire : celles du jeu, pas
- * les copies temporaires qu'elle s'en est faites. Tous les fichiers de test les rechargent en même temps
- * (preparerMondeDeTest) : tant qu'une transaction en tient une, ils l'attendent, ou s'interbloquent avec elle.
+ * Les tables des données de référence (JEUX) que la transaction de `client` a écrites : celles du jeu, pas les copies
+ * temporaires qu'elle s'en est faites. Tous les fichiers de test les rechargent en même temps (preparerMondeDeTest) : tant
+ * qu'une transaction tient une ligne qu'elle y a écrite, ils l'attendent, ou s'interbloquent avec elle. Les lire, même pour
+ * vérifier une clé étrangère (RowShareLock), ne compte pas.
  */
 export async function donneesDeReferenceTenues(client: PoolClient): Promise<string[]> {
   const { rows } = await client.query<{ nom: string }>(
     `select distinct c.relname as nom from pg_locks l join pg_class c on c.oid = l.relation join pg_namespace n on n.oid = c.relnamespace
-     where l.pid = pg_backend_pid() and n.nspname = 'public' and c.relname = any($1) and l.mode <> 'AccessShareLock' order by 1`,
+     where l.pid = pg_backend_pid() and n.nspname = 'public' and c.relname = any($1) and l.mode not in ('AccessShareLock', 'RowShareLock')
+     order by 1`,
     [[...new Set(JEUX.map((jeu) => jeu.table))]],
   );
   return rows.map((r) => r.nom);
