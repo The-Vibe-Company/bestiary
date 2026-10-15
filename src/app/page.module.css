@@ -2,28 +2,36 @@
  * L'accueil, l'écran titre du jeu. Une scène peinte sous la barre du haut : le Monde de Bestia sur sa table, à droite,
  * fondu dans la sarcelle vers la gauche et vers le bas ; à gauche, la devise en Marcellus, la promesse et les deux
  * entrées au cuivre. Dessous, un panneau orné du kit : les espèces à découvrir, et quatre peintures du jeu en vignettes.
- * Sur un téléphone, le Monde en tête de la page, la devise posée sur son pied, puis le panneau, ses vignettes deux par
- * deux.
+ * Sur un ordinateur, le tout tient dans le premier écran, sans défiler : la scène prend la hauteur de l'écran moins le
+ * panneau, dont les peintures se règlent sur la hauteur de l'écran. Sur un téléphone, le Monde en tête de la page, la
+ * devise posée sur son pied, puis le panneau, ses vignettes deux par deux.
  */
 .accueil {
   /* Les bords de la page : 40 px au moins, et sur un grand écran, une colonne de 1 200 px au milieu. */
   --marge: max(40px, calc((100% - 1200px) / 2));
+  /* La hauteur des peintures du panneau, sur un ordinateur : un cinquième de l'écran, entre 120 et 190 px. */
+  --vignette: clamp(120px, 20dvh, 190px);
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
   min-height: var(--hauteur-utile);
   margin: 0 calc(-1 * var(--bord-droit)) 0 calc(-1 * var(--bord-gauche));
-  padding: 0 0 48px;
+  padding: 0 0 24px;
 }
 
 /* ---------- La scène ---------- */
 
+/*
+ * La scène prend la hauteur de l'écran, moins le panneau des espèces (ses peintures, ses 24 px de marges intérieures et son
+ * filet de 1 px en haut et en bas), l'écart entre les deux et le bas de la page : tout tient dans le premier écran d'un
+ * ordinateur, sans défiler d'un pixel. Jamais moins de 440 px, ni plus de 720.
+ */
 .scene {
   position: relative;
   display: flex;
   align-items: center;
-  min-height: clamp(520px, calc(var(--hauteur-utile) - 150px), 720px);
-  padding: 40px var(--marge);
+  min-height: clamp(440px, calc(var(--hauteur-utile) - var(--vignette) - 26px - 24px - 24px), 720px);
+  padding: 24px var(--marge);
 }
 
 /* Le Monde, un carré de la hauteur de la scène, à droite ; fondu dans la sarcelle tout autour, largement vers la gauche
@@ -118,9 +126,12 @@
   letter-spacing: -0.01em;
 }
 
-/* Une peinture du jeu, carrée, en vignette : coins de 2 px, un filet de cuivre par-dessus son bord. */
+/*
+ * Une peinture du jeu en vignette, de la hauteur réglée sur l'écran (--vignette) : coins de 2 px, un filet de cuivre
+ * par-dessus son bord. Plus large que haute sur un ordinateur, elle se recadre sur son milieu.
+ */
 .galerie .vignette {
-  aspect-ratio: 1;
+  height: var(--vignette);
   border-radius: var(--arrondi-image);
   background: var(--panneau-releve);
 }
@@ -190,7 +201,12 @@
     min-width: 0;
   }
 
-  /* Le nombre en tête du panneau, les quatre peintures deux par deux dessous. */
+  /* Le nombre en tête du panneau, les quatre peintures carrées deux par deux dessous. */
+  .galerie .vignette {
+    aspect-ratio: 1;
+    height: auto;
+  }
+
   .galerie {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
