@@ -27,7 +27,7 @@ export type BeteTiree = { caseId: number; especeId: string };
  * US-0975 : une Bête de naissance sur sa Case, de son arrivée jusqu'à son départ (exclu), PRESENCE_D_UNE_BETE_DE_NAISSANCE_HEURES
  * heures plus tard ; avec son Espèce et la Rareté de celle-ci, comme une Bête sauvage ordinaire (BeteSauvage).
  */
-export type BeteDeNaissance = { id: number; arrivee: Date; depart: Date; especeId: string; rareteId: string };
+export type BeteDeNaissance = { id: number; arrivee: Date; depart: Date; especeId: string; rareteId: string; emmeneeLe?: Date };
 
 /**
  * US-0975 : les Bêtes de naissance que le hasard `hasard` tire parmi les Cases libres à portée `cases` : `nombre` au plus,
@@ -154,14 +154,15 @@ export async function recevoirLesBetesDeNaissance(pool: Pool, territoireId: numb
  * US-0934 : le départ d'une Bête de naissance `b` (expression SQL) : la fin de sa présence, ou l'instant où elle a suivi
  * une Expédition (sa Rencontre apprivoisée, src/expeditions/apprivoisement.ts), si c'est plus tôt.
  */
-const DEPART = `least(b.depart, (select r.vue_le from rencontre r where r.bete_de_naissance_id = b.id and r.apprivoisee))`;
+const SUIVIE = `(select r.vue_le from rencontre r where r.bete_de_naissance_id = b.id and r.apprivoisee)`;
+const DEPART = `least(b.depart, ${SUIVIE})`;
 
 /**
  * US-0975 : les Bêtes de naissance réservées au Territoire présentes à un moment de [de, a) sur les Cases `caseIds`, Case
  * par Case, dans l'ordre de leur arrivée, pour que l'étape 40 les fasse rencontrer à ses Expéditions, et à elles seules :
  * celles des autres Territoires n'y sont pas, et les Bêtes sauvages ordinaires (betesSauvagesDesCases) ne les comptent pas.
  * Comme elles (US-0925), aucune sur une Case qui appartient à un Territoire. US-0934 : celle qui a suivi une Expédition
- * n'y est plus dès cet instant.
+ * n'y est plus dès cet instant. US-0970 : `emmeneeLe`, cet instant, s'il y en a un, même après la fin de sa durée.
  */
 export async function betesDeNaissanceDesCases(
   base: Pool | PoolClient,
@@ -170,9 +171,10 @@ export async function betesDeNaissanceDesCases(
   de: Date,
   a: Date,
 ): Promise<Map<number, BeteDeNaissance[]>> {
-  const { rows } = await base.query<BeteDeNaissance & { caseId: number }>(
+  const { rows } = await base.query<Omit<BeteDeNaissance, "emmeneeLe"> & { caseId: number; emmeneeLe: Date | null }>(
     `select * from (
-       select b.id, b.case_id as "caseId", b.arrivee, ${DEPART} as depart, b.espece_id as "especeId", e.rarete_id as "rareteId"
+       select b.id, b.case_id as "caseId", b.arrivee, ${DEPART} as depart, b.espece_id as "especeId", e.rarete_id as "rareteId",
+         ${SUIVIE} as "emmeneeLe"
        from bete_de_naissance b join espece e on e.id = b.espece_id join case_du_monde c on c.id = b.case_id
        where b.territoire_id = $1 and b.case_id = any($2::int[]) and b.arrivee < $4 and b.depart > $3 and c.chef_id is null
      ) presente
@@ -181,7 +183,7 @@ export async function betesDeNaissanceDesCases(
     [territoireId, caseIds, de, a],
   );
   const parCase = new Map<number, BeteDeNaissance[]>(caseIds.map((id) => [id, []]));
-  for (const { caseId, ...bete } of rows) parCase.get(caseId)!.push(bete);
+  for (const { caseId, emmeneeLe, ...bete } of rows) parCase.get(caseId)!.push({ ...bete, ...(emmeneeLe ? { emmeneeLe } : {}) });
   return parCase;
 }
 
