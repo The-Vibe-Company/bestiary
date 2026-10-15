@@ -2,7 +2,8 @@
 // Territoire, Case après Case, à l'heure de son passage (passagesDUneExpedition, src/expeditions/position.ts), puis autour
 // de sa destination à son arrivée. Il se lève par decouvrir (src/monde/brouillard.ts, US-0442), la seule écriture du
 // brouillard : levé, il le reste pour toujours, et pour ce Territoire seulement. US-0969 : les Éclaireurs de l'Expédition
-// (US-0976) l'agrandissent. Côté serveur et scripts uniquement.
+// (US-0976) l'agrandissent. Côté serveur et scripts ; rayonDesEclaireurs aussi dans le navigateur, où le récapitulatif
+// de l'écran d'Expédition l'annonce avant le départ (US-0971).
 import type { Pool, PoolClient } from "pg";
 import { decouvrir } from "@/monde/brouillard";
 import { casesDansLeRayon, type Coordonnees } from "@/monde/hex";

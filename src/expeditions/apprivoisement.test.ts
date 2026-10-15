@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { aPortee, type BeteDisputee, type ExpeditionSurLaCase, finDeVue, forceQuiManque, lExpeditionSuivie, vueLe } from "./apprivoisement";
+import { MINUTES_DE_VUE_AU_PLUS, MINUTES_DE_VUE_PAR_ECLAIREUR } from "@/reglages";
+import { aPortee, type BeteDisputee, type ExpeditionSurLaCase, finDeVue, forceQuiManque, lExpeditionSuivie, vueLe, vueProlongee } from "./apprivoisement";
 
 const HEURE_MS = 3_600_000;
 /** L'instant du jeu `heures` heures après une origine quelconque. */
@@ -214,5 +215,21 @@ describe("les Éclaireurs gardent les Bêtes en vue (US-0970)", () => {
     expect(lExpeditionSuivie(commune(), [avecEclaireurs(7, 16.5, 20, 1), avecEclaireurs(9, 16.25, 20, 0.5)])).toEqual({ expeditionId: 9, le: h(16.25) });
     // Trop forte pour son escorte, elle ne la suit pas, même vue plus longtemps.
     expect(lExpeditionSuivie(rare(), [{ ...avecEclaireurs(7, 16.5, 20, 1), escorte: 999 }])).toBeNull();
+  });
+});
+
+describe("la vue prolongée des Éclaireurs (US-0970)", () => {
+  it("MINUTES_DE_VUE_PAR_ECLAIREUR de plus par Éclaireur, aucune sans Éclaireur", () => {
+    expect(vueProlongee(0)).toBe(0);
+    expect(vueProlongee(-1)).toBe(0);
+    expect(vueProlongee(1)).toBe(MINUTES_DE_VUE_PAR_ECLAIREUR * 60_000);
+    expect(vueProlongee(3)).toBe(3 * MINUTES_DE_VUE_PAR_ECLAIREUR * 60_000);
+  });
+
+  it("jamais plus de MINUTES_DE_VUE_AU_PLUS, si nombreux soient-ils : atteint, puis tenu", () => {
+    const auPlus = Math.floor(MINUTES_DE_VUE_AU_PLUS / MINUTES_DE_VUE_PAR_ECLAIREUR);
+    expect(vueProlongee(auPlus)).toBe(auPlus * MINUTES_DE_VUE_PAR_ECLAIREUR * 60_000);
+    expect(vueProlongee(auPlus + 1)).toBe(MINUTES_DE_VUE_AU_PLUS * 60_000);
+    expect(vueProlongee(100)).toBe(MINUTES_DE_VUE_AU_PLUS * 60_000);
   });
 });

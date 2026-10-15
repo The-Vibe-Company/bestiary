@@ -4,7 +4,15 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import kit from "@/components/kit.module.css";
 import type { EspeceDisponible } from "@/monde/effectif";
-import { PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE, SEJOURS_TOUT_PRETS_MINUTES } from "@/reglages";
+import {
+  BROUILLARD_LEVE_PAR_ECLAIREUR_CASES,
+  BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES,
+  MINUTES_DE_VUE_AU_PLUS,
+  MINUTES_DE_VUE_PAR_ECLAIREUR,
+  PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE,
+  SEJOURS_TOUT_PRETS_MINUTES,
+} from "@/reglages";
+import { formaterMinutes } from "@/temps/affichage";
 import type { EtatDuDepart } from "./actions";
 
 /**
@@ -519,5 +527,58 @@ describe("les Éclaireurs au récapitulatif (US-0976)", () => {
       ["escorte", "pigeon.1"],
       ["eclaireurs", "pigeon.2"],
     ]);
+  });
+});
+
+describe("l'effet des Éclaireurs avant le départ (US-0971)", () => {
+  /** Deux Espèces Éclaireuses pour l'essai : leurs Bêtes peuvent partir en Éclaireurs, à côté de l'escorte. */
+  const PIGEON: EspeceDisponible = { id: "pigeon", nom: "Pigeon biset", illustration: "especes/pigeon.webp", disponibles: 3, force: 2216, vitesse: 80, males: 2, femelles: 1, coupleReuni: false, eclaireuse: true };
+  const POULE_ECLAIREUSE: EspeceDisponible = { ...POULE, eclaireuse: true };
+  /** Ce que dit la ligne « Avec eux » de `rayon` Cases de brouillard en plus et de `minutes` de vue en plus. */
+  const apport = (rayon: number, minutes: number) => `Brouillard levé +${rayon} ${rayon > 1 ? "Cases" : "Case"}, Bêtes en vue +${formaterMinutes(minutes)}`;
+
+  it("dit, sous les Éclaireurs, de combien ils lèvent le brouillard plus loin et gardent les Bêtes en vue plus longtemps", () => {
+    ouvrir("?explorateurs=1&escorte=souris.2&eclaireurs=pigeon.1", { especes: [SOURIS, PIGEON] });
+    expect(lignes().map(([etiquette]) => etiquette).slice(0, 5)).toEqual(["Explorateurs", "Escorte", "Force", "Éclaireurs", "Avec eux"]);
+    expect(ligne("Avec eux")).toBe(apport(BROUILLARD_LEVE_PAR_ECLAIREUR_CASES, MINUTES_DE_VUE_PAR_ECLAIREUR));
+    choisir("?explorateurs=1&escorte=souris.2&eclaireurs=pigeon.2");
+    expect(ligne("Avec eux")).toBe(apport(Math.min(2 * BROUILLARD_LEVE_PAR_ECLAIREUR_CASES, BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES), Math.min(2 * MINUTES_DE_VUE_PAR_ECLAIREUR, MINUTES_DE_VUE_AU_PLUS)));
+  });
+
+  it("compte les Éclaireurs de toutes les Espèces ensemble, jusqu'aux plafonds", () => {
+    ouvrir("?explorateurs=1&eclaireurs=pigeon.3&eclaireurs=poule.1", { especes: [POULE_ECLAIREUSE, PIGEON] });
+    expect(ligne("Éclaireurs")).toBe("Poule\u00a0×\u00a01, Pigeon biset\u00a0×\u00a03");
+    expect(ligne("Avec eux")).toBe(
+      apport(Math.min(4 * BROUILLARD_LEVE_PAR_ECLAIREUR_CASES, BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES), Math.min(4 * MINUTES_DE_VUE_PAR_ECLAIREUR, MINUTES_DE_VUE_AU_PLUS)),
+    );
+  });
+
+  it("garde la force de l'escorte seule, Éclaireurs ou non ; sans Éclaireur, rien n'en est dit", () => {
+    ouvrir("?explorateurs=1&escorte=souris.2&eclaireurs=pigeon.3", { especes: [SOURIS, PIGEON] });
+    expect(ligne("Force")).toBe("946");
+    choisir("?explorateurs=1&escorte=souris.2");
+    expect(ligne("Force")).toBe("946");
+    expect(lignes().map(([etiquette]) => etiquette)).not.toContain("Avec eux");
+    // Une Bête d'une Espèce Éclaireuse partie en escorte n'éclaire pas (US-0972) : elle compte dans la force, et rien de plus.
+    choisir("?explorateurs=1&escorte=pigeon.1");
+    expect(ligne("Force")).toBe(entier(2216));
+    expect(lignes().map(([etiquette]) => etiquette)).not.toContain("Avec eux");
+  });
+
+  it("une Bête repérée gardée en vue par les Éclaireurs à l'arrivée n'est pas dite partie ; au-delà de leur vue, si", () => {
+    // Arrivée prévue à 12 h 02 à Paris (2 h 20 d'aller en forêt) : un Pigeon qui part à 12 h 02 pile est déjà parti, sauf
+    // gardé en vue par un Éclaireur.
+    const arrivee = new Date("2026-10-09T10:02:13.250Z");
+    const repere = (jusquA: Date): BeteAChercher => ({ espece: "Pigeon biset", force: 9_000, rareteId: "rare", jusquA });
+    ouvrir("?explorateurs=1&eclaireurs=pigeon.1", { especes: [SOURIS, PIGEON], betes: [repere(arrivee)] });
+    expect(ligne("À l'arrivée")).toBeUndefined();
+    // Partie une vue entière avant l'arrivée : elle n'est plus en vue.
+    cleanup();
+    const avant = new Date(arrivee.getTime() - MINUTES_DE_VUE_PAR_ECLAIREUR * 60_000);
+    ouvrir("?explorateurs=1&eclaireurs=pigeon.1", { especes: [SOURIS, PIGEON], betes: [repere(avant)] });
+    expect(ligne("À l'arrivée")).toBe("Pigeon biset ne sera plus là");
+    // Avec un Éclaireur de plus, elle l'est encore.
+    choisir("?explorateurs=1&eclaireurs=pigeon.2");
+    expect(ligne("À l'arrivée")).toBeUndefined();
   });
 });

@@ -2,20 +2,10 @@
 // un temps après la fin de leur durée, d'autant plus longtemps qu'ils sont nombreux, jusqu'à un plafond : l'Expédition peut
 // encore les rencontrer, et les emmener, même arrivée peu après leur départ (src/expeditions/apprivoisement.ts, finDeVue).
 // L'effet ne vaut que pour l'Expédition qui a les Éclaireurs : il se lit de ses seuls Éclaireurs, fixés au départ, le même
-// pour tous les Territoires qui la calculent. Côté serveur uniquement.
+// pour tous les Territoires qui la calculent (vueProlongee, src/expeditions/apprivoisement.ts). Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
-import { MINUTES_DE_VUE_AU_PLUS, MINUTES_DE_VUE_PAR_ECLAIREUR } from "@/reglages";
-
-const MINUTE_MS = 60_000;
-
-/**
- * US-0970 : combien de millisecondes du jeu `eclaireurs` Éclaireurs gardent en vue une Bête après la fin de sa durée :
- * MINUTES_DE_VUE_PAR_ECLAIREUR chacun, jusqu'à MINUTES_DE_VUE_AU_PLUS ; aucune sans Éclaireur.
- */
-export function vueProlongee(eclaireurs: number): number {
-  return Math.min(Math.max(eclaireurs, 0) * MINUTES_DE_VUE_PAR_ECLAIREUR, MINUTES_DE_VUE_AU_PLUS) * MINUTE_MS;
-}
+import { vueProlongee } from "./apprivoisement";
 
 /**
  * US-0970 : la vue prolongée (vueProlongee) de chaque Expédition `ids` qui a des Éclaireurs, de toutes leurs Espèces ;
