@@ -143,9 +143,12 @@ describe("le récapitulatif avant le départ (US-0910)", () => {
     expect(ligne("Aller")).toBe(ALLER_EN_FORET);
   });
 
-  it("dit « Aucun » tant qu'aucun explorateur n'est choisi, et ne croit pas l'adresse plus que le bloc Explorateurs", () => {
-    ouvrir();
+  it("dit « Aucun » quand le joueur ne choisit aucun explorateur, un d'emblée, et ne croit pas l'adresse plus que le bloc Explorateurs", () => {
+    ouvrir("?explorateurs=0");
     expect(ligne("Explorateurs")).toBe("Aucun");
+    cleanup();
+    ouvrir();
+    expect(ligne("Explorateurs")).toBe("1");
     cleanup();
     ouvrir("?explorateurs=9");
     expect(ligne("Explorateurs")).toBe("2");
@@ -198,9 +201,11 @@ describe("partir depuis le récapitulatif (US-0910)", () => {
 
   it("finit sur « Partir », grisé tant qu'un choix manque, qui nomme ce qui manque", () => {
     for (const [recherche, destination, attendue] of [
-      ["", null, "Il faut une destination et au moins un explorateur."],
-      ["", FORET, "Il faut au moins un explorateur."],
+      ["?explorateurs=0", null, "Il faut une destination et au moins un explorateur."],
+      ["?explorateurs=0", FORET, "Il faut au moins un explorateur."],
       ["?explorateurs=1", null, "Il faut une destination."],
+      // Un explorateur part d'emblée : seule la destination manque.
+      ["", null, "Il faut une destination."],
     ] as const) {
       ouvrir(recherche, { destination });
       expect([partir().disabled, raison()]).toEqual([true, attendue]);
@@ -214,7 +219,7 @@ describe("partir depuis le récapitulatif (US-0910)", () => {
     expect(bloc().textContent).not.toMatch(/Il faut/);
     choisir("?explorateurs=1&escorte=souris.3");
     expect([partir().disabled, raison()]).toEqual([false, null]);
-    choisir("");
+    choisir("?explorateurs=0");
     expect([partir().disabled, raison()]).toEqual([true, "Il faut au moins un explorateur."]);
   });
 });
@@ -247,6 +252,14 @@ describe("confirmer le départ (US-0911)", () => {
       ["escorte", "poule.1"],
       ["escorte", "souris.3"],
     ]);
+  });
+
+  it("envoie l'explorateur qui part d'emblée quand l'adresse n'en dit rien", async () => {
+    const joueur = userEvent.setup();
+    actions.partir.mockResolvedValue({ refus: null });
+    ouvrir("?sejour=240");
+    await joueur.click(partir());
+    expect(envoye().filter(([nom]) => nom === "explorateurs")).toEqual([["explorateurs", "1"]]);
   });
 
   it("n'envoie aucune Bête sans escorte (US-0909)", async () => {
