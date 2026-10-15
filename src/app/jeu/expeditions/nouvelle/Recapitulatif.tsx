@@ -56,25 +56,25 @@ export type BeteAChercher = { espece: string; force: number; rareteId: string; j
 /**
  * US-0910 : le récapitulatif de l'écran d'Expédition, à relire avant de partir. Il relit l'adresse, comme les autres
  * blocs, et suit chaque choix au fil de la composition, le séjour pas à pas au curseur : les explorateurs, l'escorte
- * Espèce par Espèce et sa force, ou « Sans escorte » à la place (US-0909) ; la destination et son Biome, ou « inconnu » ;
- * les durées de l'aller, du séjour et du retour, sur leur frise (Frise) ; l'heure de retour prévue d'un départ à l'heure
- * du jeu : celle de l'ouverture de l'écran (`maintenant`), qui avance en direct au rythme du jeu (`vitesse`, donnée par
- * le serveur) sur l'horloge du navigateur, comme le compte à rebours des Voyageurs (US-0333). Il rappelle que ceux qui
- * partent mangent toujours (US-0921), et finit sur « Partir ». En tête, les explorateurs en route, peints. Sur
- * ordinateur, il tient la hauteur de l'écran à côté de ce qu'on compose, et reste en vue quand la page défile. Sur un
- * téléphone, il reste en bas de l'écran pendant qu'on compose, replié sur l'heure de retour prévue (data-essentiel) et
- * le départ ; un bouton le déplie. US-0911 : « Partir » envoie ce qu'il montre : la destination, les explorateurs et
- * l'escorte. US-0912 : l'aller et le retour d'une escorte vont au pas de sa Bête la plus lente, d'après la vitesse de
- * son Espèce, ou des explorateurs s'ils sont plus lents.
- * US-0949 : pour chaque Bête repérée sur la destination (`betes`), son Espèce et sa force, puis si l'escorte est assez
- * forte pour elle (aPortee), en feuille, ou la force qui lui manque (forceQuiManque), en braise : les mots le disent
- * toujours. Quand elle devrait être partie à l'arrivée prévue, qui avance avec l'heure du jeu, une ligne le dit en la
- * nommant, en braise au-dessus du retour prévu, gardée en vue même replié.
- * US-0976 : après la force de l'escorte, ses Éclaireurs, Espèce par Espèce, quand il y en a : ils n'y ajoutent rien, et
- * « Partir » les envoie aussi.
- * US-0961 : quand l'escorte emmène la seule Bête d'un sexe d'une Espèce sans Couple (`seule`, betesDisponibles), une ligne
- * le dit en nommant l'Espèce et le sexe, en braise au-dessus du retour prévu, gardée en vue même replié : un simple
- * avertissement, « Partir » ne demande rien de plus. Les Éclaireurs ne combattent pas : ils ne la risquent pas.
+ * Espèce par Espèce et sa force, ou « Sans escorte » à la place (US-0909) ; la destination et son Biome, ou
+ * « inconnu » ; les durées de l'aller, du séjour et du retour, sur leur frise (Frise) ; l'heure de retour prévue d'un
+ * départ à l'heure du jeu : celle de l'ouverture de l'écran (`maintenant`), qui avance en direct au rythme du jeu
+ * (`vitesse`, donnée par le serveur) sur l'horloge du navigateur, comme le compte à rebours des Voyageurs (US-0333). Il
+ * finit sur « Partir ». Ni ce que coûte l'absence (US-0921) ni ce que ramène une Expédition sans escorte ne s'y
+ * redisent à chaque départ (retour d'Antoine, 2026-10-15). En tête, les explorateurs en route, peints. Sur ordinateur,
+ * il tient la hauteur de l'écran à côté de ce qu'on compose, et reste en vue quand la page défile. Sur un téléphone, il
+ * reste en bas de l'écran pendant qu'on compose, replié sur l'heure de retour prévue (data-essentiel) et le départ ; un
+ * bouton le déplie. US-0911 : « Partir » envoie ce qu'il montre : la destination, les explorateurs et l'escorte.
+ * US-0912 : l'aller et le retour d'une escorte vont au pas de sa Bête la plus lente, d'après la vitesse de son Espèce,
+ * ou des explorateurs s'ils sont plus lents. US-0949 : pour chaque Bête repérée sur la destination (`betes`), son
+ * Espèce et sa force, puis si l'escorte est assez forte pour elle (aPortee), en feuille, ou la force qui lui manque
+ * (forceQuiManque), en braise : les mots le disent toujours. Quand elle devrait être partie à l'arrivée prévue, qui
+ * avance avec l'heure du jeu, une ligne le dit en la nommant, en braise au-dessus du retour prévu, gardée en vue même
+ * replié. US-0976 : après la force de l'escorte, ses Éclaireurs, Espèce par Espèce, quand il y en a : ils n'y ajoutent
+ * rien, et « Partir » les envoie aussi. US-0961 : quand l'escorte emmène la seule Bête d'un sexe d'une Espèce sans
+ * Couple (`seule`, betesDisponibles), une ligne le dit en nommant l'Espèce et le sexe, en braise au-dessus du retour
+ * prévu, gardée en vue même replié : un simple avertissement, « Partir » ne demande rien de plus. Les Éclaireurs ne
+ * combattent pas : ils ne la risquent pas.
  */
 export function Recapitulatif({
   libres,
@@ -142,7 +142,7 @@ export function Recapitulatif({
           </div>
           <div>
             <dt>Escorte</dt>
-            <dd>{sansEscorte(choix) ? "Sans escorte : Bêtes communes seulement" : escorte.map((e) => uneEspece(e.nom, choix.get(e.id)!)).join(", ")}</dd>
+            <dd>{sansEscorte(choix) ? "Sans escorte" : escorte.map((e) => uneEspece(e.nom, choix.get(e.id)!)).join(", ")}</dd>
           </div>
           {force === null ? null : (
             <div>
@@ -207,7 +207,6 @@ export function Recapitulatif({
             <dd>{retour ? <time dateTime={retour.toISOString()}>{formaterJourEtHeure(retour, FUSEAU)}</time> : AUCUNE}</dd>
           </div>
         </dl>
-        <p className={styles.manger}>Ceux qui partent continuent de manger pendant toute l&apos;absence.</p>
       </div>
       {/* US-0911 : un départ refusé se dit jusqu'au prochain choix du joueur, que l'adresse garde ; l'écran relu ne l'efface pas. */}
       <Partir

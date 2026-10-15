@@ -73,13 +73,14 @@ describe("écran du Foyer (US-0157)", () => {
     expect(html).not.toMatch(/<p[ >]/);
   });
 
-  it("montre à côté sa production horaire et le Biome qui l'explique, et dit ce que le Biome ne donne pas (US-0217)", async () => {
+  it("montre à côté sa production horaire et le Biome qui l'explique, et, éteinte à 0/h, ce que le Biome ne donne pas, sans le redire en phrase (US-0217)", async () => {
     connecte();
     const html = renderToStaticMarkup(await Foyer());
     expect(stocks.stocksDuTerritoire).toHaveBeenCalledWith(expect.anything(), 12);
     expect(html).toMatch(/<h2[^>]*>Production · prairie<\/h2>/);
     const lignes = [...html.matchAll(/<li(?: [^>]*)?>(.*?)<\/li>/g)].map((m) => m[1].replace(/<img[^>]*\/>/g, "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
-    expect(lignes).toEqual(["Viande +8/h", "Végétaux +14,5/h", "Bois +4/h", "Ce Biome ne donne pas de Pierre."]);
+    expect(lignes).toEqual(["Viande +8/h", "Végétaux +14,5/h", "Bois +4/h", "Pierre 0/h"]);
+    expect(html).toMatch(/<li[^>]*data-nulle=""[^>]*>.*?Pierre.*?<\/li>/);
   });
 
   it("ne mène à aucune fonction qui n'existe pas encore : ni bouton, ni menu, et pour seul lien la page Bêtes (US-0163, US-0810)", async () => {
