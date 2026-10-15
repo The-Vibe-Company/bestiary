@@ -32,7 +32,6 @@ vi.mock("@/temps/rattraper", () => ({ rattraper: vi.fn(async () => new Date()) }
 vi.mock("@/db", () => ({ getPool: () => ({}) }));
 
 import { ELEVAGE_SANS_COUPLE, ELEVAGE_SANS_ELEVEUR } from "@/monde/elevage";
-import { NOURRITURE_MANQUANTE } from "@/monde/lancer-un-elevage";
 import { elever } from "./actions";
 import { QUANTITE_REFUSEE } from "./quantite";
 
@@ -214,8 +213,8 @@ describe("lancer l'Élevage (US-0815)", () => {
   it("dit le refus du lancement, relu au moment de payer, et relit la page", async () => {
     connecte();
     elevage.elevageAcquis.mockResolvedValue(true);
-    lancement.lancerUnElevage.mockResolvedValueOnce({ refus: NOURRITURE_MANQUANTE });
-    expect(await demander("poule", "2")).toEqual({ refus: NOURRITURE_MANQUANTE });
+    lancement.lancerUnElevage.mockResolvedValueOnce({ refus: "Il manque 12 Viande ou Végétaux." });
+    expect(await demander("poule", "2")).toEqual({ refus: "Il manque 12 Viande ou Végétaux." });
     expect(cache.refresh).toHaveBeenCalledOnce();
   });
 

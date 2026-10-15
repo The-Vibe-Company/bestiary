@@ -301,8 +301,15 @@ describe.skipIf(!URL_TEST)("chaque Expédition présente voit la Bête (US-0962,
   });
 
   it("le récit n'en dit rien sans un instant de séjour en commun avec l'Expédition d'un autre joueur, ni pour une autre du même joueur ; un seul instant suffit", async () => {
-    // Peu après la naissance des chefs : leurs Territoires se rattrapent vite.
-    const t0 = apres(ne, 2 * HEURE);
+    // Un moment où la Case reste vide du premier départ des Expéditions à leur dernier retour, cherché peu après la
+    // naissance des chefs pour que leurs Territoires se rattrapent vite : aucune Bête n'y attaque ces Expéditions sans
+    // escorte, qui fuiraient (US-0945). Leurs séjours, et donc leurs récits, ne dépendent que de leurs horaires.
+    const [debut, limite] = [apres(ne, 2 * HEURE), apres(ne, 3 * JOUR)];
+    const presentes = (await betesSauvagesDesCases(pool, [caseId], apres(debut, -TRAJET), apres(limite, 4 * HEURE))).get(caseId)!;
+    const vide = (t: Date) => presentes.every((b) => b.depart <= apres(t, -TRAJET) || b.arrivee >= apres(t, 4 * HEURE));
+    let t0 = debut;
+    while (t0 < limite && !vide(t0)) t0 = apres(t0, 30);
+    expect((await betesSauvagesDesCases(pool, [caseId], apres(t0, -TRAJET), apres(t0, 4 * HEURE))).get(caseId), "aucun moment calme sur la Case").toEqual([]);
     /**
      * Deux Expéditions de A sur la Case, l'une de deux heures, l'autre arrivée une heure après elle et partie en même
      * temps ; une de B, arrivée `decalage` minutes avant leur départ : ce que dit le récit de chacune.
@@ -325,13 +332,21 @@ describe.skipIf(!URL_TEST)("chaque Expédition présente voit la Bête (US-0962,
 
   it("à l'instant où une Bête suit une Expédition, celles présentes à cet instant la voient aussi, même du même joueur et sur la Case d'une Bête de naissance ; une seule la ramène", async () => {
     // La première Bête de naissance de A, sur une Case restée libre : deux Expéditions de A y arrivent au même instant.
-    const { rows } = await pool.query<{ id: number; caseId: number; especeId: string; arrivee: Date }>(
-      `select b.id, b.case_id as "caseId", b.espece_id as "especeId", b.arrivee from bete_de_naissance b
+    const { rows } = await pool.query<{ id: number; caseId: number; especeId: string; arrivee: Date; depart: Date }>(
+      `select b.id, b.case_id as "caseId", b.espece_id as "especeId", b.arrivee, b.depart from bete_de_naissance b
        join case_du_monde c on c.id = b.case_id where b.territoire_id = $1 and c.chef_id is null order by b.id limit 1`,
       [territoires.A],
     );
     const bn = rows[0];
-    const arrivee = apres(bn.arrivee, HEURE);
+    // Un instant de sa présence où, pendant les deux séjours, aucune Bête plus rare que commune ne se montre sur sa Case :
+    // aucune n'attaque ces Expéditions sans escorte, qui fuiraient (US-0945) et ne rentreraient plus dans l'ordre de leurs
+    // séjours. Une Bête commune n'attaque jamais.
+    const presentes = (await betesSauvagesDesCases(pool, [bn.caseId], bn.arrivee, bn.depart)).get(bn.caseId)!;
+    const calme = (t: Date) => presentes.every((b) => b.rareteId === "commune" || b.depart <= t || b.arrivee >= apres(t, 2 * HEURE));
+    let arrivee = apres(bn.arrivee, HEURE);
+    while (apres(arrivee, 2 * HEURE) <= bn.depart && !calme(arrivee)) arrivee = apres(arrivee, 30);
+    expect(calme(arrivee), "aucun moment calme sur la Case de la Bête de naissance").toBe(true);
+    expect(apres(arrivee, 2 * HEURE) <= bn.depart, "la Bête de naissance part pendant les séjours").toBe(true);
     const { vues, recits } = await enEssai(async (client, jeu) => {
       const ids = [await poser(client, territoires.A, bn.caseId, arriveeA(arrivee, HEURE)), await poser(client, territoires.A, bn.caseId, arriveeA(arrivee, 2 * HEURE))];
       await rattraper("territoire", territoires.A, { pool: jeu, jusqua: apres(arrivee, 3 * HEURE) });
@@ -348,5 +363,5 @@ describe.skipIf(!URL_TEST)("chaque Expédition présente voit la Bête (US-0962,
     for (const r of deux) expect(r).toMatchObject({ especeId: bn.especeId, vueLe: arrivee });
     expect(deux.map((r) => r.issue).sort()).toEqual(["apprivoisee", "emmenee"]);
     expect(deux.find((r) => r.issue === "emmenee")).toMatchObject({ repartieLe: arrivee, sexe: null });
-  });
+  }, 60_000);
 });

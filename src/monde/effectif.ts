@@ -266,14 +266,21 @@ export async function validesParSexe(base: Pool | PoolClient, territoireId: numb
  * de Places : les Places arrivent au jalon 8, avec la Bête apprivoisée sans Place libre (US-0939). Aucun Biome non plus :
  * le Foyer, en prairie, loge les Bêtes de tout Biome (US-0823). Rien sans Bête.
  * US-0956 : sauf celle qui réunit un Couple au même instant (src/monde/couple.ts), partie aussitôt en Réserve.
+ * US-0817 : une entrée peut compter plusieurs Bêtes de même Espèce et de même sexe (`nombre`, 1 par défaut), comme les
+ * naissances d'un Élevage ; une entrée de zéro Bête n'ajoute rien.
  */
-export async function faireEntrerDansLEffectif(base: Pool | PoolClient, territoireId: number, betes: readonly { especeId: string; sexe: Sexe }[]): Promise<void> {
-  if (betes.length === 0) return;
+export async function faireEntrerDansLEffectif(
+  base: Pool | PoolClient,
+  territoireId: number,
+  betes: readonly { especeId: string; sexe: Sexe; nombre?: number }[],
+): Promise<void> {
+  const entrees = betes.filter((b) => (b.nombre ?? 1) > 0);
+  if (entrees.length === 0) return;
   await base.query(
     `insert into effectif (territoire_id, espece_id, sexe, nombre)
-     select $1, b.espece_id, b.sexe, count(*)::int from unnest($2::text[], $3::sexe[]) as b(espece_id, sexe) group by b.espece_id, b.sexe
+     select $1, b.espece_id, b.sexe, sum(b.nombre)::int from unnest($2::text[], $3::sexe[], $4::int[]) as b(espece_id, sexe, nombre) group by b.espece_id, b.sexe
      on conflict (territoire_id, espece_id, sexe) do update set nombre = effectif.nombre + excluded.nombre`,
-    [territoireId, betes.map((b) => b.especeId), betes.map((b) => b.sexe)],
+    [territoireId, entrees.map((b) => b.especeId), entrees.map((b) => b.sexe), entrees.map((b) => b.nombre ?? 1)],
   );
 }
 

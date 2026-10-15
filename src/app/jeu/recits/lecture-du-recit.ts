@@ -3,6 +3,7 @@
 // la frise (Frise) et sa destination en paysage (Paysage), lus dans le texte que le jeu a écrit (recitDeRetour).
 import type { DureesDUneExpedition } from "@/components/Frise";
 import { RETOUR_D_EXPEDITION } from "@/expeditions/resume-du-retour";
+import { FIN_D_ELEVAGE } from "@/monde/recit-d-elevage";
 import { estUnRecitDeGuerison } from "@/monde/recit-de-guerison";
 
 /**
@@ -21,12 +22,14 @@ export const MEDAILLON_DES_RECITS = "/illustrations/metiers/chercheur.webp";
 
 /**
  * Le médaillon d'un Récit, par son titre : un retour d'Expédition, la Famine et sa fin, une guérison de Blessés (US-0954),
- * et sinon un Habitant (les Voyageurs accueillis ou repartis, les Habitants partis).
+ * la fin d'un Élevage (US-0817), et sinon un Habitant (les Voyageurs accueillis ou repartis, les Habitants partis).
  */
 export function medaillonDuRecit(titre: string): string {
   if (titre === RETOUR_D_EXPEDITION) return MEDAILLONS.expedition;
   if (titre.includes("Famine")) return MEDAILLONS.famine;
   if (estUnRecitDeGuerison(titre)) return MEDAILLONS.guerison;
+  // US-0817 : la fin d'un Élevage, l'éleveur aussi.
+  if (titre === FIN_D_ELEVAGE) return MEDAILLONS.guerison;
   return MEDAILLONS.habitants;
 }
 

@@ -16,6 +16,7 @@ import {
   expeditionsPresentesEtLeurTerritoire,
   expeditionsPresentesSurLesCases,
 } from "./presence";
+import { vuesProlongees } from "./vue-des-eclaireurs";
 
 /**
  * US-0945 : au plus tant de relectures d'une Case, chacune depuis une arrivée plus tôt : la chaîne s'arrête dès qu'aucune
@@ -62,6 +63,8 @@ export async function fuitesDesCases(
   }
   if (betes.length === 0) return { fuites: new Map(), attaques: [] };
   const escortes = await forcesDesEscortes(base, expeditions.map((x) => x.id));
+  // US-0970 : les Éclaireurs de chacune, pour décider, comme les Rencontres, quelle Expédition une Bête a suivie.
+  const vues = await vuesProlongees(base, expeditions.map((x) => x.id));
   const forces = await forcesDesEspeces(base, [...new Set(betes.map((b) => b.especeId))]);
   const { rows: especes } = await base.query<{ id: string; regime: Regime }>("select id, regime from espece where id = any($1::text[])", [
     [...new Set(betes.map((b) => b.especeId))],
@@ -78,7 +81,16 @@ export async function fuitesDesCases(
     const laCase = lesCases.get(caseId)!;
     const deLaCase: ExpeditionDeLaCase[] = expeditions
       .filter((x) => x.caseId === caseId)
-      .map((x) => ({ id: x.id, territoireId: x.territoireId, arrivee: x.arrivee, depart: x.depart, escorte: escortes.get(x.id) ?? null, enFuite: x.enFuite, connuesJusqua: connuesJusqua(x) }));
+      .map((x) => ({
+        id: x.id,
+        territoireId: x.territoireId,
+        arrivee: x.arrivee,
+        depart: x.depart,
+        escorte: escortes.get(x.id) ?? null,
+        vueProlongee: vues.get(x.id) ?? 0,
+        enFuite: x.enFuite,
+        connuesJusqua: connuesJusqua(x),
+      }));
     const surLaCase: BeteDeLaCase[] = betes
       .filter((b) => b.caseId === caseId)
       .map((b) => ({
@@ -108,13 +120,33 @@ async function betesDesCases(base: Pool | PoolClient, caseIds: number[], territo
   // L'une après l'autre : sur le client d'une transaction, deux requêtes ne partent pas à la fois.
   const sauvages = await betesSauvagesDesCases(base, caseIds, de, a, { departCompris: true });
   const betes: BeteLue[] = caseIds.flatMap((caseId) =>
-    sauvages.get(caseId)!.map((b) => ({ arrivee: b.arrivee, depart: b.depart, especeId: b.especeId, rareteId: b.rareteId, caseId, numero: b.numero, beteDeNaissanceId: null, territoireId: null })),
+    sauvages.get(caseId)!.map((b) => ({
+      arrivee: b.arrivee,
+      depart: b.depart,
+      ...(b.emmeneeLe ? { emmeneeLe: b.emmeneeLe } : {}),
+      especeId: b.especeId,
+      rareteId: b.rareteId,
+      caseId,
+      numero: b.numero,
+      beteDeNaissanceId: null,
+      territoireId: null,
+    })),
   );
   for (const territoire of territoires) {
     const deNaissance = await betesDeNaissanceDesCases(base, territoire, caseIds, de, a);
     for (const caseId of caseIds) {
       for (const b of deNaissance.get(caseId)!) {
-        betes.push({ arrivee: b.arrivee, depart: b.depart, especeId: b.especeId, rareteId: b.rareteId, caseId, numero: null, beteDeNaissanceId: b.id, territoireId: territoire });
+        betes.push({
+          arrivee: b.arrivee,
+          depart: b.depart,
+          ...(b.emmeneeLe ? { emmeneeLe: b.emmeneeLe } : {}),
+          especeId: b.especeId,
+          rareteId: b.rareteId,
+          caseId,
+          numero: null,
+          beteDeNaissanceId: b.id,
+          territoireId: territoire,
+        });
       }
     }
   }
