@@ -14,14 +14,31 @@ export const COMMUNE = "commune";
 /** US-0963 : le tirage propre au choix de l'Expédition que suit une Bête disputée, à part de ceux de ses apparitions. */
 const TIRAGE_DE_LA_SUITE = 9;
 
-/** US-0934 : une Bête sur sa Case, de son arrivée à son départ (exclu), avec la force de son Espèce (US-0905) et sa Rareté. */
-export type BeteSurLaCase = { arrivee: Date; depart: Date; force: number; rareteId: string };
+/**
+ * US-0934 : une Bête sur sa Case, de son arrivée à son départ (exclu), avec la force de son Espèce (US-0905) et sa Rareté.
+ * US-0970 : `emmeneeLe`, l'instant où elle a suivi une Expédition, s'il y en a un, même après la fin de sa durée.
+ */
+export type BeteSurLaCase = { arrivee: Date; depart: Date; force: number; rareteId: string; emmeneeLe?: Date };
 
 /**
  * US-0934 : une Expédition sur la Case de la Bête, de son arrivée à son départ (exclu), avec la force de son escorte
- * (US-0905), null sans escorte.
+ * (US-0905), null sans escorte. US-0970 : `vueProlongee`, combien de millisecondes ses Éclaireurs gardent en vue une Bête
+ * après la fin de sa durée (src/expeditions/vue-des-eclaireurs.ts) ; absente : aucune.
  */
-export type ExpeditionSurLaCase = { id: number; arrivee: Date; depart: Date; escorte: number | null };
+export type ExpeditionSurLaCase = { id: number; arrivee: Date; depart: Date; escorte: number | null; vueProlongee?: number };
+
+/**
+ * US-0970 : jusqu'où une Expédition dont les Éclaireurs gardent les Bêtes en vue `vueProlongee` millisecondes de plus voit
+ * la Bête `bete`, en millisecondes du jeu : la fin de sa présence prolongée d'autant, et jamais au-delà de l'instant où elle
+ * a suivi une Expédition (`emmeneeLe`). Une Bête qui en a suivi une avant la fin de sa durée n'est plus en vue de personne
+ * dès cet instant ; sans Éclaireurs, la fin de sa présence. Seul ce que voit l'Expédition se prolonge : la Bête, elle, a
+ * quitté sa Case, et n'attaque plus (US-0950, src/expeditions/fuites-de-la-case.ts).
+ */
+export function finDeVue(bete: Pick<BeteSurLaCase, "depart" | "emmeneeLe">, vueProlongee = 0): number {
+  const depart = bete.depart.getTime();
+  if (vueProlongee <= 0 || (bete.emmeneeLe !== undefined && bete.emmeneeLe.getTime() <= depart)) return depart;
+  return Math.min(depart + vueProlongee, bete.emmeneeLe?.getTime() ?? Infinity);
+}
 
 /**
  * US-0934 : une Bête est à portée d'une Expédition quand la force de son escorte, `escorte`, est au moins égale à la
@@ -43,11 +60,16 @@ export function forceQuiManque(escorte: number | null, bete: Pick<BeteSurLaCase,
 
 /**
  * US-0932 : l'instant où l'Expédition `x` voit la Bête `bete` : dès qu'elles sont toutes deux sur la Case, à l'apparition
- * de la Bête ou à l'arrivée de l'Expédition, si aucune n'en est partie ; null si elles ne s'y croisent pas.
+ * de la Bête ou à l'arrivée de l'Expédition, si aucune n'en est partie ; null si elles ne s'y croisent pas. US-0970 : avec
+ * des Éclaireurs, l'Expédition la voit encore un temps après la fin de sa durée (finDeVue), et peut l'y rencontrer même
+ * arrivée après son départ.
  */
-export function vueLe(bete: Pick<BeteSurLaCase, "arrivee" | "depart">, x: Pick<ExpeditionSurLaCase, "arrivee" | "depart">): Date | null {
+export function vueLe(
+  bete: Pick<BeteSurLaCase, "arrivee" | "depart" | "emmeneeLe">,
+  x: Pick<ExpeditionSurLaCase, "arrivee" | "depart" | "vueProlongee">,
+): Date | null {
   const instant = Math.max(bete.arrivee.getTime(), x.arrivee.getTime());
-  return instant < Math.min(bete.depart.getTime(), x.depart.getTime()) ? new Date(instant) : null;
+  return instant < Math.min(finDeVue(bete, x.vueProlongee), x.depart.getTime()) ? new Date(instant) : null;
 }
 
 /**

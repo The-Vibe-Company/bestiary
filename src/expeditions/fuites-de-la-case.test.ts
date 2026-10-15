@@ -95,6 +95,18 @@ describe("les fuites d'une Case (US-0945)", () => {
     expect(fuitesDeLaCase(expeditions, [deNaissance], FIN).fuites).toEqual(new Map([[2, h(3)]]));
   });
 
+  it("US-0970 : gardée en vue par des Éclaireurs après son départ, une Bête trop forte n'attaque plus ; pendant sa présence, si", () => {
+    // La Bête est sur la Case de 1 h à 7 h ; les Éclaireurs de X la lui gardent en vue deux heures de plus.
+    const vueProlongee = 2 * 3_600_000;
+    const avant = bete(7, 1, 7, { attaques: { 1: 0 } });
+    // Arrivée à 8 h, X la voit encore, et ses tirages promettent une attaque dès leur Rencontre : la Bête est partie, rien.
+    expect(fuitesDeLaCase([expedition(1, 10, 8, 12, 5, { vueProlongee })], [avant], FIN)).toEqual({ fuites: new Map(), attaques: [] });
+    // Arrivée à 6 h : l'attaque promise une demi-heure après tombe pendant sa présence ; celle promise une heure et demie
+    // après, à 7 h 30, tomberait pendant la vue prolongée : rien.
+    expect(fuitesDeLaCase([expedition(1, 10, 6, 12, 5, { vueProlongee })], [bete(7, 1, 7, { attaques: { 1: 0.5 } })], FIN).fuites).toEqual(new Map([[1, h(6.5)]]));
+    expect(fuitesDeLaCase([expedition(1, 10, 6, 12, 5, { vueProlongee })], [bete(7, 1, 7, { attaques: { 1: 1.5 } })], FIN).fuites).toEqual(new Map());
+  });
+
   it("ne calcule rien à partir de la fin donnée", () => {
     expect(fuitesDeLaCase([expedition(1, 10, 0, 10, 5)], [bete(7, 1, 7, { attaques: { 1: 2 } })], h(3)).fuites).toEqual(new Map());
   });

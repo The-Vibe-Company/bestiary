@@ -26,6 +26,7 @@ import { fuitesDesCases } from "./fuites-des-cases";
 import { subirLesCombats } from "./pertes";
 import { expeditionsPresentesDuTerritoire, expeditionsPresentesSurLesCases } from "./presence";
 import { sexesALApprivoisement } from "./sexe";
+import { vuesProlongees } from "./vue-des-eclaireurs";
 
 /**
  * US-0932 : une Rencontre : l'instant du jeu où l'Expédition a vu la Bête (vueLe), sur sa Case (caseId), et la Bête :
@@ -86,16 +87,21 @@ export { forcesDesEscortes, forcesDesEspeces };
  * Territoire, et chaque Expédition n'y est plus après la sienne. La première attaque de la tranche sur une Expédition du
  * Territoire la met en fuite : la tranche s'arrête à son instant, `jusqua`, et rend les `fuites` de cet instant, que le
  * mécanisme du temps écrit aussitôt (src/temps/regles.ts, mettreEnFuite), ce qui avance leur retour à son heure exacte ;
- * ce qui vient ensuite se retient à la tranche suivante. Sans attaque, rend `a` et aucune fuite.
+ * ce qui vient ensuite se retient à la tranche suivante. Sans attaque, rend `a` et aucune fuite. US-0970 : une Expédition
+ * dont les Éclaireurs gardent les Bêtes en vue (vuesProlongees) voit aussi celles parties un peu avant ou pendant la
+ * tranche, jusqu'à la fin de sa vue prolongée (finDeVue), et peut les emmener ; les autres Expéditions, pas.
  */
 export async function retenirLesRencontres(base: Pool | PoolClient, territoireId: number, de: Date, a: Date): Promise<{ jusqua: Date; fuites: Fuite[] }> {
   const rien = { jusqua: a, fuites: [] };
   const duTerritoire = await expeditionsPresentesDuTerritoire(base, territoireId, de, a);
   if (duTerritoire.length === 0) return rien;
   const caseIds = [...new Set(duTerritoire.map((x) => x.caseId))];
+  // US-0970 : les Bêtes parties avant la tranche que des Éclaireurs du Territoire gardent encore en vue y comptent aussi.
+  const vuesDuTerritoire = await vuesProlongees(base, duTerritoire.map((x) => x.id));
+  const desLe = new Date(de.getTime() - Math.max(0, ...vuesDuTerritoire.values()));
   // L'une après l'autre : sur le client d'une transaction, deux requêtes ne partent pas à la fois.
-  const sauvages = await betesSauvagesDesCases(base, caseIds, de, a, { departCompris: true });
-  const deNaissance = await betesDeNaissanceDesCases(base, territoireId, caseIds, de, a);
+  const sauvages = await betesSauvagesDesCases(base, caseIds, desLe, a, { departCompris: true });
+  const deNaissance = await betesDeNaissanceDesCases(base, territoireId, caseIds, desLe, a);
   const betes = caseIds.flatMap((caseId) => [
     ...sauvages.get(caseId)!.map((b) => ({ ...b, caseId, beteDeNaissanceId: null })),
     ...deNaissance.get(caseId)!.map((b) => ({ ...b, caseId, numero: null, beteDeNaissanceId: b.id })),
@@ -111,10 +117,11 @@ export async function retenirLesRencontres(base: Pool | PoolClient, territoireId
     return fuite && fuite < x.depart ? { ...x, depart: fuite } : x;
   };
   // Celles du Territoire ne sont pas coupées : leurs Rencontres se retiennent jusqu'à leur première attaque, comprise, qu'une
-  // Rencontre à l'instant même de la fuite n'est pas perdue.
-  const expeditions = duTerritoire;
+  // Rencontre à l'instant même de la fuite n'est pas perdue. US-0970 : chacune voit aussi loin que ses Éclaireurs.
+  const expeditions = duTerritoire.map((x) => ({ ...x, vueProlongee: vuesDuTerritoire.get(x.id) ?? 0 }));
   const presentes = await expeditionsPresentesSurLesCases(base, caseIds, depuis, a);
   const escortes = await forcesDesEscortes(base, [...new Set([...presentes.values()].flat().map((x) => x.id))]);
+  const vuesProlongeesDesPresentes = await vuesProlongees(base, [...new Set([...presentes.values()].flat().map((x) => x.id))]);
   const forces = await forcesDesEspeces(base, [...new Set(betes.map((b) => b.especeId))]);
   const aVoir: AVoir[] = [];
   const emmenees: Emmenee[] = [];
@@ -123,7 +130,7 @@ export async function retenirLesRencontres(base: Pool | PoolClient, territoireId
     const rivales: ExpeditionSurLaCase[] = presentes
       .get(b.caseId)!
       .filter((x) => b.beteDeNaissanceId === null || x.territoireId === territoireId)
-      .map((x) => jusquALaFuite({ id: x.id, arrivee: x.arrivee, depart: x.depart, escorte: escortes.get(x.id) ?? null }));
+      .map((x) => jusquALaFuite({ id: x.id, arrivee: x.arrivee, depart: x.depart, escorte: escortes.get(x.id) ?? null, vueProlongee: vuesProlongeesDesPresentes.get(x.id) ?? 0 }));
     const suivie = lExpeditionSuivie({ ...b, force: forces.get(b.especeId)! }, rivales);
     for (const x of expeditions.filter((x) => x.caseId === b.caseId)) {
       const vue = vueLe(b, x);
@@ -135,7 +142,7 @@ export async function retenirLesRencontres(base: Pool | PoolClient, territoireId
       if (vue < de || vue >= a) continue;
       const rencontre = { expeditionId: x.id, caseId: b.caseId, numero: b.numero, beteDeNaissanceId: b.beteDeNaissanceId, especeId: b.especeId, apparueLe: b.arrivee, vueLe: vue, apprivoisee };
       aVoir.push(rencontre);
-      if (apprivoisee && b.numero !== null) emmenees.push({ caseId: b.caseId, numero: b.numero, le: vue, rencontre });
+      if (apprivoisee && b.numero !== null) emmenees.push({ caseId: b.caseId, numero: b.numero, le: vue, vueProlongee: x.vueProlongee, rencontre });
     }
   }
   // US-0943 : vue sans la suivre, une Bête trop forte pour l'escorte (US-0942) peut attaquer l'Expédition tant qu'elles
@@ -159,9 +166,9 @@ export async function retenirLesRencontres(base: Pool | PoolClient, territoireId
 
 /**
  * US-0934 : une Bête sauvage ordinaire qui suit une Expédition : sa Case, son numéro, l'instant où elle la suit, et sa
- * Rencontre à retenir.
+ * Rencontre à retenir. US-0970 : et la vue prolongée de l'Expédition, qui peut l'emmener après la fin de sa durée.
  */
-type Emmenee = { caseId: number; numero: number; le: Date; rencontre: AVoir };
+type Emmenee = { caseId: number; numero: number; le: Date; vueProlongee: number; rencontre: AVoir };
 
 /**
  * US-0932 : retient les Rencontres `aVoir` du Territoire `territoireId`, et (US-0934) le départ des Bêtes sauvages
@@ -172,7 +179,7 @@ async function retenirLesVues(base: Pool | PoolClient, territoireId: number, aVo
   // sa seule Rencontre apprivoisée. Une Bête dont un autre Territoire a déjà retenu le départ à cet instant ne suit pas
   // celle-ci, même si le tirage, recalculé sur des forces qui ont changé depuis (US-0963), la désignait : vue, elle n'est
   // pas apprivoisée, et ne rejoint jamais deux Foyers.
-  for (const { caseId, numero, le, rencontre } of emmenees) if (!(await emmenerUneBete(base, caseId, numero, le))) rencontre.apprivoisee = false;
+  for (const { caseId, numero, le, vueProlongee, rencontre } of emmenees) if (!(await emmenerUneBete(base, caseId, numero, le, vueProlongee))) rencontre.apprivoisee = false;
   // US-0937 : la Bête qui suit l'Expédition est mâle ou femelle, tiré à son Apprivoisement ; celle qui reste n'en a pas.
   const apprivoisees = aVoir.filter((r) => r.apprivoisee);
   const sexes = new Map((await sexesALApprivoisement(base, apprivoisees)).map((sexe, i) => [apprivoisees[i], sexe]));

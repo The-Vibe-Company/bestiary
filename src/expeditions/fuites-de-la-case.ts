@@ -57,6 +57,7 @@ export function fuitesDeLaCase(
     for (const x of visibles(b)) {
       const vue = x.enFuite ? null : vueLe(b, x);
       if (!vue) continue;
+      // US-0970 : pendant sa présence seulement : gardée en vue par des Éclaireurs après son départ, elle n'attaque plus.
       const fin = new Date(Math.min(b.depart.getTime(), x.depart.getTime()));
       const le = instantDeLAttaque({ debut: vue, fin }, b.chance, (heure) => b.hasards(x.id, heure));
       if (le && le >= x.connuesJusqua && le < jusqua) promises.push({ x, b, rang, le });
