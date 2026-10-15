@@ -206,7 +206,7 @@ describe.skipIf(!URL_TEST)("les Bêtes sauvages d'une Case en base (US-0925)", (
       expect(await numeros(instant, new Date(instant.getTime() + 1))).not.toContain(suivie.numero);
       expect(await numeros(instant, ensuite(60 * JOUR))).not.toContain(suivie.numero);
       // Jusque-là, elle était bien sur sa Case.
-      expect((await betesSauvagesDUneCase(pool, laCase.id, suivie.arrivee, instant)).find((b) => b.numero === suivie.numero)).toEqual({ ...suivie, depart: instant });
+      expect((await betesSauvagesDUneCase(pool, laCase.id, suivie.arrivee, instant)).find((b) => b.numero === suivie.numero)).toEqual({ ...suivie, depart: instant, emmeneeLe: instant });
       expect(await parties()).toEqual([{ numero: suivie.numero, partie_le: instant }]);
     });
 
@@ -222,6 +222,19 @@ describe.skipIf(!URL_TEST)("les Bêtes sauvages d'une Case en base (US-0925)", (
       expect([une, autre].sort()).toEqual([false, true]);
       expect(await emmenerUneBete(pool, laCase.id, b.numero, new Date(b.arrivee.getTime() + HEURE))).toBe(false);
       expect((await parties()).filter((p) => p.numero === b.numero)).toEqual([{ numero: b.numero, partie_le: b.arrivee }]);
+    });
+
+    it("US-0970 : une Expédition dont les Éclaireurs la gardent en vue l'emmène encore après la fin de sa durée, jusqu'au bout de cette vue, pas au-delà", async () => {
+      const [b, c] = (await betesSauvagesDUneCase(pool, laCase.id, ensuite(30 * JOUR), ensuite(40 * JOUR))).slice(0, 2);
+      const vue = 40 * 60_000;
+      // Sans Éclaireurs, partie à la fin de sa durée, elle ne suit plus personne ; au bout de la vue prolongée non plus.
+      expect(await emmenerUneBete(pool, laCase.id, b.numero, new Date(b.depart.getTime() + 10 * 60_000))).toBe(false);
+      expect(await emmenerUneBete(pool, laCase.id, b.numero, new Date(b.depart.getTime() + vue), vue)).toBe(false);
+      expect(await emmenerUneBete(pool, laCase.id, b.numero, new Date(b.depart.getTime() + 10 * 60_000), vue)).toBe(true);
+      expect((await parties()).filter((p) => p.numero === b.numero)).toEqual([{ numero: b.numero, partie_le: new Date(b.depart.getTime() + 10 * 60_000) }]);
+      // Emmenée par une autre Expédition pendant sa présence, elle n'est plus en vue de personne, Éclaireurs ou non.
+      expect(await emmenerUneBete(pool, laCase.id, c.numero, c.arrivee)).toBe(true);
+      expect(await emmenerUneBete(pool, laCase.id, c.numero, new Date(c.depart.getTime() + 10 * 60_000), vue)).toBe(false);
     });
   });
 });

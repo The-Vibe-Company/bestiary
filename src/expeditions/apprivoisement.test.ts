@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aPortee, type BeteDisputee, type ExpeditionSurLaCase, forceQuiManque, lExpeditionSuivie, vueLe } from "./apprivoisement";
+import { aPortee, type BeteDisputee, type ExpeditionSurLaCase, finDeVue, forceQuiManque, lExpeditionSuivie, vueLe } from "./apprivoisement";
 
 const HEURE_MS = 3_600_000;
 /** L'instant du jeu `heures` heures après une origine quelconque. */
@@ -179,5 +179,40 @@ describe("des chances proportionnelles à la force (US-0963)", () => {
     expect(suivies(Array.from({ length: 20 }, (_, numero) => ({ numero })))).toEqual(new Set([1, 2]));
     expect(suivies(Array.from({ length: 20 }, (_, caseId) => ({ caseId })))).toEqual(new Set([1, 2]));
     expect(suivies(Array.from({ length: 20 }, (_, id) => ({ numero: null, beteDeNaissanceId: id + 1 })))).toEqual(new Set([1, 2]));
+  });
+});
+
+describe("les Éclaireurs gardent les Bêtes en vue (US-0970)", () => {
+  /** Une Bête commune, toujours à portée, sur sa Case de 10 h à 16 h. */
+  const commune = (attributs: Partial<BeteDisputee> = {}) => rare({ rareteId: "commune", ...attributs });
+  /** Une Expédition sans escorte sur la Case de `de` à `a` heures, dont les Éclaireurs gardent les Bêtes en vue `heures` heures de plus. */
+  const avecEclaireurs = (id: number, de: number, a: number, heures: number): ExpeditionSurLaCase => ({ ...expedition(id, de, a, null), vueProlongee: heures * HEURE_MS });
+
+  it("une Bête reste en vue de l'Expédition qui a des Éclaireurs plus longtemps que sa durée : arrivée après son départ, elle la voit encore", () => {
+    expect(finDeVue(commune(), HEURE_MS)).toBe(h(17).getTime());
+    expect(vueLe(commune(), avecEclaireurs(7, 16.5, 20, 1))).toEqual(h(16.5));
+    // Au bout de la vue prolongée, plus rien.
+    expect(vueLe(commune(), avecEclaireurs(7, 17, 20, 1))).toBeNull();
+    // Arrivée avant le départ de la Bête, elle la voit à son arrivée, comme toute Expédition.
+    expect(vueLe(commune(), avecEclaireurs(7, 12, 20, 1))).toEqual(h(12));
+  });
+
+  it("l'effet ne vaut que pour l'Expédition qui a les Éclaireurs : sans eux, arrivée après le départ de la Bête, elle ne voit rien", () => {
+    expect(vueLe(commune(), expedition(8, 16.5, 20, null))).toBeNull();
+    expect(finDeVue(commune())).toBe(h(16).getTime());
+  });
+
+  it("partie en suivant une Expédition avant la fin de sa durée, la Bête n'est plus en vue de personne ; suivie pendant une vue prolongée, plus au-delà", () => {
+    expect(finDeVue(commune({ depart: h(13), emmeneeLe: h(13) }), HEURE_MS)).toBe(h(13).getTime());
+    expect(vueLe(commune({ depart: h(13), emmeneeLe: h(13) }), avecEclaireurs(7, 13.5, 20, 1))).toBeNull();
+    expect(finDeVue(commune({ emmeneeLe: h(16.25) }), HEURE_MS)).toBe(h(16.25).getTime());
+    expect(vueLe(commune({ emmeneeLe: h(16.25) }), avecEclaireurs(7, 16.5, 20, 1))).toBeNull();
+  });
+
+  it("une Expédition aux Éclaireurs arrivée après le départ de la Bête peut encore l'emmener ; la première qui la voit l'emporte", () => {
+    expect(lExpeditionSuivie(commune(), [expedition(8, 16.25, 20, null), avecEclaireurs(7, 16.5, 20, 1)])).toEqual({ expeditionId: 7, le: h(16.5) });
+    expect(lExpeditionSuivie(commune(), [avecEclaireurs(7, 16.5, 20, 1), avecEclaireurs(9, 16.25, 20, 0.5)])).toEqual({ expeditionId: 9, le: h(16.25) });
+    // Trop forte pour son escorte, elle ne la suit pas, même vue plus longtemps.
+    expect(lExpeditionSuivie(rare(), [{ ...avecEclaireurs(7, 16.5, 20, 1), escorte: 999 }])).toBeNull();
   });
 });

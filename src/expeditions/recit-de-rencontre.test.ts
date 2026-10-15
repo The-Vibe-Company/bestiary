@@ -20,6 +20,17 @@ describe("le départ d'une Bête vue sans qu'elle suive (US-0940)", () => {
   it("à la fin de sa durée quand l'Expédition assez forte n'arrive qu'après son départ", () => {
     expect(departDUneBete(bete, [sansEscorte, { id: 8, arrivee: h(16), depart: h(18), escorte: 5_000 }])).toEqual({ le: h(16), emmenee: false });
   });
+
+  it("pour l'Expédition dont les Éclaireurs la gardaient en vue, au bout de cette vue prolongée, ou plus tôt, emmenée par une autre qui l'y voyait encore (US-0970)", () => {
+    const vue = 3_600_000;
+    const demie = new Date(h(16).getTime() + vue / 2);
+    expect(departDUneBete(bete, [sansEscorte], vue)).toEqual({ le: h(17), emmenee: false });
+    // Une autre, aux Éclaireurs aussi, assez forte, arrivée une demi-heure après son départ : elle l'emmène à son arrivée.
+    const autre = { id: 8, arrivee: demie, depart: h(18), escorte: 5_000, vueProlongee: vue };
+    expect(departDUneBete(bete, [sansEscorte, autre], vue)).toEqual({ le: demie, emmenee: true });
+    // Sans Éclaireurs, l'Expédition qui l'a vue la dit repartie à la fin de sa durée, avant que l'autre ne l'emmène.
+    expect(departDUneBete(bete, [sansEscorte, autre])).toEqual({ le: h(16), emmenee: false });
+  });
 });
 
 describe("ce qu'il advint de la Bête d'une Rencontre (US-0940)", () => {

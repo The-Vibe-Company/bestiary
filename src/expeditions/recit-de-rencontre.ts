@@ -16,6 +16,7 @@ import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { type BeteDisputee, type ExpeditionSurLaCase, forceQuiManque, lExpeditionSuivie } from "./apprivoisement";
 import { expeditionsPresentesApresLesFuites } from "./fuites-des-cases";
 import { forcesDesEscortes, forcesDesEspeces, type Rencontre } from "./rencontres";
+import { vuesProlongees } from "./vue-des-eclaireurs";
 
 /** US-0926 : combien de temps une Bête sauvage reste sur sa Case, en millisecondes du jeu. */
 const PRESENCE_MS = PRESENCE_D_UNE_BETE_HEURES * 3_600_000;
@@ -37,11 +38,14 @@ export function issueDUneRencontre(apprivoisee: boolean, depart: Date | null, fi
  * suit une autre Expédition de sa Case (`expeditions`, de tous les Territoires), la première qui l'a à portée
  * (lExpeditionSuivie). La règle même des Rencontres, sur des horaires et des escortes fixés au départ : le même instant
  * quel que soit le Territoire rattrapé en premier, que celui de l'autre Expédition ait déjà retenu son départ ou non.
- * US-0964 : `emmenee`, elle est partie en suivant une autre Expédition, et non à la fin de sa durée.
+ * US-0964 : `emmenee`, elle est partie en suivant une autre Expédition, et non à la fin de sa durée. US-0970 : pour une
+ * Expédition dont les Éclaireurs la gardaient en vue `vueProlongee` millisecondes de plus, elle n'en est repartie qu'au
+ * bout de cette vue prolongée, ou plus tôt si elle a suivi une autre Expédition entre-temps.
  */
-export function departDUneBete(bete: BeteDisputee, expeditions: readonly ExpeditionSurLaCase[]): { le: Date; emmenee: boolean } {
+export function departDUneBete(bete: BeteDisputee, expeditions: readonly ExpeditionSurLaCase[], vueProlongee = 0): { le: Date; emmenee: boolean } {
   const suivie = lExpeditionSuivie(bete, expeditions);
-  return suivie && suivie.le < bete.depart ? { le: suivie.le, emmenee: true } : { le: bete.depart, emmenee: false };
+  const fin = bete.depart.getTime() + vueProlongee;
+  return suivie && suivie.le.getTime() < fin ? { le: suivie.le, emmenee: true } : { le: new Date(fin), emmenee: false };
 }
 
 /**
@@ -99,6 +103,8 @@ async function sexesDesApprivoisees(client: PoolClient, expeditionId: number): P
  * Expédition qui la voit (US-0975) : vue sans la suivre, elle en suivait une autre au même instant, et en est partie
  * aussitôt. US-0964 : et si elle est partie en suivant une autre Expédition (`emmenee`). US-0945 : une Expédition en fuite
  * n'est plus sur la Case après sa fuite, même d'un Territoire pas encore rattrapé. Aucune lecture si toutes ont suivi.
+ * US-0970 : ses Éclaireurs la gardaient en vue après la fin de sa durée : elle n'en était repartie qu'ensuite ; les autres
+ * Expéditions de la Case aussi voient aussi loin que les leurs.
  */
 async function betesRestees(client: PoolClient, expeditionId: number, vues: readonly Rencontre[]): Promise<Map<number, BeteRestee>> {
   const parties = new Map(vues.filter((r) => !r.apprivoisee && r.numero === null).map((r) => [r.id, { depart: r.vueLe, manque: 0, emmenee: true }]));
@@ -108,16 +114,19 @@ async function betesRestees(client: PoolClient, expeditionId: number, vues: read
   if (restees.length === 0) return parties;
   const caseId = restees[0].caseId;
   const depuis = new Date(Math.min(...restees.map((r) => r.apparueLe.getTime())));
-  const jusqua = new Date(Math.max(...restees.map((r) => r.finDePresence.getTime())));
+  const vue = (await vuesProlongees(client, [expeditionId])).get(expeditionId) ?? 0;
+  // Avec des Éclaireurs, sur toute la vue prolongée : une autre Expédition a pu l'y emmener.
+  const jusqua = new Date(Math.max(...restees.map((r) => r.finDePresence.getTime())) + vue);
   const presentes = (await expeditionsPresentesApresLesFuites(client, [caseId], depuis, jusqua)).get(caseId)!;
   const escortes = await forcesDesEscortes(client, [...new Set([expeditionId, ...presentes.map((x) => x.id)])]);
   const forces = await forcesDesEspeces(client, [...new Set(restees.map((r) => r.especeId))]);
-  const expeditions = presentes.map((x) => ({ id: x.id, arrivee: x.arrivee, depart: x.depart, escorte: escortes.get(x.id) ?? null }));
+  const vuesDesPresentes = await vuesProlongees(client, presentes.map((x) => x.id));
+  const expeditions = presentes.map((x) => ({ id: x.id, arrivee: x.arrivee, depart: x.depart, escorte: escortes.get(x.id) ?? null, vueProlongee: vuesDesPresentes.get(x.id) ?? 0 }));
   return new Map([
     ...parties,
     ...restees.map((r): [number, BeteRestee] => {
       const bete = { ...r, arrivee: r.apparueLe, depart: r.finDePresence, force: forces.get(r.especeId)! };
-      const { le, emmenee } = departDUneBete(bete, expeditions);
+      const { le, emmenee } = departDUneBete(bete, expeditions, vue);
       return [r.id, { depart: le, manque: forceQuiManque(escortes.get(expeditionId) ?? null, bete), emmenee }];
     }),
   ]);

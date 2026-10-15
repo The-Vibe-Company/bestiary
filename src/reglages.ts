@@ -401,3 +401,11 @@ export const MINUTES_D_ELEVAGE_PAR_PLACE = 15;
  * provisoire, à régler en jouant) ; src/monde/guerison.ts.
  */
 export const GUERISON_DES_BLESSES_SOIGNES_HEURES = 12;
+
+/**
+ * US-0970 : chaque Éclaireur d'une Expédition (US-0976) lui garde en vue les Bêtes de sa Case 20 minutes de jeu de plus
+ * qu'elles n'y restent (valeur provisoire, à régler en jouant), jusqu'à 2 heures quel que soit leur nombre (valeur
+ * provisoire, à régler en jouant) : l'Expédition peut encore les y rencontrer, et les emmener ; src/expeditions/vue-des-eclaireurs.ts.
+ */
+export const MINUTES_DE_VUE_PAR_ECLAIREUR = 20;
+export const MINUTES_DE_VUE_AU_PLUS = 120;

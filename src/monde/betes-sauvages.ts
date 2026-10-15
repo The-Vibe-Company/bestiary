@@ -13,6 +13,7 @@
 // voit. Côté serveur et scripts uniquement.
 import type { Pool, PoolClient } from "pg";
 import { type ChancesDeRarete, lireRaretesParAnneau } from "@/donnees/jeux";
+import { finDeVue } from "@/expeditions/apprivoisement";
 import { APPARITIONS_PAR_CASE_PAR_JOUR, PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { anneauDUneCase, type FormeDuMonde } from "./anneaux";
 import { hacher } from "./couronne";
@@ -37,9 +38,10 @@ export type Apparition = { numero: number; arrivee: Date };
 /**
  * US-0926 : une Bête sauvage sur sa Case, de son arrivée jusqu'à son départ (exclu) : PRESENCE_D_UNE_BETE_HEURES heures
  * plus tard, la même durée pour toutes, ou plus tôt si elle a suivi une Expédition. US-0928 : son Espèce, et la Rareté de
- * celle-ci (US-0927).
+ * celle-ci (US-0927). US-0970 : `emmeneeLe`, l'instant où elle a suivi une Expédition, s'il y en a un, même après la fin
+ * de sa durée, quand des Éclaireurs la gardaient encore en vue (src/expeditions/apprivoisement.ts, finDeVue).
  */
-export type BeteSauvage = Apparition & { depart: Date; especeId: string; rareteId: string };
+export type BeteSauvage = Apparition & { depart: Date; especeId: string; rareteId: string; emmeneeLe?: Date };
 
 /**
  * Une Case telle que les Bêtes sauvages la voient : sa place, la graine de son Monde, (US-0927) son Anneau, de 1, la
@@ -200,7 +202,8 @@ export function betesSauvages(
     if (depart <= de.getTime()) return [];
     const tiree = rareteTiree(laCase, x.numero, chances);
     const espece = tirerUneEspece(especes, chances[anneau - 1], biome, tiree, hacher(graine, q, r, x.numero, TIRAGE.espece));
-    return espece ? [{ ...x, depart: new Date(depart), ...espece }] : [];
+    // US-0970 : l'instant où elle a suivi une Expédition, s'il y en a un : des Éclaireurs ne la gardent pas en vue au-delà.
+    return espece ? [{ ...x, depart: new Date(depart), ...(partie ? { emmeneeLe: partie } : {}), ...espece }] : [];
   });
 }
 
@@ -262,11 +265,14 @@ export async function betesSauvagesDUneCase(base: Pool | PoolClient, caseId: num
  * US-0926 : la Bête `numero` de la Case `caseId` la quitte à l'instant du jeu `instant`, pour suivre une Expédition
  * (étape 40) : elle n'y est plus dès cet instant, pour toujours, et personne d'autre ne peut plus la rencontrer. C'est la
  * seule écriture des Bêtes sauvages. Rend false, sans rien écrire, si elle n'était pas là à cet instant (pas encore
- * arrivée, déjà partie, ou emmenée par une autre Expédition, même au même moment).
+ * arrivée, déjà partie, ou emmenée par une autre Expédition, même au même moment). US-0970 : pour une Expédition dont les
+ * Éclaireurs la gardent en vue `vueProlongee` millisecondes de plus (src/expeditions/vue-des-eclaireurs.ts), elle est
+ * encore là jusqu'à autant après la fin de sa durée.
  */
-export async function emmenerUneBete(base: Pool | PoolClient, caseId: number, numero: number, instant: Date): Promise<boolean> {
-  const presentes = await betesSauvagesDUneCase(base, caseId, instant, new Date(instant.getTime() + 1));
-  if (!presentes.some((b) => b.numero === numero)) return false;
+export async function emmenerUneBete(base: Pool | PoolClient, caseId: number, numero: number, instant: Date, vueProlongee = 0): Promise<boolean> {
+  const lues = await betesSauvagesDUneCase(base, caseId, new Date(instant.getTime() - vueProlongee), new Date(instant.getTime() + 1));
+  const bete = lues.find((b) => b.numero === numero);
+  if (!bete || bete.arrivee > instant || finDeVue(bete, vueProlongee) <= instant.getTime()) return false;
   const { rowCount } = await base.query("insert into bete_partie (case_id, numero, partie_le) values ($1, $2, $3) on conflict do nothing", [caseId, numero, instant]);
   return rowCount === 1;
 }
