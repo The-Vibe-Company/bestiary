@@ -1,0 +1,35 @@
+src/monde/naissances.db.test.ts
+  s_7c7d151152e4a5::t_9fefcc87b4154a 1-187
+src/app/jeu/recits/lecture-du-recit.test.ts
+  s_7c7d151152e4a5::t_9ba5a4ac322a00 56-57,67
+src/app/jeu/recits/lecture-du-recit.ts
+  s_7c7d151152e4a5::t_4bd8d2a9e87024 6,25,31-32
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_91d1fcb015a2cf 269-270,272-278,281,283
+src/monde/lancer-un-elevage.db.test.ts
+  s_7c7d151152e4a5::t_68cb86c1ee0bd9 240-245
+src/monde/naissances.ts
+  s_7c7d151152e4a5::t_a0d149c50e1e62 1-58
+src/monde/recit-d-elevage.test.ts
+  s_7c7d151152e4a5::t_6ab1f7202d98a8 1-16
+src/monde/recit-d-elevage.ts
+  s_7c7d151152e4a5::t_3b48386d9f3d33 1-17
+src/temps/regles.ts
+  s_7c7d151152e4a5::t_e53c7312ee0af8 8,15,34-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "179472628ebe7ded7d346855914877865a3e92f4",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
