@@ -254,6 +254,14 @@ describe("confirmer le départ (US-0911)", () => {
     ]);
   });
 
+  it("envoie l'explorateur qui part d'emblée quand l'adresse n'en dit rien", async () => {
+    const joueur = userEvent.setup();
+    actions.partir.mockResolvedValue({ refus: null });
+    ouvrir("?sejour=240");
+    await joueur.click(partir());
+    expect(envoye().filter(([nom]) => nom === "explorateurs")).toEqual([["explorateurs", "1"]]);
+  });
+
   it("n'envoie aucune Bête sans escorte (US-0909)", async () => {
     const joueur = userEvent.setup();
     ouvrir("?explorateurs=1&escorte=souris.0");
