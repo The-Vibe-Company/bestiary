@@ -161,7 +161,8 @@ describe("une présence limitée dans le temps (US-0926)", () => {
     expect(presentes(new Date(instant.getTime() - 1), parties)).toContain(suivie.numero);
     expect(presentes(instant, parties)).not.toContain(suivie.numero);
     expect(betesSauvages(LA_CASE, instant, apres(60 * JOUR), ESPECES, { parties }).map((b) => b.numero)).not.toContain(suivie.numero);
-    expect(betesSauvages(LA_CASE, DEBUT, apres(30 * JOUR), ESPECES, { parties })).toEqual(betes.map((b) => (b === suivie ? { ...b, depart: instant } : b)));
+    // US-0970 : elle garde l'instant où elle a suivi l'Expédition, au-delà duquel nul ne la garde en vue.
+    expect(betesSauvages(LA_CASE, DEBUT, apres(30 * JOUR), ESPECES, { parties })).toEqual(betes.map((b) => (b === suivie ? { ...b, depart: instant, emmeneeLe: instant } : b)));
   });
 });
 

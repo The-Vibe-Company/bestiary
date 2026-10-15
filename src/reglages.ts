@@ -410,3 +410,11 @@ export const GUERISON_DES_BLESSES_SOIGNES_HEURES = 12;
  */
 export const BROUILLARD_LEVE_PAR_ECLAIREUR_CASES = 1;
 export const BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES = 2;
+
+/**
+ * US-0970 : chaque Éclaireur d'une Expédition (US-0976) lui garde en vue les Bêtes de sa Case 20 minutes de jeu de plus
+ * qu'elles n'y restent (valeur provisoire, à régler en jouant), jusqu'à 2 heures quel que soit leur nombre (valeur
+ * provisoire, à régler en jouant) : l'Expédition peut encore les y rencontrer, et les emmener ; src/expeditions/vue-des-eclaireurs.ts.
+ */
+export const MINUTES_DE_VUE_PAR_ECLAIREUR = 20;
+export const MINUTES_DE_VUE_AU_PLUS = 120;
