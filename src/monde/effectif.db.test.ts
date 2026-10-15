@@ -67,7 +67,7 @@ describe.skipIf(!URL_TEST)("les Bêtes disponibles pour l'escorte (US-0904, sur 
     // Ni le pigeon ni les souris d'un autre Territoire ; de la plus commune à la plus rare, puis par nom.
     expect(await betesDisponibles(pool, t)).toEqual([
       { id: "poule", nom: "Poule", illustration: "especes/poule.webp", disponibles: 1, force: 9457, vitesse: 14, males: 0, femelles: 1, coupleReuni: false, seule: "femelle" },
-      { id: "souris", nom: "Souris grise", illustration: "especes/souris.webp", disponibles: 3, force: 473, vitesse: 13, males: 2, femelles: 1, coupleReuni: false, seule: "femelle" },
+      { id: "souris", nom: "Souris grise", illustration: "especes/souris.webp", disponibles: 3, force: 473, vitesse: 13, males: 2, femelles: 1, coupleReuni: false },
     ]);
   });
 
@@ -188,6 +188,33 @@ describe.skipIf(!URL_TEST)("les Bêtes disponibles pour l'escorte (US-0904, sur 
       ["souris", "male"],
     ]);
     expect((await betesDisponibles(pool, voisin)).map((e) => [e.id, e.seule])).toEqual([["pigeon", undefined]]);
+  });
+
+  it("ne dit rien d'une seule Bête Blessée au Foyer, qu'elle soit d'un sexe connu ou non : elle n'est pas valide, ou son sexe ne se sait pas (US-0961)", async () => {
+    const t = (await nouveauTerritoire()).territoireId;
+    // Le joueur ne possède qu'un mâle de poule et qu'une Bête de pigeon, chacun rentré Blessé à l'instant d'une escorte :
+    // celle de la poule a retenu son sexe (un mâle, US-0960), celle du pigeon non (partie avant US-0960).
+    await ajouter(t, [
+      ["poule", "male", 1],
+      ["pigeon", "male", 1],
+    ]);
+    const { rows } = await pool.query<{ id: number }>(
+      `insert into expedition (territoire_id, case_id, part_le, trajet_minutes, sejour_minutes, rentree_le)
+       select $1, c.id, now() - interval '3 hours', 30, 60, now() - interval '1 hour'
+       from case_du_monde c where c.monde_id = $2 and c.chef_id is null order by c.id limit 1 returning id`,
+      [t, mondeId],
+    );
+    await pool.query(
+      `insert into expedition_escorte (expedition_id, espece_id, nombre, males, perdues, blessees)
+       values ($1, 'poule', 1, 1, 1, 1), ($1, 'pigeon', 1, null, 1, 1)`,
+      [rows[0].id],
+    );
+    const especes = await betesDisponibles(pool, t);
+    // Tous deux Blessés, aucun disponible : l'escorte ne les emmènerait pas, rien à signaler.
+    expect(especes.map((e) => [e.id, e.disponibles, e.blesses, e.seule])).toEqual([
+      ["pigeon", 0, 1, undefined],
+      ["poule", 0, 1, undefined],
+    ]);
   });
 
   it("refuse un nombre de Bêtes négatif, un sexe inconnu, une Espèce inconnue, et deux lignes pour la même Espèce et le même sexe", async () => {

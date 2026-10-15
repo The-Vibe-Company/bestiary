@@ -429,6 +429,23 @@ describe("prévenir avant de risquer une Bête précieuse (US-0961)", () => {
     ouvrir("?explorateurs=1&escorte=poule.1", { especes: [POULE, SOURIS] });
     expect(alertes()).toEqual([]);
   });
+
+  it("prévient pour chacune quand l'escorte emmène plusieurs Bêtes précieuses, dans l'ordre des Espèces", () => {
+    ouvrir("?explorateurs=1&escorte=pigeon.1&escorte=poule.1", { especes: [POULE_SEULE, PIGEON_SEUL, SOURIS] });
+    expect(alertes()).toEqual(["Seule femelle de Poule : sans elle, pas de Couple.", "Seul mâle de Pigeon biset : sans lui, pas de Couple."]);
+  });
+
+  it("élide « de » devant une voyelle : « d'Écureuil roux »", () => {
+    const ecureuil: EspeceDisponible = { ...POULE_SEULE, id: "ecureuil", nom: "Écureuil roux", illustration: null };
+    ouvrir("?explorateurs=1&escorte=ecureuil.1", { especes: [ecureuil, SOURIS] });
+    expect(alertes()).toEqual(["Seule femelle d'Écureuil roux : sans elle, pas de Couple."]);
+  });
+
+  it("ne dit rien pour une Éclaireuse partie en Éclaireur : elle ne combat pas (US-0976)", () => {
+    const eclaireuse: EspeceDisponible = { ...PIGEON_SEUL, eclaireuse: true };
+    ouvrir("?explorateurs=1&eclaireurs=pigeon.1", { especes: [eclaireuse, SOURIS] });
+    expect(alertes()).toEqual([]);
+  });
 });
 
 describe("le récapitulatif sur un téléphone (US-0910)", () => {

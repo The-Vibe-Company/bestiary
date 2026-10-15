@@ -31,9 +31,15 @@ const AUCUNE = "—";
 /** « Souris grise × 3 » : une Espèce de l'escorte et ses Bêtes qui partent, que le nombre ne quitte jamais (espaces insécables). */
 const uneEspece = (nom: string, nombre: number) => `${nom} × ${nombre}`;
 
+/**
+ * « de Poule », « d'Écureuil roux » : élidé devant une voyelle seulement ; devant un h, aspiré pour bien des Espèces
+ * (Hérisson, Hibou), le « de » reste entier.
+ */
+const de = (nom: string) => (/^[aeiouyàâäéèêëîïôöùûüœæ]/i.test(nom) ? `d'${nom}` : `de ${nom}`);
+
 /** US-0961 : « Seule femelle de Poule : sans elle, pas de Couple. », pour la seule Bête d'un sexe qu'emmène l'escorte. */
 const seuleDeSonSexe = ({ nom, seule }: Pick<EspeceDisponible, "nom" | "seule">) =>
-  seule === "male" ? `Seul mâle de ${nom} : sans lui, pas de Couple.` : `Seule femelle de ${nom} : sans elle, pas de Couple.`;
+  seule === "male" ? `Seul mâle ${de(nom)} : sans lui, pas de Couple.` : `Seule femelle ${de(nom)} : sans elle, pas de Couple.`;
 
 /**
  * US-0910 : la destination choisie, telle que le récapitulatif la montre : son Biome (null sous le brouillard) et sa

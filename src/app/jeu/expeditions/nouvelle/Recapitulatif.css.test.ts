@@ -38,6 +38,17 @@ describe("le récapitulatif sur un téléphone (US-0910)", () => {
     expect(regle(".deplier", RECAP)).toContain("display: none;");
   });
 
+  it("garde en vue, replié, l'avertissement d'une Bête précieuse sur sa propre rangée, en braise, sans couper « Attention » (US-0961)", () => {
+    // Sur toute la largeur du quai, sous son étiquette, plutôt qu'à côté : la phrase ne se tasse pas en colonne.
+    expect(regle(".recap:not(.deplie):has([data-alerte]) .defilant", mobile)).toContain("flex-basis: 100%;");
+    // Le libellé ne se coupe pas ; « Retour prévu », lui, garde sa ligne comme avant, sans tasser l'heure.
+    expect(regle(".retourPrevu [data-alerte] dt", RECAP)).toContain("flex: none;");
+    expect(RECAP).not.toMatch(/(?:^|\n)\.retourPrevu dt \{[^}]*flex: none/);
+    expect(regle(".retourPrevu [data-partie] dd,\n.retourPrevu [data-alerte] dd", RECAP)).toContain("color: var(--braise);");
+    // Le quai replié s'allonge à chaque avertissement : ce que le clavier atteint ne passe pas dessous.
+    expect(regle(":global(html):has(.recap [data-alerte] ~ [data-alerte])", mobile)).toContain("224px");
+  });
+
   it("tient sans défilement de côté : rien n'y a de largeur fixe plus grande que l'écran, ses lignes dans la largeur qui reste", () => {
     expect(RECAP).not.toMatch(/(?:^|[^-])width: \d{3,}px/);
     expect(regle(".lignes", RECAP)).toContain("grid-template-columns: auto minmax(0, 1fr);");

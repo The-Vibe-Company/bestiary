@@ -192,7 +192,8 @@ const VALIDES_DU_SEXE = (sexe: "males" | "femelles") => `(greatest(x.${sexe}_au_
  * US-0961 : tant que son Couple n'est pas réuni, une Espèce n'a au Foyer que des Bêtes d'un seul sexe (un mâle et une
  * femelle au Foyer le réunissent aussitôt, src/monde/couple.ts), et c'est ce sexe que l'escorte emmène (src/expeditions/
  * depart.ts) : quand le joueur ne possède qu'une Bête de ce sexe, au Foyer et valide, `seule` le dit, pour que le
- * récapitulatif prévienne avant de la risquer. Rien quand le sexe des Bêtes au Foyer ne se sait pas (validesParSexe).
+ * récapitulatif prévienne avant de la risquer. Rien quand le sexe des Bêtes au Foyer ne se sait pas (validesParSexe), ni
+ * quand les deux sexes y sont valides : l'escorte n'emmènerait pas forcément celle-là.
  */
 export async function betesDisponibles(base: Pool | PoolClient, territoireId: number, instant: Date = maintenant()): Promise<EspeceDisponible[]> {
   const [normale, soignee] = dureesDeGuerison();
@@ -200,7 +201,7 @@ export async function betesDisponibles(base: Pool | PoolClient, territoireId: nu
     `select es.id, es.nom, es.illustration, v.valides - v.affectees as disponibles, x.blesses, v.affectees,
        es.attaque, es.vie, es.vitesse, x.males, x.femelles, x."coupleReuni", es.role_id = 'eclaireur' as eclaireuse,
        case when not x."coupleReuni" and x.sorties_sans_sexe = 0 and x.blesses_sans_sexe = 0 then
-         case when x.males = 1 and s.males = 1 then 'male' when x.femelles = 1 and s.femelles = 1 then 'femelle' end
+         case when x.males = 1 and s.males = 1 and s.femelles = 0 then 'male' when x.femelles = 1 and s.femelles = 1 and s.males = 0 then 'femelle' end
        end as seule
      from (${AU_FOYER}) x
      cross join lateral (select x.au_foyer - x.blesses as valides) w
