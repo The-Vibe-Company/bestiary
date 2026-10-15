@@ -294,6 +294,44 @@ describe.skipIf(!URL_TEST)("affecter une Bête à son Rôle (US-0837, sur base)"
     expect(await lus(t)).toEqual({ poule: { role: NOURRICIER, affectees, valides: 4 - parties } });
   });
 
+  it("« − » retire une Bête de son Rôle : au même instant, elle n'est plus affectée et peut partir en escorte (US-0841)", async () => {
+    const t = await naitre();
+    await ajouter(t, [["poule", "femelle", 4]]);
+    expect(await plus(t, "poule", 4)).toEqual([true, true, true, true]);
+    expect(await escorte(t)).toEqual({ disponibles: 0, affectees: 4 });
+    expect(await partir(t, 1)).toEqual({ refus: BETE_PLUS_DISPONIBLE });
+    expect(await moins(t, "poule", 1)).toEqual([true]);
+    // Retirée, elle cesse aussitôt de remplir son Rôle, et redevient une Bête de l'effectif comme une autre.
+    expect(await lus(t)).toEqual({ poule: { role: NOURRICIER, affectees: 3, valides: 4 } });
+    expect(await escorte(t)).toEqual({ disponibles: 1, affectees: 3 });
+    expect(await partir(t, 1)).toEqual({ expeditionId: expect.any(Number) });
+    expect(await lus(t)).toEqual({ poule: { role: NOURRICIER, affectees: 3, valides: 3 } });
+  });
+
+  it("affecter et retirer sont gratuits et immédiats, autant de fois qu'on veut (US-0841)", async () => {
+    const t = await naitre();
+    await ajouter(t, [["poule", "femelle", 3]]);
+    /** Ce qu'affecter ou retirer pourrait coûter ou changer : les Stocks, l'effectif, les Places et l'heure du Territoire. */
+    const etat = async () => ({
+      stocks: (await pool.query("select ressource_id, quantite from stock where territoire_id = $1 order by ressource_id", [t])).rows,
+      effectif: (await pool.query("select espece_id, sexe, nombre from effectif where territoire_id = $1 order by espece_id, sexe", [t])).rows,
+      places: await placesDeLHabitat(pool, t),
+      marquePage: (await pool.query("select calcule_jusqu_a from territoire where id = $1", [t])).rows[0],
+    });
+    // Des Stocks pleins : un coût, s'il y en avait un, s'y lirait.
+    expect((await pool.query("update stock set quantite = 500 where territoire_id = $1", [t])).rowCount).toBeGreaterThan(0);
+    const avant = await etat();
+    // Vingt allers-retours au même instant du jeu : chacun passe, aucun n'attend ni ne coûte rien.
+    for (let tour = 0; tour < 20; tour++) {
+      expect(await plus(t, "poule", 3)).toEqual([true, true, true]);
+      expect(await moins(t, "poule", 2)).toEqual([true, true]);
+      expect(await lus(t)).toEqual({ poule: { role: NOURRICIER, affectees: 1, valides: 3 } });
+      expect(await moins(t, "poule", 1)).toEqual([true]);
+    }
+    expect(await lus(t)).toEqual({ poule: { role: NOURRICIER, affectees: 0, valides: 3 } });
+    expect(await etat()).toEqual(avant);
+  });
+
   it("des « + » envoyés au même instant n'affectent jamais plus de Bêtes qu'il n'y en a de valides", async () => {
     const t = await naitre();
     await ajouter(t, [["poule", "femelle", 3]]);

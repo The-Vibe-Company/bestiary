@@ -97,6 +97,11 @@ section.recap {
   justify-content: space-between;
 }
 
+/* US-0961 : « Attention » ne se coupe jamais : c'est la phrase, à droite, qui passe à la ligne. */
+.retourPrevu [data-alerte] dt {
+  flex: none;
+}
+
 .retourPrevu dd {
   margin: 0;
   color: var(--cuivre-clair);
@@ -104,12 +109,15 @@ section.recap {
   font-variant-numeric: tabular-nums;
 }
 
-/* US-0949 : une Bête repérée qui ne sera plus là à l'arrivée, en braise, au-dessus du retour prévu. */
-.retourPrevu [data-partie] {
+/* US-0949 : une Bête repérée qui ne sera plus là à l'arrivée, en braise, au-dessus du retour prévu. US-0961 : de même, la
+   seule Bête d'un sexe d'une Espèce sans Couple, emmenée en escorte. */
+.retourPrevu [data-partie],
+.retourPrevu [data-alerte] {
   margin-bottom: 9px;
 }
 
-.retourPrevu [data-partie] dd {
+.retourPrevu [data-partie] dd,
+.retourPrevu [data-alerte] dd {
   color: var(--braise);
   font-size: 14px;
   line-height: 1.25;
@@ -193,6 +201,15 @@ section.recap {
     scroll-padding-bottom: calc(var(--hauteur-onglets) + var(--bord-bas) + 176px);
   }
 
+  /* US-0961 : chaque avertissement au-delà du premier allonge le quai replié d'une quarantaine de pixels. */
+  :global(html):has(.recap [data-alerte] ~ [data-alerte]) {
+    scroll-padding-bottom: calc(var(--hauteur-onglets) + var(--bord-bas) + 224px);
+  }
+
+  :global(html):has(.recap [data-alerte] ~ [data-alerte] ~ [data-alerte]) {
+    scroll-padding-bottom: calc(var(--hauteur-onglets) + var(--bord-bas) + 272px);
+  }
+
   .deplier {
     position: absolute;
     top: 0;
@@ -253,6 +270,12 @@ section.recap {
 
   .recap:not(.deplie) .defilant {
     flex: 1 1 0;
+  }
+
+  /* US-0961 : un avertissement à lire ne tient pas à côté de l'étiquette : le quai le montre sur sa propre rangée. */
+  .recap:not(.deplie):has([data-alerte]) .defilant {
+    flex-basis: 100%;
+    margin-top: 6px;
   }
 
   /* L'heure de retour prévue, à côté de l'étiquette, laisse sa place au bouton. */
