@@ -82,6 +82,18 @@ describe("la lecture d'un Récit sur la page Récits", () => {
     ).toEqual(["combat", "combat", "pertes", "pertes", "fuite", "ailleurs", "ailleurs", "ailleurs", null, null]);
   });
 
+  it("garde en fait simple la ligne des Éclaireurs, sans la prendre pour une autre (US-0972)", () => {
+    const eclaireurs = "Éclaireurs : Pigeon biset\u00a0×\u00a01 ; en escorte : Pigeon biset\u00a0×\u00a02.";
+    expect(sorteDUnFait(eclaireurs)).toBeNull();
+    expect(
+      lireUnRetour(`Destination : Montagne, à 3 Cases de votre Foyer.\nAller 1 h, séjour 1 h, retour 1 h.\n${eclaireurs}\nUne Case est sortie du brouillard.`),
+    ).toEqual({
+      faits: ["Destination : Montagne, à 3 Cases de votre Foyer.", eclaireurs, "Une Case est sortie du brouillard."],
+      durees: { aller: 60, sejour: 60, retour: 60 },
+      biome: "Montagne",
+    });
+  });
+
   it("marque comme des pertes l'escorte perdue tout entière (US-0946)", () => {
     expect(sorteDUnFait("Toute votre escorte a été perdue au combat : Poule (1 Blessé) et Souris grise (1 mort, 1 Blessé).")).toBe("pertes");
   });
