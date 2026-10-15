@@ -301,12 +301,15 @@ describe.skipIf(!URL_TEST)("chaque Expédition présente voit la Bête (US-0962,
   });
 
   it("le récit n'en dit rien sans un instant de séjour en commun avec l'Expédition d'un autre joueur, ni pour une autre du même joueur ; un seul instant suffit", async () => {
-    // Une heure après le départ de la Bête de l'essai : la suivante n'arrive pas avant CALME après elle, et la Case reste
-    // vide pendant tous les séjours. Aucune Bête n'y attaque ces Expéditions sans escorte, qui fuiraient (US-0945) : leurs
-    // séjours, et donc leurs récits, ne dépendent que de leurs horaires.
-    const t0 = apres(bete.depart, HEURE);
-    expect(apres(t0, 4 * HEURE) <= apres(bete.arrivee, CALME)).toBe(true);
-    expect((await betesSauvagesDesCases(pool, [caseId], apres(t0, -TRAJET), apres(t0, 4 * HEURE))).get(caseId)).toEqual([]);
+    // Peu après la naissance des chefs, que leurs Territoires se rattrapent vite, un moment où la Case reste vide de leur
+    // premier départ à leur dernier retour : aucune Bête n'y attaque ces Expéditions sans escorte, qui fuiraient (US-0945).
+    // Leurs séjours, et donc leurs récits, ne dépendent que de leurs horaires.
+    const [debut, limite] = [apres(ne, 2 * HEURE), apres(ne, 2 * JOUR)];
+    const presentes = (await betesSauvagesDesCases(pool, [caseId], apres(debut, -TRAJET), apres(limite, 4 * HEURE))).get(caseId)!;
+    const vide = (t: Date) => presentes.every((b) => b.depart <= apres(t, -TRAJET) || b.arrivee >= apres(t, 4 * HEURE));
+    let t0 = debut;
+    while (t0 < limite && !vide(t0)) t0 = apres(t0, 30);
+    expect((await betesSauvagesDesCases(pool, [caseId], apres(t0, -TRAJET), apres(t0, 4 * HEURE))).get(caseId), "aucun moment calme sur la Case").toEqual([]);
     /**
      * Deux Expéditions de A sur la Case, l'une de deux heures, l'autre arrivée une heure après elle et partie en même
      * temps ; une de B, arrivée `decalage` minutes avant leur départ : ce que dit le récit de chacune.
