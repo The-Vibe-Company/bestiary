@@ -23,7 +23,8 @@ class Refus extends Error {}
  * régime de l'Espèce (US-0813). L'éleveur, le premier libre par prénom, est pris d'une seule requête qui relit qu'il est
  * toujours éleveur et libre, et part à l'Élevage (habitant.espece_elevee) ; le coût total (US-0814) part aussitôt des
  * Stocks, sur le plus fourni d'abord pour un omnivore, puis sur l'autre ; l'Élevage est retenu, avec sa quantité, la
- * durée d'une Bête et ce qu'il a coûté, à l'heure du clic. Les naissances viendront avec US-0817.
+ * durée d'une Bête et ce qu'il a coûté, à l'heure du clic (US-0817 : jamais avant l'instant jusqu'où le temps du
+ * Territoire est calculé, qu'un rattrapage passé juste avant a pu porter au-delà du clic ; ses naissances, src/monde/naissances.ts).
  *
  * Tout tient dans une transaction : un lancement refusé ne retient rien et ne fait rien payer. Le Territoire y est tenu
  * d'abord, comme pour le départ d'une Expédition (US-0911) : deux lancements envoyés au même instant (un double clic)
@@ -33,8 +34,16 @@ export async function lancerUnElevage(pool: Pool, territoireId: number, especeId
   const client = await pool.connect();
   try {
     await client.query("begin");
-    await client.query("select 1 from territoire where id = $1 for no key update", [territoireId]);
-    const lance = await lancer(client, territoireId, especeId, quantite, instant);
+    // US-0817 : le Territoire tenu, et l'instant jusqu'où son temps est calculé, à la milliseconde supérieure : un Élevage ne
+    // démarre jamais avant, sans quoi ses premières naissances tomberaient dans un temps déjà passé.
+    const { rows } = await client.query<{ calcule: Date }>(
+      `select date_trunc('milliseconds', calcule_jusqu_a)
+         + case when calcule_jusqu_a > date_trunc('milliseconds', calcule_jusqu_a) then interval '1 millisecond' else interval '0' end as calcule
+       from territoire where id = $1 for no key update`,
+      [territoireId],
+    );
+    const depart = rows[0] && rows[0].calcule.getTime() > instant.getTime() ? rows[0].calcule : instant;
+    const lance = await lancer(client, territoireId, especeId, quantite, depart);
     await client.query("commit");
     return { lance };
   } catch (erreur) {
