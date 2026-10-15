@@ -1,0 +1,29 @@
+src/app/page.css.test.ts
+  s_7c7d151152e4a5::t_22e74602a6d50d 1-27
+src/app/page.module.css
+  s_4ce34ec42d9105::t_8e5f1f42a366a3 5-7,12-13,16,19,24-28,33-34,129-132,134,204-209
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3787edf08fb2d8c02e4372047b54a1a72e5cf2de",
+  "prompts": {},
+  "sessions": {
+    "s_4ce34ec42d9105": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "986afa6c-8f0b-494f-9694-d93f52c5ef9e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
