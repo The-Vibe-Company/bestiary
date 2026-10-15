@@ -39,3 +39,14 @@ describe("choisir la quantité (US-0813)", () => {
     expect(ELEVER).not.toMatch(/oklch|#[0-9a-f]{3,8}\b|rgb\(/i);
   });
 });
+
+describe("suivre l'Élevage en cours (US-0818)", () => {
+  it("montre où va la main au lancement, et garde le décompte immobile en chiffres alignés", () => {
+    expect(regle(".suivi:focus-visible", ELEVER)).toContain("outline: 2px solid var(--cuivre-clair);");
+    expect(regle(".chiffres dd", ELEVER)).toContain("font-variant-numeric: tabular-nums;");
+  });
+
+  it("ne dit l'Élevage lancé qu'aux lecteurs d'écran : le suivi le montre", () => {
+    expect(regle(".lance", ELEVER)).toMatch(/position: absolute;[^}]*clip-path: inset\(50%\);/);
+  });
+});

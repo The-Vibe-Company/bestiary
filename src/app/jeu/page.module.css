@@ -2,8 +2,9 @@
  * L'écran du Foyer, l'une des deux scènes pleines du jeu (foyer-1280.png, foyer-390.png). La hutte du chef peinte prend
  * tout l'écran sous la barre du haut, assombrie vers la gauche où se pose la colonne, et un peu en haut et en bas. Dans la
  * colonne, de haut en bas : « Foyer · prairie » en grand, en Marcellus, le Biome en cuivre ; les écriteaux de verre de ce
- * qui attend le chef ; le panneau de verre de sa production, puis celui des Bêtes (US-0810). Sur un téléphone, la hutte
- * en tête de la page, le titre posé sur son pied, puis la colonne sur toute la largeur.
+ * qui attend le chef ; le panneau de verre de sa production, puis celui des Bêtes (US-0810), celui des Élevages
+ * (US-0818). Sur un téléphone, la hutte en tête de la page, le titre posé sur son pied, puis la colonne sur toute la
+ * largeur.
  */
 .page {
   display: flex;
@@ -249,6 +250,84 @@
   .lienBetes:hover .flecheBetes {
     transform: translateX(2px);
   }
+}
+
+/*
+ * US-0818 : le bloc « Élevages », sous les Bêtes : un panneau de verre, chaque Élevage en cours sur sa ligne, qui mène à
+ * la fiche de son Espèce : le médaillon de sa peinture, son nom, son éleveur et le temps avant la prochaine Bête en
+ * dessous, en mousse ; à droite, les Bêtes nées sur la quantité. Un filet entre les lignes, comme la production.
+ */
+.page .elevages {
+  order: 3;
+  padding: 16px 18px 8px;
+}
+
+.elevages h2 {
+  margin-bottom: 4px;
+}
+
+.listeElevages {
+  display: grid;
+  padding: 0;
+  list-style: none;
+}
+
+.ligneElevage {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--filet-cuivre-doux);
+  color: inherit;
+  text-decoration: none;
+}
+
+.listeElevages li:last-child .ligneElevage {
+  border-bottom: 0;
+}
+
+.ligneElevage:focus-visible {
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: 2px;
+}
+
+.especeElevee {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.nomElevage {
+  color: var(--parchemin);
+  font: var(--graisse-moyenne) 14.5px / 1 var(--police);
+  transition: color 0.15s;
+}
+
+@media (hover: hover) {
+  .ligneElevage:hover .nomElevage {
+    color: var(--creme);
+  }
+}
+
+.detailElevage {
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 12.5px / 1.2 var(--police);
+  font-variant-numeric: tabular-nums;
+}
+
+.neesElevage {
+  color: var(--creme);
+  font: var(--graisse-titre) 16px / 1 var(--police);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Sans Élevage en cours, la phrase en mousse. */
+.aucunElevage {
+  padding-bottom: 8px;
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 13.5px / 1.35 var(--police);
 }
 
 /* Sur une tablette et un téléphone : la hutte en tête de la page, le titre posé sur son pied, la colonne en dessous. */

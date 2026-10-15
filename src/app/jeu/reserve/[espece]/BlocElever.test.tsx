@@ -8,6 +8,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 type Etat = { refus: string | null; lance?: { quantite: number; eleveur: string } };
 const actions = vi.hoisted(() => ({ elever: vi.fn<(avant: Etat, formulaire: FormData) => Promise<Etat>>(async () => ({ refus: null })) }));
 vi.mock("./actions", () => actions);
+// US-0818 : la page relue après chaque naissance d'un Élevage en cours.
+const routeur = vi.hoisted(() => ({ refresh: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => routeur }));
 
 import { BlocElever } from "./BlocElever";
 
@@ -329,9 +332,8 @@ describe("lancer l'Élevage (US-0815)", () => {
     await u.type(champ(), "3");
     await u.click(boutonElever());
     const dit = await within(bloc()).findByText("Élevage lancé : 3 Bêtes, confié à Brune.");
-    // Dit aux lecteurs d'écran dans une région toujours là, où va la main, le bouton s'étant grisé.
+    // Dit aux lecteurs d'écran dans une région toujours là ; la page relue montre l'Élevage en cours (US-0818).
     expect(dit.getAttribute("role")).toBe("status");
-    expect(document.activeElement).toBe(dit);
     const envoye = actions.elever.mock.lastCall![1];
     expect([envoye.get("espece"), envoye.get("quantite")]).toEqual(["poule", "3"]);
   });
@@ -488,5 +490,112 @@ describe("refuser un Élevage faute de Nourriture (US-0816)", () => {
     render(<BlocElever especeId="poule" places={PLACES} nourriture={stocks(839.9999999999999)} eleveur="Brune" elevage={POULE_ELEVEE} maintenant={MAINTENANT} />);
     expect(manque()).toBeNull();
     expect(boutonElever().disabled).toBe(false);
+  });
+});
+
+describe("suivre l'Élevage en cours (US-0818)", () => {
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+    actions.elever.mockReset();
+    routeur.refresh.mockReset();
+  });
+
+  const MINUTE = 60_000;
+  /**
+   * Trois poules confiées à Hael, lancées 500 minutes avant l'ouverture de la fiche (une poule toutes les 474 minutes) :
+   * la première est née, la deuxième naît 448 minutes après l'ouverture (7 h 28), la dernière 922 minutes après, le
+   * 14 octobre à 03:22 à Paris.
+   */
+  const POULES = { especeId: "poule", espece: "Poule", illustration: null, eleveur: "Hael", quantite: 3, lanceLe: new Date(MAINTENANT.getTime() - 500 * MINUTE), dureeMinutes: 474 };
+  const bloc = () => screen.getByRole("heading", { name: "Élever" }).closest("section")!;
+  /** L'Élevage en cours, sous son titre. */
+  const suivi = () => screen.getByRole("region", { name: "Élevage en cours" });
+  /** La valeur de la ligne `libelle` de l'Élevage en cours. */
+  const valeur = (libelle: string) => within(suivi()).getByText(libelle).nextElementSibling?.textContent;
+
+  it("montre l'Élevage en cours de l'Espèce à la place de la quantité et du bouton : son éleveur, les Bêtes nées sur la quantité, le temps avant la prochaine et l'heure de la dernière", () => {
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur="Brune" elevage={POULE_ELEVEE} elevageEnCours={POULES} maintenant={MAINTENANT} />);
+    expect(bloc().textContent).toBe("ÉleverPlaces : 21 / 500Élevage en coursÉleveurHaelBêtes nées1 / 3Prochaine Bêtedans 7 h 28Dernière Bête14 octobre à 03:22");
+    expect(within(bloc()).queryByRole("button")).toBeNull();
+    expect(within(bloc()).queryByLabelText("Quantité")).toBeNull();
+  });
+
+  it("ne dit plus « Aucun éleveur libre. » quand l'éleveur est pris par l'Élevage en cours", () => {
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevageEnCours={POULES} maintenant={MAINTENANT} />);
+    expect(bloc().textContent).not.toContain("Aucun éleveur libre.");
+    expect(valeur("Éleveur")).toBe("Hael");
+  });
+
+  it("dit « Aucun » quand l'éleveur de l'Élevage n'est plus là", () => {
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevageEnCours={{ ...POULES, eleveur: null }} maintenant={MAINTENANT} />);
+    expect(valeur("Éleveur")).toBe("Aucun");
+  });
+
+  it("fait avancer le décompte et les naissances sans recharger, au rythme du jeu, et dit la même chose une fois la page relue", async () => {
+    vi.useFakeTimers();
+    const { rerender } = render(
+      <BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevageEnCours={POULES} maintenant={MAINTENANT} vitesse={60} />,
+    );
+    // Une minute réelle, une heure de jeu.
+    await act(async () => vi.advanceTimersByTime(60_000));
+    expect(valeur("Prochaine Bête")).toBe("dans 6 h 28");
+    expect(valeur("Bêtes nées")).toBe("1 / 3");
+    // La deuxième poule naît : la suivante est attendue dans 7 h 54.
+    await act(async () => vi.advanceTimersByTime(388_000));
+    expect(valeur("Bêtes nées")).toBe("2 / 3");
+    expect(valeur("Prochaine Bête")).toBe("dans 7 h 54");
+    expect(valeur("Dernière Bête")).toBe("14 octobre à 03:22");
+    // La page relue à la même heure du jeu, ou ouverte ailleurs : le même Élevage, au même point.
+    rerender(
+      <BlocElever
+        especeId="poule"
+        places={PLACES}
+        nourriture={NOURRITURE}
+        eleveur={null}
+        elevage={POULE_ELEVEE}
+        elevageEnCours={POULES}
+        maintenant={new Date(MAINTENANT.getTime() + 448 * MINUTE)}
+        vitesse={60}
+      />,
+    );
+    expect([valeur("Bêtes nées"), valeur("Prochaine Bête"), valeur("Dernière Bête")]).toEqual(["2 / 3", "dans 7 h 54", "14 octobre à 03:22"]);
+  });
+
+  it("une fois la dernière née, n'attend plus de Bête, le temps que la page relue rende le bloc", async () => {
+    vi.useFakeTimers();
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevageEnCours={POULES} maintenant={MAINTENANT} vitesse={60} />);
+    await act(async () => vi.advanceTimersByTime(922_000));
+    expect([valeur("Bêtes nées"), valeur("Prochaine Bête")]).toEqual(["3 / 3", "—"]);
+  });
+
+  it("relit la page une seconde réelle après chaque naissance, pour l'effectif, les Places, et l'éleveur libre à la fin", async () => {
+    vi.useFakeTimers();
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevageEnCours={POULES} maintenant={MAINTENANT} vitesse={60} />);
+    // La deuxième poule naît 448 minutes de jeu après l'ouverture : 448 secondes réelles.
+    await act(async () => vi.advanceTimersByTime(448_999));
+    expect(routeur.refresh).not.toHaveBeenCalled();
+    await act(async () => vi.advanceTimersByTime(1));
+    expect(routeur.refresh).toHaveBeenCalledOnce();
+  });
+
+  it("ne relit rien sans Élevage en cours", async () => {
+    vi.useFakeTimers();
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur="Brune" elevage={POULE_ELEVEE} maintenant={MAINTENANT} vitesse={60} />);
+    await act(async () => vi.advanceTimersByTime(24 * 60 * MINUTE));
+    expect(routeur.refresh).not.toHaveBeenCalled();
+  });
+
+  it("une fois l'Élevage lancé, la page relue le montre en cours, la main y va, et les lecteurs d'écran l'entendent", async () => {
+    const u = userEvent.setup();
+    actions.elever.mockResolvedValue({ refus: null, lance: { quantite: 3, eleveur: "Hael" } });
+    const { rerender } = render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur="Hael" elevage={POULE_ELEVEE} maintenant={MAINTENANT} />);
+    await u.click(within(bloc()).getByRole("button", { name: "Élever" }));
+    await within(bloc()).findByText("Élevage lancé : 3 Bêtes, confié à Hael.");
+    // La page relue par l'action : Hael n'est plus libre, l'Élevage est en cours.
+    rerender(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevageEnCours={{ ...POULES, lanceLe: MAINTENANT }} maintenant={MAINTENANT} />);
+    expect(document.activeElement).toBe(suivi());
+    expect(within(bloc()).getAllByRole("status").find((r) => r.tagName === "P")?.textContent).toBe("Élevage lancé : 3 Bêtes, confié à Hael.");
+    expect(valeur("Bêtes nées")).toBe("0 / 3");
   });
 });
