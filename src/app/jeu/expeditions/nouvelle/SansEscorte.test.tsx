@@ -59,7 +59,10 @@ describe("partir sans escorte (US-0909)", () => {
 
   it("laisse partir au moins un explorateur sans aucune Bête : « Partir » se dégrise, sans rien réclamer d'autre", async () => {
     const joueur = userEvent.setup();
+    // Le joueur est revenu à zéro explorateur : un explorateur suffit, sans Bête.
+    window.history.replaceState(null, "", "/jeu/expeditions/nouvelle?explorateurs=0");
     ecran();
+    expect(partir().disabled).toBe(true);
     await joueur.click(screen.getByRole("button", { name: "Un explorateur de plus" }));
     expect(partir().disabled).toBe(false);
     expect(partir().getAttribute("aria-describedby")).toBeNull();
