@@ -238,6 +238,12 @@ export default async function Controle({ searchParams }: PageProps<"/controle">)
             <Link href="/controle/chances">Simulation des chances</Link>
           </p>
         </Bloc>
+        {/* US-0974 : l'effet des pigeons éclaireurs, mesuré sur des Expéditions identiques avec et sans eux. */}
+        <Bloc titre="Pigeons éclaireurs" largeur={6}>
+          <p className={styles.note}>
+            <Link href="/controle/pigeons">Simulation des pigeons</Link>
+          </p>
+        </Bloc>
       </Grille>
     </main>
   );

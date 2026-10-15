@@ -418,3 +418,13 @@ export const BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES = 2;
  */
 export const MINUTES_DE_VUE_PAR_ECLAIREUR = 20;
 export const MINUTES_DE_VUE_AU_PLUS = 120;
+
+/**
+ * US-0974 : la simulation des pigeons de la page de contrôle compare 10 000 Expéditions identiques (valeur provisoire, à
+ * régler en jouant), parties sur 365 jours, avec et sans Éclaireurs ; elle échoue dès que les Rencontres en plus d'un
+ * nombre d'Éclaireurs restent sous 2 % de celles sans pigeon (valeur provisoire, à régler en jouant) : un Éclaireur en
+ * apporte environ 3 % (20 minutes de vue pour une Bête présente 6 heures et un séjour de 4 heures).
+ */
+export const SIMULATION_DES_PIGEONS_EXPEDITIONS = 10_000;
+export const SIMULATION_DES_PIGEONS_JOURS = 365;
+export const SIMULATION_DES_PIGEONS_ECART_MINIMAL_POURCENT = 2;
