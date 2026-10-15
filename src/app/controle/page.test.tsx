@@ -194,6 +194,11 @@ describe("page de contrôle", () => {
     expect(renderToStaticMarkup(await ouvrir())).toContain('<a href="/controle/chances">Simulation des chances</a>');
   });
 
+  it("mène à la simulation des pigeons éclaireurs (US-0974)", async () => {
+    entetes.authorization = `Basic ${Buffer.from(`controle:${MOT_DE_PASSE}`).toString("base64")}`;
+    expect(renderToStaticMarkup(await ouvrir())).toContain('<a href="/controle/pigeons">Simulation des pigeons</a>');
+  });
+
   it("montre la Couronne vue d'en haut, une forme par Biome, et la part de chacun (US-0151)", async () => {
     entetes.authorization = `Basic ${Buffer.from(`controle:${MOT_DE_PASSE}`).toString("base64")}`;
     monde.couronneEnBase.mockResolvedValue(COURONNE);
