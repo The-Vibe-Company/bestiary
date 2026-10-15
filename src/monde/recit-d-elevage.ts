@@ -2,11 +2,14 @@
 // combien de Bêtes de l'Espèce ont rejoint l'effectif. Côté serveur comme dans le navigateur, qui le reconnaît à son titre.
 import type { NouveauRecit } from "./recits";
 
+/** Les noms de Bêtes au h muet, qui s'élident (« d'Hirondelle ») ; les autres h sont aspirés (« de Hibou », « de Héron »). */
+const H_MUET = /^(hirondelle|hippopotame|hippocampe|hermine|huître|hu[iî]trier|hémione|hévéa)/i;
+
 /**
- * « de Poule », « d'Aigle » : l'élision devant une voyelle. Pas devant un h, aspiré dans la plupart des noms de Bêtes
- * (« de Hibou », « de Héron »).
+ * « de Poule », « d'Aigle », « d'Hirondelle » : l'élision devant une voyelle ou un h muet ; pas devant un y (« de Yack »),
+ * ni devant un h aspiré, celui de la plupart des noms de Bêtes (« de Hibou », « de Hérisson »).
  */
-const de = (nom: string) => (/^[aeiouyàâäéèêëîïôöùûüœæ]/i.test(nom) ? `d'${nom}` : `de ${nom}`);
+const de = (nom: string) => (/^[aeiouàâäéèêëîïôöùûüœæ]/i.test(nom) || H_MUET.test(nom) ? `d'${nom}` : `de ${nom}`);
 
 /** US-0817 : le titre d'un Récit de fin d'Élevage, à quoi la page Récits le reconnaît (son médaillon : l'éleveur). */
 export const FIN_D_ELEVAGE = "Élevage terminé";

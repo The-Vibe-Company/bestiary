@@ -13,6 +13,9 @@ describe("le Récit d'un Élevage fini (US-0817)", () => {
     expect(recitDElevage(2, "Aigle", instant).texte).toBe("2 Bêtes d'Aigle ont rejoint votre effectif.");
     expect(recitDElevage(1, "Élan", instant).texte).toBe("1 Bête d'Élan a rejoint votre effectif.");
     expect(recitDElevage(2, "Hibou", instant).texte).toBe("2 Bêtes de Hibou ont rejoint votre effectif.");
+    // Un h muet s'élide, un y non.
+    expect(recitDElevage(2, "Hirondelle rustique", instant).texte).toBe("2 Bêtes d'Hirondelle rustique ont rejoint votre effectif.");
+    expect(recitDElevage(2, "Yack", instant).texte).toBe("2 Bêtes de Yack ont rejoint votre effectif.");
   });
 
   it("dit une Bête seule au singulier, et un grand nombre à la française", () => {

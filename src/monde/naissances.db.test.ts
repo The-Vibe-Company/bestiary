@@ -196,11 +196,13 @@ describe.skipIf(!URL_TEST)("recevoir les Bêtes une à une (US-0817, sur base)",
     const t = await naitre();
     await reunir(t, "souris");
     await pool.query("update habitant set metier = 'eleveur' where id = $1", [t.habitants[0]]);
-    // Un rattrapage porte le temps du Territoire à +10 min ; le clic, lui, est daté de +5 min (pris juste avant).
-    await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, 10) });
+    // Un rattrapage porte le temps du Territoire bien au-delà du clic, de plus de deux naissances : sans précaution, elles
+    // tomberaient dans un temps déjà passé, perdues.
+    const marque = 5 + 2 * souris + 5;
+    await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, marque) });
     expect(await lancerUnElevage(pool, t.territoireId, "souris", 2, apres(t, 5))).toMatchObject({ lance: { quantite: 2 } });
     const { rows } = await pool.query<{ lanceLe: Date }>('select lance_le as "lanceLe" from elevage where territoire_id = $1', [t.territoireId]);
-    expect(rows[0].lanceLe.getTime()).toBeGreaterThanOrEqual(apres(t, 10).getTime());
+    expect(rows[0].lanceLe.getTime()).toBeGreaterThanOrEqual(apres(t, marque).getTime());
     await rattraper("territoire", t.territoireId, { pool, jusqua: new Date(rows[0].lanceLe.getTime() + 2 * souris * MINUTE) });
     expect(await effectif(t.territoireId)).toEqual({ femelle: 1, male: 1 });
     expect(await eleve(t.territoireId)).toBeNull();
