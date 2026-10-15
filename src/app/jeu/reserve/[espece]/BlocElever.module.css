@@ -115,6 +115,13 @@
   white-space: nowrap;
 }
 
+/* US-0816 : ce qui manque pour payer, juste au-dessus du bouton grisé, en braise, son texte en clair. */
+.manque {
+  margin: -6px 0 12px;
+  color: var(--braise);
+  font: var(--graisse-titre) 13.5px / 1.35 var(--police);
+}
+
 /* Le bouton « Élever », au pouce : l'action principale du kit, éteinte sans éleveur libre, sans quantité valable ou pendant l'envoi. */
 .bouton {
   min-height: 44px;
