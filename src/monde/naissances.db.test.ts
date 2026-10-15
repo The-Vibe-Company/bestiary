@@ -52,15 +52,20 @@ describe.skipIf(!URL_TEST)("recevoir les Bêtes une à une (US-0817, sur base)",
       client.release();
     }
   };
-  /** Un Territoire qui a réuni le Couple de la souris, avec un éleveur : il lance l'Élevage de `quantite` souris à sa naissance. */
-  const elever = async (quantite: number) => {
+  /**
+   * Un Territoire qui a réuni le Couple de la souris, avec un éleveur : il lance l'Élevage de `quantite` souris une minute
+   * après sa naissance, à la milliseconde ; `debut` est l'heure de ce lancement, d'où se comptent les naissances.
+   */
+  const elever = async (quantite: number, eleveur = 0) => {
     const t = await naitre();
     await reunir(t, "souris");
-    await pool.query("update habitant set metier = 'eleveur' where id = $1", [t.habitants[0]]);
-    expect(await lancerUnElevage(pool, t.territoireId, "souris", quantite, t.ne)).toMatchObject({ lance: { quantite } });
-    return t;
+    await pool.query("update habitant set metier = 'eleveur' where id = $1", [t.habitants[eleveur]]);
+    const debut = new Date(t.ne.getTime() + MINUTE);
+    expect(await lancerUnElevage(pool, t.territoireId, "souris", quantite, debut)).toMatchObject({ lance: { quantite } });
+    return { ...t, debut };
   };
-  const apres = (t: { ne: Date }, minutes: number) => new Date(t.ne.getTime() + minutes * MINUTE);
+  /** L'instant `minutes` après le lancement de l'Élevage (`debut`), ou après la naissance du Territoire. */
+  const apres = (t: { ne: Date; debut?: Date }, minutes: number) => new Date((t.debut ?? t.ne).getTime() + minutes * MINUTE);
   /** Les souris de l'effectif, par sexe. */
   const effectif = async (territoireId: number) =>
     Object.fromEntries(
@@ -110,8 +115,8 @@ describe.skipIf(!URL_TEST)("recevoir les Bêtes une à une (US-0817, sur base)",
     expect(await effectif(t.territoireId)).toEqual({ femelle: 1, male: 0 });
     expect(await eleve(t.territoireId)).toBe("souris");
     expect(await recits(t.territoireId)).toEqual([]);
-    // La deuxième, un mâle, puis la troisième, une femelle : l'Élevage est fini.
-    await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, 3 * souris + 30) });
+    // La deuxième, un mâle, puis la troisième, une femelle, pile à la fin du calcul : l'Élevage est fini.
+    await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, 3 * souris) });
     expect(await effectif(t.territoireId)).toEqual({ femelle: 2, male: 1 });
     expect(await recits(t.territoireId)).toEqual([{ texte: "3 Bêtes de Souris grise ont rejoint votre effectif.", survenuLe: apres(t, 3 * souris) }]);
     expect(await eleve(t.territoireId)).toBeNull();
@@ -124,7 +129,8 @@ describe.skipIf(!URL_TEST)("recevoir les Bêtes une à une (US-0817, sur base)",
 
   it("donne la même chose par tranches ou d'un bloc : chaque naissance une seule fois, le Récit une seule fois", async () => {
     const [parTranches, dUnBloc] = [await elever(5), await elever(5)];
-    for (let minutes = 7; minutes <= 6 * souris; minutes += 7) await rattraper("territoire", parTranches.territoireId, { pool, jusqua: apres(parTranches, minutes) });
+    // Des tranches de 5 minutes : leurs fins tombent pile sur les naissances (une souris toutes les 15 minutes).
+    for (let minutes = 5; minutes <= 6 * souris; minutes += 5) await rattraper("territoire", parTranches.territoireId, { pool, jusqua: apres(parTranches, minutes) });
     await rattraper("territoire", parTranches.territoireId, { pool, jusqua: apres(parTranches, 6 * souris) });
     await rattraper("territoire", dUnBloc.territoireId, { pool, jusqua: apres(dUnBloc, 6 * souris) });
     expect(await effectif(parTranches.territoireId)).toEqual({ femelle: 3, male: 2 });
@@ -132,7 +138,8 @@ describe.skipIf(!URL_TEST)("recevoir les Bêtes une à une (US-0817, sur base)",
     const [a, b] = [await recits(parTranches.territoireId), await recits(dUnBloc.territoireId)];
     expect(a.map((r) => r.texte)).toEqual(["5 Bêtes de Souris grise ont rejoint votre effectif."]);
     expect(b.map((r) => r.texte)).toEqual(a.map((r) => r.texte));
-    expect(a[0].survenuLe.getTime() - parTranches.ne.getTime()).toBe(b[0].survenuLe.getTime() - dUnBloc.ne.getTime());
+    expect(a[0].survenuLe).toEqual(apres(parTranches, 5 * souris));
+    expect(b[0].survenuLe).toEqual(apres(dUnBloc, 5 * souris));
   });
 
   it("fait naître les Bêtes même le joueur absent, par la tâche planifiée, et dit une Bête seule au singulier", async () => {
@@ -148,7 +155,7 @@ describe.skipIf(!URL_TEST)("recevoir les Bêtes une à une (US-0817, sur base)",
     const reel = new Date("2026-03-01T12:00:00Z").getTime();
     vi.useFakeTimers({ toFake: ["Date"] });
     // À ×100 : une souris toutes les `souris` minutes de jeu, soit toutes les `souris × 0,6` secondes réelles.
-    definirAncre({ facteur: 100, reel, jeu: t.ne.getTime() });
+    definirAncre({ facteur: 100, reel, jeu: t.debut.getTime() });
     const parBete = (souris * MINUTE) / 100;
     vi.setSystemTime(reel + 2 * parBete - 1);
     await rattraper("territoire", t.territoireId, { pool });
@@ -167,7 +174,7 @@ describe.skipIf(!URL_TEST)("recevoir les Bêtes une à une (US-0817, sur base)",
     // Un pigeon, élevé par un autre éleveur du même Territoire, et un voisin qui n'élève rien.
     await reunir(t, "pigeon");
     await pool.query("update habitant set metier = 'eleveur' where id = $1", [t.habitants[1]]);
-    expect(await lancerUnElevage(pool, t.territoireId, "pigeon", 1, t.ne)).toMatchObject({ lance: { quantite: 1 } });
+    expect(await lancerUnElevage(pool, t.territoireId, "pigeon", 1, t.debut)).toMatchObject({ lance: { quantite: 1 } });
     const voisin = await naitre();
     const pigeon = dureeDUneBeteEleveeMinutes((await pool.query<{ t: number }>("select taille as t from espece where id = 'pigeon'")).rows[0].t);
     await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, Math.max(2 * souris, pigeon)) });
@@ -184,4 +191,46 @@ describe.skipIf(!URL_TEST)("recevoir les Bêtes une à une (US-0817, sur base)",
     expect(await effectif(voisin.territoireId)).toEqual({});
     expect(await recits(voisin.territoireId)).toEqual([]);
   });
+
+  it("ne fait jamais démarrer un Élevage avant l'instant jusqu'où le temps du Territoire est calculé : aucune naissance perdue", async () => {
+    const t = await naitre();
+    await reunir(t, "souris");
+    await pool.query("update habitant set metier = 'eleveur' where id = $1", [t.habitants[0]]);
+    // Un rattrapage porte le temps du Territoire à +10 min ; le clic, lui, est daté de +5 min (pris juste avant).
+    await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, 10) });
+    expect(await lancerUnElevage(pool, t.territoireId, "souris", 2, apres(t, 5))).toMatchObject({ lance: { quantite: 2 } });
+    const { rows } = await pool.query<{ lanceLe: Date }>('select lance_le as "lanceLe" from elevage where territoire_id = $1', [t.territoireId]);
+    expect(rows[0].lanceLe.getTime()).toBeGreaterThanOrEqual(apres(t, 10).getTime());
+    await rattraper("territoire", t.territoireId, { pool, jusqua: new Date(rows[0].lanceLe.getTime() + 2 * souris * MINUTE) });
+    expect(await effectif(t.territoireId)).toEqual({ femelle: 1, male: 1 });
+    expect(await eleve(t.territoireId)).toBeNull();
+  });
+
+  it("libère l'éleveur à l'instant de la dernière naissance : une Famine le voit libre dès lors, le temps découpé ou non (US-0834)", async () => {
+    /**
+     * Trois Habitants, deux chasseurs (A, B) et l'éleveur (E, le dernier arrivé), sans Nourriture ni production : la Famine
+     * fait partir un Habitant libre toutes les heures, le dernier arrivé d'abord, jamais le dernier. L'Élevage de E finit à
+     * +1 h 30 : B part à +1 h, E, libre, à +2 h ; A reste.
+     */
+    const preparer = async () => {
+      const t = await elever(6, 2);
+      await pool.query("update habitant set metier = 'chasseur' where id = any($1)", [[t.habitants[0], t.habitants[1]]]);
+      await pool.query("update stock set quantite = 0 where territoire_id = $1 and ressource_id in ('viande', 'vegetaux')", [t.territoireId]);
+      const voisin = await naitre();
+      await pool.query("update case_du_monde set chef_id = (select chef_id from territoire where id = $2) where id = (select foyer_case_id from territoire where id = $1)", [
+        t.territoireId,
+        voisin.territoireId,
+      ]);
+      return t;
+    };
+    const restants = async (territoireId: number) => (await pool.query<{ id: number }>("select id from habitant where territoire_id = $1 order by id", [territoireId])).rows.map((h) => h.id);
+    const [dUnBloc, coupe] = [await preparer(), await preparer()];
+    await rattraper("territoire", dUnBloc.territoireId, { pool, jusqua: apres(dUnBloc, 6 * 60) });
+    // Le joueur présent : une page ouverte pile à la fin de l'Élevage, puis le reste.
+    await rattraper("territoire", coupe.territoireId, { pool, jusqua: apres(coupe, 6 * souris) });
+    await rattraper("territoire", coupe.territoireId, { pool, jusqua: apres(coupe, 6 * 60) });
+    expect(await restants(dUnBloc.territoireId)).toEqual([dUnBloc.habitants[0]]);
+    expect(await restants(coupe.territoireId)).toEqual([coupe.habitants[0]]);
+  });
 });
+
