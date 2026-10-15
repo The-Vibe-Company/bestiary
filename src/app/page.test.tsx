@@ -11,6 +11,13 @@ describe("entrée du jeu sur la page d'accueil", () => {
     vi.unstubAllEnvs();
   });
 
+  it("se lit dans cet ordre, le même sur un téléphone : le Monde, la devise, les entrées, puis les espèces à découvrir", () => {
+    const html = renderToStaticMarkup(<Accueil />);
+    const ordre = ["Le monde de Bestia", "Un monde sauvage, des bêtes à apprivoiser.", "Faites votre sac", "2000+", "Deux explorateurs"].map((t) => html.indexOf(t));
+    expect(ordre.every((i) => i >= 0)).toBe(true);
+    expect([...ordre].sort((x, y) => x - y)).toEqual(ordre);
+  });
+
   it("montre « Créer un compte » vers l'inscription et « Se connecter » vers la connexion", () => {
     const html = renderToStaticMarkup(<Accueil />);
     expect(html).toMatch(/<a [^>]*href="\/inscription"[^>]*>Créer un compte<\/a>/);

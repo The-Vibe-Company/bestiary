@@ -2,8 +2,8 @@
  * L'accueil, l'écran titre du jeu. Une scène peinte sous la barre du haut : le Monde de Bestia sur sa table, à droite,
  * fondu dans la sarcelle vers la gauche et vers le bas ; à gauche, la devise en Marcellus, la promesse et les deux
  * entrées au cuivre. Dessous, un panneau orné du kit : les espèces à découvrir, et quatre peintures du jeu en vignettes.
- * Sur un ordinateur, le tout tient dans le premier écran, sans défiler : la scène prend la hauteur de l'écran moins le
- * panneau, dont les peintures se règlent sur la hauteur de l'écran. Sur un téléphone, le Monde en tête de la page, la
+ * Sur un ordinateur dont la fenêtre a 680 px de haut ou plus, le tout tient dans le premier écran, sans défiler : la scène
+ * prend la hauteur de l'écran moins le panneau, dont les peintures se règlent sur la hauteur de l'écran. Sur un téléphone, le Monde en tête de la page, la
  * devise posée sur son pied, puis le panneau, ses vignettes deux par deux.
  */
 .accueil {
@@ -11,19 +11,21 @@
   --marge: max(40px, calc((100% - 1200px) / 2));
   /*
    * La hauteur des peintures du panneau, sur un ordinateur : un cinquième de l'écran, entre 120 et 190 px, et jamais plus
-   * que leur largeur (une tablette tenue droite garde des peintures carrées).
+   * que leur largeur (une tablette tenue droite garde des peintures carrées). Cette largeur, tant que la page fait moins de
+   * 1 280 px : la page moins ses deux marges de 40 px, les marges du panneau (2 × 12 px), ses quatre écarts de 12 px et la
+   * colonne du nombre (170 px), le tout en quatre, soit 25vw - 81px.
    */
   --vignette: clamp(120px, min(20dvh, 25vw - 81px), 190px);
   /* L'écart entre la scène et le panneau, le bas de la page, et la marge intérieure du panneau : la scène les compte. */
-  --ecart: 24px;
-  --bas: 24px;
+  --ecart-accueil: 24px;
+  --bas-accueil: 24px;
   --marge-galerie: 12px;
   display: flex;
   flex-direction: column;
-  gap: var(--ecart);
+  gap: var(--ecart-accueil);
   min-height: var(--hauteur-utile);
   margin: 0 calc(-1 * var(--bord-droit)) 0 calc(-1 * var(--bord-gauche));
-  padding: 0 0 var(--bas);
+  padding: 0 0 var(--bas-accueil);
 }
 
 /* ---------- La scène ---------- */
@@ -31,8 +33,8 @@
 /*
  * La scène prend la hauteur de l'écran, moins le panneau des espèces (ses peintures, ses marges intérieures et son filet de
  * 1 px en haut et en bas), l'écart entre les deux et le bas de la page : tout tient dans le premier écran d'un ordinateur
- * dont la page a 720 px de haut ou plus, sans défiler d'un pixel. Jamais moins de 400 px, ni plus de 720 : sur un écran plus
- * bas, le panneau passe sous le pli.
+ * dont la fenêtre a 680 px de haut ou plus, sans défiler d'un pixel. Jamais moins de 400 px, ni plus de 720 : sur un écran
+ * plus bas, le panneau passe sous le pli.
  */
 .scene {
   position: relative;
@@ -40,7 +42,7 @@
   align-items: center;
   min-height: clamp(
     400px,
-    calc(var(--hauteur-utile) - var(--vignette) - 2 * var(--marge-galerie) - 2px - var(--ecart) - var(--bas)),
+    calc(var(--hauteur-utile) - var(--vignette) - 2 * var(--marge-galerie) - 2px - var(--ecart-accueil) - var(--bas-accueil)),
     720px
   );
   padding: 24px var(--marge);

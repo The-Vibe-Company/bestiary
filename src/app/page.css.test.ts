@@ -15,9 +15,11 @@ describe("l'accueil tient dans le premier écran d'un ordinateur", () => {
     expect(regle(".accueil")).toContain("--vignette: clamp(120px, min(20dvh, 25vw - 81px), 190px);");
     // La scène compte exactement ce qui la suit : le panneau (peintures, marges, filets), l'écart, le bas de la page.
     expect(regle(".scene").replace(/\s+/g, " ")).toContain(
-      "min-height: clamp( 400px, calc(var(--hauteur-utile) - var(--vignette) - 2 * var(--marge-galerie) - 2px - var(--ecart) - var(--bas)), 720px );",
+      "min-height: clamp( 400px, calc(var(--hauteur-utile) - var(--vignette) - 2 * var(--marge-galerie) - 2px - var(--ecart-accueil) - var(--bas-accueil)), 720px );",
     );
-    expect(regle(".accueil")).toMatch(/gap: var\(--ecart\);[^}]*padding: 0 0 var\(--bas\);/);
+    expect(regle(".accueil")).toMatch(/gap: var\(--ecart-accueil\);[^}]*padding: 0 0 var\(--bas-accueil\);/);
+    // Des noms propres à l'accueil : --ecart est un nom du kit (src/styles/formes.css), qu'il ne faut pas redéfinir.
+    expect(regle(".accueil")).not.toMatch(/(^|\s)--ecart:/);
     expect(regle(".galerie")).toContain("padding: var(--marge-galerie);");
   });
 
@@ -25,7 +27,7 @@ describe("l'accueil tient dans le premier écran d'un ordinateur", () => {
     expect(regle(".galerie .vignette")).toContain("height: var(--vignette);");
   });
 
-  it("garde sur un téléphone l'ordre de lecture : le Monde, la devise, les entrées, puis les espèces, leurs peintures carrées", () => {
+  it("sur un téléphone, empile la scène et garde les peintures carrées : l'ordre de lecture reste celui de la page", () => {
     expect(regle(".scene", telephone)).toContain("display: block;");
     expect(regle(".galerie .vignette", telephone)).toMatch(/aspect-ratio: 1;[^}]*height: auto;/);
   });
