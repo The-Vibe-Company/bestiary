@@ -9,9 +9,6 @@ import { MINUTES_DE_VUE_AU_PLUS, MINUTES_DE_VUE_PAR_ECLAIREUR } from "@/reglages
 
 const MINUTE_MS = 60_000;
 
-/** US-0970 : le plus long que des Éclaireurs gardent une Bête en vue après la fin de sa durée, en millisecondes du jeu. */
-export const VUE_PROLONGEE_AU_PLUS_MS = MINUTES_DE_VUE_AU_PLUS * MINUTE_MS;
-
 /**
  * US-0970 : combien de millisecondes du jeu `eclaireurs` Éclaireurs gardent en vue une Bête après la fin de sa durée :
  * MINUTES_DE_VUE_PAR_ECLAIREUR chacun, jusqu'à MINUTES_DE_VUE_AU_PLUS ; aucune sans Éclaireur.

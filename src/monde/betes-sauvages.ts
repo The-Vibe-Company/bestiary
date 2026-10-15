@@ -270,9 +270,10 @@ export async function betesSauvagesDUneCase(base: Pool | PoolClient, caseId: num
  * encore là jusqu'à autant après la fin de sa durée.
  */
 export async function emmenerUneBete(base: Pool | PoolClient, caseId: number, numero: number, instant: Date, vueProlongee = 0): Promise<boolean> {
+  // Arrivées avant instant + 1 ms : toutes celles lues sont déjà là ; reste à savoir si elle est encore en vue.
   const lues = await betesSauvagesDUneCase(base, caseId, new Date(instant.getTime() - vueProlongee), new Date(instant.getTime() + 1));
   const bete = lues.find((b) => b.numero === numero);
-  if (!bete || bete.arrivee > instant || finDeVue(bete, vueProlongee) <= instant.getTime()) return false;
+  if (!bete || finDeVue(bete, vueProlongee) <= instant.getTime()) return false;
   const { rowCount } = await base.query("insert into bete_partie (case_id, numero, partie_le) values ($1, $2, $3) on conflict do nothing", [caseId, numero, instant]);
   return rowCount === 1;
 }
