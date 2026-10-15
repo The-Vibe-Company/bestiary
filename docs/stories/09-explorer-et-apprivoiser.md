@@ -663,6 +663,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0961 · Prévenir avant de risquer une Bête précieuse
 **En tant que** joueur, **je veux** être prévenu quand j'envoie en escorte ma seule Bête d'un sexe, **afin de** ne pas perdre bêtement la moitié d'un futur Couple.
 
+- **Statut** : Livrée le 2026-10-14 (The-Vibe-Company/bestiary). Quand l'escorte emmène la seule Bête d'un sexe d'une Espèce sans Couple, le récapitulatif de l'écran d'Expédition le dit, en braise au-dessus du retour prévu et gardé en vue même replié sur un téléphone : « Seule femelle de Pigeon biset : sans elle, pas de Couple. » (« Seul mâle de … : sans lui, … »). Rien pour une Espèce dont le Couple est réuni, ni pour des Éclaireurs, qui ne combattent pas. Tranché par Antoine le 2026-10-14 : un simple avertissement, sans confirmation à donner avant de partir. La seule Bête d'un sexe est celle que le joueur possède seule de son sexe, au Foyer et valide : sans Couple, le Foyer n'a que des Bêtes d'un sexe, et c'est elle que l'escorte emmène.
 - **Débloquée par** : US-0960, US-0910
 - **Critères d'acceptation** :
   - Si l'escorte emmène la seule Bête d'un sexe d'une Espèce sans Couple, le récapitulatif le signale ; simple avertissement ou confirmation demandée (à décider).
@@ -757,6 +758,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0969 · Les pigeons lèvent plus de brouillard
 **En tant que** joueur, **je veux** que mes pigeons éclaireurs révèlent plus de carte pendant une Expédition, **afin de** découvrir le Monde plus vite que les autres.
 
+- **Statut** : Livrée le 2026-10-15 (autopilot, The-Vibe-Company/bestiary#61). Une Expédition qui emmène des Éclaireurs lève le brouillard plus loin à chaque Case de son chemin et autour de sa destination ; plus d'Éclaireurs, plus loin, jusqu'à un plafond ; les Cases révélées en plus restent découvertes pour toujours et le récit du retour les compte. Sans Éclaireur, rien ne change. Tranché (provisoire) : chaque Éclaireur ajoute 1 Case au rayon, au plus 2 (`BROUILLARD_LEVE_PAR_ECLAIREUR_CASES`, `BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES`) : avec 2 Éclaireurs, 3 Cases sur le chemin et 4 autour de la destination au lieu de 1 et 2 ; les Éclaireurs de toutes les Espèces comptent ensemble ; rien de plus au départ, pendant le séjour ni au retour. Vérifié en vrai : 33 Cases levées avec 2 pigeons, 15 sans.
 - **Débloquée par** : US-0914, US-0976
 - **Critères d'acceptation** :
   - Quand l'Expédition emmène des Éclaireurs, le rayon de brouillard levé le long du chemin et autour de la destination s'agrandit (chiffre à régler).
