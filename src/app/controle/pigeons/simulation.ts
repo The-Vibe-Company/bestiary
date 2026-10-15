@@ -10,9 +10,9 @@ import { casesRevelees, rayonDesEclaireurs } from "@/expeditions/brouillard";
 import { type HorairesDUneExpedition, retourDUneExpedition, sejourDUneExpedition } from "@/expeditions/phase";
 import { vueProlongee } from "@/expeditions/vue-des-eclaireurs";
 import { apparitions } from "@/monde/betes-sauvages";
-import { abordsDuFoyer } from "@/monde/brouillard";
-import type { Coordonnees } from "@/monde/hex";
+import { casesDansLeRayon, type Coordonnees } from "@/monde/hex";
 import {
+  ABORDS_DU_FOYER_CASES,
   BROUILLARD_LEVE_PAR_ECLAIREUR_CASES,
   BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES,
   MINUTES_DE_VUE_AU_PLUS,
@@ -37,8 +37,11 @@ const FOYER: Coordonnees = { q: 0, r: 0 };
 const DEBUT = Date.UTC(2031, 0, 1);
 /** Le séjour de chaque Expédition simulée : 4 h, la deuxième des durées toutes prêtes. */
 const SEJOUR_MINUTES = SEJOURS_TOUT_PRETS_MINUTES[1];
-/** Les abords du Foyer, découverts à sa naissance : le jeu ne les attribue jamais à une Expédition. */
-const ABORDS = new Set(abordsDuFoyer(FOYER).map((c) => `${c.q},${c.r}`));
+/**
+ * Les abords du Foyer, découverts à sa naissance : le jeu ne les attribue jamais à une Expédition. Leur forme seule, sans
+ * abordsDuFoyer, que seules la naissance et la bascule d'un Monde appellent, pour découvrir (src/monde/brouillard.test.ts).
+ */
+const ABORDS = new Set(casesDansLeRayon(FOYER, ABORDS_DU_FOYER_CASES).map((c) => `${c.q},${c.r}`));
 /** La plus proche destination simulée : au-delà des Cases voisines du Foyer. */
 const DISTANCE_MINIMALE = 2;
 
