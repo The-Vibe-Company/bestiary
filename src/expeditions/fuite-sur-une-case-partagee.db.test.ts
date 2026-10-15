@@ -150,7 +150,8 @@ describe.skipIf(!URL_TEST)("une Expédition en fuite quitte la Case pour tous le
 
     // Une Bête rare, trop forte pour une escorte de la plus faible commune, puis, après son départ, une commune d'une autre
     // Espèce, que le tirage donne à la première posée de deux Expéditions d'escortes égales : X. Aucune autre Bête sur la
-    // Case de deux heures avant la rare à deux heures après la commune.
+    // Case de deux heures avant la rare à deux heures après la commune. La plus tôt venue de toutes : les Territoires sont
+    // mis à l'heure jusqu'à elle, et une Bête lointaine leur faisait rejouer des semaines.
     const [de, jusqua] = [apres(a.ne, 3 * JOUR), apres(a.ne, 60 * JOUR)];
     for (const [ici, betes] of await betesSauvagesDesCases(pool, libres.map((c) => c.id), de, jusqua)) {
       const i = betes.findIndex((r, k) => {
@@ -165,10 +166,7 @@ describe.skipIf(!URL_TEST)("une Expédition en fuite quitte la Case pour tous le
         ]);
         return suivie?.expeditionId === 1;
       });
-      if (i >= 0) {
-        [caseId, rare, commune] = [ici, betes[i], betes[i + 1]];
-        break;
-      }
+      if (i >= 0 && (!caseId || betes[i].arrivee < rare.arrivee)) [caseId, rare, commune] = [ici, betes[i], betes[i + 1]];
     }
     if (!caseId) throw new Error("Aucune Case où une Bête rare précède une commune que le tirage donnerait à X.");
 
@@ -178,6 +176,9 @@ describe.skipIf(!URL_TEST)("une Expédition en fuite quitte la Case pour tous le
     const deY = horaires(rare.depart, apres(commune.arrivee, HEURE));
     const fin = apres(retourDUneExpedition(deX)!, HEURE);
     retourDeY = retourDUneExpedition(deY)!;
+    // Les Territoires mis à l'heure pour de bon jusqu'à trois heures avant la rare, avant le départ de X et de Y : chaque
+    // manière ne rejoue plus que ces quelques heures, et non les jours écoulés depuis la naissance.
+    for (const territoireId of [territoires.A, territoires.B]) await rattraper("territoire", territoireId, { pool, jusqua: apres(rare.arrivee, -3 * HEURE) });
     // L'identifiant de X, tel que ses tirages la font attaquer par la rare : le même dans toutes les manières, pour que
     // l'attaque, et tout ce qu'elle laisse, soient les mêmes.
     let idDeX = 0;

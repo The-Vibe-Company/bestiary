@@ -86,9 +86,12 @@ describe.skipIf(!URL_TEST)("l'Espèce croisée entre au Bestiaire (US-0933, sur 
   /**
    * Une Bête sauvage seule, qui convient à `voulue`, sur une Case libre à 2 Cases du Foyer du Territoire, apparue après
    * `apresLe` : aucune autre n'apparaît sur sa Case de CALME heures avant elle à CALME heures après. Sa Case et la Bête.
+   * La plus tôt venue de toutes : l'essai met le Territoire à l'heure jusqu'à elle, et une Bête lointaine lui faisait
+   * rejouer des semaines.
    */
   const uneBeteSeule = async (territoireId: number, apresLe: Date, voulue: (b: BeteSauvage) => boolean = () => true) => {
     const fin = apres(apresLe, 30 * JOUR);
+    let choisie: { place: Coordonnees; caseId: number; bete: BeteSauvage } | null = null;
     for (let rang = 0, ici = await aLEcart(territoireId, 2); ici; ici = await aLEcart(territoireId, 2, ++rang)) {
       if (prises.has(ici.caseId)) continue;
       const betes = await betesSauvagesDUneCase(pool, ici.caseId, apresLe, fin);
@@ -100,12 +103,11 @@ describe.skipIf(!URL_TEST)("l'Espèce croisée entre au Bestiaire (US-0933, sur 
           (i === 0 || betes[i - 1].arrivee <= apres(b.arrivee, -CALME)) &&
           (i === betes.length - 1 || betes[i + 1].arrivee >= apres(b.arrivee, CALME)),
       );
-      if (bete) {
-        prises.add(ici.caseId);
-        return { ...ici, bete };
-      }
+      if (bete && (!choisie || bete.arrivee < choisie.bete.arrivee)) choisie = { ...ici, bete };
     }
-    throw new Error("Aucune Bête seule qui convienne.");
+    if (!choisie) throw new Error("Aucune Bête seule qui convienne.");
+    prises.add(choisie.caseId);
+    return choisie;
   };
 
   /** Une Bête plus rare que commune : sans escorte, elle ne suit aucune Expédition et reste sur sa Case, où d'autres la revoient (US-0935). */
