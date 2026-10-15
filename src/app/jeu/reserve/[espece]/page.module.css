@@ -239,6 +239,86 @@
   .nom {
     font-size: 28px;
   }
+
+  /*
+   * US-0808 : sur un téléphone, la fiche se lit sans zoom : tout ce qui se lit y fait 16 px au moins, la Rareté, l'effectif,
+   * les Blessés, chaque nom, chaque valeur, chaque explication et « Fermer ».
+   */
+  .fiche .entete [data-rarete] {
+    font-size: 16px;
+  }
+
+  .entete .blesses {
+    font-size: 16px;
+  }
+
+  .entete .explication {
+    font-size: 16px;
+  }
+
+  /* L'étiquette de l'effectif se lit comme les noms des caractéristiques, et s'ouvre au pouce : 44 px de haut. */
+  .effectif > .terme {
+    min-height: 44px;
+    margin: 0;
+    padding: 0 4px 0 0;
+    font-size: 16px;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  /*
+   * Les caractéristiques en grille : une ligne par caractéristique, de 44 px au moins, le nom à gauche et sa valeur à
+   * droite, un filet doux entre deux lignes ; l'explication ouverte sous la sienne, de toute la largeur.
+   */
+  .caracteristiques {
+    gap: 0;
+    align-items: stretch;
+  }
+
+  .caracteristiques dt {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding-right: 20px;
+    font-size: 16px;
+  }
+
+  .caracteristiques dd {
+    font-size: 16px;
+  }
+
+  .caracteristiques dd:not(.explication) {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .caracteristiques > div:not(:last-child) > :is(dt, dd:not(.explication)) {
+    border-bottom: 1px solid var(--filet-cuivre-doux);
+  }
+
+  .caracteristiques > div > .explication {
+    margin: 6px 0 8px;
+  }
+
+  /* Chaque nom s'ouvre au pouce : toute la hauteur de sa ligne, toute la largeur de sa colonne. */
+  .caracteristiques .terme {
+    min-height: 44px;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+  }
+
+  .fermerExplication {
+    width: 44px;
+    height: 44px;
+    margin: -12px -4px -12px 0;
+  }
+
+  .fiche .fermer {
+    min-height: 44px;
+    font-size: 16px;
+  }
 }
 
 /*

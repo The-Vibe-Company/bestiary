@@ -80,3 +80,36 @@ describe("comprendre une caractéristique de la fiche (US-0807)", () => {
     expect(regle(".fermerExplication:focus-visible")).toContain("outline: 2px solid var(--cuivre-clair);");
   });
 });
+
+describe("lire la fiche d'une Espèce sur mobile (US-0808)", () => {
+  /** Les règles d'un téléphone, tenu droit ou couché, et d'une tablette étroite. */
+  const mobile = CSS.match(/@media \(max-width: 820px\), \(max-height: 500px\) \{([\s\S]*?)\n\}/)?.[1] ?? "";
+
+  it("tout ce qui se lit y fait 16 px au moins : les noms, les valeurs, les explications, les Blessés, la Rareté, « Fermer »", () => {
+    for (const selecteur of [
+      ".caracteristiques dt",
+      ".caracteristiques dd",
+      ".entete .explication",
+      ".entete .blesses",
+      ".fiche .entete [data-rarete]",
+      ".effectif > .terme",
+      ".fiche .fermer",
+    ]) {
+      expect(regle(selecteur, mobile), selecteur).toContain("font-size: 16px;");
+    }
+  });
+
+  it("chaque nom s'ouvre au pouce, et chaque bouton s'y touche : 44 px au moins", () => {
+    expect(regle(".caracteristiques .terme", mobile)).toMatch(/min-height: 44px;[^}]*width: 100%;/);
+    expect(regle(".effectif > .terme", mobile)).toContain("min-height: 44px;");
+    expect(regle(".fermerExplication", mobile)).toMatch(/width: 44px;[^}]*height: 44px;/);
+    expect(regle(".fiche .fermer", mobile)).toContain("min-height: 44px;");
+  });
+
+  it("range les caractéristiques en grille : une ligne de 44 px par caractéristique, un filet doux entre deux", () => {
+    expect(regle(".caracteristiques", mobile)).toMatch(/gap: 0;[^}]*align-items: stretch;/);
+    expect(regle(".caracteristiques > div:not(:last-child) > :is(dt, dd:not(.explication))", mobile)).toContain(
+      "border-bottom: 1px solid var(--filet-cuivre-doux);",
+    );
+  });
+});
