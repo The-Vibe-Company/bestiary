@@ -125,3 +125,40 @@ describe("session expirée au passage d'une page du jeu (US-0125)", () => {
     expect(await proxy(action)).toBeUndefined();
   });
 });
+
+describe("relais de la mesure d'audience vers PostHog", () => {
+  const envoi = (adresse: string) =>
+    proxy(
+      new NextRequest(`https://bestia.test${adresse}`, {
+        method: "POST",
+        headers: { cookie: "__Host-bestia_session=jeton-de-session", authorization: "Basic c2VjcmV0", "content-type": "text/plain" },
+      }),
+    );
+
+  it.each([
+    ["/ingest/e/?ip=0&ver=1", "https://us.i.posthog.com/e/?ip=0&ver=1"],
+    ["/ingest/flags/?v=2", "https://us.i.posthog.com/flags/?v=2"],
+    ["/ingest/static/array.js", "https://us-assets.i.posthog.com/static/array.js"],
+    ["/ingest/array/phc_cle/config.js", "https://us-assets.i.posthog.com/array/phc_cle/config.js"],
+  ])("relaie %s vers %s", async (adresse, cible) => {
+    const reponse = await envoi(adresse);
+    expect(reponse?.headers.get("x-middleware-rewrite")).toBe(cible);
+    expect(sessions.etatDeLaSession).not.toHaveBeenCalled();
+  });
+
+  it("ne relaie jamais hors de PostHog", async () => {
+    for (const adresse of ["/ingest//ailleurs.test/x", "/ingest/%2F%2Failleurs.test/x"]) {
+      expect(new URL((await envoi(adresse))?.headers.get("x-middleware-rewrite") ?? "").host).toBe("us.i.posthog.com");
+    }
+  });
+
+  it("ne laisse partir ni les cookies du jeu, ni un mot de passe", async () => {
+    const reponse = await envoi("/ingest/e/");
+    const gardes = (reponse?.headers.get("x-middleware-override-headers") ?? "").split(",");
+    expect(gardes).toContain("content-type");
+    expect(gardes).not.toContain("cookie");
+    expect(gardes).not.toContain("authorization");
+    expect(reponse?.headers.get("x-middleware-request-cookie")).toBeNull();
+    expect(reponse?.headers.get("x-middleware-request-authorization")).toBeNull();
+  });
+});
