@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useRef, useTransition } from "react";
+import { useEffect, useOptimistic, useRef, useTransition } from "react";
 import kit from "@/components/kit.module.css";
 import { affecterAuRole, retirerDuRole } from "./actions";
 import styles from "./page.module.css";
@@ -32,10 +32,18 @@ export function RoleDeLEspece({
   const [, demarrer] = useTransition();
   const boutonMoins = useRef<HTMLButtonElement>(null);
   const boutonPlus = useRef<HTMLButtonElement>(null);
+  // US-0841 : le bouton qui recevra la main, une fois le compte rendu : l'autre ne s'allume qu'à ce rendu (une seule Bête
+  // valide : « + » est éteint tant qu'elle est affectée).
+  const mainA = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    if (!mainA.current || mainA.current.disabled) return;
+    mainA.current.focus();
+    mainA.current = null;
+  }, [montrees]);
   const changer = (pas: 1 | -1) => {
     // US-0841 : à sa borne, le bouton touché s'éteint ; la main passe à l'autre.
-    if (pas < 0 && montrees + pas <= 0) boutonPlus.current?.focus();
-    if (pas > 0 && montrees + pas >= valides) boutonMoins.current?.focus();
+    if (pas < 0 && montrees + pas <= 0) mainA.current = boutonPlus.current;
+    if (pas > 0 && montrees + pas >= valides) mainA.current = boutonMoins.current;
     demarrer(async () => {
       montrer(pas);
       await (pas > 0 ? affecterAuRole(especeId) : retirerDuRole(especeId));

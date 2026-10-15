@@ -318,6 +318,8 @@ describe.skipIf(!URL_TEST)("affecter une Bête à son Rôle (US-0837, sur base)"
       places: await placesDeLHabitat(pool, t),
       marquePage: (await pool.query("select calcule_jusqu_a from territoire where id = $1", [t])).rows[0],
     });
+    // Des Stocks pleins : un coût, s'il y en avait un, s'y lirait.
+    expect((await pool.query("update stock set quantite = 500 where territoire_id = $1", [t])).rowCount).toBeGreaterThan(0);
     const avant = await etat();
     // Vingt allers-retours au même instant du jeu : chacun passe, aucun n'attend ni ne coûte rien.
     for (let tour = 0; tour < 20; tour++) {
