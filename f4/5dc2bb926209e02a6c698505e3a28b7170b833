@@ -1,0 +1,45 @@
+src/app/jeu/reserve/[espece]/BlocElever.module.css
+  s_7c7d151152e4a5::t_de348b08909c99 118-124
+src/app/jeu/reserve/[espece]/BlocElever.test.tsx
+  s_7c7d151152e4a5::t_2a96a4b445d92f 16-22,38,43,51,56,64,85,96,110,124,133,140,148,154,190,198,212,234,246,265,275,282,288,298,306,327,340,349,364-492
+src/app/jeu/reserve/[espece]/BlocElever.tsx
+  s_7c7d151152e4a5::t_b5ccb7a0d54c2a 9-10,28,51-55,64,79,87,101,105-106,113-126,132-133,154,184,204,213,221-225,229-230,234,236
+src/app/jeu/reserve/[espece]/actions.test.ts
+  s_7c7d151152e4a5::t_0fce87119c60bc 216-217
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_233ad33b68cf9c 45-48,50,172-173,179,184-195
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_ea4f5df49256dc 14,131
+src/components/Ressources.tsx
+  s_7c7d151152e4a5::t_7b3169e024d871 49
+src/monde/cout-d-elevage.db.test.ts
+  s_7c7d151152e4a5::t_6b3d0d48fd4418 6,11,42,44,46-55
+src/monde/cout-d-elevage.test.ts
+  s_7c7d151152e4a5::t_98aa84d239d578 3
+src/monde/cout-d-elevage.ts
+  s_7c7d151152e4a5::t_156dd73d4521f4 1-4,8-9,44-47,49-53
+src/monde/lancer-un-elevage.db.test.ts
+  s_7c7d151152e4a5::t_ba763bfed17545 12-13,126-127,141,287-301
+src/monde/lancer-un-elevage.ts
+  s_7c7d151152e4a5::t_516f0b86e9d95b 8,83-86,89,93-95,98-99
+src/monde/payer-un-elevage.test.ts
+  s_7c7d151152e4a5::t_342cdf34fb0c08 1-37
+src/monde/payer-un-elevage.ts
+  s_7c7d151152e4a5::t_987175e0feda6a 1-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f45dc2bb926209e02a6c698505e3a28b7170b833",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
