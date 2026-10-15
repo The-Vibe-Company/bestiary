@@ -11,8 +11,9 @@ describe("ce qui manque pour payer un Élevage (US-0816)", () => {
   });
 
   it("ne compte pas une poussière de calcul pour une unité de plus", () => {
-    // 0,1 × 400 vaut 40,000000000000004 en virgule flottante : il manque 40, pas 41.
-    expect(ilManque(0.1 * 400, "Viande")).toBe("Il manque 40 Viande.");
+    // 0,1 × 3 × 400 vaut 120,00000000000001 en virgule flottante : il manque 120, pas 121.
+    expect(0.1 * 3 * 400).toBeGreaterThan(120);
+    expect(ilManque(0.1 * 3 * 400, "Viande")).toBe("Il manque 120 Viande.");
   });
 
   it("reconnaît un refus qui dit ce qui manque, et lui seul", () => {
@@ -27,8 +28,9 @@ describe("les Bêtes que la Nourriture paie, ce que « Max » propose (US-0813)"
     expect(betesPayables(100, 10)).toBe(10);
     expect(betesPayables(150, 10)).toBe(15);
     expect(betesPayables(9.99, 10)).toBe(0);
-    // Juste assez, au calcul près : 0,3 × 3 vaut 0,8999999999999999.
-    expect(betesPayables(0.1 * 3 * 3, 0.9)).toBe(1);
+    // Juste assez, au calcul près : 0,7 × 3 vaut 2,0999999999999996, et 2,0999999999999996 / 0,7 vaut 2,9999999999999996.
+    expect((0.7 * 3) / 0.7).toBeLessThan(3);
+    expect(betesPayables(0.7 * 3, 0.7)).toBe(3);
     // Un coût nul ne borne rien : rien n'est proposé.
     expect(betesPayables(100, 0)).toBe(0);
   });

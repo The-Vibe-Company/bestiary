@@ -51,7 +51,8 @@ export type ElevageDUneBete = { cout: number; nourriture: string; dureeMinutes: 
  * US-0816 : tant que la Nourriture du régime (`nourriture`, les Stocks qui paient) ne paie pas la quantité choisie,
  * « Élever » est grisé, et le bloc dit ce qui manque, juste au-dessus ; les Stocks montent dans le bloc comme dans la
  * barre du haut (quantiteMontee, au rythme du jeu), si bien que « Élever » s'active dès qu'ils suffisent, et « Max » suit ;
- * le lancement relit les Stocks au clic. Un refus du serveur ne vaut que pour la quantité refusée : changée, il s'efface.
+ * le lancement relit les Stocks au clic. Un refus du serveur ne vaut que pour la quantité refusée (changée, ou renvoyée,
+ * il s'efface) ; faute de Nourriture, c'est la ligne de ce qui manque qui le montre, à jour.
  * US-0815 : « Élever » lance l'Élevage de la quantité choisie ; actif avec un éleveur libre et une quantité valable, grisé
  * pendant l'envoi (un double clic n'envoie qu'une demande, et le serveur n'en lance qu'une) ; lancé, le bloc le dit
  * (combien de Bêtes, confiées à quel éleveur), et la page relue montre les Stocks payés.
@@ -113,12 +114,16 @@ export function BlocElever({
   const ecoule = (lancement.getTime() - maintenant.getTime()) / vitesse;
   const disponible = nourriture.reduce((somme, stock) => somme + quantiteMontee(stock, ecoule, vitesse), 0);
   const plafond = Math.min(betesPayables(disponible, elevage.cout), QUANTITE_LA_PLUS_GRANDE);
-  // US-0816 : le refus du serveur, s'il vaut encore : pour la quantité qu'il a refusée.
-  const refusEnCours = refus !== null && demandee === texte ? refus : null;
-  // US-0816 : la Nourriture qui manque pour payer la quantité choisie, au millionième près ; rien, quand elle suffit. Dit
-  // une fois : un refus du serveur qui dit déjà ce qui manque (les Stocks ont baissé avant le clic) en tient lieu.
+  // US-0816 : le refus du serveur, tant qu'il vaut : pas pendant un nouvel envoi, et pour la quantité qu'il a refusée. Un
+  // refus faute de Nourriture (les Stocks ont baissé avant le clic) ne s'affiche pas : la ligne de ce qui manque, juste
+  // au-dessus du bouton, le dit à l'instant, et il est dit aux lecteurs d'écran à son arrivée (annonce).
+  const refusVaut = refus !== null && !enCours && demandee === texte;
+  const refusEnCours = refusVaut && !estUnManque(refus) ? refus : null;
+  // Faute de Nourriture, le refus est dit aux lecteurs d'écran à son arrivée, dans la sortie de la quantité.
+  const annonceDuBloc = refusVaut && estUnManque(refus) ? refus : annonce;
+  // US-0816 : la Nourriture qui manque pour payer la quantité choisie, au millionième près ; rien, quand elle suffit.
   const manque = quantite === null ? 0 : Math.round((elevage.cout * quantite - disponible) * 1e6) / 1e6;
-  const ceQuiManque = manque > 0 && !estUnManque(refusEnCours) ? ilManque(manque, elevage.nourriture) : null;
+  const ceQuiManque = manque > 0 ? ilManque(manque, elevage.nourriture) : null;
   const derniere = quantite === null ? null : new Date(lancement.getTime() + quantite * elevage.dureeMinutes * MINUTE_MS);
   const choisir = (n: number) => {
     setTexte(String(n));
@@ -193,7 +198,7 @@ export function BlocElever({
                 Max
               </button>
             </div>
-            <output className={styles.annonce}>{annonce}</output>
+            <output className={styles.annonce}>{annonceDuBloc}</output>
             {refusee ? (
               <p id={idQuantiteRefusee} className={styles.refus} role="alert">
                 {QUANTITE_REFUSEE}

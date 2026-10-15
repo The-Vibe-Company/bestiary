@@ -370,8 +370,8 @@ describe("refuser un Élevage faute de Nourriture (US-0816)", () => {
   const bloc = () => screen.getByRole("heading", { name: "Élever" }).closest("section")!;
   const boutonElever = () => within(bloc()).getByRole("button", { name: "Élever" }) as HTMLButtonElement;
   const bouton = (nom: string) => screen.getByRole("button", { name: nom }) as HTMLButtonElement;
-  /** Ce qui manque, dit au-dessus du bouton (le refus du serveur, lui, est une alerte). */
-  const manque = () => within(bloc()).queryAllByText(/^Il manque/).find((p) => p.getAttribute("role") !== "alert") ?? null;
+  /** Ce qui manque, dit au-dessus du bouton (ni le refus du serveur, une alerte, ni son annonce, dans la sortie de la quantité). */
+  const manque = () => within(bloc()).queryAllByText(/^Il manque/).find((p) => p.tagName === "P" && p.getAttribute("role") !== "alert") ?? null;
 
   it("grise « Élever » tant que la Nourriture manque pour la quantité choisie, et dit ce qui manque", async () => {
     const u = userEvent.setup();
@@ -395,15 +395,16 @@ describe("refuser un Élevage faute de Nourriture (US-0816)", () => {
     expect(boutonElever().disabled).toBe(true);
   });
 
-  it("ne dit pas deux fois ce qui manque : le refus du serveur qui le dit déjà (les Stocks ont baissé avant le clic) en tient lieu", async () => {
+  it("faute de Nourriture au clic (les Stocks ont baissé), le dit à l'instant au-dessus du bouton, et aux lecteurs d'écran à l'arrivée du refus", async () => {
     actions.elever.mockResolvedValue({ refus: "Il manque 740 Viande ou Végétaux." });
     render(<BlocElever especeId="poule" places={PLACES} nourriture={stocks(100)} eleveur="Brune" elevage={POULE_ELEVEE} maintenant={MAINTENANT} />);
-    expect(manque()?.textContent).toBe("Il manque 740 Viande ou Végétaux.");
     fireEvent.submit(boutonElever().closest("form")!);
-    const refus = await screen.findByRole("alert");
-    expect(refus.textContent).toBe("Il manque 740 Viande ou Végétaux.");
-    expect(manque()).toBeNull();
-    expect(boutonElever().getAttribute("aria-describedby")).toBe(refus.id);
+    const sortie = () => screen.getAllByRole("status").find((r) => r.tagName === "OUTPUT")!.textContent;
+    await vi.waitFor(() => expect(sortie()).toBe("Il manque 740 Viande ou Végétaux."));
+    // Une seule fois à l'écran : la ligne de ce qui manque, à jour ; pas d'alerte en plus.
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(manque()?.textContent).toBe("Il manque 740 Viande ou Végétaux.");
+    expect(boutonElever().getAttribute("aria-describedby")).toBe(manque()!.id);
   });
 
   it("dit toutes les raisons au bouton : l'éleveur qui manque, la Nourriture qui manque, puis le refus du serveur", async () => {
@@ -444,23 +445,31 @@ describe("refuser un Élevage faute de Nourriture (US-0816)", () => {
     }
   });
 
-  it("ne garde le refus du serveur que pour la quantité refusée : changée, il s'efface", async () => {
+  it("ne garde le refus du serveur que pour la quantité refusée : changée, ou renvoyée, il s'efface", async () => {
     const u = userEvent.setup();
-    actions.elever.mockResolvedValue({ refus: "Il manque 680 Viande ou Végétaux." });
-    render(<BlocElever especeId="poule" places={PLACES} nourriture={stocks(1_000)} eleveur="Brune" elevage={POULE_ELEVEE} maintenant={MAINTENANT} />);
+    let finir: (etat: { refus: string | null }) => void = () => {};
+    actions.elever.mockResolvedValueOnce({ refus: "Aucun éleveur libre." });
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={stocks(10_000)} eleveur="Brune" elevage={POULE_ELEVEE} maintenant={MAINTENANT} />);
     await u.click(bouton("Une Bête de plus"));
-    // Deux poules (1 680) pour 1 000 : grisé ; la demande arrive tout de même, forgée, et le serveur la refuse.
-    fireEvent.submit(boutonElever().closest("form")!);
-    expect((await screen.findByRole("alert")).textContent).toBe("Il manque 680 Viande ou Végétaux.");
-    // Le refus le dit : pas une seconde fois au-dessus du bouton.
+    await u.click(boutonElever());
+    expect((await screen.findByRole("alert")).textContent).toBe("Aucun éleveur libre.");
+    // Une autre quantité : ce refus ne vaut plus.
+    await u.click(bouton("Une Bête de plus"));
+    expect(screen.queryByRole("alert")).toBeNull();
+    // Revenue à la quantité refusée, le refus redit ; renvoyée, il s'efface pendant l'envoi.
+    await u.click(bouton("Une Bête de moins"));
+    expect(screen.getByRole("alert").textContent).toBe("Aucun éleveur libre.");
+    actions.elever.mockImplementationOnce(() => new Promise((f) => (finir = f)));
+    await u.click(boutonElever());
+    expect(screen.queryByRole("alert")).toBeNull();
+    await act(async () => finir({ refus: null }));
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("ne compte pas une poussière de calcul pour de la Nourriture qui manque", () => {
+    // 839,9999999999999 : 840 au millionième près, de quoi payer une poule.
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={stocks(839.9999999999999)} eleveur="Brune" elevage={POULE_ELEVEE} maintenant={MAINTENANT} />);
     expect(manque()).toBeNull();
-    await u.click(bouton("Une Bête de plus"));
-    expect(screen.queryByRole("alert")).toBeNull();
-    expect(manque()?.textContent).toBe("Il manque 1\u00a0520 Viande ou Végétaux.");
-    await u.click(bouton("Une Bête de moins"));
-    await u.click(bouton("Une Bête de moins"));
-    expect(screen.queryByRole("alert")).toBeNull();
     expect(boutonElever().disabled).toBe(false);
   });
 });
-
