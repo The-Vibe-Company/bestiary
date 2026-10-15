@@ -4,8 +4,13 @@ import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { PLACES_DE_L_HABITAT_DU_FOYER } from "@/reglages";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
+import { subirLesCombats } from "@/expeditions/pertes";
+import { lireMarquePage } from "@/temps/marque-page";
+import { rattraper } from "@/temps/rattraper";
 import { reunirLesCouples } from "./couple";
+import { dureeDUneBeteEleveeMinutes } from "./cout-d-elevage";
 import { placesDeLHabitat } from "./habitat";
+import { lancerUnElevage } from "./lancer-un-elevage";
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
 const MONDE_D_ESSAI = "Essai des Places du Foyer (US-0822)";
@@ -94,5 +99,68 @@ describe.skipIf(!URL_TEST)("les Places de l'Habitat du Foyer (US-0822, sur base)
       client.release();
     }
     expect((await placesDeLHabitat(pool, t)).occupees).toBe(3);
+  });
+
+  describe("occuper des Places selon la taille (US-0824)", () => {
+    /** Réunit au Territoire le Couple de l'Espèce `especeId` à l'instant `le`, comme au retour d'une Expédition (US-0956). */
+    const reunir = async (territoireId: number, especeId: string, le: Date) => {
+      await ajouter(territoireId, [
+        [especeId, "male", 1],
+        [especeId, "femelle", 1],
+      ]);
+      const client = await pool.connect();
+      try {
+        expect(await reunirLesCouples(client, territoireId, le)).toEqual([especeId]);
+      } finally {
+        client.release();
+      }
+    };
+    /** Les Places prises, arrondies comme le compteur de la page les lit (au millionième, US-0822). */
+    const prises = async (territoireId: number) => (await placesDeLHabitat(pool, territoireId)).occupees;
+
+    it("chaque Bête née occupe autant de Places que la taille de son Espèce, dès sa naissance (US-0817)", async () => {
+      const t = await nouveauTerritoire();
+      const ne = await lireMarquePage(pool, "territoire", t);
+      // Le Couple de poules part en Réserve, sans Place (US-0822) ; un éleveur ; de quoi payer l'Élevage.
+      await reunir(t, "poule", ne);
+      expect(await prises(t)).toBe(0);
+      await pool.query("update habitant set metier = 'eleveur' where id = (select min(id) from habitant where territoire_id = $1)", [t]);
+      await pool.query("update stock set quantite = 100000, limite = 1000000, reste = 0, plein_depuis = null where territoire_id = $1", [t]);
+      const [poule, debut] = [await taille("poule"), new Date(ne.getTime() + 60_000)];
+      expect(poule).toBeGreaterThan(1);
+      expect(await lancerUnElevage(pool, t, "poule", 2, debut)).toMatchObject({ lance: { quantite: 2 } });
+      const naissance = (k: number) => new Date(debut.getTime() + k * dureeDUneBeteEleveeMinutes(poule) * 60_000);
+      // Rien avant la première naissance ; chacune prend aussitôt la taille d'une poule, en Places.
+      await rattraper("territoire", t, { pool, jusqua: new Date(naissance(1).getTime() - 1) });
+      expect(await prises(t)).toBe(0);
+      await rattraper("territoire", t, { pool, jusqua: naissance(1) });
+      expect(await prises(t)).toBe(poule);
+      await rattraper("territoire", t, { pool, jusqua: naissance(2) });
+      expect(await prises(t)).toBe(2 * poule);
+    }, 60_000);
+
+    it("une Bête tuée au combat quitte l'effectif et libère aussitôt ses Places ; une Blessée, restée dans l'effectif, garde les siennes", async () => {
+      const t = await nouveauTerritoire();
+      await ajouter(t, [["pigeon", "male", 10]]);
+      const pigeon = await taille("pigeon");
+      // Les dix pigeons partent en escorte : ils gardent leurs Places, pour rentrer.
+      const { rows } = await pool.query<{ id: number }>(
+        `insert into expedition (territoire_id, case_id, part_le, trajet_minutes, sejour_minutes)
+         select $1, c.id, now(), 30, 60 from case_du_monde c where c.monde_id = $2 and c.chef_id is null order by c.id limit 1 returning id`,
+        [t, mondeId],
+      );
+      await pool.query("insert into expedition_escorte (expedition_id, espece_id, nombre) values ($1, 'pigeon', 10)", [rows[0].id]);
+      expect(await prises(t)).toBeCloseTo(10 * pigeon, 6);
+      // L'Espèce la plus forte du jeu les attaque (US-0944) : ses mortes quittent l'effectif, ses Blessés y restent (US-0951).
+      const { rows: forte } = await pool.query<{ id: string }>("select id from espece order by attaque * vie desc, id limit 1");
+      await subirLesCombats(pool, [{ expeditionId: rows[0].id, especeId: forte[0].id, le: new Date(), numero: 1, beteDeNaissanceId: null }]);
+      const { rows: escorte } = await pool.query<{ perdues: number; blessees: number }>("select perdues, blessees from expedition_escorte where expedition_id = $1", [
+        rows[0].id,
+      ]);
+      const mortes = escorte[0].perdues - escorte[0].blessees;
+      expect(mortes).toBeGreaterThan(0);
+      expect(escorte[0].blessees).toBeGreaterThan(0);
+      expect(await prises(t)).toBeCloseTo((10 - mortes) * pigeon, 6);
+    });
   });
 });
