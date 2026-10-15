@@ -109,7 +109,8 @@ describe.skipIf(!URL_TEST)("Stocks du Territoire (US-0201, US-0202, sur base)", 
       );
       const { rows: pierre } = await client.query("select quantite from stock where territoire_id = $1 and ressource_id = 'pierre'", [rows[0].id]);
       expect(pierre).toEqual([{ quantite: "250.500000" }]);
-      expect(await donneesDeReferenceTenues(client)).toEqual([]);
+      // Les Stocks nés ne font que lire les Ressources du jeu, pour leur clé étrangère.
+      expect(await donneesDeReferenceTenues(client, { lues: ["ressource"] })).toEqual([]);
     } finally {
       await client.query("rollback");
       client.release();

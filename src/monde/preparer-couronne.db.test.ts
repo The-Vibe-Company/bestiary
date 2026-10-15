@@ -41,8 +41,9 @@ describe.skipIf(!URL_TEST)("préparer la Couronne en base (US-0151)", () => {
 
   it("crée les 2 070 Cases de la Couronne, et fixe la taille du Monde, celle de son Cœur sauvage comprise (US-0403)", async () => {
     expect(await preparerCouronne(client, mondeId)).toEqual({ ajoutees: 2070, total: 2070 });
-    // Les données de référence, que les autres fichiers rechargent en même temps, ne sont pas tenues le temps de l'essai.
-    expect(await donneesDeReferenceTenues(client)).toEqual([]);
+    // Les données de référence, que les autres fichiers rechargent en même temps, ne sont pas tenues le temps de l'essai :
+    // les Cases ne font que lire les Biomes et leurs formes, pour leur clé étrangère.
+    expect(await donneesDeReferenceTenues(client, { lues: ["biome", "variante_biome"] })).toEqual([]);
     const { rows } = await client.query(
       `select count(*)::int as cases, bool_and(couronne) as toutes, bool_or(coeur) as "dansLeCoeur", min(anneau) as de, max(anneau) as a,
          bool_and(eloignement = anneau - 7) as "eloignees",

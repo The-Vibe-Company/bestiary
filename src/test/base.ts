@@ -90,17 +90,22 @@ export async function territoireDuCompte(base: Pick<Pool, "query">, compteId: nu
 }
 
 /**
- * Les tables des données de référence (JEUX) que la transaction de `client` a écrites : celles du jeu, pas les copies
- * temporaires qu'elle s'en est faites. Tous les fichiers de test les rechargent en même temps (preparerMondeDeTest) : tant
- * qu'une transaction tient une ligne qu'elle y a écrite, ils l'attendent, ou s'interbloquent avec elle. Les lire, même pour
- * vérifier une clé étrangère (RowShareLock), ne compte pas.
+ * Les tables des données de référence (JEUX) que la transaction de `client` tient pour les écrire ou en verrouiller des
+ * lignes : celles du jeu, pas les copies temporaires qu'elle s'en est faites. Tous les fichiers de test les rechargent en
+ * même temps (preparerMondeDeTest) : tant qu'une transaction en tient une ligne, ils l'attendent, ou s'interbloquent avec
+ * elle.
+ *
+ * `lues` : les tables dont l'essai ne fait que lire des lignes pour vérifier une clé étrangère (RowShareLock, KEY SHARE sur
+ * chaque ligne). chargerJeu, qui ne change jamais leur clé, ne les attend pas. Pas les Raretés : il en change le rang, qui
+ * est unique.
  */
-export async function donneesDeReferenceTenues(client: PoolClient): Promise<string[]> {
+export async function donneesDeReferenceTenues(client: PoolClient, { lues = [] }: { lues?: string[] } = {}): Promise<string[]> {
   const { rows } = await client.query<{ nom: string }>(
     `select distinct c.relname as nom from pg_locks l join pg_class c on c.oid = l.relation join pg_namespace n on n.oid = c.relnamespace
-     where l.pid = pg_backend_pid() and n.nspname = 'public' and c.relname = any($1) and l.mode not in ('AccessShareLock', 'RowShareLock')
+     where l.pid = pg_backend_pid() and n.nspname = 'public' and c.relname = any($1) and l.mode <> 'AccessShareLock'
+       and not (l.mode = 'RowShareLock' and c.relname = any($2))
      order by 1`,
-    [[...new Set(JEUX.map((jeu) => jeu.table))]],
+    [[...new Set(JEUX.map((jeu) => jeu.table))], lues],
   );
   return rows.map((r) => r.nom);
 }
