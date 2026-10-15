@@ -8,8 +8,9 @@ import type { Pool, PoolClient } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
-import { type BeteSauvage, betesSauvagesDesCases } from "@/monde/betes-sauvages";
+import { type BeteSauvage, betesSauvagesDesCases, betesSauvagesDUneCase } from "@/monde/betes-sauvages";
 import { recitsDuTerritoire } from "@/monde/recits";
+import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
 import { attaqueTiree } from "@/test/attaques";
@@ -24,6 +25,8 @@ import { programmerLeRetour } from "./retour";
 const MINUTE_MS = 60_000;
 const HEURE = 60;
 const JOUR = 24 * HEURE;
+/** Le temps, en minutes, après le début de la recherche où la rare peut se montrer : une Bête venue avant y est repartie. */
+const CALME = PRESENCE_D_UNE_BETE_HEURES * HEURE + 6 * HEURE;
 /** L'aller et le retour des Expéditions de l'essai, posées sur la Case sans souci de la distance à leur Foyer. */
 const TRAJET = 30;
 /** Au plus tant d'Expéditions X posées pour en trouver une que la Bête rare attaque. */
@@ -156,7 +159,7 @@ describe.skipIf(!URL_TEST)("une Expédition en fuite quitte la Case pour tous le
     for (const [ici, betes] of await betesSauvagesDesCases(pool, libres.map((c) => c.id), de, jusqua)) {
       const i = betes.findIndex((r, k) => {
         const s = betes[k + 1];
-        if (!s || r.rareteId === "commune" || forceDe(r.especeId) <= faible.force) return false;
+        if (!s || r.rareteId === "commune" || forceDe(r.especeId) <= faible.force || r.arrivee < apres(de, CALME)) return false;
         if (s.rareteId !== "commune" || s.especeId === faible.id || s.arrivee < apres(r.depart, 1) || s.arrivee > apres(r.arrivee, 16 * HEURE)) return false;
         if ((k > 0 && betes[k - 1].depart > apres(r.arrivee, -2 * HEURE)) || (betes[k + 2] && betes[k + 2].arrivee < apres(s.arrivee, 2 * HEURE))) return false;
         const sur = { arrivee: apres(s.arrivee, -HEURE), depart: apres(s.arrivee, HEURE) };
@@ -169,6 +172,8 @@ describe.skipIf(!URL_TEST)("une Expédition en fuite quitte la Case pour tous le
       if (i >= 0 && (!caseId || betes[i].arrivee < rare.arrivee)) [caseId, rare, commune] = [ici, betes[i], betes[i + 1]];
     }
     if (!caseId) throw new Error("Aucune Case où une Bête rare précède une commune que le tirage donnerait à X.");
+    // Ce que l'essai suppose : sur la Case, tant que X y est, la rare puis la commune, et aucune autre Bête.
+    expect((await betesSauvagesDUneCase(pool, caseId, apres(rare.arrivee, -HEURE), apres(commune.arrivee, HEURE))).map((b) => b.numero)).toEqual([rare.numero, commune.numero]);
 
     // X arrive une heure avant la rare et resterait jusqu'à une heure après l'apparition de la commune ; Y arrive au départ
     // de la rare, qu'elle ne voit pas, et reste de même.
