@@ -114,7 +114,7 @@ export function BlocElever({
   const ecoule = (lancement.getTime() - maintenant.getTime()) / vitesse;
   const disponible = nourriture.reduce((somme, stock) => somme + quantiteMontee(stock, ecoule, vitesse), 0);
   const plafond = Math.min(betesPayables(disponible, elevage.cout), QUANTITE_LA_PLUS_GRANDE);
-  // US-0816 : le refus du serveur, tant qu'il vaut : pas pendant un nouvel envoi, et pour la quantité qu'il a refusée. Un
+  // US-0816 : le refus du serveur, tant qu'il vaut : pas pendant un nouvel envoi, ni une fois la quantité changée. Un
   // refus faute de Nourriture (les Stocks ont baissé avant le clic) ne s'affiche pas : la ligne de ce qui manque, juste
   // au-dessus du bouton, le dit à l'instant, et il est dit aux lecteurs d'écran à son arrivée (annonce).
   const refusVaut = refus !== null && !enCours && demandee === texte;
@@ -129,6 +129,8 @@ export function BlocElever({
     setTexte(String(n));
     setQuitte(false);
     setAnnonce(`Quantité : ${n}`);
+    // Une autre quantité choisie : la réponse du serveur à la demande précédente ne vaut plus, même en y revenant.
+    setDemandee(null);
   };
   return (
     <div id="elever" className={styles.elever}>
@@ -179,6 +181,7 @@ export function BlocElever({
                     setTexte(e.target.value);
                     setQuitte(false);
                     setAnnonce("");
+                    setDemandee(null);
                   }}
                   onBlur={() => setQuitte(true)}
                   aria-invalid={refusee ? true : undefined}

@@ -395,6 +395,19 @@ describe("refuser un Élevage faute de Nourriture (US-0816)", () => {
     expect(boutonElever().disabled).toBe(true);
   });
 
+  it("ne redit pas aux lecteurs d'écran un refus faute de Nourriture une fois la quantité changée, même en y revenant", async () => {
+    const u = userEvent.setup();
+    actions.elever.mockResolvedValue({ refus: "Il manque 680 Viande ou Végétaux." });
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={stocks(1_000)} eleveur="Brune" elevage={POULE_ELEVEE} maintenant={MAINTENANT} />);
+    await u.click(bouton("Une Bête de plus"));
+    fireEvent.submit(boutonElever().closest("form")!);
+    const sortie = () => screen.getAllByRole("status").find((r) => r.tagName === "OUTPUT")!.textContent;
+    await vi.waitFor(() => expect(sortie()).toBe("Il manque 680 Viande ou Végétaux."));
+    await u.click(bouton("Une Bête de plus"));
+    await u.click(bouton("Une Bête de moins"));
+    expect(sortie()).toBe("Quantité : 2");
+  });
+
   it("faute de Nourriture au clic (les Stocks ont baissé), le dit à l'instant au-dessus du bouton, et aux lecteurs d'écran à l'arrivée du refus", async () => {
     actions.elever.mockResolvedValue({ refus: "Il manque 740 Viande ou Végétaux." });
     render(<BlocElever especeId="poule" places={PLACES} nourriture={stocks(100)} eleveur="Brune" elevage={POULE_ELEVEE} maintenant={MAINTENANT} />);
@@ -445,7 +458,7 @@ describe("refuser un Élevage faute de Nourriture (US-0816)", () => {
     }
   });
 
-  it("ne garde le refus du serveur que pour la quantité refusée : changée, ou renvoyée, il s'efface", async () => {
+  it("ne garde le refus du serveur que pour sa demande : la quantité changée, ou la demande renvoyée, il s'efface", async () => {
     const u = userEvent.setup();
     let finir: (etat: { refus: string | null }) => void = () => {};
     actions.elever.mockResolvedValueOnce({ refus: "Aucun éleveur libre." });
@@ -456,9 +469,13 @@ describe("refuser un Élevage faute de Nourriture (US-0816)", () => {
     // Une autre quantité : ce refus ne vaut plus.
     await u.click(bouton("Une Bête de plus"));
     expect(screen.queryByRole("alert")).toBeNull();
-    // Revenue à la quantité refusée, le refus redit ; renvoyée, il s'efface pendant l'envoi.
+    // Même revenue à la quantité refusée : la réponse valait pour la demande d'avant.
     await u.click(bouton("Une Bête de moins"));
-    expect(screen.getByRole("alert").textContent).toBe("Aucun éleveur libre.");
+    expect(screen.queryByRole("alert")).toBeNull();
+    // Renvoyée et refusée de nouveau, le refus se dit ; renvoyée encore, il s'efface pendant l'envoi.
+    actions.elever.mockResolvedValueOnce({ refus: "Aucun éleveur libre." });
+    await u.click(boutonElever());
+    expect((await screen.findByRole("alert")).textContent).toBe("Aucun éleveur libre.");
     actions.elever.mockImplementationOnce(() => new Promise((f) => (finir = f)));
     await u.click(boutonElever());
     expect(screen.queryByRole("alert")).toBeNull();
