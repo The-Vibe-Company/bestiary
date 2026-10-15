@@ -402,3 +402,28 @@ describe("toute l'escorte perdue (US-0946)", () => {
     expect(lignes({ pertes: [{ nom: "Poule", mortes: 1, blessees: 1 }] }).at(-2)).toBe("Pertes au combat : Poule (1 mort, 1 Blessé).");
   });
 });
+
+describe("les pigeons partis en escorte et ceux partis comme Éclaireurs (US-0972)", () => {
+  const lignes = (autre: Partial<RetourARaconter>) => recitDeRetour(retour(autre)).texte.split("\n");
+
+  it("avec des Éclaireurs, une ligne les nomme après les durées, avec combien en sont partis", () => {
+    expect(lignes({ eclaireurs: [{ nom: "Pigeon biset", nombre: 2 }] })).toEqual([
+      "Destination : Forêt, à 3 Cases de votre Foyer.",
+      "Aller 1 h, séjour 4 h, retour 1 h.",
+      "Éclaireurs : Pigeon biset × 2.",
+      "12 Cases sont sorties du brouillard.",
+      "Aucune Bête ne s'est montrée.",
+    ]);
+  });
+
+  it("les pigeons partis dans l'escorte se lisent à part : « en escorte »", () => {
+    expect(lignes({ eclaireurs: [{ nom: "Pigeon biset", nombre: 1 }], eclaireusesEnEscorte: [{ nom: "Pigeon biset", nombre: 3 }] })[2]).toBe(
+      "Éclaireurs : Pigeon biset × 1 ; en escorte : Pigeon biset × 3.",
+    );
+  });
+
+  it("sans Éclaireur, aucune ligne : les pigeons de l'escorte sont une escorte comme les autres", () => {
+    expect(recitDeRetour(retour({ eclaireurs: [], eclaireusesEnEscorte: [] }))).toEqual(recitDeRetour(retour()));
+    expect(lignes({}).some((l) => l.startsWith("Éclaireurs"))).toBe(false);
+  });
+});

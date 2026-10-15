@@ -88,7 +88,16 @@ export type RetourARaconter = {
   escortePerdue?: boolean;
   /** US-0947 : les combats qu'elle a livrés, dans l'ordre où ils se sont livrés (combatsDUneExpedition) ; absents : aucun. */
   combats?: CombatDuRetour[];
+  /**
+   * US-0972 : ses Éclaireurs (US-0976), Espèce par Espèce, et les Bêtes de ces mêmes Espèces parties dans son escorte, qui
+   * ont combattu comme les autres sans éclairer (eclaireursDuRetour) ; absents ou vides : aucun Éclaireur, aucune ligne.
+   */
+  eclaireurs?: EspeceRacontee[];
+  eclaireusesEnEscorte?: EspeceRacontee[];
 };
+
+/** US-0972 : une Espèce de l'Expédition et combien de ses Bêtes y sont parties : « Pigeon biset × 2 ». */
+export type EspeceRacontee = { nom: string; nombre: number };
 
 /** US-0951 : les pertes d'une Espèce de l'escorte au combat : le nom de l'Espèce, ses Bêtes mortes et ses Blessés. */
 export type PerteRacontee = { nom: string; mortes: number; blessees: number };
@@ -140,6 +149,17 @@ function rappelee({ le, pendant }: RappelARaconter): string {
 }
 
 /** US-0917 : « 12 Cases sont sorties du brouillard. », « Une Case est sortie… », « Aucune Case n'est sortie… ». */
+/** « Pigeon biset × 2, Pigeon ramier × 1 », comme le récapitulatif et le détail d'une Expédition (US-0976). */
+const especesRacontees = (especes: readonly EspeceRacontee[]) => especes.map(({ nom, nombre }) => `${nom} × ${nombre}`).join(", ");
+
+/**
+ * US-0972 : « Éclaireurs : Pigeon biset × 2. » ; quand des Bêtes de leur Espèce sont aussi parties dans l'escorte, la
+ * ligne les distingue : « Éclaireurs : Pigeon biset × 1 ; en escorte : Pigeon biset × 2. ».
+ */
+function eclaireursPartis(eclaireurs: readonly EspeceRacontee[], enEscorte: readonly EspeceRacontee[]): string {
+  return `Éclaireurs : ${especesRacontees(eclaireurs)}${enEscorte.length ? ` ; en escorte : ${especesRacontees(enEscorte)}` : ""}.`;
+}
+
 function casesSorties(nombre: number): string {
   if (nombre === 0) return "Aucune Case n'est sortie du brouillard.";
   return nombre === 1 ? "Une Case est sortie du brouillard." : `${nombre} Cases sont sorties du brouillard.`;
@@ -295,7 +315,8 @@ function finDuRecit(combats: readonly CombatDuRetour[], pertes: readonly PerteRa
  * Bêtes que le joueur y avait repérées en étaient parties avant l'arrivée, une ligne les nomme. US-0964 : quand des Bêtes
  * vues ont suivi une autre Expédition, une ligne le dit, après les Bêtes. US-0947 : attaquée, il finit par chaque combat,
  * dans l'ordre du temps, puis ses pertes, Espèce par Espèce, en morts et en Blessés (US-0951), ou « Aucune perte. », et la
- * fuite des explorateurs. US-0946 : quand toute l'escorte est perdue, la ligne des pertes l'annonce.
+ * fuite des explorateurs. US-0946 : quand toute l'escorte est perdue, la ligne des pertes l'annonce. US-0972 : avec des
+ * Éclaireurs, une ligne les nomme après les durées, et nomme à part les Bêtes de leur Espèce parties dans l'escorte.
  */
 export function recitDeRetour({
   destination,
@@ -313,6 +334,8 @@ export function recitDeRetour({
   pertes,
   escortePerdue,
   combats,
+  eclaireurs,
+  eclaireusesEnEscorte,
 }: RetourARaconter): NouveauRecit {
   const sejour = durees.sejour === 0 ? "sans séjour" : `séjour ${formaterMinutes(durees.sejour)}`;
   return {
@@ -321,6 +344,7 @@ export function recitDeRetour({
       `Destination : ${destination.biome}, à ${casesDuFoyer(destination.distance)}.`,
       ...(rappel ? [rappelee(rappel)] : []),
       `Aller ${formaterMinutes(durees.aller)}, ${sejour}, retour ${formaterMinutes(durees.retour)}.`,
+      ...(eclaireurs?.length ? [eclaireursPartis(eclaireurs, eclaireusesEnEscorte ?? [])] : []),
       casesSorties(casesLevees),
       ...(autresExpeditions ? [AUTRES_EXPEDITIONS] : []),
       ...(partiesAvant?.length ? [partiesAvantLArrivee(partiesAvant)] : []),
@@ -389,6 +413,8 @@ export async function raconterLeRetour(client: PoolClient, territoireId: number,
   // US-0947 : ses combats ; et les Bêtes mortes aux combats, que le résumé compte, retenues sur la Rencontre de la dernière
   // Bête qui a attaqué ; rien sans mort.
   const combats = await combatsDUneExpedition(client, expeditionId);
+  // US-0972 : ses Éclaireurs, et les Bêtes de leur Espèce parties dans son escorte.
+  const { eclaireurs, eclaireusesEnEscorte } = await eclaireursDuRetour(client, expeditionId);
   const mortes = pertes.reduce((n, p) => n + p.mortes, 0);
   const derniere = mortes > 0 ? combats.at(-1)?.rencontreId : undefined;
   await ecrireUnRecit(
@@ -411,6 +437,8 @@ export async function raconterLeRetour(client: PoolClient, territoireId: number,
       pertes,
       escortePerdue,
       combats,
+      eclaireurs,
+      eclaireusesEnEscorte,
     }),
     detail.map((r, i) => (vues[i].id === derniere ? { ...r, perdues: mortes } : r)),
   );
@@ -515,4 +543,23 @@ async function especesRestees(client: PoolClient, expeditionId: number, vues: Re
       manque: forceQuiManque(escorte, { force: forces.get(id)!, rareteId: vues.find((r) => r.especeId === id)!.rareteId }),
     }))
     .filter((e) => e.manque > 0);
+}
+
+/**
+ * US-0972 : les Éclaireurs de l'Expédition `expeditionId` (expedition_eclaireur), Espèce par Espèce, de la plus commune à
+ * la plus rare puis par nom, avec combien en sont partis ; et, de ces mêmes Espèces, combien de Bêtes sont parties dans son
+ * escorte (expedition_escorte, au départ). Vides sans Éclaireur.
+ */
+async function eclaireursDuRetour(client: PoolClient, expeditionId: number): Promise<{ eclaireurs: EspeceRacontee[]; eclaireusesEnEscorte: EspeceRacontee[] }> {
+  const { rows } = await client.query<EspeceRacontee & { escorte: number }>(
+    `select es.nom, c.nombre, coalesce((select s.nombre from expedition_escorte s where s.expedition_id = c.expedition_id and s.espece_id = c.espece_id), 0) as escorte
+     from expedition_eclaireur c join espece es on es.id = c.espece_id join rarete r on r.id = es.rarete_id
+     where c.expedition_id = $1
+     order by r.rang, es.nom`,
+    [expeditionId],
+  );
+  return {
+    eclaireurs: rows.map(({ nom, nombre }) => ({ nom, nombre })),
+    eclaireusesEnEscorte: rows.filter((r) => r.escorte > 0).map(({ nom, escorte }) => ({ nom, nombre: escorte })),
+  };
 }
