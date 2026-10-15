@@ -44,6 +44,8 @@ describe("page de simulation des pigeons éclaireurs (US-0974)", () => {
     const reponse = await proxy(new NextRequest("https://bestia.test/controle/pigeons"));
     expect(reponse?.status).toBe(401);
     await expect(Pigeons()).rejects.toMatchObject({ digest: expect.stringContaining("404") });
+    // Le calcul, une à deux secondes, n'est jamais lancé sans le mot de passe.
+    expect(simulation.simulerLesPigeons).not.toHaveBeenCalled();
   });
 
   it(
@@ -59,10 +61,12 @@ describe("page de simulation des pigeons éclaireurs (US-0974)", () => {
         `${nombre(SIMULATION_DES_PIGEONS_EXPEDITIONS)} Expéditions identiques sur ${SIMULATION_DES_PIGEONS_JOURS} jours · Séjour 4 h · Écart minimal : ${SIMULATION_DES_PIGEONS_ECART_MINIMAL_POURCENT} %`,
       );
       expect(html.indexOf("Contrôle réussi")).toBeLessThan(html.indexOf("<table"));
-      expect(html).toMatch(/<th[^>]*>Éclaireurs<\/th><th[^>]*>Vue en plus<\/th><th[^>]*>Rencontres<\/th><th[^>]*>Écart<\/th><th[^>]*>Cases révélées<\/th><th[^>]*>En plus<\/th>/);
-      expect(html).toContain(`<td>Aucun</td><td>—</td><td>${nombre(s.sans.rencontres)}</td><td>—</td><td>${un(s.sans.casesRevelees)}</td><td>—</td>`);
-      expect(html).toContain(`<td>1</td><td>20 min</td><td>${nombre(s.lignes[0].rencontres)}</td><td>${deux(s.lignes[0].ecart)} %</td>`);
-      expect(html).toContain(`<td>6</td><td>2 h</td><td>${nombre(s.lignes[5].rencontres)}</td>`);
+      expect(html).toMatch(
+        /<th[^>]*>Éclaireurs<\/th><th[^>]*>Vue en plus<\/th><th[^>]*>Rayon en plus<\/th><th[^>]*>Rencontres<\/th><th[^>]*>Écart<\/th><th[^>]*>Cases par Expédition<\/th><th[^>]*>Cases en plus<\/th>/,
+      );
+      expect(html).toContain(`<td>Aucun</td><td>—</td><td>—</td><td>${nombre(s.sans.rencontres)}</td><td>—</td><td>${un(s.sans.casesRevelees)}</td><td>—</td>`);
+      expect(html).toContain(`<td>1</td><td>20 min</td><td>1</td><td>${nombre(s.lignes[0].rencontres)}</td><td>${deux(s.lignes[0].ecart)} %</td>`);
+      expect(html).toContain(`<td>6</td><td>2 h</td><td>2</td><td>${nombre(s.lignes[5].rencontres)}</td>`);
       expect(html).toContain("<td>4</td><td>1 h 20</td>");
     },
     60_000,

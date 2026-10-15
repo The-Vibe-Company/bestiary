@@ -6,6 +6,7 @@ import { connection } from "next/server";
 import { Bloc } from "@/components/Bloc";
 import { Grille } from "@/components/Grille";
 import { motDePasseAccepte } from "@/controle/acces";
+import { formaterMinutes } from "@/temps/affichage";
 // Les blocs et le tableau de la simulation des Raretés, son outil frère (US-0931), comme la simulation des chances.
 import styles from "../raretes/raretes.module.css";
 import { simulerLesPigeons } from "./simulation";
@@ -16,17 +17,10 @@ const nombre = (n: number) => n.toLocaleString("fr-FR");
 const decimal = (n: number) => n.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 /** « 3,24 % », l'unité jamais seule à la ligne. */
 const pourcent = (n: number) => `${n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0%`;
-/** « 4 h », « 20 min », « 1 h 40 ». */
-const duree = (minutes: number) => {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return h === 0 ? `${m} min` : m === 0 ? `${h} h` : `${h} h ${String(m).padStart(2, "0")}`;
-};
-
 /**
  * US-0974 : la simulation des pigeons éclaireurs : sur une longue période, des Expéditions identiques, sans pigeon puis
- * avec 1 à 6 Éclaireurs, leurs Rencontres et l'écart à celles sans pigeon, et les Cases sorties du brouillard en plus ; le
- * résultat du contrôle en tête. Rien n'est lu ni écrit en base. Réservée aux développeurs, comme /controle.
+ * avec 1 à 6 Éclaireurs, leurs Rencontres (au total) et l'écart à celles sans pigeon, et les Cases qu'elles sortent du
+ * brouillard (par Expédition) ; le résultat du contrôle en tête, qui ne juge que les Rencontres. Rien n'est lu ni écrit en base. Réservée aux développeurs, comme /controle.
  */
 export default async function SimulationDesPigeonsDuControle() {
   await connection();
@@ -56,7 +50,7 @@ export default async function SimulationDesPigeonsDuControle() {
             </ul>
           ) : null}
           <p className={styles.note}>
-            {`${nombre(s.expeditions)} Expéditions identiques sur ${nombre(s.jours)} jours · Séjour ${duree(s.sejourMinutes)} · Écart minimal : ${nombre(s.ecartMinimal)}\u00a0%`}
+            {`${nombre(s.expeditions)} Expéditions identiques sur ${nombre(s.jours)} jours · Séjour ${formaterMinutes(s.sejourMinutes)} · Écart minimal : ${nombre(s.ecartMinimal)}\u00a0%`}
           </p>
         </Bloc>
         <Bloc titre="Avec et sans Éclaireurs" largeur={6}>
@@ -66,15 +60,17 @@ export default async function SimulationDesPigeonsDuControle() {
                 <tr>
                   <th>Éclaireurs</th>
                   <th>Vue en plus</th>
+                  <th>Rayon en plus</th>
                   <th>Rencontres</th>
                   <th>Écart</th>
-                  <th>Cases révélées</th>
-                  <th>En plus</th>
+                  <th>Cases par Expédition</th>
+                  <th>Cases en plus</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>Aucun</td>
+                  <td>—</td>
                   <td>—</td>
                   <td>{nombre(s.sans.rencontres)}</td>
                   <td>—</td>
@@ -84,7 +80,8 @@ export default async function SimulationDesPigeonsDuControle() {
                 {s.lignes.map((l) => (
                   <tr key={l.eclaireurs}>
                     <td>{l.eclaireurs}</td>
-                    <td>{duree(l.vueMinutes)}</td>
+                    <td>{formaterMinutes(l.vueMinutes)}</td>
+                    <td>{l.rayonEnPlus}</td>
                     <td>{nombre(l.rencontres)}</td>
                     <td className={l.sousLEcart ? styles.echec : undefined}>{pourcent(l.ecart)}</td>
                     <td>{decimal(l.casesRevelees)}</td>

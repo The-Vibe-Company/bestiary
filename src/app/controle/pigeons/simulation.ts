@@ -2,12 +2,15 @@
 // Éclaireurs, pour vérifier que leur effet se mesure : plus de Rencontres, les Bêtes gardées en vue plus longtemps
 // (US-0970), et plus de Cases sorties du brouillard (US-0969). Un calcul pur, par les fonctions mêmes du jeu : les
 // apparitions des Bêtes sauvages (US-0925), ce qu'une Expédition en voit (vueLe), la vue de ses Éclaireurs
-// (vueProlongee) et le brouillard qu'elle lève (casesRevelees). Rien n'est lu ni écrit en base.
+// (vueProlongee) et le brouillard qu'elle lève (casesRevelees). Rien n'est lu ni écrit en base. Une Rencontre simulée est
+// une apparition ordinaire de Bête sauvage qu'une Expédition seule voit pendant son séjour : ni Rareté ni Espèce tirée, ni
+// Bête de naissance, ni autre Expédition sur la Case. Rien de tout cela ne dépend des pigeons : l'écart reste le leur.
 import { type BeteSurLaCase, vueLe } from "@/expeditions/apprivoisement";
 import { casesRevelees, rayonDesEclaireurs } from "@/expeditions/brouillard";
 import { type HorairesDUneExpedition, retourDUneExpedition, sejourDUneExpedition } from "@/expeditions/phase";
 import { vueProlongee } from "@/expeditions/vue-des-eclaireurs";
 import { apparitions } from "@/monde/betes-sauvages";
+import { abordsDuFoyer } from "@/monde/brouillard";
 import type { Coordonnees } from "@/monde/hex";
 import {
   BROUILLARD_LEVE_PAR_ECLAIREUR_CASES,
@@ -15,7 +18,9 @@ import {
   MINUTES_DE_VUE_AU_PLUS,
   MINUTES_DE_VUE_PAR_ECLAIREUR,
   PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE,
+  PORTEE_D_EXPLORATION_CASES,
   PRESENCE_D_UNE_BETE_HEURES,
+  SEJOURS_TOUT_PRETS_MINUTES,
   SIMULATION_DES_PIGEONS_ECART_MINIMAL_POURCENT,
   SIMULATION_DES_PIGEONS_EXPEDITIONS,
   SIMULATION_DES_PIGEONS_JOURS,
@@ -30,8 +35,12 @@ const GRAINE = 974;
 const FOYER: Coordonnees = { q: 0, r: 0 };
 /** Le premier départ simulé ; les autres suivent, également répartis sur SIMULATION_DES_PIGEONS_JOURS jours. */
 const DEBUT = Date.UTC(2031, 0, 1);
-/** Le séjour de chaque Expédition simulée : 4 h, l'une des durées toutes prêtes. */
-const SEJOUR_MINUTES = 4 * 60;
+/** Le séjour de chaque Expédition simulée : 4 h, la deuxième des durées toutes prêtes. */
+const SEJOUR_MINUTES = SEJOURS_TOUT_PRETS_MINUTES[1];
+/** Les abords du Foyer, découverts à sa naissance : le jeu ne les attribue jamais à une Expédition. */
+const ABORDS = new Set(abordsDuFoyer(FOYER).map((c) => `${c.q},${c.r}`));
+/** La plus proche destination simulée : au-delà des Cases voisines du Foyer. */
+const DISTANCE_MINIMALE = 2;
 
 /**
  * US-0974 : les nombres d'Éclaireurs comparés à l'Expédition sans pigeon, de 1 jusqu'à ce que leurs deux effets
@@ -51,13 +60,13 @@ export const ECLAIREURS_SIMULES = Array.from(
 export type ExpeditionSimulee = { destination: Coordonnees; horaires: HorairesDUneExpedition };
 
 /**
- * US-0974 : l'Expédition simulée numéro `i` sur `expeditions` : vers une Case à 2 à 8 Cases du Foyer, une autre à chaque
- * fois, au pas des explorateurs, pour un séjour de 4 h ; partie à son tour, les départs également répartis sur
- * SIMULATION_DES_PIGEONS_JOURS jours.
+ * US-0974 : l'Expédition simulée numéro `i` sur `expeditions` : vers une Case à 2 Cases du Foyer jusqu'à la portée
+ * d'exploration (PORTEE_D_EXPLORATION_CASES), une autre à chaque fois, au pas des explorateurs, pour un séjour de 4 h ;
+ * partie à son tour, les départs également répartis sur SIMULATION_DES_PIGEONS_JOURS jours.
  */
 export function expeditionSimulee(i: number, expeditions = SIMULATION_DES_PIGEONS_EXPEDITIONS): ExpeditionSimulee {
-  const distance = 2 + (i % 7);
-  const destination = { q: distance, r: -(Math.floor(i / 7) % (distance + 1)) };
+  const distance = DISTANCE_MINIMALE + (i % (PORTEE_D_EXPLORATION_CASES - DISTANCE_MINIMALE + 1));
+  const destination = { q: distance, r: -(Math.floor(i / (PORTEE_D_EXPLORATION_CASES - DISTANCE_MINIMALE + 1)) % (distance + 1)) };
   const partLe = new Date(DEBUT + Math.floor((i * SIMULATION_DES_PIGEONS_JOURS * JOUR_MS) / expeditions));
   return { destination, horaires: { partLe, trajetMinutes: distance * PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE, sejourMinutes: SEJOUR_MINUTES } };
 }
@@ -69,6 +78,14 @@ export function expeditionSimulee(i: number, expeditions = SIMULATION_DES_PIGEON
 export function rencontresVues(betes: readonly Pick<BeteSurLaCase, "arrivee" | "depart">[], sejour: { debut: Date; fin: Date }, eclaireurs: number): number {
   const expedition = { arrivee: sejour.debut, depart: sejour.fin, vueProlongee: vueProlongee(eclaireurs) };
   return betes.filter((bete) => vueLe(bete, expedition) !== null).length;
+}
+
+/**
+ * US-0974 : les Cases qu'une Expédition vers `destination` sort du brouillard jusqu'à son retour, avec `eclaireurs`
+ * Éclaireurs (casesRevelees), comme le jeu les lui attribue : sans les abords du Foyer, déjà découverts.
+ */
+export function casesDeLExpedition(destination: Coordonnees, horaires: HorairesDUneExpedition, eclaireurs: number): number {
+  return casesRevelees(FOYER, destination, horaires, retourDUneExpedition(horaires)!, eclaireurs).filter((c) => !ABORDS.has(`${c.q},${c.r}`)).length;
 }
 
 /** US-0974 : une ligne de la simulation : un nombre d'Éclaireurs, et ce qu'il donne à côté de l'Expédition sans pigeon. */
@@ -114,7 +131,6 @@ export function simulerLesPigeons({
   for (let i = 0; i < expeditions; i++) {
     const { destination, horaires } = expeditionSimulee(i, expeditions);
     const sejour = sejourDUneExpedition(horaires)!;
-    const retour = retourDUneExpedition(horaires)!;
     // Toutes les Bêtes que l'une ou l'autre peut voir : arrivées avant la fin du séjour, parties au plus tôt la vue la
     // plus longue avant son début.
     const betes = apparitions(GRAINE, destination, new Date(sejour.debut.getTime() - PRESENCE_MS - vueMaximale), sejour.fin).map((x) => ({
@@ -126,7 +142,7 @@ export function simulerLesPigeons({
     comptes.forEach((eclaireurs, k) => {
       rencontres[k] += rencontresVues(betes, sejour, eclaireurs);
       const rayon = rayonDesEclaireurs(eclaireurs);
-      if (!parRayon.has(rayon)) parRayon.set(rayon, casesRevelees(FOYER, destination, horaires, retour, eclaireurs).length);
+      if (!parRayon.has(rayon)) parRayon.set(rayon, casesDeLExpedition(destination, horaires, eclaireurs));
       cases[k] += parRayon.get(rayon)!;
     });
   }
