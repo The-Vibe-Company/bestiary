@@ -6,6 +6,7 @@ import { casesDecouvertes } from "@/monde/brouillard";
 import { decouvertesDuJoueur } from "@/monde/carte";
 import { BROUILLARD } from "@/monde/couleurs-de-la-carte";
 import { ficheDUneCase } from "@/monde/fiche";
+import { recitsDuTerritoire } from "@/monde/recits";
 import { casesDansLeRayon, type Coordonnees, distance } from "@/monde/hex";
 import { ABORDS_DU_FOYER_CASES, BROUILLARD_LEVE_AUTOUR_DE_LA_DESTINATION_CASES, PORTEE_D_EXPLORATION_CASES } from "@/reglages";
 import { lireMarquePage } from "@/temps/marque-page";
@@ -13,7 +14,7 @@ import { DEPART_VOYAGEUR } from "@/monde/voyageurs";
 import { programmerEvenement } from "@/temps/avancer";
 import { rattraper } from "@/temps/rattraper";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
-import { casesLeveesParLExpedition, casesRevelees } from "./brouillard";
+import { casesLeveesParLExpedition, casesLeveesParSesEclaireurs, casesRevelees } from "./brouillard";
 import { cheminDUneExpedition } from "./chemin";
 import { lancerLExpedition } from "./depart";
 import { type HorairesDUneExpedition, retourDUneExpedition, sejourDUneExpedition } from "./phase";
@@ -245,6 +246,41 @@ describe.skipIf(!URL_TEST)("le brouillard se lève sur le chemin (US-0914, sur b
       await aLHeure(territoireId, instant);
       expect(await decouvertes(territoireId)).toEqual(aLArrivee);
     }
+    // US-0973 : le Récit du retour dit combien de Cases ses Éclaireurs lui ont révélées en plus : celles hors du rayon d'une
+    // Expédition sans Éclaireur.
+    expect(await casesLeveesParSesEclaireurs(pool, horaires.id, foyer, destination, horaires, rentree)).toBe(enPlus.length);
+    const recit = (await recitsDuTerritoire(pool, territoireId)).find((r) => r.titre === "Retour d'Expédition")!;
+    expect(recit.texte.split("\n")).toContain(`${aLArrivee.size - abords.size} Cases sont sorties du brouillard, dont ${enPlus.length} grâce à vos Éclaireurs.`);
+  });
+
+  it("ne compte en plus que les Cases que ses Éclaireurs ont été les premiers à révéler, hors du rayon sans eux (US-0973)", async () => {
+    const { territoireId, foyer, ne, abords } = await naitre();
+    await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, 'pigeon', 'male', 3)", [territoireId]);
+    const destination = await auBoutDeLaPortee(territoireId);
+    // Une première Expédition, un Éclaireur ; puis, arrivée la première partie, une seconde vers la même Case, deux Éclaireurs.
+    const premiere = await partir(territoireId, destination, decale(ne, MINUTE_MS), new Map([["pigeon", 1]]));
+    const seconde = await partir(territoireId, destination, sejourDUneExpedition(premiere)!.debut, new Map([["pigeon", 2]]));
+    const rentree = retourDUneExpedition(seconde)!;
+    await aLHeure(territoireId, rentree);
+    // Attendues : les Cases du Monde de son rayon à deux Éclaireurs, hors des abords, de ce que la première avait levé (son
+    // rayon à un Éclaireur) et du rayon sans Éclaireur.
+    const dejaVues = new Set([
+      ...abords,
+      ...casesRevelees(foyer, destination, premiere, rentree, 1).map(cle),
+      ...casesRevelees(foyer, destination, seconde, rentree, 0).map(cle),
+    ]);
+    const candidates = casesRevelees(foyer, destination, seconde, rentree, 2).filter((c) => !dejaVues.has(cle(c)));
+    const { rows } = await pool.query<{ nombre: number }>(
+      `select count(*)::int as nombre from case_du_monde c join unnest($2::int[], $3::int[]) as v(q, r) on c.q = v.q and c.r = v.r where c.monde_id = $1`,
+      [mondeId, candidates.map((c) => c.q), candidates.map((c) => c.r)],
+    );
+    expect(rows[0].nombre).toBeGreaterThan(0);
+    expect(await casesLeveesParSesEclaireurs(pool, seconde.id, foyer, destination, seconde, rentree)).toBe(rows[0].nombre);
+    // Le rayon gagné sur une Expédition sans Éclaireur en compterait davantage : celles que la première avait déjà levées.
+    const anneauDeLaPremiere = casesRevelees(foyer, destination, premiere, rentree, 1).filter(
+      (c) => !abords.has(cle(c)) && !casesRevelees(foyer, destination, seconde, rentree, 0).some((s) => cle(s) === cle(c)),
+    );
+    expect(anneauDeLaPremiere.length).toBeGreaterThan(0);
   });
 
   it("le laisse levé pour toujours, et pour ce joueur seulement", async () => {
@@ -363,5 +399,29 @@ describe.skipIf(!URL_TEST)("le brouillard se lève sur le chemin (US-0914, sur b
     ]);
     await aLHeure(territoireId, decale(ne, 24 * 60 * MINUTE_MS));
     expect(await decouvertes(territoireId)).toEqual(abords);
+  });
+
+  it("ne compte aucune Case en plus pour une Expédition partie vers un autre Monde que celui de son Foyer (US-0973, après la bascule d'un Monde)", async () => {
+    const { territoireId, foyer, ne } = await naitre();
+    // Une Case d'un autre Monde, celui du jeu : sa destination, et une Case qu'elle y avait sortie du brouillard avant la
+    // bascule, loin du rayon que son chemin depuis le nouveau Foyer lèverait.
+    const autreMonde = (sens: "asc" | "desc") =>
+      pool.query<Coordonnees & { id: number }>(
+        `select c.id, c.q, c.r, c.monde_id from case_du_monde c where c.monde_id = (select min(m.id) from monde m where m.id <> $1) order by c.id ${sens} limit 1`,
+        [mondeId],
+      );
+    const rows = [(await autreMonde("asc")).rows[0], (await autreMonde("desc")).rows[0]];
+    const horaires: HorairesDUneExpedition = { partLe: decale(ne, MINUTE_MS), trajetMinutes: 160, sejourMinutes: 60 };
+    const { rows: x } = await pool.query<{ id: number }>(
+      "insert into expedition (territoire_id, case_id, part_le, trajet_minutes, sejour_minutes) values ($1, $2, $3, $4, $5) returning id",
+      [territoireId, rows[0].id, horaires.partLe, horaires.trajetMinutes, horaires.sejourMinutes],
+    );
+    await pool.query("insert into expedition_eclaireur (expedition_id, espece_id, nombre) values ($1, 'pigeon', 2)", [x[0].id]);
+    await pool.query("insert into case_decouverte (territoire_id, case_id, expedition_id) values ($1, $2, $3)", [territoireId, rows[1].id, x[0].id]);
+    expect(await casesLeveesParLExpedition(pool, x[0].id)).toBe(1);
+    // Sans le garde, elle compterait : la Case découverte est hors du rayon sans Éclaireur, d'un bout à l'autre de ce Monde.
+    const instant = decale(ne, 24 * 60 * MINUTE_MS);
+    expect(casesRevelees(foyer, rows[0], horaires, instant).some((c) => c.q === rows[1].q && c.r === rows[1].r)).toBe(false);
+    expect(await casesLeveesParSesEclaireurs(pool, x[0].id, foyer, rows[0], horaires, instant)).toBe(0);
   });
 });
