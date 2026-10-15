@@ -42,6 +42,8 @@ function signalesEnMots(sansMetier: number, voyageurs: number): string | null {
  * (« Récits, 2 non lus »). US-0332 : l'entrée « Habitants » porte un point, sans chiffre, quand des Voyageurs attendent
  * aux portes, et le dit dans son nom (« Habitants, un Voyageur attend »). US-0313 : le même point, un seul, quand des
  * Habitants sont sans Métier ; le nom dit alors les deux (« Habitants, 2 sans Métier, un Voyageur attend »).
+ * Sur ordinateur, où l'on survole, le médaillon seul, plus grand : le nom de l'entrée paraît en infobulle au survol et au
+ * clavier, et reste le nom du lien (BarreHaut.module.css) ; sans survol, il reste sous ou à côté du médaillon.
  */
 export function Navigation({ recitsNonLus = 0, voyageurs = 0, sansMetier = 0 }: { recitsNonLus?: number; voyageurs?: number; sansMetier?: number }) {
   const page = usePathname();

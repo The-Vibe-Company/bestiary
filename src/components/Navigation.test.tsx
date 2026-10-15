@@ -30,6 +30,12 @@ describe("navigation du jeu (US-0302)", () => {
     ]);
   });
 
+  it("garde le nom de chaque entrée comme nom de son lien, sans infobulle native : sur ordinateur, ce nom est l'infobulle", () => {
+    render(<Navigation recitsNonLus={2} voyageurs={1} />);
+    expect(entrees().map((lien) => lien.getAttribute("title"))).toEqual([null, null, null, null, null, null]);
+    expect(screen.getByRole("link", { name: "Foyer" }).querySelector("span")?.textContent).toBe("Foyer");
+  });
+
   it("porte sur l'entrée « Récits » le nombre de Récits non lus, en chiffres, et le dit dans son nom (US-0324)", () => {
     render(<Navigation recitsNonLus={2} />);
     const recits = screen.getByRole("link", { name: "Récits, 2 non lus" });

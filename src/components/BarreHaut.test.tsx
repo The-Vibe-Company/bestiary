@@ -52,10 +52,10 @@ describe("barre du haut", () => {
     expect(jeu).toMatch(/grid-template-areas:\s*"logo chef nav \. stocks"\s*"bande bande bande bande bande"\s*"onglets onglets onglets onglets onglets"\s*"alerte alerte alerte alerte alerte";/);
   });
 
-  it("sous 1 200 px, passe les Stocks en rangée sous le blason, le nom et les onglets (US-0324)", () => {
-    expect(lire("src/styles/formes.css")).toMatch(/@media \(min-width: 1024px\) and \(max-width: 1199px\) \{\s*:root:has\(\[data-bande-ressources\]\) \{\s*--hauteur-bande: 52px;/);
+  it("sous 1 200 px, sans survol, passe les Stocks en rangée sous le blason, le nom et les onglets nommés (US-0324) ; avec, les laisse sur la ligne", () => {
+    expect(lire("src/styles/formes.css")).toMatch(/@media \(min-width: 1024px\) and \(max-width: 1199px\) and \(hover: none\) \{\s*:root:has\(\[data-bande-ressources\]\) \{\s*--hauteur-bande: 52px;/);
     const css = feuille();
-    const moyen = css.slice(css.indexOf("@media (min-width: 1024px) and (max-width: 1199px)"));
+    const moyen = css.slice(css.indexOf("@media (min-width: 1024px) and (max-width: 1199px) and (hover: none)"));
     expect(regleDe(moyen, ".barre:has(.navigation) .ressources")).toContain("grid-area: bande;");
   });
 
@@ -75,9 +75,54 @@ describe("barre du haut", () => {
     const css = feuille();
     expect(regleDe(css, '.entree[aria-current="page"]')).toContain("color: var(--creme);");
     expect(regleDe(css, '.entree[aria-current="page"]::after')).toContain("height: 2px;");
-    expect(regleDe(css, '.entree[aria-current="page"] .libelle::after')).toContain("rotate(45deg)");
+    // Le losange sur la place de l'entrée, pas sur son nom : il reste là quand le nom devient une infobulle.
+    expect(regleDe(css, '.place:has(> .entree[aria-current="page"])::after')).toContain("rotate(45deg)");
     // Son médaillon seul prend l'anneau vif et sa lueur.
     expect(regleDe(css, '.entree[aria-current="page"]::before')).toContain("box-shadow: var(--anneau-medaillon-vif);");
+  });
+
+  describe("sur ordinateur, où l'on survole : les médaillons seuls, le nom en infobulle", () => {
+    const survol = (css: string) => css.slice(css.indexOf("@media (min-width: 1024px) and (hover: hover) {"), css.indexOf("@media (min-width: 1024px) and (hover: hover) and (prefers-reduced-motion"));
+    const serree = (css: string) => css.slice(css.indexOf("@media (min-width: 1024px) and (max-width: 1399px) and (hover: hover) {"));
+
+    it("agrandit les médaillons et ôte le nom d'à côté ; un peu moins grands jusqu'à 1 400 px", () => {
+      const entree = regleDe(survol(feuille()), ".entree");
+      expect(entree).toContain("--taille-medaillon: 40px;");
+      expect(entree).toContain("gap: 0;");
+      expect(regleDe(serree(feuille()), ".entree")).toContain("--taille-medaillon: 36px;");
+      // Plus grands que les médaillons avec leur nom à côté (24 et 28 px).
+      expect(feuille()).toMatch(/\.entree \{[^}]*--taille-medaillon: 28px;/);
+    });
+
+    it("montre le nom dans une infobulle du kit sous son médaillon, au survol comme au clavier, aussitôt, sans retenir la souris", () => {
+      const css = survol(feuille());
+      const libelle = regleDe(css, ".libelle");
+      expect(libelle).toContain("position: absolute;");
+      expect(libelle).toContain("top: calc(100% + 8px);");
+      expect(libelle).toContain("background: var(--fond-panneau);");
+      expect(libelle).toContain("border: 1px solid var(--filet-cuivre);");
+      expect(libelle).toContain("pointer-events: none;");
+      expect(libelle).toMatch(/transition:\s*opacity 90ms/);
+      // Transparent, jamais caché : il reste le nom du lien pour les lecteurs d'écran.
+      expect(libelle).toContain("opacity: 0;");
+      expect(libelle).not.toMatch(/display: none|visibility: hidden/);
+      expect(css).toMatch(/\.entree:hover \.libelle,\s*\.entree:focus-visible \.libelle \{[^}]*opacity: 1;/);
+      expect(feuille()).toMatch(/@media \(min-width: 1024px\) and \(hover: hover\) and \(prefers-reduced-motion: reduce\) \{\s*\.libelle \{\s*transition: none;/);
+    });
+
+    it("pose la pastille des Récits et le point des Habitants sur le médaillon", () => {
+      const css = survol(feuille());
+      expect(regleDe(css, ".pastille")).toContain("position: absolute;");
+      expect(regleDe(css, ".repere")).toContain("left: calc(50% + 10px);");
+    });
+
+    it("garde le nom sous le médaillon sur une tablette ou un téléphone, et à côté sur un grand écran tactile", () => {
+      // Hors de ce mode, aucune règle ne fait du nom une infobulle.
+      const css = feuille();
+      const avant = css.slice(0, css.indexOf("@media (min-width: 1024px) and (hover: hover) {"));
+      expect(regleDe(avant, ".libelle")).toBe("");
+      expect(regleDe(tablette(css), ".libelle")).toBe("");
+    });
   });
 
   it("distingue l'entrée « Expéditions », l'action du jeu, sans la faire paraître choisie : ni son nom en couleur, ni la lueur", () => {

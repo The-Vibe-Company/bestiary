@@ -306,7 +306,9 @@
   list-style: none;
 }
 
+/* Sa place porte le losange de l'entrée affichée, pour que le nom puisse devenir une infobulle sur ordinateur. */
 .place {
+  position: relative;
   display: flex;
 }
 
@@ -389,7 +391,7 @@
   background: linear-gradient(90deg, transparent, var(--cuivre-clair), transparent);
 }
 
-.entree[aria-current="page"] .libelle::after {
+.place:has(> .entree[aria-current="page"])::after {
   content: "";
   position: absolute;
   bottom: -5px;
@@ -860,8 +862,11 @@
   }
 }
 
-/* Sous 1 200 px, les Stocks passent en rangée sous le blason, le nom et les onglets, à droite, sans changer de forme. */
-@media (min-width: 1024px) and (max-width: 1199px) {
+/*
+ * Sous 1 200 px, sans survol, les Stocks passent en rangée sous le blason, le nom et les onglets nommés, à droite, sans
+ * changer de forme. Avec le survol, les médaillons seuls leur laissent la place sur la ligne.
+ */
+@media (min-width: 1024px) and (max-width: 1199px) and (hover: none) {
   .barre:has(.navigation) .ressources {
     grid-area: bande;
     justify-self: end;
@@ -891,6 +896,90 @@
 
   .barre:has(.navigation) .ressources {
     margin-left: 10px;
+  }
+}
+
+/*
+ * Sur ordinateur, où l'on survole : les médaillons seuls, plus grands, sans le nom à côté. Le nom paraît dans une
+ * infobulle sous son médaillon, au survol comme au clavier, aussitôt, et ne retient pas la souris : il reste le nom du
+ * lien, que lisent les lecteurs d'écran, transparent tant qu'on ne le montre pas. La pastille des Récits et le point des
+ * Habitants passent sur le médaillon ; l'entrée affichée garde son trait et son losange. Sans survol (un écran tactile),
+ * le nom reste à côté.
+ */
+@media (min-width: 1024px) and (hover: hover) {
+  .entree {
+    --taille-medaillon: 40px;
+    gap: 0;
+    padding: 0 8px;
+  }
+
+  .entree[data-hutte]::before {
+    background: var(--icone) calc(-1 * var(--taille-medaillon)) calc(-0.07 * var(--taille-medaillon)) / calc(2.5 * var(--taille-medaillon)) auto no-repeat;
+  }
+
+  .entree[aria-current="page"]::after {
+    right: 6px;
+    left: 6px;
+  }
+
+  .libelle {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    z-index: 3;
+    padding: 7px 10px;
+    border: 1px solid var(--filet-cuivre);
+    border-radius: var(--arrondi-net);
+    background: var(--fond-panneau);
+    box-shadow: var(--ombre-verre);
+    color: var(--creme);
+    font: var(--graisse-moyenne) 13px / 1 var(--police);
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, -3px);
+    transition:
+      opacity 90ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 90ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .entree:hover .libelle,
+  .entree:focus-visible .libelle {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  .pastille {
+    position: absolute;
+    top: calc(50% - 26px);
+    left: calc(50% + 7px);
+  }
+
+  .repere {
+    top: calc(50% - 22px);
+    left: calc(50% + 10px);
+  }
+}
+
+@media (min-width: 1024px) and (hover: hover) and (prefers-reduced-motion: reduce) {
+  .libelle {
+    transition: none;
+  }
+}
+
+/* Entre 1 024 et 1 400 px, les médaillons seuls un peu moins grands, pour que les Stocks gardent leur place à côté. */
+@media (min-width: 1024px) and (max-width: 1399px) and (hover: hover) {
+  .entree {
+    --taille-medaillon: 36px;
+    padding: 0 6px;
+  }
+
+  .pastille {
+    top: calc(50% - 24px);
+  }
+
+  .repere {
+    top: calc(50% - 20px);
+    left: calc(50% + 9px);
   }
 }
 
