@@ -5,12 +5,10 @@ import { coutDUneBeteElevee, dureeDUneBeteEleveeMinutes, nourritureQuiPaie } fro
 import type { Regime } from "./effectif";
 import { ELEVAGE_SANS_COUPLE, ELEVAGE_SANS_ELEVEUR, elevageAcquis } from "./elevage";
 import { ELEVEUR_LIBRE_EN_SQL } from "./etat-habitant";
+import { ilManque } from "./payer-un-elevage";
 
 /** US-0815 : le refus d'un Élevage d'une Espèce qui a déjà le sien en cours : une Espèce n'a qu'un éleveur à la fois (US-0844). */
 export const ELEVAGE_DEJA_EN_COURS = "Un Élevage de cette Espèce est déjà en cours.";
-
-/** US-0815 : le refus d'un Élevage que la Nourriture du régime de l'Espèce ne paie pas ; US-0816 dira ce qui manque. */
-export const NOURRITURE_MANQUANTE = "Pas assez de Nourriture pour cet Élevage.";
 
 /** US-0815 : un Élevage lancé, ce que le joueur en lit (combien de Bêtes, et l'éleveur qui s'en occupe), ou son refus. */
 export type Lancement = { lance: { quantite: number; eleveur: string } } | { refus: string };
@@ -82,18 +80,23 @@ async function lancer(client: PoolClient, territoireId: number, especeId: string
 
 /**
  * US-0815 : retire `cout` des Stocks `ressources` du Territoire, le plus fourni d'abord, puis l'autre ; refuse, sans rien
- * retirer, quand ils n'y suffisent pas ensemble : aucun Stock ne descend sous zéro (US-0816). Un Stock qui repasse sous
- * sa limite n'est plus plein (US-0228). Les Stocks sont tenus jusqu'à la fin du lancement.
+ * retirer, quand ils n'y suffisent pas ensemble : aucun Stock ne descend sous zéro. US-0816 : le refus dit ce qui manque,
+ * dans la Nourriture du régime, nommée comme les Ressources (« Il manque 12 Viande ou Végétaux. ») : les Stocks ont pu
+ * baisser entre l'affichage et le clic. Un Stock qui repasse sous sa limite n'est plus plein (US-0228). Les Stocks sont
+ * tenus jusqu'à la fin du lancement.
  */
 async function payer(client: PoolClient, territoireId: number, ressources: string[], cout: number): Promise<void> {
-  const { rows } = await client.query<{ assez: boolean }>(
+  const { rows } = await client.query<{ manque: string; nourriture: string }>(
     `with tenus as materialized (
        select quantite from stock where territoire_id = $1 and ressource_id = any($2::text[]) for update
      )
-     select coalesce(sum(quantite), 0) >= $3::numeric as assez from tenus`,
+     select ($3::numeric - coalesce(sum(quantite), 0))::text as manque,
+       (select string_agg(nom, ' ou ' order by ordre) from ressource where id = any($2::text[])) as nourriture
+     from tenus`,
     [territoireId, ressources, cout],
   );
-  if (!rows[0].assez) throw new Refus(NOURRITURE_MANQUANTE);
+  const manque = Number(rows[0].manque);
+  if (manque > 0) throw new Refus(ilManque(manque, rows[0].nourriture));
   await client.query(
     `with ordre as (
        select ressource_id, quantite,

@@ -46,7 +46,7 @@ function parFamille(stocks: RessourceDeLaBarre[]): { famille: Famille; stocks: R
  * sans passer sous zéro ni dépasser la limite (US-0221). Au-dessus de sa limite (US-0230), le Stock ne
  * produit plus : seul l'Entretien le fait descendre, jusqu'à elle ; sans Entretien, il ne bouge pas.
  */
-export function quantiteMontee(stock: RessourceDeLaBarre, ecoule: number, vitesse: number): number {
+export function quantiteMontee(stock: Pick<RessourceDeLaBarre, "quantite" | "limite" | "parHeure" | "entretienParHeure">, ecoule: number, vitesse: number): number {
   const quantite = Number(stock.quantite);
   const limite = Number(stock.limite);
   const entretien = Number(stock.entretienParHeure);
