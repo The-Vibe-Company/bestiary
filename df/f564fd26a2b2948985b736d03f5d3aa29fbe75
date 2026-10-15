@@ -1,0 +1,29 @@
+src/app/jeu/expeditions/nouvelle/Recapitulatif.css.test.ts
+  s_7c7d151152e4a5::t_a2a9fc66fdebcf 41-51
+src/app/jeu/expeditions/nouvelle/Recapitulatif.module.css
+  s_7c7d151152e4a5::t_5fc0a9e8b7786d 100-101,204-212,275-280
+src/app/jeu/expeditions/nouvelle/Recapitulatif.test.tsx
+  s_7c7d151152e4a5::t_6fe7ba317016d1 432-448
+src/app/jeu/expeditions/nouvelle/Recapitulatif.tsx
+  s_7c7d151152e4a5::t_1b4a6a4cf2928e 34-39,42
+src/monde/effectif.db.test.ts
+  s_7c7d151152e4a5::t_61ac71e30dc905 70,193-219
+src/monde/effectif.ts
+  s_7c7d151152e4a5::t_15b422f39e46a8 195-196,204
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dff564fd26a2b2948985b736d03f5d3aa29fbe75",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
