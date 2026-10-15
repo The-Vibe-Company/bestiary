@@ -76,6 +76,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0808 · Lire la fiche d'une Espèce sur mobile
 **En tant que** joueur, **je veux** lire la fiche d'une Espèce confortablement sur mon téléphone, **afin de** consulter mes Bêtes où que je sois.
 
+- **Statut** : Livrée le 2026-10-15 (autopilot, The-Vibe-Company/bestiary#63). Sur un téléphone, droit ou couché, et une tablette étroite, l'illustration occupe le haut de la fiche et les caractéristiques se rangent en grille, une ligne de 44 px au moins par caractéristique, le nom à gauche, la valeur à droite ; tout ce qui se lit fait au moins 16 px, sans défilement de côté de 320 à 390 px ni en paysage ; chaque nom ouvre son explication sur toute sa ligne, et la croix et « Fermer » font 44 px. Vérifié sur une version de production : aucun texte sous 16 px, aucune cible sous 44 px (avant : 24 textes et 11 cibles trop petits à 375 px). CSS seule.
 - **Débloquée par** : US-0807
 - **Critères d'acceptation** :
   - Sur un écran de téléphone (375 pixels de large), l'illustration occupe le haut de la fiche et les caractéristiques se rangent en grille, sans défilement de côté.
@@ -426,6 +427,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0841 · Retirer une Bête de son Rôle
 **En tant que** joueur, **je veux** retirer une Bête de son Rôle, **afin de** la rendre au combat quand j'en ai besoin.
 
+- **Statut** : Livrée le 2026-10-15 (autopilot, The-Vibe-Company/bestiary#62). Le « − » de la page Bêtes retire une Bête de son Rôle : elle cesse aussitôt de le remplir et redevient disponible pour l'escorte au même instant (« 3 disponibles · 2 affectées »), comme pour la défense et l'Attaque à venir ; affecter et retirer sont gratuits et immédiats, autant de fois qu'on veut (vingt allers-retours ne changent ni les Stocks, ni l'effectif, ni les Places). Ce que US-0837 et US-0842 faisaient déjà est prouvé par des essais ; s'y ajoute qu'au clavier, quand « − » ou « + » se grise à sa borne, la main passe à l'autre bouton au lieu de se perdre.
 - **Débloquée par** : US-0837
 - **Critères d'acceptation** :
   - Le « − » de la page Bêtes retire une Bête de son Rôle : elle cesse aussitôt de le remplir.
