@@ -410,7 +410,7 @@ describe("les pigeons partis en escorte et ceux partis comme Éclaireurs (US-097
     expect(lignes({ eclaireurs: [{ nom: "Pigeon biset", nombre: 2 }] })).toEqual([
       "Destination : Forêt, à 3 Cases de votre Foyer.",
       "Aller 1 h, séjour 4 h, retour 1 h.",
-      "Éclaireurs : Pigeon biset × 2.",
+      "Éclaireurs : Pigeon biset\u00a0×\u00a02.",
       "12 Cases sont sorties du brouillard.",
       "Aucune Bête ne s'est montrée.",
     ]);
@@ -418,7 +418,7 @@ describe("les pigeons partis en escorte et ceux partis comme Éclaireurs (US-097
 
   it("les pigeons partis dans l'escorte se lisent à part : « en escorte »", () => {
     expect(lignes({ eclaireurs: [{ nom: "Pigeon biset", nombre: 1 }], eclaireusesEnEscorte: [{ nom: "Pigeon biset", nombre: 3 }] })[2]).toBe(
-      "Éclaireurs : Pigeon biset × 1 ; en escorte : Pigeon biset × 3.",
+      "Éclaireurs : Pigeon biset\u00a0×\u00a01 ; en escorte : Pigeon biset\u00a0×\u00a03.",
     );
   });
 

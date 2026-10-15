@@ -155,6 +155,10 @@ describe.skipIf(!URL_TEST)("un pigeon en escorte n'éclaire pas (US-0972, sur ba
       t.territoireId,
     ]);
     expect(effectif[0].nombre).toBe(2);
+    // Rentrée, le récit dit les pigeons partis, au départ, même perdus au combat : un Éclaireur, deux en escorte.
+    await rattraper("territoire", t.territoireId, { pool, jusqua: retourDUneExpedition(x.horaires)! });
+    const recit = (await recitsDuTerritoire(pool, t.territoireId)).find((r) => r.titre === "Retour d'Expédition")!;
+    expect(recit.texte.split("\n")).toContain(`Éclaireurs : ${pigeon.nom}\u00a0×\u00a01 ; en escorte : ${pigeon.nom}\u00a0×\u00a02.`);
   });
 
   it("il ne lève pas plus de brouillard : seuls les Éclaireurs le font, même partis avec lui", async () => {
@@ -167,32 +171,40 @@ describe.skipIf(!URL_TEST)("un pigeon en escorte n'éclaire pas (US-0972, sur ba
       [avec, xAvec, 1],
     ] as const) {
       await rattraper("territoire", t.territoireId, { pool, jusqua: sejourDUneExpedition(x.horaires)!.debut });
-      const { toutes } = await attendues(t, x, eclaireurs);
+      const { toutes, deja } = await attendues(t, x, eclaireurs);
       const levees = await leveesPar(t.territoireId);
+      // Exactement le rayon de ses Éclaireurs : toutes les Cases qu'il lève, hors celles déjà découvertes, et pas une de plus.
+      expect(levees).toEqual(new Set([...toutes].filter((c) => !deja.has(c) || levees.has(c))));
       for (const c of levees) expect(toutes.has(c), c).toBe(true);
-      // Pas une Case au-delà du rayon de ses Éclaireurs : le rayon d'un Éclaireur de plus en lèverait.
+      // Le rayon d'un Éclaireur de plus en lèverait d'autres : ses pigeons d'escorte n'en ont levé aucune.
       const auDela = await attendues(t, x, eclaireurs + 1);
-      expect([...auDela.toutes].filter((c) => levees.has(c) && !toutes.has(c))).toEqual([]);
       expect([...auDela.toutes].some((c) => !toutes.has(c) && !auDela.deja.has(c))).toBe(true);
+      // Et l'Éclaireur, lui, agrandit le rayon : des Cases que le rayon sans lui ne montrait pas.
+      if (eclaireurs > 0) {
+        const sans = await attendues(t, x, eclaireurs - 1);
+        expect([...levees].some((c) => !sans.toutes.has(c))).toBe(true);
+      }
     }
     expect(distance(seuls.foyer, xSeuls.destination)).toBe(DISTANCE);
   });
 
   it("le récit du retour distingue les pigeons partis en escorte de ceux partis comme Éclaireurs", async () => {
-    const [avec, sans] = [await naitre(3), await naitre(2)];
+    const [avec, seuls, sans] = [await naitre(3), await naitre(2), await naitre(2)];
     const xAvec = await partir(avec, 2, 1);
+    const xSeuls = await partir(seuls, 0, 2);
     const xSans = await partir(sans, 2, 0);
     for (const [t, x] of [
       [avec, xAvec],
+      [seuls, xSeuls],
       [sans, xSans],
     ] as const) {
       await rattraper("territoire", t.territoireId, { pool, jusqua: retourDUneExpedition(x.horaires)! });
     }
     const lignes = async (territoireId: number) =>
       (await recitsDuTerritoire(pool, territoireId)).filter((r) => r.titre === "Retour d'Expédition").flatMap((r) => r.texte.split("\n"));
-    const avecLignes = await lignes(avec.territoireId);
-    expect(avecLignes).toContain(`Éclaireurs : ${pigeon.nom} × 1 ; en escorte : ${pigeon.nom} × 2.`);
-    expect(avecLignes.indexOf(`Éclaireurs : ${pigeon.nom} × 1 ; en escorte : ${pigeon.nom} × 2.`)).toBe(2);
+    expect((await lignes(avec.territoireId))[2]).toBe(`Éclaireurs : ${pigeon.nom}\u00a0×\u00a01 ; en escorte : ${pigeon.nom}\u00a0×\u00a02.`);
+    // Des Éclaireurs sans pigeon dans l'escorte : la ligne ne dit qu'eux.
+    expect((await lignes(seuls.territoireId))[2]).toBe(`Éclaireurs : ${pigeon.nom}\u00a0×\u00a02.`);
     // Sans Éclaireur, aucune ligne : ses pigeons sont une escorte comme une autre.
     expect((await lignes(sans.territoireId)).some((l) => l.startsWith("Éclaireurs"))).toBe(false);
   });

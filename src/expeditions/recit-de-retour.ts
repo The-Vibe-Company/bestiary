@@ -148,9 +148,11 @@ function rappelee({ le, pendant }: RappelARaconter): string {
   return `Rappelée ${pendant === "aller" ? "à l'aller" : "pendant le séjour"} le ${formaterJourEtHeure(le, FUSEAU)}.`;
 }
 
-/** US-0917 : « 12 Cases sont sorties du brouillard. », « Une Case est sortie… », « Aucune Case n'est sortie… ». */
-/** « Pigeon biset × 2, Pigeon ramier × 1 », comme le récapitulatif et le détail d'une Expédition (US-0976). */
-const especesRacontees = (especes: readonly EspeceRacontee[]) => especes.map(({ nom, nombre }) => `${nom} × ${nombre}`).join(", ");
+/**
+ * US-0972 : « Pigeon biset × 2, Pigeon ramier × 1 », comme le récapitulatif et le détail d'une Expédition (US-0976) : le
+ * nombre collé à son Espèce par des espaces insécables, qu'une ligne étroite ne le coupe jamais.
+ */
+const especesRacontees = (especes: readonly EspeceRacontee[]) => especes.map(({ nom, nombre }) => `${nom}\u00a0×\u00a0${nombre}`).join(", ");
 
 /**
  * US-0972 : « Éclaireurs : Pigeon biset × 2. » ; quand des Bêtes de leur Espèce sont aussi parties dans l'escorte, la
@@ -160,6 +162,7 @@ function eclaireursPartis(eclaireurs: readonly EspeceRacontee[], enEscorte: read
   return `Éclaireurs : ${especesRacontees(eclaireurs)}${enEscorte.length ? ` ; en escorte : ${especesRacontees(enEscorte)}` : ""}.`;
 }
 
+/** US-0917 : « 12 Cases sont sorties du brouillard. », « Une Case est sortie… », « Aucune Case n'est sortie… ». */
 function casesSorties(nombre: number): string {
   if (nombre === 0) return "Aucune Case n'est sortie du brouillard.";
   return nombre === 1 ? "Une Case est sortie du brouillard." : `${nombre} Cases sont sorties du brouillard.`;
