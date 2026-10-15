@@ -475,9 +475,9 @@ describe("les Bêtes rencontrées seulement grâce aux Éclaireurs (US-0973)", (
   const deNaissance = (especeId: string, vueLe: Date, id: number) => ({ especeId, vueLe, apparueLe: apparue, beteDeNaissanceId: id });
 
   it("une Bête sauvage vue pendant sa présence ne doit rien aux Éclaireurs ; vue à sa fin ou après, si", () => {
-    expect(especesVuesGraceAuxEclaireurs([sauvage("renard", apparue), sauvage("loup", new Date(fin.getTime() - 1))], new Map())).toEqual([]);
-    expect(especesVuesGraceAuxEclaireurs([sauvage("renard", fin)], new Map())).toEqual(["renard"]);
-    expect(especesVuesGraceAuxEclaireurs([sauvage("renard", new Date(fin.getTime() + 20 * 60_000))], new Map())).toEqual(["renard"]);
+    expect(especesVuesGraceAuxEclaireurs([sauvage("souris", apparue), sauvage("pigeon", new Date(fin.getTime() - 1))], new Map())).toEqual([]);
+    expect(especesVuesGraceAuxEclaireurs([sauvage("souris", fin)], new Map())).toEqual(["souris"]);
+    expect(especesVuesGraceAuxEclaireurs([sauvage("souris", new Date(fin.getTime() + 20 * 60_000))], new Map())).toEqual(["souris"]);
   });
 
   it("une Bête de naissance, d'après son départ ; un départ inconnu, jamais", () => {
@@ -491,7 +491,7 @@ describe("les Bêtes rencontrées seulement grâce aux Éclaireurs (US-0973)", (
   it("chaque Espèce une fois, dans l'ordre des vues, sans celles vues pendant leur présence", () => {
     const apres = new Date(fin.getTime() + 60_000);
     expect(
-      especesVuesGraceAuxEclaireurs([sauvage("loup", apres), sauvage("renard", apparue), sauvage("lievre", apres), sauvage("loup", apres)], new Map()),
-    ).toEqual(["loup", "lievre"]);
+      especesVuesGraceAuxEclaireurs([sauvage("pigeon", apres), sauvage("souris", apparue), sauvage("poule", apres), sauvage("pigeon", apres)], new Map()),
+    ).toEqual(["pigeon", "poule"]);
   });
 });

@@ -400,4 +400,23 @@ describe.skipIf(!URL_TEST)("le brouillard se lève sur le chemin (US-0914, sur b
     await aLHeure(territoireId, decale(ne, 24 * 60 * MINUTE_MS));
     expect(await decouvertes(territoireId)).toEqual(abords);
   });
+
+  it("ne compte aucune Case en plus pour une Expédition partie vers un autre Monde que celui de son Foyer (US-0973, après la bascule d'un Monde)", async () => {
+    const { territoireId, foyer, ne } = await naitre();
+    // Une Case d'un autre Monde, celui du jeu : sa destination, et une Case qu'elle y avait sortie du brouillard avant la
+    // bascule, loin du rayon que son chemin depuis le nouveau Foyer lèverait.
+    const { rows } = await pool.query<Coordonnees & { id: number }>(
+      "select c.id, c.q, c.r from case_du_monde c join monde m on m.id = c.monde_id where m.id <> $1 order by c.id limit 2",
+      [mondeId],
+    );
+    const horaires: HorairesDUneExpedition = { partLe: decale(ne, MINUTE_MS), trajetMinutes: 160, sejourMinutes: 60 };
+    const { rows: x } = await pool.query<{ id: number }>(
+      "insert into expedition (territoire_id, case_id, part_le, trajet_minutes, sejour_minutes) values ($1, $2, $3, $4, $5) returning id",
+      [territoireId, rows[0].id, horaires.partLe, horaires.trajetMinutes, horaires.sejourMinutes],
+    );
+    await pool.query("insert into expedition_eclaireur (expedition_id, espece_id, nombre) values ($1, 'pigeon', 2)", [x[0].id]);
+    await pool.query("insert into case_decouverte (territoire_id, case_id, expedition_id) values ($1, $2, $3)", [territoireId, rows[1].id, x[0].id]);
+    expect(await casesLeveesParLExpedition(pool, x[0].id)).toBe(1);
+    expect(await casesLeveesParSesEclaireurs(pool, x[0].id, foyer, rows[0], horaires, decale(ne, 24 * 60 * MINUTE_MS))).toBe(0);
+  });
 });
