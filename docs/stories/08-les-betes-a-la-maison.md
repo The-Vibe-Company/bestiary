@@ -426,6 +426,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0841 · Retirer une Bête de son Rôle
 **En tant que** joueur, **je veux** retirer une Bête de son Rôle, **afin de** la rendre au combat quand j'en ai besoin.
 
+- **Statut** : Livrée le 2026-10-15 (autopilot, The-Vibe-Company/bestiary#62). Le « − » de la page Bêtes retire une Bête de son Rôle : elle cesse aussitôt de le remplir et redevient disponible pour l'escorte au même instant (« 3 disponibles · 2 affectées »), comme pour la défense et l'Attaque à venir ; affecter et retirer sont gratuits et immédiats, autant de fois qu'on veut (vingt allers-retours ne changent ni les Stocks, ni l'effectif, ni les Places). Ce que US-0837 et US-0842 faisaient déjà est prouvé par des essais ; s'y ajoute qu'au clavier, quand « − » ou « + » se grise à sa borne, la main passe à l'autre bouton au lieu de se perdre.
 - **Débloquée par** : US-0837
 - **Critères d'acceptation** :
   - Le « − » de la page Bêtes retire une Bête de son Rôle : elle cesse aussitôt de le remplir.
