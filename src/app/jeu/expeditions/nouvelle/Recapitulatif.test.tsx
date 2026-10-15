@@ -435,10 +435,11 @@ describe("prévenir avant de risquer une Bête précieuse (US-0961)", () => {
     expect(alertes()).toEqual(["Seule femelle de Poule : sans elle, pas de Couple.", "Seul mâle de Pigeon biset : sans lui, pas de Couple."]);
   });
 
-  it("élide « de » devant une voyelle : « d'Écureuil roux »", () => {
-    const ecureuil: EspeceDisponible = { ...POULE_SEULE, id: "ecureuil", nom: "Écureuil roux", illustration: null };
-    ouvrir("?explorateurs=1&escorte=ecureuil.1", { especes: [ecureuil, SOURIS] });
-    expect(alertes()).toEqual(["Seule femelle d'Écureuil roux : sans elle, pas de Couple."]);
+  it("élide « de » devant une voyelle : « d'Oie cendrée »", () => {
+    // Une Espèce que l'essai invente, au nom commençant par une voyelle.
+    const voyelle: EspeceDisponible = { ...POULE_SEULE, id: "voyelle", nom: "Oie cendrée", illustration: null };
+    ouvrir("?explorateurs=1&escorte=voyelle.1", { especes: [voyelle, SOURIS] });
+    expect(alertes()).toEqual(["Seule femelle d'Oie cendrée : sans elle, pas de Couple."]);
   });
 
   it("ne dit rien pour une Éclaireuse partie en Éclaireur : elle ne combat pas (US-0976)", () => {

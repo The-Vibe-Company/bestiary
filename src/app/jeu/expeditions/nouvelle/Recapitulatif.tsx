@@ -32,7 +32,7 @@ const AUCUNE = "—";
 const uneEspece = (nom: string, nombre: number) => `${nom} × ${nombre}`;
 
 /**
- * « de Poule », « d'Écureuil roux » : élidé devant une voyelle seulement ; devant un h, aspiré pour bien des Espèces
+ * « de Poule », « d'Oie cendrée » : élidé devant une voyelle seulement ; devant un h, aspiré pour bien des Espèces
  * (Hérisson, Hibou), le « de » reste entier.
  */
 const de = (nom: string) => (/^[aeiouyàâäéèêëîïôöùûüœæ]/i.test(nom) ? `d'${nom}` : `de ${nom}`);
