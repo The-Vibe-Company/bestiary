@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 
 /** La feuille de style de la fiche d'une Espèce, lue telle qu'elle est écrite. */
 const CSS = readFileSync(join(process.cwd(), "src/app/jeu/reserve/[espece]/page.module.css"), "utf8");
+/** US-0808 : la feuille du kit, pour la règle des boutons d'un téléphone que « Fermer » doit dépasser. */
+const KIT = readFileSync(join(process.cwd(), "src/components/kit.module.css"), "utf8");
 
 /** Les déclarations de la règle `selecteur`, écrite en tête de ligne, dans `texte` (toute la feuille par défaut). */
 const regle = (selecteur: string, texte = CSS) => texte.match(new RegExp(`(?:^|\\n)\\s*${selecteur.replace(/[.*+?^${}()|[\]\\:,]/g, "\\$&")} \\{([^}]*)\\}`))?.[1] ?? "";
@@ -93,7 +95,7 @@ describe("lire la fiche d'une Espèce sur mobile (US-0808)", () => {
       ".entete .blesses",
       ".fiche .entete [data-rarete]",
       ".effectif > .terme",
-      ".fiche .fermer",
+      ".fiche a.fermer",
     ]) {
       expect(regle(selecteur, mobile), selecteur).toContain("font-size: 16px;");
     }
@@ -103,13 +105,25 @@ describe("lire la fiche d'une Espèce sur mobile (US-0808)", () => {
     expect(regle(".caracteristiques .terme", mobile)).toMatch(/min-height: 44px;[^}]*width: 100%;/);
     expect(regle(".effectif > .terme", mobile)).toContain("min-height: 44px;");
     expect(regle(".fermerExplication", mobile)).toMatch(/width: 44px;[^}]*height: 44px;/);
-    expect(regle(".fiche .fermer", mobile)).toContain("min-height: 44px;");
+    // Plus fort que `.bouton:not(.discret)` du kit (deux classes), qui donne 36 px aux boutons d'un téléphone.
+    expect(regle(".fiche a.fermer", mobile)).toContain("min-height: 44px;");
+    expect(KIT).toMatch(/\.bouton:not\(\.discret\) \{\s*min-height: 36px;/);
   });
 
   it("range les caractéristiques en grille : une ligne de 44 px par caractéristique, un filet doux entre deux", () => {
     expect(regle(".caracteristiques", mobile)).toMatch(/gap: 0;[^}]*align-items: stretch;/);
+    expect(regle(".caracteristiques dt", mobile)).toContain("min-height: 44px;");
+    expect(regle(".caracteristiques dd:not(.explication)", mobile)).toContain("min-height: 44px;");
+    // La ligne du Biome aussi, son pictogramme centré par sa cellule.
+    expect(regle(".caracteristiques > .habitat > *", mobile)).toContain("align-self: stretch;");
     expect(regle(".caracteristiques > div:not(:last-child) > :is(dt, dd:not(.explication))", mobile)).toContain(
       "border-bottom: 1px solid var(--filet-cuivre-doux);",
     );
+  });
+  it("ne change rien au bureau : les tailles d'avant y restent", () => {
+    expect(regle(".caracteristiques dt")).toContain("13.5px");
+    expect(regle(".caracteristiques dd")).toContain("15px");
+    expect(regle(".entete .explication")).toContain("13.5px");
+    expect(regle(".caracteristiques")).toContain("gap: 9px 28px;");
   });
 });

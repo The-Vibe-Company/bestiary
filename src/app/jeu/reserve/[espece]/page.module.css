@@ -301,6 +301,11 @@
     margin: 6px 0 8px;
   }
 
+  /* La ligne du Biome s'étire comme les autres : son filet reste d'un seul trait ; le pictogramme reste centré. */
+  .caracteristiques > .habitat > * {
+    align-self: stretch;
+  }
+
   /* Chaque nom s'ouvre au pouce : toute la hauteur de sa ligne, toute la largeur de sa colonne. */
   .caracteristiques .terme {
     min-height: 44px;
@@ -315,7 +320,11 @@
     margin: -12px -4px -12px 0;
   }
 
-  .fiche .fermer {
+  /*
+   * « Fermer » au pouce : 44 px. Le kit donne 36 px aux boutons d'un téléphone par `.bouton:not(.discret)`, d'une force
+   * égale à deux classes : ce sélecteur l'emporte par sa force, pas par l'ordre des feuilles, que rien ne garantit.
+   */
+  .fiche a.fermer {
     min-height: 44px;
     font-size: 16px;
   }
