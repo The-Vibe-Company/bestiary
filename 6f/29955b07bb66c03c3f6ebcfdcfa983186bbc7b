@@ -1,0 +1,19 @@
+src/app/controle/pigeons/simulation.ts
+  s_886a4f27a291a0::t_86919622013e81 13,15,40-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6f29955b07bb66c03c3f6ebcfdcfa983186bbc7b",
+  "prompts": {},
+  "sessions": {
+    "s_886a4f27a291a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8c44954a-d093-452f-b601-a8117371c86b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
