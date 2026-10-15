@@ -768,6 +768,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0970 · Les pigeons gardent les Bêtes en vue
 **En tant que** joueur, **je veux** que mes pigeons éclaireurs gardent plus longtemps en vue les Bêtes apparues, **afin de** faire plus de Rencontres.
 
+- **Statut** : Livrée le 2026-10-15 (autopilot, The-Vibe-Company/bestiary#67). Avec des Éclaireurs, une Bête apparue sur la Case de l'Expédition lui reste visible et atteignable plus longtemps que sa durée ordinaire ; une Expédition avec Éclaireurs qui arrive peu après le départ d'une Bête peut encore la rencontrer et la ramener. L'effet ne vaut que pour l'Expédition qui a les Éclaireurs, quel que soit l'ordre des rattrapages des joueurs. Tranché (provisoire) : la présence prolongée plutôt que les Bêtes repérées sur les Cases voisines ; 20 minutes de vue par Éclaireur, au plus 120 (`MINUTES_DE_VUE_PAR_ECLAIREUR`, `MINUTES_DE_VUE_AU_PLUS`) ; rien pour une Bête déjà emmenée ; gardée en vue après son départ, la Bête n'attaque plus (elle n'attaque que pendant sa présence naturelle), et une Bête trop forte gardée en vue est dite « repartie » au bout de la vue. Sans migration. Vérifié en vrai : une Expédition à 5 pigeons, arrivée 68 minutes après le départ d'un Suricate, le ramène.
 - **Débloquée par** : US-0932, US-0976
 - **Critères d'acceptation** :
   - Avec des Éclaireurs, une Bête apparue sur la Case de l'Expédition lui reste visible et atteignable plus longtemps que sa durée ordinaire (chiffre à régler, avec un plafond).
