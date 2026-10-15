@@ -42,9 +42,12 @@ vi.mock("@/monde/elevage", async (original) => ({ ...(await original<object>()),
 const habitat = vi.hoisted(() => ({ placesDeLHabitat: vi.fn(async () => ({ occupees: 21, total: 500 })) }));
 vi.mock("@/monde/habitat", () => habitat);
 // US-0813 : les Bêtes que les Stocks de Nourriture permettent de payer, lues sur base (src/monde/cout-d-elevage.db.test.ts).
-const cout = vi.hoisted(() => ({ maxAElever: vi.fn(async () => 7) }));
+// US-0816 : et la Nourriture du régime de l'Espèce dans les Stocks (src/monde/cout-d-elevage.db.test.ts).
+const cout = vi.hoisted(() => ({
+  nourritureDuRegime: vi.fn(async () => [{ quantite: "10000", limite: "100000", parHeure: "0", entretienParHeure: "0" }]),
+}));
 // US-0814 : le coût et la durée d'une Bête, eux, se calculent pour de bon (src/monde/cout-d-elevage.test.ts).
-vi.mock("@/monde/cout-d-elevage", async (original) => ({ ...(await original<object>()), maxAElever: cout.maxAElever }));
+vi.mock("@/monde/cout-d-elevage", async (original) => ({ ...(await original<object>()), nourritureDuRegime: cout.nourritureDuRegime }));
 vi.mock("@/temps/rattraper", () => ({ rattraper: vi.fn(async () => new Date()) }));
 vi.mock("@/db", () => ({ getPool: () => ({}) }));
 vi.mock("next/server", async (original) => ({ ...(await original<object>()), connection: async () => {} }));
@@ -166,15 +169,28 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
     connecte();
     elevage.elevageAcquis.mockResolvedValueOnce(true);
     const html = await ouvrir("poule");
-    expect(cout.maxAElever).toHaveBeenLastCalledWith(expect.anything(), 12, "poule");
+    // US-0816 : les Stocks qui paient, ceux du régime de l'Espèce (la poule est omnivore).
+    expect(cout.nourritureDuRegime).toHaveBeenLastCalledWith(expect.anything(), 12, "omnivore");
     const bloc = html.slice(html.indexOf('id="elever"'));
     expect(bloc).toMatch(/<input[^>]*name="quantite"[^>]*value="1"/);
     expect(bloc).toMatch(/<button type="button"[^>]*>Max<\/button>/);
     expect(bloc).not.toMatch(/<button[^>]*disabled=""[^>]*>Max<\/button>/);
     // Des Stocks qui ne paient pas une Bête : « Max » est grisé.
-    cout.maxAElever.mockResolvedValueOnce(0);
+    cout.nourritureDuRegime.mockResolvedValueOnce([{ quantite: "0", limite: "100000", parHeure: "0", entretienParHeure: "0" }]);
     elevage.elevageAcquis.mockResolvedValueOnce(true);
     expect(await ouvrir("poule")).toMatch(/<button[^>]*disabled=""[^>]*>Max<\/button>/);
+  });
+
+  it("y grise « Élever » quand les Stocks du joueur ne paient pas l'Élevage, et dit ce qui manque (US-0816)", async () => {
+    connecte();
+    elevage.elevageAcquis.mockResolvedValueOnce(true);
+    expect((await ouvrir("poule")).replace(/<[^>]+>/g, "")).not.toContain("Il manque");
+    // 500 de Nourriture pour une poule : il en manque autant que son coût moins 500.
+    cout.nourritureDuRegime.mockResolvedValueOnce([{ quantite: "500", limite: "100000", parHeure: "0", entretienParHeure: "0" }]);
+    elevage.elevageAcquis.mockResolvedValueOnce(true);
+    const html = await ouvrir("poule");
+    expect(html.replace(/<[^>]+>/g, "")).toContain(`Il manque ${coutDUneBeteElevee(5) - 500} Viande ou Végétaux.`);
+    expect(html).toMatch(/<button type="submit"[^>]*disabled=""[^>]*>Élever<\/button>/);
   });
 
   it("y dit l'éleveur libre du joueur, ou qu'il n'en a aucun, le bloc restant proposé (US-0843)", async () => {

@@ -6,6 +6,8 @@ import { Bloc } from "@/components/Bloc";
 import { Jauge } from "@/components/Jauge";
 import kit from "@/components/kit.module.css";
 import { PlacesDeLHabitat } from "@/components/PlacesDeLHabitat";
+import { quantiteMontee } from "@/components/Ressources";
+import { betesPayables, estUnManque, ilManque, type StockQuiPaie } from "@/monde/payer-un-elevage";
 import { formaterJourEtHeure, formaterMinutes } from "@/temps/affichage";
 import { useHeureDuJeu } from "@/temps/heure-du-jeu";
 import { type EtatDeLElevage, elever } from "./actions";
@@ -23,7 +25,7 @@ const MINUTE_MS = 60_000;
 const AUCUNE = "—";
 
 /** US-0814 : un coût en Nourriture, entier (celui d'une Bête l'est), à la française : « 1 680 », sans coupure. */
-const nourriture = (n: number) => new Intl.NumberFormat("fr-FR").format(n).replace(/\s/g, "\u00a0");
+const enNourriture = (n: number) => new Intl.NumberFormat("fr-FR").format(n).replace(/\s/g, "\u00a0");
 
 const annee = new Intl.DateTimeFormat("fr-FR", { year: "numeric", timeZone: FUSEAU });
 const jourHeureEtAnnee = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: FUSEAU });
@@ -46,6 +48,11 @@ export type ElevageDUneBete = { cout: number; nourriture: string; dureeMinutes: 
  * US-0812 : le bloc « Élever » de la fiche d'une Espèce dont le joueur a réuni le Couple (la fiche ne le pose que pour
  * elles), ancré en « #elever » pour que le récit du Couple réuni y mène (US-0958). Son bouton « Élever » demande
  * l'Élevage de l'Espèce (actions.ts), qui refuse toute Espèce sans Couple et le dit, juste dessous.
+ * US-0816 : tant que la Nourriture du régime (`nourriture`, les Stocks qui paient) ne paie pas la quantité choisie,
+ * « Élever » est grisé, et le bloc dit ce qui manque, juste au-dessus ; les Stocks montent dans le bloc comme dans la
+ * barre du haut (quantiteMontee, au rythme du jeu), si bien que « Élever » s'active dès qu'ils suffisent, et « Max » suit ;
+ * le lancement relit les Stocks au clic. Un refus du serveur ne vaut que pour la quantité refusée (changée, ou renvoyée,
+ * il s'efface) ; faute de Nourriture, c'est la ligne de ce qui manque qui le montre, à jour.
  * US-0815 : « Élever » lance l'Élevage de la quantité choisie ; actif avec un éleveur libre et une quantité valable, grisé
  * pendant l'envoi (un double clic n'envoie qu'une demande, et le serveur n'en lance qu'une) ; lancé, le bloc le dit
  * (combien de Bêtes, confiées à quel éleveur), et la page relue montre les Stocks payés.
@@ -54,7 +61,7 @@ export type ElevageDUneBete = { cout: number; nourriture: string; dureeMinutes: 
  * se dit en braise.
  * US-0813 : la quantité de Bêtes à élever, 1 d'abord, dans le pas du kit (« − 1 + », le champ au milieu), que « − » et
  * « + » changent d'une Bête et que « Max » porte au plus grand nombre que les Stocks de Nourriture permettent de payer
- * (`max`, cout-d-elevage.ts) ; une quantité nulle, négative ou non entière est refusée, dite en braise sous le pas dès
+ * (betesPayables, src/monde/payer-un-elevage.ts) ; une quantité nulle, négative ou non entière est refusée, dite en braise sous le pas dès
  * qu'elle s'écrit (ou, vide, quand on quitte le champ). Le champ prend neuf chiffres au plus, la plus grande quantité qui
  * se lit.
  * US-0843 : sous les Places, l'éleveur libre qui s'en occupera (`eleveur`, son prénom) ; sans éleveur libre, la raison,
@@ -69,7 +76,7 @@ export type ElevageDUneBete = { cout: number; nourriture: string; dureeMinutes: 
 export function BlocElever({
   especeId,
   places,
-  max,
+  nourriture,
   eleveur,
   elevage,
   maintenant,
@@ -77,7 +84,7 @@ export function BlocElever({
 }: {
   especeId: string;
   places: { occupees: number; total: number };
-  max: number;
+  nourriture: StockQuiPaie[];
   eleveur: string | null;
   elevage: ElevageDUneBete;
   maintenant: Date;
@@ -91,21 +98,39 @@ export function BlocElever({
   }, [lance]);
   const idRefus = useId();
   const idSansEleveur = useId();
+  const idManque = useId();
   const idQuantite = useId();
   const idQuantiteRefusee = useId();
   const [texte, setTexte] = useState("1");
+  // La quantité de la dernière demande envoyée : le refus du serveur ne vaut que pour elle.
+  const [demandee, setDemandee] = useState<string | null>(null);
   const [quitte, setQuitte] = useState(false);
   // Ce que « − », « + » et « Max » font du champ, dit aux lecteurs d'écran : la main reste sur le bouton.
   const [annonce, setAnnonce] = useState("");
   const quantite = lireUneQuantite(texte);
   const refusee = quantite === null && (texte.trim() !== "" || quitte);
-  const plafond = Math.min(max, QUANTITE_LA_PLUS_GRANDE);
   const lancement = useHeureDuJeu(maintenant, vitesse);
+  // US-0816 : la Nourriture du régime à l'instant, montée depuis l'affichage comme dans la barre du haut.
+  const ecoule = (lancement.getTime() - maintenant.getTime()) / vitesse;
+  const disponible = nourriture.reduce((somme, stock) => somme + quantiteMontee(stock, ecoule, vitesse), 0);
+  const plafond = Math.min(betesPayables(disponible, elevage.cout), QUANTITE_LA_PLUS_GRANDE);
+  // US-0816 : le refus du serveur, tant qu'il vaut : pas pendant un nouvel envoi, ni une fois la quantité changée. Un
+  // refus faute de Nourriture (les Stocks ont baissé avant le clic) ne s'affiche pas : la ligne de ce qui manque, juste
+  // au-dessus du bouton, le dit à l'instant, et il est dit aux lecteurs d'écran à son arrivée (annonce).
+  const refusVaut = refus !== null && !enCours && demandee === texte;
+  const refusEnCours = refusVaut && !estUnManque(refus) ? refus : null;
+  // Faute de Nourriture, le refus est dit aux lecteurs d'écran à son arrivée, dans la sortie de la quantité.
+  const annonceDuBloc = refusVaut && estUnManque(refus) ? refus : annonce;
+  // US-0816 : la Nourriture qui manque pour payer la quantité choisie, au millionième près ; rien, quand elle suffit.
+  const manque = quantite === null ? 0 : Math.round((elevage.cout * quantite - disponible) * 1e6) / 1e6;
+  const ceQuiManque = manque > 0 ? ilManque(manque, elevage.nourriture) : null;
   const derniere = quantite === null ? null : new Date(lancement.getTime() + quantite * elevage.dureeMinutes * MINUTE_MS);
   const choisir = (n: number) => {
     setTexte(String(n));
     setQuitte(false);
     setAnnonce(`Quantité : ${n}`);
+    // Une autre quantité choisie : la réponse du serveur à la demande précédente ne vaut plus, même en y revenant.
+    setDemandee(null);
   };
   return (
     <div id="elever" className={styles.elever}>
@@ -126,7 +151,7 @@ export function BlocElever({
             </Link>
           </p>
         )}
-        <form action={envoyer} className={styles.formulaire}>
+        <form action={envoyer} onSubmit={() => setDemandee(texte)} className={styles.formulaire}>
           <input type="hidden" name="espece" value={especeId} />
           <div className={styles.quantite}>
             <label htmlFor={idQuantite} className={kit.etiquette}>
@@ -156,6 +181,7 @@ export function BlocElever({
                     setTexte(e.target.value);
                     setQuitte(false);
                     setAnnonce("");
+                    setDemandee(null);
                   }}
                   onBlur={() => setQuitte(true)}
                   aria-invalid={refusee ? true : undefined}
@@ -175,7 +201,7 @@ export function BlocElever({
                 Max
               </button>
             </div>
-            <output className={styles.annonce}>{annonce}</output>
+            <output className={styles.annonce}>{annonceDuBloc}</output>
             {refusee ? (
               <p id={idQuantiteRefusee} className={styles.refus} role="alert">
                 {QUANTITE_REFUSEE}
@@ -184,7 +210,7 @@ export function BlocElever({
           </div>
           <dl className={`${kit.cles} ${styles.cout}`}>
             <dt>Coût</dt>
-            <dd>{quantite === null ? AUCUNE : `${nourriture(elevage.cout * quantite)} ${elevage.nourriture}`}</dd>
+            <dd>{quantite === null ? AUCUNE : `${enNourriture(elevage.cout * quantite)} ${elevage.nourriture}`}</dd>
             <dt>Durée par Bête</dt>
             <dd>{formaterMinutes(elevage.dureeMinutes)}</dd>
             <dt>Durée totale</dt>
@@ -192,17 +218,22 @@ export function BlocElever({
             <dt>Dernière Bête</dt>
             <dd>{derniere === null || Number.isNaN(derniere.getTime()) ? AUCUNE : quand(derniere, lancement)}</dd>
           </dl>
+          {ceQuiManque ? (
+            <p id={idManque} className={styles.manque}>
+              {ceQuiManque}
+            </p>
+          ) : null}
           <button
             type="submit"
             className={`${kit.bouton} ${kit.principal} ${kit.grand} ${styles.bouton}`}
-            disabled={eleveur === null || quantite === null || enCours}
-            aria-describedby={[eleveur === null ? idSansEleveur : null, refus ? idRefus : null].filter(Boolean).join(" ") || undefined}
+            disabled={eleveur === null || quantite === null || manque > 0 || enCours}
+            aria-describedby={[eleveur === null ? idSansEleveur : null, ceQuiManque ? idManque : null, refusEnCours ? idRefus : null].filter(Boolean).join(" ") || undefined}
           >
             Élever
           </button>
-          {refus ? (
+          {refusEnCours ? (
             <p id={idRefus} className={styles.refus} role="alert">
-              {refus}
+              {refusEnCours}
             </p>
           ) : null}
           <p ref={dit} className={styles.lance} role="status" tabIndex={-1}>
