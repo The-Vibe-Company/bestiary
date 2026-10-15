@@ -5,13 +5,14 @@
 // Rencontres, à leur instant exact (US-0932), et y rentrent au Foyer à leur heure (US-0916) : le temps évolue jusqu'au
 // retour avant de l'appliquer, toutes les Rencontres du séjour sont donc retenues quand il s'applique ; le brouillard
 // s'y lève sur leur chemin, à leur passage (US-0914) ; les Blessés qu'elles ramènent y guérissent à leur heure (US-0954) ;
-// les Attaques s'ajouteront ici.
+// les Bêtes de ses Élevages y naissent l'une après l'autre (US-0817) ; les Attaques s'ajouteront ici.
 import "server-only";
 import { leverLeBrouillard } from "@/expeditions/brouillard";
 import { mettreEnFuite } from "@/expeditions/fuite";
 import { retenirLesRencontres } from "@/expeditions/rencontres";
 import { RETOUR_EXPEDITION, rentrerAuFoyer } from "@/expeditions/retour";
 import { guerirLesBlesses } from "@/monde/guerison";
+import { faireNaitreLesBetes } from "@/monde/naissances";
 import { produire } from "@/monde/production";
 import { ARRIVEE_VOYAGEUR, arriveeDUnVoyageur, DEPART_VOYAGEUR, departDUnVoyageur } from "@/monde/voyageurs";
 import type { Regles } from "./avancer";
@@ -30,6 +31,8 @@ export const REGLES: Record<ElementSuivi, Regles> = {
         await leverLeBrouillard(client, id, depuis, arret);
         // US-0954 : jusqu'à l'arrêt seulement : le temps reprend de là, et chaque guérison n'est dite qu'une fois.
         await guerirLesBlesses(client, id, depuis, arret);
+        // US-0817 : les naissances des Élevages, jusqu'à l'arrêt seulement, de même : chacune une fois.
+        await faireNaitreLesBetes(client, id, depuis, arret);
       }
       return arret;
     },
