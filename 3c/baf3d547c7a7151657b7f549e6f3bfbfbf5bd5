@@ -1,0 +1,39 @@
+docs/conventions-des-workers.md
+  s_7c7d151152e4a5::t_82127c95663994 42
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_3de34365ed0bef 175
+docs/stories/README.md
+  s_7c7d151152e4a5::t_96c48021745615 7
+src/donnees/en-base.db.test.ts
+  s_7c7d151152e4a5::t_bd37f934cee2fd 3,18-20,24-29,87-92
+src/expeditions/depart.db.test.ts
+  s_7c7d151152e4a5::t_6c9e6e7369470e 15,205,207-209,212,220,227-228
+src/monde/betes-de-naissance.db.test.ts
+  s_7c7d151152e4a5::t_4b0dd3bb0aba02 6,197-198
+src/monde/metiers.db.test.ts
+  s_7c7d151152e4a5::t_61e8013a8aef1c 7,40-42,45
+src/monde/preparer-couronne.db.test.ts
+  s_7c7d151152e4a5::t_a05d9ec3c1667b 4,21-23,25,44-46
+src/monde/production.db.test.ts
+  s_7c7d151152e4a5::t_681a00f89f68d4 7,135-137,151
+src/monde/stocks.db.test.ts
+  s_7c7d151152e4a5::t_56a314c043b9fa 6,90-94,112-113
+src/test/base.ts
+  s_7c7d151152e4a5::t_9cb4daabb0f2c4 6,92-112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3cbaf3d547c7a7151657b7f549e6f3bfbfbf5bd5",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
