@@ -76,6 +76,37 @@ describe("affecter des Bêtes à leur Rôle depuis la page Bêtes (US-0837)", ()
     expect(compte()).toBe("0 / 2");
   });
 
+  it("affecte et retire autant de fois qu'on veut, chaque toucher compté aussitôt (US-0841)", async () => {
+    role(1, 3, 4);
+    for (const [bouton, attendu] of [
+      [plus, "2 / 4"],
+      [moins, "1 / 4"],
+      [moins, "0 / 4"],
+      [plus, "1 / 4"],
+      [plus, "2 / 4"],
+      [plus, "3 / 4"],
+      [moins, "2 / 4"],
+    ] as const) {
+      await userEvent.click(bouton());
+      expect(compte()).toBe(attendu);
+    }
+    expect(actions.affecterAuRole).toHaveBeenCalledTimes(4);
+    expect(actions.retirerDuRole).toHaveBeenCalledTimes(3);
+  });
+
+  it("garde la main dans le pas : le bouton qui s'éteint à sa borne la passe à l'autre, pour enchaîner au clavier (US-0841)", async () => {
+    role(1, 2, 4);
+    moins().focus();
+    await userEvent.keyboard("{Enter}");
+    expect(compte()).toBe("0 / 4");
+    expect(moins().disabled).toBe(true);
+    expect(document.activeElement).toBe(plus());
+    await userEvent.keyboard("{Enter}{Enter}");
+    expect(compte()).toBe("2 / 4");
+    expect(plus().disabled).toBe(true);
+    expect(document.activeElement).toBe(moins());
+  });
+
   it("revient au compte de la page relue une fois l'action finie", async () => {
     const { rerender } = role(2, 4, 5);
     await userEvent.click(plus());
