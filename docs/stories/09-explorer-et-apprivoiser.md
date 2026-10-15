@@ -757,6 +757,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0969 · Les pigeons lèvent plus de brouillard
 **En tant que** joueur, **je veux** que mes pigeons éclaireurs révèlent plus de carte pendant une Expédition, **afin de** découvrir le Monde plus vite que les autres.
 
+- **Statut** : Livrée le 2026-10-15 (autopilot, The-Vibe-Company/bestiary#61). Une Expédition qui emmène des Éclaireurs lève le brouillard plus loin à chaque Case de son chemin et autour de sa destination ; plus d'Éclaireurs, plus loin, jusqu'à un plafond ; les Cases révélées en plus restent découvertes pour toujours et le récit du retour les compte. Sans Éclaireur, rien ne change. Tranché (provisoire) : chaque Éclaireur ajoute 1 Case au rayon, au plus 2 (`BROUILLARD_LEVE_PAR_ECLAIREUR_CASES`, `BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES`) : avec 2 Éclaireurs, 3 Cases sur le chemin et 4 autour de la destination au lieu de 1 et 2 ; les Éclaireurs de toutes les Espèces comptent ensemble ; rien de plus au départ, pendant le séjour ni au retour. Vérifié en vrai : 33 Cases levées avec 2 pigeons, 15 sans.
 - **Débloquée par** : US-0914, US-0976
 - **Critères d'acceptation** :
   - Quand l'Expédition emmène des Éclaireurs, le rayon de brouillard levé le long du chemin et autour de la destination s'agrandit (chiffre à régler).
