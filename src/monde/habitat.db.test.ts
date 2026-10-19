@@ -149,10 +149,11 @@ describe.skipIf(!URL_TEST)("les Places de l'Habitat du Foyer (US-0822, sur base)
          select $1, c.id, now(), 30, 60 from case_du_monde c where c.monde_id = $2 and c.chef_id is null order by c.id limit 1 returning id`,
         [t, mondeId],
       );
-      await pool.query("insert into expedition_escorte (expedition_id, espece_id, nombre) values ($1, 'pigeon', 10)", [rows[0].id]);
+      // Leur sexe retenu au départ, comme le fait un départ (US-0960) : dix mâles.
+      await pool.query("insert into expedition_escorte (expedition_id, espece_id, nombre, males) values ($1, 'pigeon', 10, 10)", [rows[0].id]);
       expect(await prises(t)).toBeCloseTo(10 * pigeon, 6);
       // L'Espèce la plus forte du jeu les attaque (US-0944) : ses mortes quittent l'effectif, ses Blessés y restent (US-0951).
-      const { rows: forte } = await pool.query<{ id: string }>("select id from espece order by attaque * vie desc, id limit 1");
+      const { rows: forte } = await pool.query<{ id: string }>("select id from espece order by attaque::numeric * vie desc, id limit 1");
       await subirLesCombats(pool, [{ expeditionId: rows[0].id, especeId: forte[0].id, le: new Date(), numero: 1, beteDeNaissanceId: null }]);
       const { rows: escorte } = await pool.query<{ perdues: number; blessees: number }>("select perdues, blessees from expedition_escorte where expedition_id = $1", [
         rows[0].id,
