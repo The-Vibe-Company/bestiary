@@ -1,8 +1,8 @@
 /*
  * US-0332 : la partie « Aux portes » (AuxPortes.tsx), en tête de la colonne de contexte : la carte de l'événement. Le
  * titre en étiquette de cuivre, « Historique » à sa droite ; pour chaque Voyageur, son portrait peint en bandeau, son
- * prénom posé dessus ; depuis quand il attend et quand il repart, la jauge du temps qui lui reste ; le Métier qu'il aura,
- * ce qu'il mangera ; « Accueillir », au cuivre plein, et « Refuser ». Dans la colonne étroite d'un ordinateur, le
+ * prénom posé dessus ; depuis quand il attend et quand il repart, la jauge du temps qui lui reste ; le Métier qu'il aura ;
+ * « Accueillir », au cuivre plein, et « Refuser ». Dans la colonne étroite d'un ordinateur, le
  * portrait au-dessus ; dès que la carte a la place (un téléphone, une tablette), le portrait à gauche, le reste à côté.
  */
 .auxPortes {
@@ -99,7 +99,6 @@
     "temps temps"
     "metier metier"
     "metiers metiers"
-    "entretien entretien"
     "choix choix";
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -202,30 +201,20 @@
   grid-area: metiers;
 }
 
-/* US-0340 : ce qu'il mangera, devant la Viande et les Végétaux, juste au-dessus des boutons ; la confirmation à sa place. */
-.entretien,
+/*
+ * US-0340 : la confirmation de l'accueil quand la famine est imminente, en braise, sous les boutons, sur toute la largeur,
+ * dans une rangée à elle qui n'existe que le temps de la confirmation : les boutons ne bougent pas, et le second toucher
+ * tombe sur « Confirmer l'accueil ».
+ */
 .confirmation {
   display: flex;
-  grid-area: entretien;
+  grid-column: 1 / -1;
+  grid-row: -1;
   align-items: center;
   gap: 9px;
   margin: 0;
-  color: var(--parchemin);
-  font: var(--graisse-moyenne) 13.5px / 1.25 var(--police);
-}
-
-.confirmation {
   color: var(--braise);
-  font-weight: var(--graisse-titre);
-}
-
-.duo {
-  display: inline-flex;
-  flex: none;
-}
-
-.duo > :not(:first-child) {
-  margin-left: -7px;
+  font: var(--graisse-titre) 13.5px / 1.25 var(--police);
 }
 
 /* US-0334, US-0336 : « Accueillir », au cuivre plein, plus large que « Refuser », en contour. */
@@ -286,7 +275,6 @@
       "portrait depart"
       "portrait temps"
       "portrait metier"
-      "portrait entretien"
       "portrait choix";
     grid-template-columns: clamp(112px, 30%, 180px) minmax(0, 1fr);
     gap: 8px 12px;
@@ -300,7 +288,6 @@
       "portrait temps"
       "portrait metier"
       "metiers metiers"
-      "entretien entretien"
       "choix choix";
   }
 

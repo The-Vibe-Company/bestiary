@@ -78,13 +78,13 @@
 /* ---------- La Réserve et ses Couples ---------- */
 
 /*
- * Le panneau de la Réserve : les castors en bandeau à gauche, fondus vers le panneau ; à droite la présentation, puis le
- * nombre de Couples en grand.
+ * Le panneau de la Réserve : les castors en bandeau à gauche, fondus vers le panneau ; à droite le nombre de Couples en
+ * grand. Sa présentation ne se redit plus à chaque visite (retour d'Antoine, 2026-10-15).
  */
 .abri {
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
-  grid-template-rows: auto auto;
+  grid-template-rows: auto;
   gap: 16px 24px;
   align-content: center;
   max-width: 980px;
@@ -98,18 +98,13 @@
   min-height: 108px;
 }
 
-.lieu {
-  max-width: 62ch;
-  color: var(--parchemin);
-  font: var(--graisse-texte) 14.5px / 1.45 var(--police);
-}
-
 /*
  * Le nombre de Couples qu'elle abrite, comme les compteurs des Voyageurs : son nom en petite étiquette verte, au-dessus
  * du nombre, en grand et en crème (le texte se lit toujours « 3 Couples »).
  */
 .couples {
   display: flex;
+  align-self: center;
   flex-direction: column-reverse;
   gap: 9px;
   align-items: flex-start;
@@ -227,7 +222,7 @@
   }
 }
 
-/* Sur un téléphone : le bandeau au-dessus de la présentation. */
+/* Sur un téléphone : le bandeau au-dessus du nombre de Couples. */
 @media (max-width: 600px) {
   .abri {
     grid-template-columns: minmax(0, 1fr);
@@ -246,7 +241,6 @@
     background: linear-gradient(180deg, transparent 55%, var(--panneau-voile));
   }
 
-  .lieu,
   .couples {
     padding: 0 6px;
   }
