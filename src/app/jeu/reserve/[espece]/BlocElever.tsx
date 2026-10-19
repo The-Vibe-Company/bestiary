@@ -111,17 +111,19 @@ export function BlocElever({
   // La quantité de la dernière demande envoyée : le refus du serveur ne vaut que pour elle.
   const [demandee, setDemandee] = useState<string | null>(null);
   // US-0818 : le suivi qui paraît ou s'en va, à la page relue, tourne la page du formulaire : la réponse à la demande
-  // d'avant ne vaut plus (un refus ne revient pas avec le formulaire, à la fin) ; l'Élevage lancé d'ici n'est plus à
-  // dire une fois fini (`lanceDit`) ; et le suivi qui paraît juste après une demande d'ici (lancé, ou refusé parce qu'un
-  // autre appareil l'a lancé) prend la main, que le bouton disparu laisse : un Élevage lancé ailleurs ne l'emporte pas.
-  const [vue, setVue] = useState({ suivi: suiviAffiche, lanceDit: lance, apresDemande: false });
+  // d'avant ne vaut plus (un refus ne revient pas avec le formulaire, à la fin), et l'Élevage lancé d'ici n'est plus à
+  // dire une fois fini (`lanceDit`). Le suivi qui paraît prend la main pour un Élevage tout juste lancé d'ici, ou quand
+  // elle est perdue (le bouton qui l'avait a disparu, un refus parce qu'un autre appareil l'a lancé) ; jamais quand
+  // elle est ailleurs, sur une relecture de fond.
+  const [vue, setVue] = useState({ suivi: suiviAffiche, lanceDit: lance });
   if (vue.suivi !== suiviAffiche) {
-    setVue({ suivi: suiviAffiche, lanceDit: suiviAffiche ? vue.lanceDit : lance, apresDemande: suiviAffiche && demandee !== null });
+    setVue({ suivi: suiviAffiche, lanceDit: suiviAffiche ? vue.lanceDit : lance });
     setDemandee(null);
   }
+  const lanceNouveau = lance !== undefined && lance !== vue.lanceDit;
   useEffect(() => {
-    if (vue.suivi && vue.apresDemande) suivi.current?.focus();
-  }, [vue.suivi, vue.apresDemande]);
+    if (vue.suivi && (lanceNouveau || document.activeElement === document.body)) suivi.current?.focus();
+  }, [vue.suivi, lanceNouveau]);
   const idSuivi = useId();
   const [quitte, setQuitte] = useState(false);
   // Ce que « − », « + » et « Max » font du champ, dit aux lecteurs d'écran : la main reste sur le bouton.
@@ -280,7 +282,7 @@ export function BlocElever({
           </>
         )}
         <p className={styles.lance} role="status">
-          {lance && lance !== vue.lanceDit ? `Élevage lancé : ${lance.quantite} ${lance.quantite > 1 ? "Bêtes" : "Bête"}, confié à ${lance.eleveur}.` : ""}
+          {lance && lanceNouveau ? `Élevage lancé : ${lance.quantite} ${lance.quantite > 1 ? "Bêtes" : "Bête"}, confié à ${lance.eleveur}.` : ""}
         </p>
       </Bloc>
     </div>

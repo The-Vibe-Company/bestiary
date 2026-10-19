@@ -628,6 +628,21 @@ describe("suivre l'Élevage en cours (US-0818)", () => {
     ailleurs.remove();
   });
 
+  it("n'emporte pas la main vers un Élevage lancé ailleurs après un refus d'ici resté sous le formulaire", async () => {
+    const u = userEvent.setup();
+    actions.elever.mockResolvedValue({ refus: "Pas d'Élevage sans Couple réuni." });
+    const { rerender } = render(bloc0(null));
+    await u.click(within(bloc()).getByRole("button", { name: "Élever" }));
+    await within(bloc()).findByRole("alert");
+    // Plus tard, le joueur est ailleurs ; un autre appareil lance l'Élevage, que la page relue montre.
+    const ailleurs = document.createElement("button");
+    document.body.append(ailleurs);
+    ailleurs.focus();
+    rerender(bloc0({ ...POULES, lanceLe: MAINTENANT }, null));
+    expect(document.activeElement).toBe(ailleurs);
+    ailleurs.remove();
+  });
+
   it("n'emporte pas la main vers un Élevage lancé ailleurs, quand rien n'a été demandé d'ici", () => {
     const { rerender } = render(bloc0(null));
     const ailleurs = document.createElement("button");
