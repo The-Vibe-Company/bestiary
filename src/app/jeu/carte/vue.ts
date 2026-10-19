@@ -37,17 +37,35 @@ export function limiteDeLaCarte(carte: CarteADessiner): number {
 }
 
 /**
+ * Retour d'Antoine (2026-10-15) : le centre de la limite du milieu de la vue (borner), dans le plan : celui du Monde,
+ * jusqu'à la vue large ; au-delà, d'autant plus abaissé que la carte s'éloigne, jusqu'à poser au plus loin le centre du
+ * Monde au milieu de ce qui se voit sous la barre du haut (`haut`).
+ */
+function origine(vue: Vue): Point {
+  // 0 - … : jamais de « -0 ».
+  return { x: 0, y: 0 - ((1 - recentrage(vue)) * (vue.haut ?? 0)) / 2 / vue.rayon };
+}
+
+/** Retour d'Antoine (2026-10-15) : à combien d'anneaux le milieu de la vue est du centre de sa limite (origine). */
+function eloignement(vue: Vue): number {
+  const [ici, o] = [centre(vue.milieu), origine(vue)];
+  return anneau(depuisLePlan({ x: ici.x - o.x, y: ici.y - o.y }));
+}
+
+/**
  * US-0420 : la vue, son milieu ramené à au plus `limite` Cases du centre du Monde : au point le plus proche du
  * grand hexagone de ce rayon. Arrêtée contre son bord, la carte glisse encore le long de lui. Retour d'Antoine
- * (2026-10-15) : éloignée au-delà de la vue large, la limite se resserre avec le zoom (recentrage), jusqu'au centre du
- * Monde au plus loin, où le Monde entier tient à l'écran.
+ * (2026-10-15) : éloignée au-delà de la vue large, la limite se resserre avec le zoom (recentrage) autour de son centre
+ * (origine), jusqu'à n'être plus que lui au plus loin, où le Monde entier tient à l'écran ; jamais à moins de `auMoins`
+ * anneaux de lui, dans la limite d'avant (voir deplacer et devoiler).
  */
-export function borner(vue: Vue, limite: number): Vue {
-  const resserree = recentrage(vue) * limite;
-  if (anneau(vue.milieu) <= resserree) return vue;
-  if (resserree <= 0) return { ...vue, milieu: { q: 0, r: 0 } };
+export function borner(vue: Vue, limite: number, auMoins = 0): Vue {
+  const resserree = Math.max(recentrage(vue) * limite, Math.min(auMoins, limite));
+  const o = origine(vue);
+  if (eloignement(vue) <= resserree) return vue;
+  if (resserree <= 0) return { ...vue, milieu: depuisLePlan(o) };
   const ici = centre(vue.milieu);
-  const coins = DIRECTIONS.map((d) => centre({ q: d.q * resserree, r: d.r * resserree }));
+  const coins = DIRECTIONS.map((d) => centre({ q: d.q * resserree, r: d.r * resserree })).map((c) => ({ x: c.x + o.x, y: c.y + o.y }));
   const auBord = coins
     .map((coin, i) => surLeSegment(ici, coin, coins[(i + 1) % coins.length]))
     .reduce((a, b) => (Math.hypot(a.x - ici.x, a.y - ici.y) <= Math.hypot(b.x - ici.x, b.y - ici.y) ? a : b));
@@ -56,11 +74,13 @@ export function borner(vue: Vue, limite: number): Vue {
 
 /**
  * US-0420 : la vue après avoir fait glisser la carte de (dx, dy) pixels : chaque Case se déplace d'autant à
- * l'écran, sans que le milieu sorte des limites.
+ * l'écran, sans que le milieu sorte des limites. Retour d'Antoine (2026-10-15) : une carte déjà au-delà de la limite de
+ * son zoom, glissée pour dévoiler une Case (devoiler), n'y est pas ramenée d'un coup : elle peut s'en rapprocher, pas
+ * s'en éloigner.
  */
 export function deplacer(vue: Vue, dx: number, dy: number, limite: number): Vue {
   const ici = centre(vue.milieu);
-  return borner({ ...vue, milieu: depuisLePlan({ x: ici.x - dx / vue.rayon, y: ici.y - dy / vue.rayon }) }, limite);
+  return borner({ ...vue, milieu: depuisLePlan({ x: ici.x - dx / vue.rayon, y: ici.y - dy / vue.rayon }) }, limite, eloignement(vue));
 }
 
 /**
@@ -78,13 +98,13 @@ const rayonPour = (largeur: number, hauteur: number, cases: number) => Math.min(
 
 /**
  * Retour d'Antoine (2026-10-15) : le rayon d'une Case à l'écran, en pixels, où le Monde entier tient sur une carte de
- * `largeur` × `hauteur` pixels, au milieu, sous ses `haut` premiers pixels cachés par la barre du haut (autant laissés
- * en bas, où se posent aussi des boutons) : le grand hexagone de MONDE_RAYON Cases, pointe en haut, fait √3 (2 R + 1)
- * rayons de large et 3 R + 2 de haut ; une Case de marge tout autour.
+ * `largeur` × `hauteur` pixels, sous ses `haut` premiers pixels cachés par la barre du haut : le grand hexagone de
+ * MONDE_RAYON Cases (aux Cases pointe en haut, il a ses pointes à gauche et à droite) fait √3 (2 R + 1) rayons de large
+ * et 3 R + 2 de haut ; une Case de marge tout autour.
  */
 export function rayonPourToutLeMonde(largeur: number, hauteur: number, haut = 0): number {
   const r = MONDE_RAYON + 1;
-  const visible = hauteur - 2 * haut > 0 ? hauteur - 2 * haut : hauteur;
+  const visible = hauteur - haut > 0 ? hauteur - haut : hauteur;
   return Math.min(largeur / (Math.sqrt(3) * (2 * r + 1)), visible / (3 * r + 2));
 }
 
@@ -260,5 +280,7 @@ export function devoiler(vue: Vue, c: Coordonnees, cache: Cadre, limite: number)
   ];
   if (glissements.length === 0) return vue;
   const [dx, dy] = glissements.reduce((a, b) => (Math.hypot(a[0], a[1]) <= Math.hypot(b[0], b[1]) ? a : b));
-  return deplacer(vue, dx, dy, limite);
+  // Retour d'Antoine (2026-10-15) : dans la limite d'avant, même au plus loin, où le milieu ne bouge plus sinon.
+  const ici = centre(vue.milieu);
+  return borner({ ...vue, milieu: depuisLePlan({ x: ici.x - dx / vue.rayon, y: ici.y - dy / vue.rayon }) }, limite, limite);
 }

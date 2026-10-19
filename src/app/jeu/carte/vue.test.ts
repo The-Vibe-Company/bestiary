@@ -145,22 +145,29 @@ describe("zoomer (US-0423)", () => {
     }
   });
 
-  it("au plus loin, tient le Monde entier sous la barre du haut posée sur la carte, et autant au-dessus de son bas", () => {
+  it("au plus loin, tient le Monde entier sous la barre du haut posée sur la carte, au milieu de ce qui se voit", () => {
     for (const [largeur, hauteur, haut] of [
       [1280, 900, 64],
       [390, 844, 167],
       [800, 600, 120],
+      // Un téléphone en paysage, sous sa barre de deux rangées, et plus court encore.
+      [844, 390, 165],
+      [844, 340, 165],
     ]) {
       const vue = cadrer(vueSurLeFoyer(FOYER, largeur, hauteur), largeur, hauteur, haut);
       expect(vue.haut).toBe(haut);
       const auPlusLoin = zoomer(vue, 0.001, 10, 10, 62);
       expect(auPlusLoin.rayon).toBeCloseTo(bornesDuZoom(largeur, hauteur, haut).min, 9);
       expect(zoomPossible(auPlusLoin).eloigner).toBe(false);
-      for (const c of tourDeLAnneau(MONDE_RAYON)) {
-        const { y } = aLEcran(c, auPlusLoin);
-        expect(y - auPlusLoin.rayon).toBeGreaterThan(haut);
-        expect(y + auPlusLoin.rayon).toBeLessThan(hauteur - haut);
-      }
+      const ys = tourDeLAnneau(MONDE_RAYON).map((c) => aLEcran(c, auPlusLoin).y);
+      const [enHaut, enBas] = [Math.min(...ys) - auPlusLoin.rayon, Math.max(...ys) + auPlusLoin.rayon];
+      expect(enHaut).toBeGreaterThan(haut);
+      expect(enBas).toBeLessThan(hauteur);
+      // Autant de place au-dessus qu'au-dessous, et le Monde qui la remplit, à une Case près de chaque côté.
+      expect(enHaut - haut).toBeCloseTo(hauteur - enBas, 6);
+      expect(Math.max((enBas - enHaut) / (hauteur - haut), (Math.sqrt(3) * (2 * MONDE_RAYON + 1) * auPlusLoin.rayon) / largeur)).toBeGreaterThan(0.95);
+      // Le zoom ne s'effondre pas sur un écran court : jamais moins que la moitié de la vue sans barre.
+      expect(auPlusLoin.rayon).toBeGreaterThan(bornesDuZoom(largeur, hauteur).min / 2);
       // La barre reste connue de la vue d'un geste à l'autre, au retour sur le Foyer comme quand l'écran change de taille.
       expect(retourAuFoyer(auPlusLoin, FOYER).haut).toBe(haut);
       expect(cadrer(auPlusLoin, hauteur, largeur).haut).toBe(haut);
@@ -428,6 +435,27 @@ describe("montrer la Case choisie hors de sa fiche (US-0428)", () => {
     expect(entiere(contre, montree)).toBe(true);
     // Une fiche qui couvre toute la carte : rien à faire.
     expect(devoiler(AU_MILIEU, { q: 0, r: 0 }, { x: 0, y: 0, largeur: 800, hauteur: 600 }, 62)).toBe(AU_MILIEU);
+  });
+
+  it("au plus loin, glisse encore la carte pour dévoiler la Case, dans les limites d'avant ; glissée, elle peut revenir, pas s'éloigner davantage (retour d'Antoine, 2026-10-15)", () => {
+    // Le Monde entier à l'écran, la fiche sur sa pointe ouest.
+    const auPlusLoin = zoomer(vueSurLeFoyer(FOYER, 1280, 900), 0.001, 640, 450, 62);
+    expect(auPlusLoin.milieu).toEqual({ q: 0, r: 0 });
+    const ouest = { q: -MONDE_RAYON, r: 0 };
+    const fiche = { x: 12, y: 300, largeur: 330, hauteur: 300 };
+    expect(sous(ouest, auPlusLoin, fiche)).toBe(true);
+    const montree = devoiler(auPlusLoin, ouest, fiche, 62);
+    expect(sous(ouest, montree, fiche)).toBe(false);
+    expect(entiere(ouest, montree)).toBe(true);
+    expect(montree.rayon).toBe(auPlusLoin.rayon);
+    // Glisser plus loin dans le même sens ne l'éloigne pas davantage du centre ; dans l'autre sens, elle y revient.
+    const [dx, dy] = [aLEcran(ouest, montree).x - aLEcran(ouest, auPlusLoin).x, aLEcran(ouest, montree).y - aLEcran(ouest, auPlusLoin).y];
+    expect(anneau(montree.milieu)).toBeGreaterThan(1);
+    expect(anneau(deplacer(montree, dx, dy, 62).milieu)).toBeCloseTo(anneau(montree.milieu), 9);
+    const revenue = deplacer(montree, -dx, -dy, 62).milieu;
+    expect(anneau(revenue)).toBeCloseTo(0, 9);
+    // Éloignée encore, elle recentre le Monde entier.
+    expect(zoomer(montree, 0.5, 640, 450, 62).milieu).toEqual({ q: 0, r: 0 });
   });
 
   it("sur mobile, sous la fiche en bas de l'écran, fait remonter la carte juste assez (US-0431)", () => {

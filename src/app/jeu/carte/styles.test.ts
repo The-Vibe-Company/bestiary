@@ -25,6 +25,10 @@ describe("les styles de la carte du Monde", () => {
     expect(regle(".carte")).toContain("-webkit-touch-callout: none;");
   });
 
+  it("disent à la carte la hauteur de la barre du haut posée dessus, en marge de défilement (retour d'Antoine, 2026-10-15)", () => {
+    expect(regle(".carte")).toContain("scroll-margin-top: var(--hauteur-barre);");
+  });
+
   it("montrent la carte sélectionnée au clavier d'un contour de cuivre clair, tracé dedans : la page coupe ce qui dépasse (US-0422)", () => {
     expect(regle(".carte:focus-visible")).toContain("outline: 2px solid var(--cuivre-clair);");
     expect(regle(".carte:focus-visible")).toContain("outline-offset: -2px;");

@@ -12,7 +12,7 @@ import { PORTEE_D_EXPLORATION_CASES } from "@/reglages";
 import { CarteDuJeu } from "./CarteDuJeu";
 import { aLEcran, LARGEUR_DE_CASE, vueSurLeFoyer, type Vue } from "./dessin";
 import { LEGENDE_MONTREE } from "./Legende";
-import { avancer, bornesDuZoom, cadrer, deplacer, devoiler, enChemin, flecheVersLeFoyer, limiteDeLaCarte, zoomer } from "./vue";
+import { avancer, borner, bornesDuZoom, cadrer, deplacer, devoiler, enChemin, flecheVersLeFoyer, limiteDeLaCarte, zoomer } from "./vue";
 
 /** US-0428 : les fiches de Case demandées au serveur, chacune avec de quoi lui répondre. */
 let fiches: { q: number; r: number; repondre: (fiche: Fiche | null) => void }[] = [];
@@ -240,7 +240,10 @@ describe("tout le Monde sous le brouillard (retour d'Antoine, 2026-10-15)", () =
 
   /** Au plus loin, le Monde entier à l'écran : la vue, et le sommet du haut de chaque Case dans cette vue. */
   const auPlusLoin = (haut = 0) => {
-    const vue = { ...ouverte(), milieu: CENTRE_DU_MONDE, rayon: bornesDuZoom(ecran.largeur, ecran.hauteur, haut).min };
+    const rayon = bornesDuZoom(ecran.largeur, ecran.hauteur, haut).min;
+    // Le centre du Monde au milieu de ce qui se voit sous la barre du haut : le milieu de l'écran, haut / 2 pixels plus haut.
+    const r = 0 - haut / (3 * rayon);
+    const vue = { ...ouverte(), milieu: haut === 0 ? CENTRE_DU_MONDE : { q: -r / 2, r }, rayon };
     const sommetLa = (c: { q: number; r: number }) => {
       const { x, y } = aLEcran(c, vue);
       return `${x.toFixed(6)},${(y - vue.rayon).toFixed(6)}`;
@@ -268,7 +271,7 @@ describe("tout le Monde sous le brouillard (retour d'Antoine, 2026-10-15)", () =
     expect(AUTOUR.every((c) => departs().has(sommetLa(c)))).toBe(true);
   });
 
-  it("au plus loin, le tient tout entier sous la barre du haut posée sur la carte, et autant au-dessus de son bas", () => {
+  it("au plus loin, le tient tout entier sous la barre du haut posée sur la carte, au milieu de ce qui se voit", () => {
     const { container } = render(<CarteDuJeu carte={CARTE} fonds={FONDS} />);
     // La barre du haut, de 120 pixels, telle que la feuille de style la donne à la carte.
     container.querySelector("canvas")!.style.setProperty("scroll-margin-top", "120px");
@@ -277,10 +280,13 @@ describe("tout le Monde sous le brouillard (retour d'Antoine, 2026-10-15)", () =
     const { vue, sommetLa } = auPlusLoin(120);
     expect(vue.rayon).toBeLessThan(bornesDuZoom(ecran.largeur, ecran.hauteur).min);
     expect(tourDeLAnneau(BORD).every((c) => new Set(toile.brume.map(([x, y]) => `${x.toFixed(6)},${y.toFixed(6)}`)).has(sommetLa(c)))).toBe(true);
-    // Du sommet du haut des Cases du haut au sommet du bas de celles du bas.
-    const ys = toile.brume.map(([, y]) => y);
-    expect(Math.min(...ys)).toBeGreaterThan(120);
-    expect(Math.max(...ys) + 2 * vue.rayon).toBeLessThan(ecran.hauteur - 120);
+    // Du sommet du haut des Cases du haut au sommet du bas de celles du bas : autant de place au-dessus qu'au-dessous.
+    // Les départs des Cases du bord : le premier est celui du grand hexagone, au centre d'une Case de ses coins.
+    const ys = toile.brume.slice(1).map(([, y]) => y);
+    const [enHaut, enBas] = [Math.min(...ys), Math.max(...ys) + 2 * vue.rayon];
+    expect(enHaut).toBeGreaterThan(120);
+    expect(enBas).toBeLessThan(ecran.hauteur);
+    expect(enHaut - 120).toBeCloseTo(ecran.hauteur - enBas, 6);
   });
 
   it("n'en ouvre aucune fiche : la toucher, c'est toucher hors des Cases de la carte", () => {
@@ -588,6 +594,21 @@ describe("revenir au Foyer (US-0426)", () => {
     expect(aLaProchaineImage.size).toBe(0);
   });
 
+  it("revient aussi du plus loin, le Monde entier à l'écran, dans les limites de chaque zoom en chemin (retour d'Antoine, 2026-10-15)", async () => {
+    render(<CarteDuJeu carte={CARTE} fonds={FONDS} />);
+    fireEvent.wheel(screen.getByRole("application", { name: "Carte du Monde" }), { deltaY: 100_000, clientX: 400, clientY: 364 });
+    prochaineImage();
+    const auPlusLoin = { ...ouverte(), milieu: CENTRE_DU_MONDE, rayon: bornesDuZoom(ecran.largeur, ecran.hauteur).min };
+    expect(dessineeLa(auPlusLoin)).toBe(true);
+    await revenir();
+    prochaineImage(1000);
+    prochaineImage(1050);
+    expect(dessineeLa(borner(enChemin(auPlusLoin, ouverte(), 1 / 6), limiteDeLaCarte(CARTE)))).toBe(true);
+    prochaineImage(1300);
+    expect(dessineeLa(ouverte())).toBe(true);
+    expect(aLaProchaineImage.size).toBe(0);
+  });
+
   it("arrive au Foyer à la taille qu'a la carte, même quand l'écran change de taille en chemin", async () => {
     render(<CarteDuJeu carte={CARTE} fonds={FONDS} />);
     ailleurs();
@@ -705,6 +726,12 @@ describe("retrouver la carte là où on l'a laissée (US-0427)", () => {
     prochaineImage();
     return zoomer(deplacer(ouverte(), -60, 30, 60), 2, 400, 300, 60);
   };
+
+  it("rouvre au plus loin une vue retenue au plus loin, le Monde entier au milieu (retour d'Antoine, 2026-10-15)", () => {
+    sessionStorage.setItem("bestia.vue-de-la-carte", JSON.stringify({ monde: "Aube", foyer: FOYER, milieu: FOYER, rayon: 0.5 }));
+    render(<CarteDuJeu carte={CARTE} fonds={FONDS} />);
+    expect(dessineeLa({ ...ouverte(), milieu: CENTRE_DU_MONDE, rayon: bornesDuZoom(ecran.largeur, ecran.hauteur).min })).toBe(true);
+  });
 
   it("se rouvre au même endroit et au même zoom en y revenant pendant la même visite", () => {
     const { unmount } = render(<CarteDuJeu carte={CARTE} fonds={FONDS} />);
