@@ -112,18 +112,20 @@ export function BlocElever({
   const [demandee, setDemandee] = useState<string | null>(null);
   // US-0818 : le suivi qui paraît ou s'en va, à la page relue, tourne la page du formulaire : la réponse à la demande
   // d'avant ne vaut plus (un refus ne revient pas avec le formulaire, à la fin), et l'Élevage lancé d'ici n'est plus à
-  // dire une fois fini (`lanceDit`). Le suivi qui paraît prend la main pour un Élevage tout juste lancé d'ici, ou quand
-  // elle est perdue (le bouton qui l'avait a disparu, un refus parce qu'un autre appareil l'a lancé) ; jamais quand
-  // elle est ailleurs, sur une relecture de fond.
-  const [vue, setVue] = useState({ suivi: suiviAffiche, lanceDit: lance });
-  if (vue.suivi !== suiviAffiche) {
-    setVue({ suivi: suiviAffiche, lanceDit: suiviAffiche ? vue.lanceDit : lance });
-    setDemandee(null);
-  }
+  // dire une fois fini (`lanceDit`). Le suivi qui paraît prend la main (`prendLaMain`, décidé à cet instant) pour un
+  // Élevage tout juste lancé d'ici, ou quand le formulaire, qui s'en va, l'avait (un refus parce qu'un autre appareil
+  // l'a lancé) ; jamais à l'ouverture de la fiche, ni quand elle est ailleurs, sur une relecture de fond.
+  const [formulaireALaMain, setFormulaireALaMain] = useState(false);
+  const [vue, setVue] = useState({ suivi: suiviAffiche, lanceDit: lance, prendLaMain: false });
   const lanceNouveau = lance !== undefined && lance !== vue.lanceDit;
+  if (vue.suivi !== suiviAffiche) {
+    setVue({ suivi: suiviAffiche, lanceDit: suiviAffiche ? vue.lanceDit : lance, prendLaMain: suiviAffiche && (lanceNouveau || formulaireALaMain) });
+    setDemandee(null);
+    setFormulaireALaMain(false);
+  }
   useEffect(() => {
-    if (vue.suivi && (lanceNouveau || document.activeElement === document.body)) suivi.current?.focus();
-  }, [vue.suivi, lanceNouveau]);
+    if (vue.suivi && vue.prendLaMain) suivi.current?.focus();
+  }, [vue.suivi, vue.prendLaMain]);
   const idSuivi = useId();
   const [quitte, setQuitte] = useState(false);
   // Ce que « − », « + » et « Max » font du champ, dit aux lecteurs d'écran : la main reste sur le bouton.
@@ -193,7 +195,13 @@ export function BlocElever({
                 </Link>
               </p>
             )}
-            <form action={envoyer} onSubmit={() => setDemandee(texte)} className={styles.formulaire}>
+            <form
+              action={envoyer}
+              onSubmit={() => setDemandee(texte)}
+              onFocus={() => setFormulaireALaMain(true)}
+              onBlur={() => setFormulaireALaMain(false)}
+              className={styles.formulaire}
+            >
               <input type="hidden" name="espece" value={especeId} />
               <div className={styles.quantite}>
                 <label htmlFor={idQuantite} className={kit.etiquette}>

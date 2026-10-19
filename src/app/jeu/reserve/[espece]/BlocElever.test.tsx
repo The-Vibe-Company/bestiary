@@ -643,6 +643,14 @@ describe("suivre l'Élevage en cours (US-0818)", () => {
     ailleurs.remove();
   });
 
+  it("ne déplace pas la main à l'ouverture d'une fiche dont l'Élevage est en cours, ni sur une relecture de fond", () => {
+    const { rerender } = render(bloc0({ ...POULES, lanceLe: MAINTENANT }, null));
+    expect(document.activeElement).toBe(document.body);
+    rerender(bloc0(null));
+    rerender(bloc0({ ...POULES, lanceLe: MAINTENANT }, null));
+    expect(document.activeElement).toBe(document.body);
+  });
+
   it("n'emporte pas la main vers un Élevage lancé ailleurs, quand rien n'a été demandé d'ici", () => {
     const { rerender } = render(bloc0(null));
     const ailleurs = document.createElement("button");
