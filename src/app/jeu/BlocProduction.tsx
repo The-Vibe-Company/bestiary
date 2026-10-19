@@ -6,8 +6,9 @@ import styles from "./page.module.css";
 
 /**
  * US-0217 : ce que le Territoire produit par heure, Ressource par Ressource, avec le Biome du Foyer
- * qui l'explique ; une Ressource que le Biome ne donne pas est dite comme telle. Un panneau de verre sur la
- * scène du Foyer : chaque Ressource son médaillon, son nom, et ce qu'elle rapporte, en feuille.
+ * qui l'explique ; une Ressource que le Biome ne donne pas reste à sa place, éteinte, à « 0/h », sans le redire en
+ * phrase à chaque visite (retour d'Antoine, 2026-10-15). Un panneau de verre sur la scène du Foyer : chaque Ressource
+ * son médaillon, son nom, et ce qu'elle rapporte, en feuille.
  */
 export function BlocProduction({ biome, productions }: { biome: string; productions: { id: string; nom: string; parHeure: string }[] }) {
   return (
@@ -23,7 +24,8 @@ export function BlocProduction({ biome, productions }: { biome: string; producti
           ) : (
             <li key={p.id} className={styles.ligneProduction} data-nulle="">
               <Medaillon src={iconeDeRessource(p.id)} taille="md" className={styles.medaillonEteint} />
-              <span>Ce Biome ne donne pas de {p.nom}.</span>
+              <span className={styles.nomProduction}>{p.nom}</span>
+              <span className={styles.parHeure}>0/h</span>
             </li>
           ),
         )}

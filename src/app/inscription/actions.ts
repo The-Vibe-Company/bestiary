@@ -45,5 +45,5 @@ export async function inscrire(_precedent: EtatInscription, donnees: FormData): 
   const session = await ouvrirSession(pool, resultat.compteId);
   await noterConnexion(pool, resultat.compteId);
   await poserCookieSession(session.jeton, session.expireLe);
-  return { erreurs: {}, email, cree: true };
+  return { erreurs: {}, email, cree: true, compteId: resultat.compteId };
 }
