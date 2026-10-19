@@ -176,11 +176,10 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Une Ressource que le Biome ne donne pas : la phrase en mousse, le médaillon éteint. */
-.ligneProduction[data-nulle] {
-  grid-template-columns: 34px 1fr;
+/* Une Ressource que le Biome ne donne pas : son nom et « 0/h » en mousse, le médaillon éteint. */
+.ligneProduction[data-nulle] .nomProduction,
+.ligneProduction[data-nulle] .parHeure {
   color: var(--mousse);
-  font-size: 13.5px;
 }
 
 .medaillonEteint {

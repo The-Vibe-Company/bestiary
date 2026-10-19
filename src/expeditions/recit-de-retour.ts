@@ -8,16 +8,17 @@
 // les Bêtes que le joueur y avait repérées à son départ, parties avant son arrivée. US-0951 : et les morts et les Blessés de
 // son escorte au combat, Espèce par Espèce. US-0947 : attaquée, il finit par le récit de chaque combat
 // (src/expeditions/recit-du-combat.ts), ses pertes et la fuite des explorateurs. US-0946 : quand toute l'escorte est
-// perdue, la ligne des pertes l'annonce. Côté serveur uniquement.
+// perdue, la ligne des pertes l'annonce. US-0973 : et ce que ses Éclaireurs lui ont apporté, les Cases levées en plus et
+// les Bêtes rencontrées grâce à eux. Côté serveur uniquement.
 import "server-only";
 import type { PoolClient } from "pg";
-import type { Sexe } from "@/monde/betes-sauvages";
+import { finDeSaPresence, type Sexe } from "@/monde/betes-sauvages";
 import { type Coordonnees, distance } from "@/monde/hex";
 import { ecrireUnRecit, type NouveauRecit } from "@/monde/recits";
 import { formaterJourEtHeure, formaterMinutes } from "@/temps/affichage";
 import { COMMUNE, forceQuiManque } from "./apprivoisement";
 import { betesReperees } from "./betes-reperees";
-import { casesLeveesParLExpedition } from "./brouillard";
+import { casesLeveesParLExpedition, casesLeveesParSesEclaireurs } from "./brouillard";
 import { casesDuFoyer } from "./choix-de-destination";
 import { demiTourDUneExpedition, type HorairesDUneExpedition, sejourDUneExpedition } from "./phase";
 import { expeditionsPresentesSurLaCaseApresLesFuites } from "./fuites-des-cases";
@@ -94,6 +95,16 @@ export type RetourARaconter = {
    */
   eclaireurs?: EspeceRacontee[];
   eclaireusesEnEscorte?: EspeceRacontee[];
+  /**
+   * US-0973 : parmi ses Cases sorties du brouillard, combien ses Éclaireurs lui ont révélées en plus (casesLeveesParSesEclaireurs) ;
+   * absent ou 0 : aucune.
+   */
+  casesParSesEclaireurs?: number;
+  /**
+   * US-0973 : les Espèces des Bêtes qu'elle n'a rencontrées que grâce à ses Éclaireurs, vues après la fin de leur présence
+   * (US-0970), chacune une fois, dans l'ordre des apparitions (rencontreesGraceAuxEclaireurs) ; absentes ou vides : aucune.
+   */
+  graceAuxEclaireurs?: string[];
 };
 
 /** US-0972 : une Espèce de l'Expédition et combien de ses Bêtes y sont parties : « Pigeon biset × 2 ». */
@@ -162,10 +173,21 @@ function eclaireursPartis(eclaireurs: readonly EspeceRacontee[], enEscorte: read
   return `Éclaireurs : ${especesRacontees(eclaireurs)}${enEscorte.length ? ` ; en escorte : ${especesRacontees(enEscorte)}` : ""}.`;
 }
 
-/** US-0917 : « 12 Cases sont sorties du brouillard. », « Une Case est sortie… », « Aucune Case n'est sortie… ». */
-function casesSorties(nombre: number): string {
+/**
+ * US-0917 : « 12 Cases sont sorties du brouillard. », « Une Case est sortie… », « Aucune Case n'est sortie… ». US-0973 :
+ * avec `parSesEclaireurs` d'entre elles révélées en plus par ses Éclaireurs, la ligne le dit : « 12 Cases sont sorties du
+ * brouillard, dont 5 grâce à vos Éclaireurs. », ou, toutes : « …, grâce à vos Éclaireurs. ».
+ */
+function casesSorties(nombre: number, parSesEclaireurs = 0): string {
   if (nombre === 0) return "Aucune Case n'est sortie du brouillard.";
-  return nombre === 1 ? "Une Case est sortie du brouillard." : `${nombre} Cases sont sorties du brouillard.`;
+  const sorties = nombre === 1 ? "Une Case est sortie du brouillard" : `${nombre} Cases sont sorties du brouillard`;
+  if (parSesEclaireurs <= 0) return `${sorties}.`;
+  return parSesEclaireurs >= nombre ? `${sorties}, grâce à vos Éclaireurs.` : `${sorties}, dont ${parSesEclaireurs} grâce à vos Éclaireurs.`;
+}
+
+/** US-0973 : « Rencontrée grâce à vos Éclaireurs : Renard roux. », « Rencontrées grâce à vos Éclaireurs : Renard roux et Loup gris. ». */
+function rencontreesGraceAEux(especes: string[]): string {
+  return `${especes.length > 1 ? "Rencontrées" : "Rencontrée"} grâce à vos Éclaireurs : ${enumeres(especes)}.`;
 }
 
 /** US-0962 : la ligne qui dit que d'autres joueurs séjournaient sur la Case, sans nommer leurs chefs (décidé le 2026-10-10). */
@@ -320,6 +342,8 @@ function finDuRecit(combats: readonly CombatDuRetour[], pertes: readonly PerteRa
  * dans l'ordre du temps, puis ses pertes, Espèce par Espèce, en morts et en Blessés (US-0951), ou « Aucune perte. », et la
  * fuite des explorateurs. US-0946 : quand toute l'escorte est perdue, la ligne des pertes l'annonce. US-0972 : avec des
  * Éclaireurs, une ligne les nomme après les durées, et nomme à part les Bêtes de leur Espèce parties dans l'escorte.
+ * US-0973 : la ligne des Cases dit combien les Éclaireurs en ont révélé en plus ; une ligne, après les Bêtes, nomme celles
+ * qu'elle n'a rencontrées que grâce à eux.
  */
 export function recitDeRetour({
   destination,
@@ -339,6 +363,8 @@ export function recitDeRetour({
   combats,
   eclaireurs,
   eclaireusesEnEscorte,
+  casesParSesEclaireurs,
+  graceAuxEclaireurs,
 }: RetourARaconter): NouveauRecit {
   const sejour = durees.sejour === 0 ? "sans séjour" : `séjour ${formaterMinutes(durees.sejour)}`;
   return {
@@ -348,13 +374,14 @@ export function recitDeRetour({
       ...(rappel ? [rappelee(rappel)] : []),
       `Aller ${formaterMinutes(durees.aller)}, ${sejour}, retour ${formaterMinutes(durees.retour)}.`,
       ...(eclaireurs?.length ? [eclaireursPartis(eclaireurs, eclaireusesEnEscorte ?? [])] : []),
-      casesSorties(casesLevees),
+      casesSorties(casesLevees, casesParSesEclaireurs),
       ...(autresExpeditions ? [AUTRES_EXPEDITIONS] : []),
       ...(partiesAvant?.length ? [partiesAvantLArrivee(partiesAvant)] : []),
       // Le résumé des Bêtes ; leur détail, Bête par Bête, est le récit de Rencontre (US-0940), joint au Récit.
       ...(vuesSansSuite?.length
         ? [vuesSansQueRienNeSuive(vuesSansSuite, tropFortes)]
         : [betesMontrees(rencontres), ...(tropFortes?.length ? [resteesSurLeurCase(tropFortes)] : [])]),
+      ...(graceAuxEclaireurs?.length ? [rencontreesGraceAEux(graceAuxEclaireurs)] : []),
       ...(emmenees?.length ? [suiviesAilleurs(emmenees)] : []),
       ...(ramenees?.length ? [betesRamenees(ramenees)] : []),
       ...finDuRecit(combats ?? [], pertes ?? [], escortePerdue ?? false),
@@ -418,6 +445,10 @@ export async function raconterLeRetour(client: PoolClient, territoireId: number,
   const combats = await combatsDUneExpedition(client, expeditionId);
   // US-0972 : ses Éclaireurs, et les Bêtes de leur Espèce parties dans son escorte.
   const { eclaireurs, eclaireusesEnEscorte } = await eclaireursDuRetour(client, expeditionId);
+  // US-0973 : ce que ses Éclaireurs lui ont apporté : des Cases en plus, des Bêtes gardées en vue.
+  const casesParSesEclaireurs = eclaireurs.length > 0 ? await casesLeveesParSesEclaireurs(client, expeditionId, foyer, destination, horaires, rentreeLe) : 0;
+  const idsGraceAEux = eclaireurs.length > 0 ? await rencontreesGraceAuxEclaireurs(client, vues) : [];
+  const graceAuxEclaireurs = idsGraceAEux.length > 0 ? await nomsDesEspeces(client, idsGraceAEux) : undefined;
   const mortes = pertes.reduce((n, p) => n + p.mortes, 0);
   const derniere = mortes > 0 ? combats.at(-1)?.rencontreId : undefined;
   await ecrireUnRecit(
@@ -442,6 +473,8 @@ export async function raconterLeRetour(client: PoolClient, territoireId: number,
       combats,
       eclaireurs,
       eclaireusesEnEscorte,
+      casesParSesEclaireurs,
+      graceAuxEclaireurs,
     }),
     detail.map((r, i) => (vues[i].id === derniere ? { ...r, perdues: mortes } : r)),
   );
@@ -565,4 +598,30 @@ async function eclaireursDuRetour(client: PoolClient, expeditionId: number): Pro
     eclaireurs: rows.map(({ nom, nombre }) => ({ nom, nombre })),
     eclaireusesEnEscorte: rows.filter((r) => r.escorte > 0).map(({ nom, escorte }) => ({ nom, nombre: escorte })),
   };
+}
+
+/**
+ * US-0973 : les Espèces des Bêtes `vues` (rencontresDUneExpedition) que l'Expédition n'a rencontrées que grâce à ses
+ * Éclaireurs : vues à la fin de leur présence ou après (US-0970, finDeVue), quand une Expédition sans Éclaireur ne les voyait
+ * plus (vueLe : seulement avant leur départ). Une Bête sauvage ordinaire reste sur sa Case jusqu'à finDeSaPresence ; une
+ * Bête de naissance, jusqu'à son départ (`departsDeNaissance`, par sa ligne ; inconnu : jamais grâce à eux). Chaque Espèce
+ * une fois, dans l'ordre des vues.
+ */
+export function especesVuesGraceAuxEclaireurs(
+  vues: readonly Pick<Rencontre, "vueLe" | "apparueLe" | "especeId" | "beteDeNaissanceId">[],
+  departsDeNaissance: ReadonlyMap<number, Date>,
+): string[] {
+  const fin = (r: (typeof vues)[number]) =>
+    r.beteDeNaissanceId !== null ? (departsDeNaissance.get(r.beteDeNaissanceId)?.getTime() ?? Infinity) : finDeSaPresence(r.apparueLe).getTime();
+  return [...new Set(vues.filter((r) => r.vueLe.getTime() >= fin(r)).map((r) => r.especeId))];
+}
+
+/** US-0973 : especesVuesGraceAuxEclaireurs, avec le départ des Bêtes de naissance vues, lu en base. */
+async function rencontreesGraceAuxEclaireurs(client: PoolClient, vues: readonly Rencontre[]): Promise<string[]> {
+  const deNaissance = vues.filter((r) => r.beteDeNaissanceId !== null).map((r) => r.beteDeNaissanceId!);
+  const departs =
+    deNaissance.length > 0
+      ? new Map((await client.query<{ id: number; depart: Date }>("select id, depart from bete_de_naissance where id = any($1::int[])", [deNaissance])).rows.map((b) => [b.id, b.depart]))
+      : new Map<number, Date>();
+  return especesVuesGraceAuxEclaireurs(vues, departs);
 }

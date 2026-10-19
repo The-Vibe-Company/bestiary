@@ -13,10 +13,11 @@ export type PlacesDeLHabitat = { occupees: number; total: number };
 
 /**
  * US-0822 : les Places de l'Habitat du Foyer du Territoire : PLACES_DE_L_HABITAT_DU_FOYER en tout, et prises, la somme
- * exacte, Espèce par Espèce, de son effectif fois la taille de l'Espèce (US-0824 le règlera) ; le compteur l'arrondit à
- * la Place entière supérieure (PlacesDeLHabitat). Les Bêtes sorties en escorte gardent la leur, pour rentrer ; les
- * Blessés aussi. Les Bêtes du Couple, en Réserve hors de l'effectif (US-0956), n'en prennent pas : la Réserve n'est pas
- * l'Habitat du Foyer.
+ * exacte, Espèce par Espèce, de son effectif fois la taille de l'Espèce ; le compteur l'arrondit à la Place entière
+ * supérieure (PlacesDeLHabitat). Les Bêtes sorties en escorte gardent la leur, pour rentrer ; les Blessés aussi. Les
+ * Bêtes du Couple, en Réserve hors de l'effectif (US-0956), n'en prennent pas : la Réserve n'est pas l'Habitat du Foyer.
+ * US-0824 : lues de l'effectif, elles suivent chaque Bête : une Bête née (US-0817) prend les siennes dès sa naissance,
+ * une Bête qui quitte l'effectif (tuée au combat, partie en Réserve avec son Couple) les libère aussitôt.
  */
 export async function placesDeLHabitat(base: Pool | PoolClient, territoireId: number): Promise<PlacesDeLHabitat> {
   const { rows } = await base.query<{ occupees: number }>(

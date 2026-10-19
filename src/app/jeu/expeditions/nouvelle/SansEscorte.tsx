@@ -4,8 +4,8 @@ import styles from "./SansEscorte.module.css";
 
 /**
  * US-0909 : l'escorte d'une Expédition qui part sans Bête, là où la choisir (US-0904) : rien à choisir, deux places
- * vides, et une phrase qui dit qu'elle ne ramènera que des Bêtes communes (la règle arrive avec l'étape 40). Le départ
- * n'exige pas d'escorte : un explorateur suffit.
+ * vides, et « Aucune Bête ». Ce qu'une Expédition sans escorte ramène ne se redit pas à chaque visite (retour d'Antoine,
+ * 2026-10-15). Le départ n'exige pas d'escorte : un explorateur suffit.
  */
 export function SansEscorte() {
   return (
@@ -15,7 +15,7 @@ export function SansEscorte() {
           <Medaillon taille="md" className={styles.place} />
           <Medaillon taille="md" className={styles.place} />
         </span>
-        <p className={styles.note}>Sans escorte, l&apos;Expédition ne ramènera que des Bêtes communes.</p>
+        <p className={styles.note}>Aucune Bête</p>
       </div>
     </Bloc>
   );
