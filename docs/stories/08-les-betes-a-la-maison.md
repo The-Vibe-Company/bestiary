@@ -263,6 +263,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0824 · Occuper des Places selon la taille
 **En tant que** joueur, **je veux** que chaque Bête occupe des Places selon sa taille, **afin de** comprendre qu'un grand animal se loge moins facilement qu'un petit.
 
+- **Statut** : Livrée le 2026-10-19 (autopilot, The-Vibe-Company/bestiary#80). Les règles en place la font : les Places se lisent de l'effectif (effectif × taille, Espèce par Espèce). Une Bête née d'un Élevage occupe aussitôt les Places de sa taille (poule 31,623 : 0, puis 31,623, puis 63,246) ; une Bête morte au combat libère les siennes à l'instant, un Blessé garde les siennes ; une Bête en sortie garde les siennes. Tranché : le Couple en Réserve ne prend pas de Place (comme US-0822). Prouvée par des essais ; vérifiée en vrai (« Places : 67 / 500 » pour deux poules et trois souris).
 - **Débloquée par** : US-0817, US-0822
 - **Critères d'acceptation** :
   - Chaque Bête née occupe autant de Places que la taille de son Espèce.
