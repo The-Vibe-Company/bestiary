@@ -50,16 +50,19 @@ const textes = () => escorte().innerHTML.replace(/<[^>]+>/g, "|").split("|").fil
 const partir = () => screen.getByRole("button", { name: "Partir" }) as HTMLButtonElement;
 
 describe("partir sans escorte (US-0909)", () => {
-  it("dit en quelques mots, là où serait l'escorte, que sans elle l'Expédition ne ramènera que des Bêtes communes", () => {
+  it("dit seulement, là où serait l'escorte, qu'il n'y a aucune Bête, sans redire ce qu'une Expédition sans escorte ramène", () => {
     ecran();
-    expect(textes()).toEqual(["Escorte", "Sans escorte, l'Expédition ne ramènera que des Bêtes communes."]);
+    expect(textes()).toEqual(["Escorte", "Aucune Bête"]);
     // Rien à choisir : ni bouton, ni nombre.
     expect(within(escorte()).queryAllByRole("button")).toEqual([]);
   });
 
   it("laisse partir au moins un explorateur sans aucune Bête : « Partir » se dégrise, sans rien réclamer d'autre", async () => {
     const joueur = userEvent.setup();
+    // Le joueur est revenu à zéro explorateur : un explorateur suffit, sans Bête.
+    window.history.replaceState(null, "", "/jeu/expeditions/nouvelle?explorateurs=0");
     ecran();
+    expect(partir().disabled).toBe(true);
     await joueur.click(screen.getByRole("button", { name: "Un explorateur de plus" }));
     expect(partir().disabled).toBe(false);
     expect(partir().getAttribute("aria-describedby")).toBeNull();

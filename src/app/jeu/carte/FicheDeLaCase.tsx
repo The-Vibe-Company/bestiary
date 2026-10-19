@@ -192,15 +192,16 @@ export function PanneauSurLaCarte({
 
 /**
  * US-0428 : la fiche de la Case choisie (`choix`), dans son panneau sur la carte (PanneauSurLaCarte) : son Biome, puis
- * à qui elle est, « Libre », « Votre Foyer » ou le nom du chef. US-0429 : sa zone, sa distance au Foyer (sauf pour le
- * Foyer lui-même) et, au Cœur sauvage, ce qui y vit. Vide en attendant le serveur ; les lecteurs d'écran l'entendent une
- * fois remplie. US-0438 : d'une Case sous le brouillard, seulement « Case inconnue », sa distance au Foyer, et qu'une
- * Expédition pourra la découvrir, comme le serveur la donne. US-0901 : une fois remplie, « Envoyer une Expédition »
- * ouvre l'écran d'Expédition avec la Case pour destination, sauf sur une Case d'un Territoire, Foyer du joueur compris,
- * qui ne peut pas en être une (US-0907) ; le doigt qui le touche ne fait pas glisser le panneau. US-0907 : sur la carte
- * ouverte pour choisir la destination (`destination`), « Choisir cette destination » à sa place, ou le refus d'une Case
- * d'un Territoire. US-0908 : de même d'une Case au-delà de la portée d'exploration, découverte ou non : aucun des deux
- * liens, et son refus sur la carte ouverte pour choisir la destination.
+ * à qui elle est, « Libre », « Votre Foyer » ou le nom du chef. US-0429 : sa zone et sa distance au Foyer (sauf pour le
+ * Foyer lui-même). Vide en attendant le serveur ; les lecteurs d'écran l'entendent une fois remplie. US-0438 : d'une
+ * Case sous le brouillard, seulement « Case inconnue » et sa distance au Foyer, comme le serveur la donne. Ni ce qui
+ * vit au Cœur sauvage, ni qu'une Expédition peut découvrir une Case, ne se redisent à chaque Case (retour d'Antoine,
+ * 2026-10-15). US-0901 : une fois remplie, « Envoyer une Expédition » ouvre l'écran d'Expédition avec la Case pour
+ * destination, sauf sur une Case d'un Territoire, Foyer du joueur compris, qui ne peut pas en être une (US-0907) ; le
+ * doigt qui le touche ne fait pas glisser le panneau. US-0907 : sur la carte ouverte pour choisir la destination
+ * (`destination`), « Choisir cette destination » à sa place, ou le refus d'une Case d'un Territoire. US-0908 : de même
+ * d'une Case au-delà de la portée d'exploration, découverte ou non : aucun des deux liens, et son refus sur la carte
+ * ouverte pour choisir la destination.
  */
 export function FicheDeLaCase({
   choix,
@@ -223,7 +224,6 @@ export function FicheDeLaCase({
           <Bandeau biome={null} titre="Case inconnue" />
           <div className={styles.corps}>
             <Distance cases={fiche.distance} />
-            <p className={kit.note}>Une Expédition pourra la découvrir.</p>
             <VersLExpedition vers={laCase} destination={destination} refus={horsDePortee(fiche)} />
           </div>
         </>
@@ -242,7 +242,6 @@ export function FicheDeLaCase({
               </div>
             </dl>
             {fiche.distance > 0 ? <Distance cases={fiche.distance} /> : null}
-            {fiche.zone === ZONE_COEUR ? <p className={styles.rares}>Les Espèces les plus rares vivent ici.</p> : null}
             <VersLExpedition vers={laCase} destination={destination} refus={fiche.chef !== null || fiche.distance === 0 ? CASE_D_UN_TERRITOIRE : horsDePortee(fiche)} />
           </div>
         </>

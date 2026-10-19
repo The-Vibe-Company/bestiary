@@ -9,7 +9,7 @@ const CSS = readFileSync(join(process.cwd(), "src/app/jeu/expeditions/nouvelle/S
 const regle = (selecteur: string) => CSS.match(new RegExp(`(?:^|\\n)\\s*${selecteur.replace(/[.*+?^${}()|[\]\\:,]/g, "\\$&")} \\{([^}]*)\\}`))?.[1] ?? "";
 
 describe("le bloc sans escorte (US-0909)", () => {
-  it("pose ses places vides à côté de sa phrase, sans largeur fixe", () => {
+  it("pose ses places vides à côté de « Aucune Bête », sans largeur fixe", () => {
     expect(regle(".sans")).toMatch(/display: flex;[^}]*align-items: center;/);
     expect(regle(".places")).toContain("flex: none;");
     expect(CSS).not.toMatch(/(?:^|[^-])width: \d{3,}px/);

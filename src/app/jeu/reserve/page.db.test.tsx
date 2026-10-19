@@ -120,8 +120,6 @@ describe.skipIf(!URL_TEST)("voir ses Couples réunis, sur base (US-0802)", () =>
     expect(await texteDeLaPage(t.territoireId)).toBe("Réserve · Aucun Couple pour l'instant · Envoyer une Expédition");
 
     await reunir(t, ["poule"]);
-    expect(await texteDeLaPage(t.territoireId)).toBe(
-      "Réserve · Le lieu protégé de votre Territoire : vos Couples y vivent à l'abri, loin des combats. · 1 · Couple · Poule · Commune",
-    );
+    expect(await texteDeLaPage(t.territoireId)).toBe("Réserve · 1 · Couple · Poule · Commune");
   });
 });

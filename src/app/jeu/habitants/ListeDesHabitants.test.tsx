@@ -161,14 +161,11 @@ describe("le registre des Habitants (US-0303)", () => {
     expect(groupes).toEqual([["Sans Métier", "Arno"], ["Explorateur"], ["Chasseur", "Cael", "Dara"], ["Cueilleur"], ["Bûcheron"], ["Mineur", "Brune"], ["Chercheur"], ["Bâtisseur"], ["Éleveur"]]);
   });
 
-  it("dit en tête de chaque groupe la phrase du Métier et, tant qu'il ne sert à rien, ce qu'il attend (US-0307)", () => {
-    const parleurs: MetierDuTableau[] = [
-      { ...METIERS[1], phrase: "rapporte de la Viande", servira: "avec les Récoltes" },
-      { ...METIERS[0], phrase: "part en Expédition chercher des Bêtes sauvages", servira: null },
-    ];
-    render(<ListeDesHabitants habitants={HABITANTS} metiers={parleurs} />);
+  it("ne redit pas en tête de chaque groupe ce que fait le Métier ni ce qu'il attend : son nom suffit (US-0307, retour d'Antoine)", () => {
+    const deux: MetierDuTableau[] = [METIERS[1], METIERS[0]];
+    render(<ListeDesHabitants habitants={HABITANTS} metiers={deux} />);
     const tetes = [...tableau().querySelectorAll('th[scope="rowgroup"]')].map(nom);
-    expect(tetes).toEqual(["Sans Métier 2", "Chasseur rapporte de la Viande Servira avec les Récoltes. − 1 +", "Explorateur part en Expédition chercher des Bêtes sauvages − 0 +"]);
+    expect(tetes).toEqual(["Sans Métier 2", "Chasseur − 1 +", "Explorateur − 0 +"]);
   });
 
   it("ne met de groupe « Sans Métier » que s'il y en a", () => {
@@ -611,9 +608,9 @@ describe("filtrer le tableau par Métier, depuis le rail (US-0314)", () => {
 });
 
 describe("un Territoire sans Habitant (US-0329)", () => {
-  const AUCUN = "Aucun Habitant pour l'instant. Des Voyageurs finiront par passer aux portes.";
+  const AUCUN = "Aucun Habitant pour l'instant.";
 
-  it("dit, sous le titre, à la place du rail et du tableau, qu'il n'y a aucun Habitant et que des Voyageurs finiront par passer", () => {
+  it("dit, sous le titre, à la place du rail et du tableau, qu'il n'y a aucun Habitant, sans redire que des Voyageurs passeront", () => {
     const { container } = render(<ListeDesHabitants habitants={[]} metiers={METIERS} />);
     expect(container.textContent).toBe(`Habitants${AUCUN}`);
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Habitants");
@@ -794,7 +791,7 @@ describe("renvoyer un Habitant depuis sa ligne (US-0330)", () => {
     const { container } = render(<ListeDesHabitants habitants={[HABITANTS[2]]} metiers={METIERS} />);
     await renvoyer("Cael");
     expect(actions.renvoyerUnHabitant).toHaveBeenCalledExactlyOnceWith(42);
-    expect(container.textContent).toBe("HabitantsAucun Habitant pour l'instant. Des Voyageurs finiront par passer aux portes.");
+    expect(container.textContent).toBe("HabitantsAucun Habitant pour l'instant.");
   });
 });
 
@@ -862,10 +859,10 @@ describe("un éleveur à l'Élevage (US-0843)", () => {
 
 describe("répartir les Habitants avec « − » et « + », en tête de chaque groupe (US-0312)", () => {
   const TROIS_METIERS: MetierDuTableau[] = [
-    ["chasseur", "Chasseur", "rapporte de la Viande", "avec les Récoltes"],
-    ["bucheron", "Bûcheron", "rapporte du Bois des forêts", "avec les Récoltes"],
-    ["mineur", "Mineur", "rapporte de la Pierre des montagnes", null],
-  ].map(([id, n, phrase, servira]) => ({ id: id!, nom: n!, phrase: phrase!, servira, icone: `/illustrations/metiers/${id}.webp` }));
+    ["chasseur", "Chasseur"],
+    ["bucheron", "Bûcheron"],
+    ["mineur", "Mineur"],
+  ].map(([id, n]) => ({ id, nom: n, icone: `/illustrations/metiers/${id}.webp` }));
   /** La page réduite à ce qui compte ici : le rail, le bandeau des sans Métier, le tableau et ses groupes. */
   const page = (habitants: HabitantAffiche[]) => <ListeDesHabitants habitants={habitants} metiers={TROIS_METIERS} />;
   /** L'en-tête du groupe d'un Métier. */
@@ -880,11 +877,11 @@ describe("répartir les Habitants avec « − » et « + », en tête de chaque 
   /** Le bandeau des sans Métier, en son texte, ou null. */
   const bandeau = () => screen.queryByRole("link", { name: "Voir" })?.closest("p")?.querySelector("strong")?.textContent ?? null;
 
-  it("met en tête du groupe de chaque Métier son médaillon muet, son nom, sa phrase et quand il servira, puis son effectif entre « − » et « + »", () => {
+  it("met en tête du groupe de chaque Métier son médaillon muet et son nom, puis son effectif entre « − » et « + »", () => {
     render(page(HABITANTS));
-    expect(nom(tete("Chasseur"))).toBe("Chasseur rapporte de la Viande Servira avec les Récoltes. − 1 +");
-    expect(nom(tete("Bûcheron"))).toBe("Bûcheron rapporte du Bois des forêts Servira avec les Récoltes. − 0 +");
-    expect(nom(tete("Mineur"))).toBe("Mineur rapporte de la Pierre des montagnes − 0 +");
+    expect(nom(tete("Chasseur"))).toBe("Chasseur − 1 +");
+    expect(nom(tete("Bûcheron"))).toBe("Bûcheron − 0 +");
+    expect(nom(tete("Mineur"))).toBe("Mineur − 0 +");
     const icone = [...tete("Bûcheron").querySelectorAll("img")].find((img) => img.getAttribute("src")?.includes(encodeURIComponent("/illustrations/metiers/bucheron.webp")))!;
     expect(icone.getAttribute("alt")).toBe("");
     expect(icone.closest("[aria-hidden]")).not.toBeNull();

@@ -234,7 +234,7 @@ describe("page Habitants (US-0302, US-0303, US-0305, US-0307, US-0308, US-0309, 
     expect([...tableau().querySelectorAll('button[aria-expanded="false"]')].map((b) => b.textContent)).toEqual(["Choisir un Métier", "Chasseur"]);
   });
 
-  it("confie à la liste chaque Habitant avec le nom de son Métier et la date de son arrivée, et les Métiers, chacun avec son icône, sa phrase et ce qu'il attend (US-0307, US-0308)", async () => {
+  it("confie à la liste chaque Habitant avec le nom de son Métier et la date de son arrivée, et les Métiers, chacun avec son icône, sans sa phrase ni ce qu'il attend (US-0307, US-0308)", async () => {
     connecte();
     habitants.habitantsDuTerritoire.mockResolvedValue([
       { id: 41, prenom: "Dara", ...UN_HABITANT },
@@ -247,7 +247,7 @@ describe("page Habitants (US-0302, US-0303, US-0305, US-0307, US-0308, US-0309, 
         // L'heure de Paris : le 2 octobre à 1 h 30.
         { id: 40, prenom: "Elio", metier: "Chasseur", etat: "libre", arriveLe: "2 octobre 2026" },
       ],
-      metiers: HUIT_METIERS.map((m) => ({ ...m, icone: `/illustrations/metiers/${m.id}.webp` })),
+      metiers: HUIT_METIERS.map((m) => ({ id: m.id, nom: m.nom, icone: `/illustrations/metiers/${m.id}.webp` })),
     });
   });
 
@@ -263,11 +263,11 @@ describe("page Habitants (US-0302, US-0303, US-0305, US-0307, US-0308, US-0309, 
     expect(lignes().map((l) => l.split(" · ")[0])).toEqual(["Joran", "Ilda", "Cael", "Fenn"]);
   });
 
-  it("ne montre ni rail ni tableau vide quand il n'y a aucun Habitant : US-0329, une phrase dit que des Voyageurs finiront par passer", async () => {
+  it("ne montre ni rail ni tableau vide quand il n'y a aucun Habitant : US-0329, il le dit, sans redire que des Voyageurs passeront", async () => {
     connecte(0);
     await afficher();
     const registre = screen.getByRole("region", { name: "Habitants" });
-    expect(morceaux(registre)).toEqual(["Habitants", "Aucun Habitant pour l'instant. Des Voyageurs finiront par passer aux portes."]);
+    expect(morceaux(registre)).toEqual(["Habitants", "Aucun Habitant pour l'instant."]);
     expect(screen.queryByRole("list", { name: "Effectifs par Métier" })).toBeNull();
     expect(screen.queryByRole("table")).toBeNull();
     // Le registre prend la place du rail.
@@ -279,13 +279,12 @@ describe("page Habitants (US-0302, US-0303, US-0305, US-0307, US-0308, US-0309, 
     await afficher();
     expect(morceaux(principal())).toEqual([
       "Habitants",
-      "Aucun Habitant pour l'instant. Des Voyageurs finiront par passer aux portes.",
+      "Aucun Habitant pour l'instant.",
       "Aux portes",
       "Historique",
       "Personne aux portes pour l'instant.",
       "0 Habitant sur 5 places",
       "Entretien",
-      "0 Habitant × 2 Nourriture =",
       "0 Nourriture par heure",
       ...["viande", "100", ", 8 par heure", "vegetaux", "100", ", 14 par heure"],
       "Nourriture assurée",
@@ -312,10 +311,10 @@ describe("page Habitants (US-0302, US-0303, US-0305, US-0307, US-0308, US-0309, 
       ...["Habitants", "Tous ·", "3"],
       ...["3 Habitants sans Métier", "Voir"],
       ...["Prénom", "Métier", "État", "Arrivé le"],
-      // US-0303 : le groupe des sans Métier, puis US-0307, US-0312 : chaque Métier, sa phrase, son effectif entre « − » et « + ».
+      // US-0303 : le groupe des sans Métier, puis US-0307, US-0312 : chaque Métier, son effectif entre « − » et « + ».
       ...["Sans Métier", "3"],
       ...PRENOMS.flatMap((prenom) => [prenom, "Choisir un Métier", "libre", ARRIVE_LE]),
-      ...HUIT_METIERS.flatMap((m) => [m.nom, m.phrase, ...(m.servira ? [`Servira ${m.servira}.`] : []), "−", "0", "+"]),
+      ...HUIT_METIERS.flatMap((m) => [m.nom, "−", "0", "+"]),
       // US-0332 : la partie « Aux portes », quand personne n'attend ; US-0342 : son lien vers l'historique.
       "Aux portes",
       "Historique",
@@ -324,7 +323,6 @@ describe("page Habitants (US-0302, US-0303, US-0305, US-0307, US-0308, US-0309, 
       "3 Habitants sur 5 places",
       // US-0318, US-0319 : l'Entretien, puis la Viande et les Végétaux qui le paient ; US-0320 : leur tenue.
       "Entretien",
-      "3 Habitants × 2 Nourriture =",
       "6 Nourriture par heure",
       ...["viande", "100", ", 8 par heure", "vegetaux", "100", ", 14 par heure"],
       "Nourriture assurée",
@@ -485,11 +483,11 @@ describe("page Habitants (US-0302, US-0303, US-0305, US-0307, US-0308, US-0309, 
     expect(within(rangeeDesEffectifs()).getAllByRole("button", { pressed: true }).map(nom)).toEqual(["Tous"]);
   });
 
-  it("affiche l'Entretien total par heure, détaillé en une ligne : « 3 Habitants × 2 Nourriture = 6 Nourriture par heure » (US-0318)", async () => {
+  it("affiche l'Entretien total par heure, « 6 Nourriture par heure », sans redire ce que mange chaque Habitant (US-0318)", async () => {
     connecte();
     await afficher();
     expect(habitants.entretienDesHabitants).toHaveBeenCalledWith(expect.anything(), 12);
-    expect(ligneEntretien()).toBe("3 Habitants × 2 Nourriture = 6 Nourriture par heure");
+    expect(ligneEntretien()).toBe("6 Nourriture par heure");
     // Le total ressort de la ligne.
     expect(entretien().querySelector("h2 + p > strong")?.textContent).toBe("6 Nourriture par heure");
   });
@@ -504,21 +502,21 @@ describe("page Habitants (US-0302, US-0303, US-0305, US-0307, US-0308, US-0309, 
   it("relit l'Entretien à chaque affichage : il suit chaque arrivée et chaque départ (US-0318)", async () => {
     connecte(4);
     await afficher();
-    expect(ligneEntretien()).toBe("4 Habitants × 2 Nourriture = 8 Nourriture par heure");
+    expect(ligneEntretien()).toBe("8 Nourriture par heure");
     connecte(1);
     await afficher();
-    expect(ligneEntretien()).toBe("1 Habitant × 2 Nourriture = 2 Nourriture par heure");
+    expect(ligneEntretien()).toBe("2 Nourriture par heure");
     connecte(0);
     await afficher();
-    expect(ligneEntretien()).toBe("0 Habitant × 2 Nourriture = 0 Nourriture par heure");
+    expect(ligneEntretien()).toBe("0 Nourriture par heure");
     expect(habitants.entretienDesHabitants).toHaveBeenCalledTimes(3);
   });
 
-  it("montre le total que rend la lecture, celle du calcul, exact et à la française (US-0318)", async () => {
+  it("montre le total que rend la lecture, exact et à la française (US-0318)", async () => {
     connecte();
     habitants.entretienDesHabitants.mockResolvedValue({ habitants: 3, parHabitant: 1.5, parHeure: "4.500000" });
     await afficher();
-    expect(ligneEntretien()).toBe("3 Habitants × 1,5 Nourriture = 4,5 Nourriture par heure");
+    expect(ligneEntretien()).toBe("4,5 Nourriture par heure");
   });
 
   it("montre sous l'Entretien la Viande et les Végétaux qui le paient : leur quantité, et leur solde par heure comme la barre le compte (US-0319)", async () => {
@@ -581,14 +579,11 @@ describe("page Habitants (US-0302, US-0303, US-0305, US-0307, US-0308, US-0309, 
     expect(texte(tenue())).toBe("Nourriture pour encore moins d'une heure");
   });
 
-  it("met en tête du groupe de chaque Métier son nom, sa phrase et quand il servira, dans l'ordre des huit Métiers (US-0307)", async () => {
+  it("met en tête du groupe de chaque Métier son nom seul, sans redire ce qu'il fait ni ce qu'il attend, dans l'ordre des huit Métiers (US-0307)", async () => {
     connecte();
     await afficher();
     const lus = tetesDeMetier().map((th) => morceaux(th).slice(0, -3));
-    expect(lus.map(([n]) => n)).toEqual(["Explorateur", "Chasseur", "Cueilleur", "Bûcheron", "Mineur", "Chercheur", "Bâtisseur", "Éleveur"]);
-    expect(lus[3]).toEqual(["Bûcheron", "rapporte du Bois des forêts", "Servira avec les Récoltes."]);
-    expect(lus[5]).toEqual(["Chercheur", "fait avancer la Recherche", "Servira quand le cercle des sages sera bâti."]);
-    expect(lus).toEqual(HUIT_METIERS.map((m) => [m.nom, m.phrase, ...(m.servira ? [`Servira ${m.servira}.`] : [])]));
+    expect(lus).toEqual(["Explorateur", "Chasseur", "Cueilleur", "Bûcheron", "Mineur", "Chercheur", "Bâtisseur", "Éleveur"].map((n) => [n]));
   });
 
   it("montre le médaillon peint de chaque Métier, muet (le nom est à côté), en tête de son groupe et dans le rail (US-0307)", async () => {
@@ -631,14 +626,11 @@ describe("page Habitants (US-0302, US-0303, US-0305, US-0307, US-0308, US-0309, 
     expect(compteurs()).toEqual(["Tous", "Sans Métier 3", "Mineur 0", "Explorateur 0"]);
   });
 
-  it("ne dit rien de plus d'un Métier qui sert déjà (US-0307)", async () => {
+  it("ne dit rien de plus d'un Métier, qu'il serve déjà ou non (US-0307)", async () => {
     connecte();
     metiers.lesMetiers.mockResolvedValue([{ ...HUIT_METIERS[3], servira: null }, HUIT_METIERS[4]]);
     await afficher();
-    expect(tetesDeMetier().map((th) => morceaux(th).slice(0, -3))).toEqual([
-      ["Bûcheron", "rapporte du Bois des forêts"],
-      ["Mineur", "rapporte de la Pierre des montagnes", "Servira avec les Récoltes."],
-    ]);
+    expect(tetesDeMetier().map((th) => morceaux(th).slice(0, -3))).toEqual([["Bûcheron"], ["Mineur"]]);
   });
 
   it("ne montre aucun groupe de Métier vide sans Métier à lire (US-0307)", async () => {
@@ -681,10 +673,9 @@ describe("page Habitants, l'écran de stratégie en trois zones (US-0302, US-030
     expect(regle(".teteDeGroupe > th", registre)).toMatch(/position: sticky;[^}]*top: 32px;/);
     expect(regle(".tableau thead th", registre)).toContain("height: 32px;");
     expect(regle(".habitant > *", registre)).toContain("height: 38px;");
-    // Un long prénom ou une longue phrase se coupent d'une ellipse sans élargir le tableau.
+    // Un long prénom se coupe d'une ellipse sans élargir le tableau.
     expect(regle(".tableau", registre)).toMatch(/width: 100%;[^}]*table-layout: fixed;/);
     expect(regle(".habitant > *", registre)).toMatch(/overflow: hidden;[^}]*text-overflow: ellipsis;/);
-    expect(regle(".phrase", registre)).toMatch(/overflow: hidden;[^}]*text-overflow: ellipsis;/);
   });
 
   it("resserre le rail et la colonne de contexte entre 1 024 et 1 200 px, pour laisser sa place au registre", () => {
@@ -711,7 +702,6 @@ describe("page Habitants, l'écran de stratégie en trois zones (US-0302, US-030
     expect(regle(".contexte", telephone(page))).toContain("grid-template-columns: minmax(0, 1fr);");
     expect(regle(".tableau thead", telephone(registre))).toContain("display: none;");
     expect(regle(".habitant", telephone(registre))).toMatch(/grid-template-areas:\s*"prenom metier"\s*"etat arrivee";/);
-    expect(regle(".phrase,\n  .servira", telephone(registre))).toContain("white-space: normal;");
     for (const texte of [tablette(page), tablette(registre)]) {
       for (const [, colonnes] of texte.matchAll(/grid-template-columns: ([^;]+);/g)) {
         expect(colonnes.split(/ (?![^(]*\))/).every((c) => c === "auto" || c.startsWith("minmax(0,")), colonnes).toBe(true);
@@ -837,11 +827,11 @@ describe("page Habitants, les Voyageurs aux portes (US-0332, US-0333)", () => {
     await connecte(["Joran", 5], ["Ilda", 2]);
     await afficher();
     expect(voyageurs.voyageursAuxPortes).toHaveBeenCalledWith(expect.anything(), 12);
-    // US-0334, US-0336 : chaque carte finit par « Accueillir » et « Refuser » ; US-0340 : puis l'Entretien en plus.
+    // US-0334, US-0336 : chaque carte finit par « Accueillir » et « Refuser » ; l'Entretien en plus ne s'y redit pas.
     // US-0335 : au-dessus des boutons, le Métier qu'aura le Voyageur, « Sans Métier » d'abord.
     expect(lignesAuxPortes()).toEqual([
-      "Joran · arrivé il y a 5 h · repart dans 7 h · Sans Métier · Accueillir · Refuser · Mangera 2 Nourriture par heure",
-      "Ilda · arrivé il y a 2 h · repart dans 10 h · Sans Métier · Accueillir · Refuser · Mangera 2 Nourriture par heure",
+      "Joran · arrivé il y a 5 h · repart dans 7 h · Sans Métier · Accueillir · Refuser",
+      "Ilda · arrivé il y a 2 h · repart dans 10 h · Sans Métier · Accueillir · Refuser",
     ]);
   });
 
@@ -871,7 +861,7 @@ describe("page Habitants, les Voyageurs aux portes (US-0332, US-0333)", () => {
     habitants.placesDuTerritoire.mockResolvedValue(3);
     await afficher();
     expect(portes.AuxPortes.mock.lastCall?.[0].placesLibres).toBe(0);
-    expect(within(auxPortes()).getByText("Plus de place au Foyer. Des huttes en ajouteront quand les constructions seront là.")).toBeTruthy();
+    expect(within(auxPortes()).getByText("Plus de place au Foyer.")).toBeTruthy();
     expect((within(auxPortes()).getByRole("button", { name: "Accueillir Joran" }) as HTMLButtonElement).disabled).toBe(true);
   });
 

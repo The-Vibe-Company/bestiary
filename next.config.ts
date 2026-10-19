@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
     "/controle/monde": ["./donnees/biomes.yaml"],
     "/controle/raretes": ["./donnees/raretes.yaml", "./donnees/raretes-par-anneau.yaml"],
   },
+  // La mesure d'audience passe par le jeu (/ingest, relayé par src/proxy.ts vers PostHog US) : PostHog appelle
+  // certaines adresses avec une barre finale, qu'il ne faut pas retirer par une redirection.
+  skipTrailingSlashRedirect: true,
 };
 
 export default nextConfig;
