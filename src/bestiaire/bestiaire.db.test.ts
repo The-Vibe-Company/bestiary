@@ -20,10 +20,15 @@ import { bestiaireDuTerritoire, inscrireAuBestiaire } from "./bestiaire";
 const MINUTE_MS = 60_000;
 const HEURE = 60;
 const JOUR = 24 * HEURE;
-/** L'aller vers une Case à 2 Cases du Foyer, au pas des explorateurs sans escorte (US-0909). */
-const ALLER = 2 * PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE;
 /** Le temps, en minutes, où aucune autre Bête n'apparaît avant ou après celle d'un essai : sa présence et 6 heures de marge. */
 const CALME = PRESENCE_D_UNE_BETE_HEURES * HEURE + 6 * HEURE;
+
+/**
+ * L'écart au Foyer jusqu'où un essai cherche sa Case : à 2 Cases d'abord, puis à 3 et 4 quand les essais précédents, nés
+ * tout près, ont pris toutes celles qui conviennent (un Foyer au bord du Monde n'en a que 5 à 7 à 2 Cases). Bien en deçà
+ * de la portée d'exploration (PORTEE_D_EXPLORATION_CASES), où un départ est accepté.
+ */
+const ECART_AU_PLUS = 4;
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
 const MONDE_D_ESSAI = "Essai du Bestiaire (US-0933)";
@@ -85,26 +90,28 @@ describe.skipIf(!URL_TEST)("l'Espèce croisée entre au Bestiaire (US-0933, sur 
 
   /**
    * Une Bête sauvage seule, qui convient à `voulue`, sur une Case libre à 2 Cases du Foyer du Territoire, apparue après
-   * `apresLe` : aucune autre n'apparaît sur sa Case de CALME heures avant elle à CALME heures après. Sa Case et la Bête.
+   * `apresLe` : aucune autre n'apparaît sur sa Case de CALME heures avant elle à CALME heures après. Sa Case, son écart au
+   * Foyer et la Bête. À 2 Cases du Foyer, sinon plus loin, jusqu'à ECART_AU_PLUS.
    */
   const uneBeteSeule = async (territoireId: number, apresLe: Date, voulue: (b: BeteSauvage) => boolean = () => true) => {
     const fin = apres(apresLe, 30 * JOUR);
-    for (let rang = 0, ici = await aLEcart(territoireId, 2); ici; ici = await aLEcart(territoireId, 2, ++rang)) {
-      if (prises.has(ici.caseId)) continue;
-      const betes = await betesSauvagesDUneCase(pool, ici.caseId, apresLe, fin);
-      const bete = betes.find(
-        (b, i) =>
-          voulue(b) &&
-          b.arrivee >= apres(apresLe, CALME) &&
-          b.arrivee <= apres(fin, -CALME) &&
-          (i === 0 || betes[i - 1].arrivee <= apres(b.arrivee, -CALME)) &&
-          (i === betes.length - 1 || betes[i + 1].arrivee >= apres(b.arrivee, CALME)),
-      );
-      if (bete) {
-        prises.add(ici.caseId);
-        return { ...ici, bete };
+    for (let ecart = 2; ecart <= ECART_AU_PLUS; ecart++)
+      for (let rang = 0, ici = await aLEcart(territoireId, ecart); ici; ici = await aLEcart(territoireId, ecart, ++rang)) {
+        if (prises.has(ici.caseId)) continue;
+        const betes = await betesSauvagesDUneCase(pool, ici.caseId, apresLe, fin);
+        const bete = betes.find(
+          (b, i) =>
+            voulue(b) &&
+            b.arrivee >= apres(apresLe, CALME) &&
+            b.arrivee <= apres(fin, -CALME) &&
+            (i === 0 || betes[i - 1].arrivee <= apres(b.arrivee, -CALME)) &&
+            (i === betes.length - 1 || betes[i + 1].arrivee >= apres(b.arrivee, CALME)),
+        );
+        if (bete) {
+          prises.add(ici.caseId);
+          return { ...ici, ecart, bete };
+        }
       }
-    }
     throw new Error("Aucune Bête seule qui convienne.");
   };
 
@@ -126,10 +133,10 @@ describe.skipIf(!URL_TEST)("l'Espèce croisée entre au Bestiaire (US-0933, sur 
 
   it("une Espèce vue lors d'une Rencontre s'inscrit au Bestiaire « croisée », à l'heure de la Rencontre, qui la signale nouvelle", async () => {
     const { territoireId, ne } = await naitre();
-    const { place, bete } = await uneBeteSeule(territoireId, apres(ne, 3 * JOUR));
-    // Un explorateur part pour arriver une heure avant la Bête, et reste quatre heures.
+    const { place, ecart, bete } = await uneBeteSeule(territoireId, apres(ne, 3 * JOUR));
+    // Un explorateur part pour arriver une heure avant la Bête, à son pas sans escorte (US-0909), et reste quatre heures.
     const choix = { destination: place, explorateurs: 1, escorte: new Map(), sejourMinutes: 4 * HEURE };
-    const depart = await lancerLExpedition(pool, territoireId, choix, apres(bete.arrivee, -ALLER - HEURE));
+    const depart = await lancerLExpedition(pool, territoireId, choix, apres(bete.arrivee, -ecart * PAS_DES_EXPLORATEURS_MINUTES_PAR_CASE - HEURE));
     if (!("expeditionId" in depart)) throw new Error(depart.refus);
 
     await rattraperA(territoireId, bete.arrivee);
@@ -207,18 +214,20 @@ describe.skipIf(!URL_TEST)("l'Espèce croisée entre au Bestiaire (US-0933, sur 
   it("inscrit les mêmes Espèces, signalées nouvelles aux mêmes Rencontres, en direct, par morceaux, d'un bloc ou par la tâche planifiée", async () => {
     const territoires = [await naitre(), await naitre(), await naitre(), await naitre()];
     // Une Case où deux Bêtes au moins se montrent à moins de dix heures d'écart, la première plus rare que commune, que
-    // plusieurs Expéditions voient donc (US-0935) : la période commence une heure avant elle.
+    // plusieurs Expéditions voient donc (US-0935) : la période commence une heure avant elle. À 2 Cases du Foyer, sinon plus
+    // loin, jusqu'à ECART_AU_PLUS, comme uneBeteSeule.
     const uneCaseAnimee = async () => {
       const { territoireId, ne } = territoires[0];
-      for (let rang = 0, ici = await aLEcart(territoireId, 2); ici; ici = await aLEcart(territoireId, 2, ++rang)) {
-        if (prises.has(ici.caseId)) continue;
-        const betes = await betesSauvagesDUneCase(pool, ici.caseId, apres(ne, 3 * JOUR), apres(ne, 30 * JOUR));
-        const i = betes.findIndex((b, j) => plusRare(b) && j + 1 < betes.length && betes[j + 1].arrivee < apres(b.arrivee, 10 * HEURE));
-        if (i >= 0) {
-          prises.add(ici.caseId);
-          return { caseId: ici.caseId, debut: apres(betes[i].arrivee, -HEURE) };
+      for (let ecart = 2; ecart <= ECART_AU_PLUS; ecart++)
+        for (let rang = 0, ici = await aLEcart(territoireId, ecart); ici; ici = await aLEcart(territoireId, ecart, ++rang)) {
+          if (prises.has(ici.caseId)) continue;
+          const betes = await betesSauvagesDUneCase(pool, ici.caseId, apres(ne, 3 * JOUR), apres(ne, 30 * JOUR));
+          const i = betes.findIndex((b, j) => plusRare(b) && j + 1 < betes.length && betes[j + 1].arrivee < apres(b.arrivee, 10 * HEURE));
+          if (i >= 0) {
+            prises.add(ici.caseId);
+            return { caseId: ici.caseId, debut: apres(betes[i].arrivee, -HEURE) };
+          }
         }
-      }
       throw new Error("Aucune Case animée.");
     };
     const { caseId, debut } = await uneCaseAnimee();
@@ -335,5 +344,12 @@ describe.skipIf(!URL_TEST)("l'Espèce croisée entre au Bestiaire (US-0933, sur 
     }
     expect(inscrites).toEqual([{ especeId: bete.especeId, etat: "croisee", croiseeLe: apres(bete.arrivee, HEURE) }]);
     expect(nouvelles).toEqual([true, false]);
+  });
+
+  it("trouve encore une Bête seule quand les essais précédents, nés tout près, ont pris toutes les Cases à 2 du Foyer", async () => {
+    const { territoireId, ne } = await naitre();
+    for (let rang = 0, ici = await aLEcart(territoireId, 2); ici; ici = await aLEcart(territoireId, 2, ++rang)) prises.add(ici.caseId);
+    const { ecart } = await uneBeteSeule(territoireId, apres(ne, 3 * JOUR), plusRare);
+    expect(ecart).toBeGreaterThan(2);
   });
 });
