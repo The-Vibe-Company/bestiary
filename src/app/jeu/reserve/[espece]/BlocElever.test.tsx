@@ -586,6 +586,58 @@ describe("suivre l'Élevage en cours (US-0818)", () => {
     expect(routeur.refresh).not.toHaveBeenCalled();
   });
 
+  /** Le bloc tel que la page le donne, avec ou sans Élevage en cours (`enCours`) : la page relue n'a que cela de changé. */
+  const bloc0 = (enCours: typeof POULES | null, eleveur: string | null = "Hael") => (
+    <BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={eleveur} elevage={POULE_ELEVEE} elevageEnCours={enCours} maintenant={MAINTENANT} />
+  );
+  /** La région du lancement, pour les lecteurs d'écran. */
+  const dit = () => within(bloc()).getAllByRole("status").find((r) => r.tagName === "P")?.textContent;
+
+  it("un refus suivi de l'Élevage lancé ailleurs : la main va au suivi, et le refus ne revient pas avec le formulaire, à la fin", async () => {
+    const u = userEvent.setup();
+    actions.elever.mockResolvedValue({ refus: "Un Élevage de cette Espèce est déjà en cours." });
+    const { rerender } = render(bloc0(null));
+    await u.click(within(bloc()).getByRole("button", { name: "Élever" }));
+    // La page relue par l'action : l'Élevage lancé depuis un autre appareil est en cours.
+    rerender(bloc0({ ...POULES, lanceLe: MAINTENANT }, null));
+    expect(document.activeElement).toBe(suivi());
+    expect(within(bloc()).queryByRole("alert")).toBeNull();
+    // Fini, la page relue rend le formulaire, sans le refus d'avant ni rien d'annoncé.
+    rerender(bloc0(null));
+    expect(within(bloc()).getByRole("button", { name: "Élever" })).toBeTruthy();
+    expect(within(bloc()).queryByRole("alert")).toBeNull();
+    expect(dit()).toBe("");
+  });
+
+  it("à la fin de l'Élevage lancé, le formulaire revient sans redire « Élevage lancé », et un Élevage lancé ailleurs ensuite n'emporte pas la main", async () => {
+    const u = userEvent.setup();
+    actions.elever.mockResolvedValue({ refus: null, lance: { quantite: 3, eleveur: "Hael" } });
+    const { rerender } = render(bloc0(null));
+    await u.click(within(bloc()).getByRole("button", { name: "Élever" }));
+    rerender(bloc0({ ...POULES, lanceLe: MAINTENANT }, null));
+    expect(dit()).toBe("Élevage lancé : 3 Bêtes, confié à Hael.");
+    rerender(bloc0(null));
+    expect(dit()).toBe("");
+    // Le joueur lit autre chose ; un autre appareil lance un Élevage, que la page relue montre.
+    const ailleurs = document.createElement("button");
+    document.body.append(ailleurs);
+    ailleurs.focus();
+    rerender(bloc0({ ...POULES, lanceLe: MAINTENANT }, null));
+    expect(document.activeElement).toBe(ailleurs);
+    expect(dit()).toBe("");
+    ailleurs.remove();
+  });
+
+  it("n'emporte pas la main vers un Élevage lancé ailleurs, quand rien n'a été demandé d'ici", () => {
+    const { rerender } = render(bloc0(null));
+    const ailleurs = document.createElement("button");
+    document.body.append(ailleurs);
+    ailleurs.focus();
+    rerender(bloc0({ ...POULES, lanceLe: MAINTENANT }, null));
+    expect(document.activeElement).toBe(ailleurs);
+    ailleurs.remove();
+  });
+
   it("une fois l'Élevage lancé, la page relue le montre en cours, la main y va, et les lecteurs d'écran l'entendent", async () => {
     const u = userEvent.setup();
     actions.elever.mockResolvedValue({ refus: null, lance: { quantite: 3, eleveur: "Hael" } });

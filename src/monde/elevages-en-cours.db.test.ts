@@ -9,6 +9,7 @@ import { reunirLesCouples } from "./couple";
 import { dureeDUneBeteEleveeMinutes } from "./cout-d-elevage";
 import { elevagesEnCours } from "./elevages-en-cours";
 import { lancerUnElevage } from "./lancer-un-elevage";
+import { ouEnEstLElevage } from "./suivi-d-elevage";
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
 const MONDE_D_ESSAI = "Essai du suivi des Élevages (US-0818)";
@@ -99,6 +100,33 @@ describe.skipIf(!URL_TEST)("suivre les Élevages en cours (US-0818, sur base)", 
         dureeMinutes: especes.souris.duree,
       },
     ]);
+    // Rangés par prénom, non par lancement : Brune devenue Zoé passe après Hael ; un éleveur parti passe en dernier.
+    await pool.query("update habitant set prenom = 'Zoé' where id = $1", [t.habitants[1]]);
+    expect((await elevagesEnCours(pool, t.territoireId, apres(debut, 2))).map((e) => [e.especeId, e.eleveur])).toEqual([
+      ["souris", "Hael"],
+      ["poule", "Zoé"],
+    ]);
+    await pool.query("delete from habitant where id = $1", [t.habitants[0]]);
+    expect((await elevagesEnCours(pool, t.territoireId, apres(debut, 2))).map((e) => [e.especeId, e.eleveur])).toEqual([
+      ["poule", "Zoé"],
+      ["souris", null],
+    ]);
+  });
+
+  it("dit nées autant de Bêtes que le temps qui avance en a fait naître, à chaque instant, juste avant, pile à et après chaque naissance", async () => {
+    const t = await naitre();
+    const debut = apres(t.ne, 1);
+    await lancer(t.territoireId, "souris", 3, debut);
+    const [elevage] = await elevagesEnCours(pool, t.territoireId, debut);
+    const souris = async () =>
+      Number((await pool.query<{ n: string }>("select coalesce(sum(nombre), 0) as n from effectif where territoire_id = $1 and espece_id = 'souris'", [t.territoireId])).rows[0].n);
+    const avant = await souris();
+    const d = especes.souris.duree * MINUTE;
+    for (const ms of [d - 1, d, d + 1, 2 * d - 1, 2 * d, 3 * d - 1, 3 * d, 3 * d + 10 * MINUTE]) {
+      const instant = new Date(debut.getTime() + ms);
+      await rattraper("territoire", t.territoireId, { pool, jusqua: instant });
+      expect([ms, (await souris()) - avant]).toEqual([ms, ouEnEstLElevage(elevage, instant).nees]);
+    }
   });
 
   it("n'y met plus un Élevage dès la naissance de sa dernière Bête, que le temps ait été rattrapé ou non", async () => {

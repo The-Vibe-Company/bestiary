@@ -39,8 +39,11 @@
   outline-offset: 4px;
 }
 
-/* Les nombres en chiffres alignés, sur les valeurs mêmes : le décompte ne bouge pas en avançant. */
-.chiffres dd {
+/*
+ * Les nombres en chiffres alignés, sur les valeurs mêmes : le décompte ne bouge pas en avançant. Un sélecteur plus fort
+ * que celui du kit (.cles dd, dont le « font » remet les chiffres à leur forme), quel que soit l'ordre des feuilles.
+ */
+.suivi .chiffres dd {
   font-variant-numeric: tabular-nums;
 }
 

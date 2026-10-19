@@ -22,12 +22,12 @@ export function useHeureDuJeu(maintenant: Date, vitesse = 1): Date {
 
 /** Le plus long délai qu'un minuteur du navigateur sache attendre : au-delà, il partirait aussitôt. */
 const DELAI_MAX_MS = 2_147_483_647;
-/** Le temps réel laissé au serveur après l'instant attendu, avant de relire la page (comme après un retour, US-0916). */
+/** US-0916 : le temps réel laissé au serveur après l'instant attendu (un retour, une naissance), avant de relire la page. */
 const RELIRE_APRES_MS = 1_000;
 
 /**
- * US-0818 : relit la page une seconde réelle après l'instant du jeu `quand` (une naissance), le temps que le serveur y
- * soit : elle repart alors de la nouvelle heure du jeu, et de ce qu'elle a changé. L'attente se compte depuis l'heure du
+ * US-0818 : relit la page une seconde réelle après l'instant du jeu `quand` (une naissance ; US-0916, le retour d'une
+ * Expédition), le temps que le serveur y soit : elle repart alors de la nouvelle heure du jeu, et de ce qu'elle a changé. L'attente se compte depuis l'heure du
  * jeu à l'affichage (`maintenant`), au rythme du jeu (`vitesse`). Rien sans instant, pour un instant déjà passé à
  * l'affichage, ou trop lointain pour un minuteur du navigateur.
  */
