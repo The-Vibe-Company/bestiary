@@ -30,6 +30,15 @@ const TIRAGE = { nombre: 1, moment: 2, rarete: 3, espece: 4, sexe: 5, attaque: 6
 const PRESENCE_MS = PRESENCE_D_UNE_BETE_HEURES * TRANCHE_MS;
 
 /**
+ * US-0973 : l'instant où une Bête sauvage ordinaire apparue à `arrivee` quitte sa Case au bout de sa présence
+ * (PRESENCE_D_UNE_BETE_HEURES), si aucune Expédition ne l'a emmenée avant ; au-delà, seuls des Éclaireurs la gardent en vue
+ * (US-0970).
+ */
+export function finDeSaPresence(arrivee: Date): Date {
+  return new Date(arrivee.getTime() + PRESENCE_MS);
+}
+
+/**
  * US-0925 : une Bête sauvage apparue sur une Case : son numéro, propre à sa Case, qui ne revient jamais, et l'instant du
  * jeu où elle apparaît.
  */
@@ -198,7 +207,7 @@ export function betesSauvages(
   const { graine, q, r, anneau, biome } = laCase;
   return apparitions(graine, laCase, new Date(de.getTime() - PRESENCE_MS + 1), a).flatMap((x) => {
     const partie = parties.get(x.numero);
-    const depart = Math.min(x.arrivee.getTime() + PRESENCE_MS, partie?.getTime() ?? Infinity);
+    const depart = Math.min(finDeSaPresence(x.arrivee).getTime(), partie?.getTime() ?? Infinity);
     if (depart <= de.getTime()) return [];
     const tiree = rareteTiree(laCase, x.numero, chances);
     const espece = tirerUneEspece(especes, chances[anneau - 1], biome, tiree, hacher(graine, q, r, x.numero, TIRAGE.espece));
