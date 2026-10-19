@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { peinturesPrioritaires } from "@/test/images";
 import Connexion from "./connexion/page";
 import Inscription from "./inscription/page";
 import MotDePasseOublie from "./mot-de-passe-oublie/page";
@@ -16,6 +17,10 @@ describe("entrée du jeu sur la page d'accueil", () => {
     const ordre = ["Le monde de Bestia", "Un monde sauvage, des bêtes à apprivoiser.", "Faites votre sac", "Créer un compte", "2000+", "Deux explorateurs"].map((t) => html.indexOf(t));
     expect(ordre.every((i) => i >= 0)).toBe(true);
     expect([...ordre].sort((x, y) => x - y)).toEqual(ordre);
+  });
+
+  it("charge d'abord la peinture du Monde, avant les espèces à découvrir", () => {
+    expect(peinturesPrioritaires(renderToStaticMarkup(<Accueil />))).toEqual(["accueil/plateau.webp"]);
   });
 
   it("montre « Créer un compte » vers l'inscription et « Se connecter » vers la connexion", () => {
@@ -47,6 +52,10 @@ describe("entrée du jeu sur la page d'accueil", () => {
     expect(html).toContain(titre);
     vi.stubEnv("VERCEL_ENV", "production");
     await expect(rendre()).rejects.toMatchObject({ digest: expect.stringContaining("404") });
+  });
+
+  it("charge d'abord la peinture de la connexion", async () => {
+    expect(peinturesPrioritaires(renderToStaticMarkup(await Connexion({ searchParams: Promise.resolve({}) })))).toEqual(["entree/connexion.webp"]);
   });
 
   it("dit à la connexion qu'une session a expiré, seulement quand elle arrive de là", async () => {

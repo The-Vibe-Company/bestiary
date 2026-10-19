@@ -69,10 +69,24 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Dans le jeu et sur les pages d'entrée, l'encre sarcelle borde tout, et la barre de défilement prend le cuivre. */
+/*
+ * Le fond de la page, sous tout le reste, et jusque sous le rebond d'un défilement : la sarcelle la plus sombre, qui borde
+ * tout dans le jeu et sur les pages d'entrée. Le layout racine la pose dans le style de <html> avant toute feuille de
+ * style (sans fond blanc d'ici là), par --fond-de-page ; le contrôle, sur son papier clair, la remplace (data-controle,
+ * src/app/controle/layout.tsx).
+ */
+html {
+  --fond-de-page: var(--sarcelle-abysse);
+}
+
+html:has([data-controle]) {
+  --fond-de-page: var(--fond);
+  color-scheme: light;
+}
+
+/* Dans le jeu et sur les pages d'entrée, la barre de défilement prend le cuivre. */
 html:has([data-onglets]),
 html:has([data-entree]) {
-  background: var(--sarcelle-abysse);
   scrollbar-color: var(--anneau-cuivre-fort) var(--sarcelle-abysse);
 }
 
@@ -163,6 +177,11 @@ body:has([data-onglets]) main:not([data-carte]),
 main[data-entree] {
   position: relative;
   isolation: isolate;
+}
+
+/* Sur une page d'entrée aussi, une peinture qui se charge laisse voir le panneau sombre, comme dans le jeu, pas le papier. */
+main[data-entree] {
+  --bloc-3: var(--panneau-releve);
 }
 
 h1,

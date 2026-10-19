@@ -1,5 +1,5 @@
-// Fabrique les icônes du jeu à partir de la palette : npm run icones
-// À relancer si l'Encre ou le citron changent (un test le rappelle).
+// Fabrique les icônes du jeu à partir de la palette, et les couleurs que l'application lit hors des feuilles de style :
+// npm run icones. À relancer si l'Encre, le citron, le fond ou la sarcelle la plus sombre changent (un test le rappelle).
 import { readFileSync, writeFileSync } from "node:fs";
 import sharp from "sharp";
 import { paletteHex } from "./lib/couleurs";
@@ -8,6 +8,8 @@ const palette = readFileSync("src/styles/palette.css", "utf8");
 const encre = paletteHex(palette, "--encre");
 const citron = paletteHex(palette, "--citron");
 const fond = paletteHex(palette, "--fond");
+// Le fond de la page avant toute feuille de style (src/app/layout.tsx).
+const abysse = paletteHex(palette, "--sarcelle-abysse");
 
 const TETE = "M8 9 L18 17 L30 17 L40 9 L38 25 L31 37 L24 42 L17 37 L10 25 Z";
 const YEUX = "M18 27 L22 28.5 L18 30 Z M30 27 L26 28.5 L30 30 Z M21.5 35 L24 37.5 L26.5 35 Z";
@@ -28,7 +30,7 @@ async function main() {
   await png(application, 180, "src/app/apple-icon.png");
   await png(application, 192, "public/icone-192.png");
   await png(application, 512, "public/icone-512.png");
-  writeFileSync("src/app/couleurs-app.json", JSON.stringify({ encre, citron, fond }, null, 2) + "\n");
+  writeFileSync("src/app/couleurs-app.json", JSON.stringify({ encre, citron, fond, abysse }, null, 2) + "\n");
   console.log(`Icônes fabriquées (Encre ${encre}, citron ${citron}).`);
 }
 

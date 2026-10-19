@@ -39,7 +39,7 @@ type PaysageProps = {
   brume?: boolean;
   /** La largeur affichée selon l'écran, pour charger la bonne taille (voir next/image). */
   sizes?: string;
-  /** À charger tout de suite : le paysage est visible sans défiler. */
+  /** La peinture principale de l'écran, visible sans défiler : chargée tout de suite, avant le reste. */
   prioritaire?: boolean;
   className?: string;
 };
@@ -54,7 +54,15 @@ export function Paysage({ biome, peinture, brume = false, sizes = "100vw", prior
   const chemin = peinture ?? (biome && !brume ? peintureDuBiome(biome) : SOUS_LA_BRUME);
   return (
     <div className={[styles.paysage, brume && styles.brume, className].filter(Boolean).join(" ")} aria-hidden="true">
-      <Image src={`/illustrations/${chemin}`} alt="" fill sizes={sizes} preload={prioritaire} className={styles.peinture} />
+      <Image
+        src={`/illustrations/${chemin}`}
+        alt=""
+        fill
+        sizes={sizes}
+        loading={prioritaire ? "eager" : "lazy"}
+        fetchPriority={prioritaire ? "high" : undefined}
+        className={styles.peinture}
+      />
       {brume ? (
         // L'hexagone de cuivre d'une Case, et son « ? » (le ::after, pour qu'il ne se lise pas parmi les textes de la page).
         <span className={styles.inconnu}>

@@ -97,7 +97,7 @@ export default async function FicheDeLEspece({
   return (
     <main className={styles.page}>
       <article className={`${kit.panneau} ${styles.fiche}`}>
-        <IllustrationEspece espece={fiche} format="grand" className={`${kit.vignette} ${styles.illustration}`} />
+        <IllustrationEspece espece={fiche} format="grand" prioritaire className={`${kit.vignette} ${styles.illustration}`} />
         <div className={styles.entete}>
           <h1 className={styles.nom}>{fiche.nom}</h1>
           <PastilleRarete rarete={fiche.rarete} />

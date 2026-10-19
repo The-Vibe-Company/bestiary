@@ -8,7 +8,9 @@
  * couleur ici la change sur toutes les pages. Chaque couleur n'a qu'un nom (un test le vérifie).
  */
 :root {
-  color-scheme: light;
+  /* Sombre, comme le jeu et ses pages d'entrée : les fonds et les commandes du navigateur aussi (le contrôle, clair, le
+     reprend dans globals.css). */
+  color-scheme: dark;
 
   /*
    * LE JEU : l'encre sarcelle et le cuivre, chaque valeur reprise de la maquette retenue (directions/maquettes/strategie).

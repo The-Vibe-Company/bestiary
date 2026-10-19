@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import { peinturesPrioritaires } from "@/test/images";
 import { AucunExplorateurLibre } from "./AucunExplorateurLibre";
 
 afterEach(cleanup);
@@ -17,6 +18,11 @@ describe("aucun explorateur libre (US-0903)", () => {
     render(<AucunExplorateurLibre total={0} prochainRetour={null} />);
     expect(textes()).toEqual(["Explorateurs", "Aucun explorateur", "Donner le Métier d'explorateur"]);
     expect(lien().getAttribute("href")).toBe("/jeu/habitants");
+  });
+
+  it("charge d'abord ses explorateurs peints : c'est l'écran", () => {
+    const { container } = render(<AucunExplorateurLibre total={0} prochainRetour={null} />);
+    expect(peinturesPrioritaires(container.innerHTML)).toEqual(["accueil/explorateurs.webp"]);
   });
 
   it("quand tous les explorateurs sont déjà partis, donne l'heure du prochain retour, dans le fuseau du joueur", () => {

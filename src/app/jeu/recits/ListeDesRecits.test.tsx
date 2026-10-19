@@ -2,6 +2,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { peinturesPrioritaires } from "@/test/images";
 
 const actions = vi.hoisted(() => ({ lireUnRecit: vi.fn(async () => {}) }));
 vi.mock("./actions", () => actions);
@@ -74,9 +75,11 @@ describe("liste des Récits (US-0324)", () => {
   });
 
   it("tant qu'aucun Récit n'est ouvert, dit à sa place « Choisissez un récit. », pour les yeux, sans en ouvrir ni en noter aucun", async () => {
-    render(<ListeDesRecits recits={RECITS} />);
+    const { container } = render(<ListeDesRecits recits={RECITS} />);
     const invite = screen.getByText("Choisissez un récit.");
     expect(invite.closest('[aria-hidden="true"]')).not.toBeNull();
+    // Sa peinture, la seule de l'écran, se charge avant tout le reste.
+    expect(peinturesPrioritaires(container.innerHTML)).toEqual(["accueil/plateau.webp"]);
     expect(screen.getAllByRole("button").map((b) => b.getAttribute("aria-expanded"))).toEqual(["false", "false"]);
     expect(actions.lireUnRecit).not.toHaveBeenCalled();
     // Un Récit ouvert prend sa place.

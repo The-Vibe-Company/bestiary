@@ -22,10 +22,14 @@ export const FORMATS_ESPECE = {
 type IllustrationEspeceProps = {
   espece: { nom: string; illustration: string | null };
   format: keyof typeof FORMATS_ESPECE;
+  /** La peinture principale de l'écran (la fiche de l'Espèce) : chargée tout de suite, avant le reste. */
+  prioritaire?: boolean;
   className?: string;
 };
 
 /** Le portrait carré d'une Espèce ; sans illustration, la tête de loup le remplace. */
-export function IllustrationEspece({ espece, format, className }: IllustrationEspeceProps) {
-  return <Illustration chemin={espece.illustration} alt={espece.nom} ratio="1 / 1" sizes={FORMATS_ESPECE[format]} className={className} />;
+export function IllustrationEspece({ espece, format, prioritaire, className }: IllustrationEspeceProps) {
+  return (
+    <Illustration chemin={espece.illustration} alt={espece.nom} ratio="1 / 1" sizes={FORMATS_ESPECE[format]} prioritaire={prioritaire} className={className} />
+  );
 }

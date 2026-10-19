@@ -37,7 +37,7 @@ export default async function Voyageurs() {
     <main className={styles.page}>
       <h1 className={`${kit.titreEcran} ${styles.titre}`}>Voyageurs</h1>
       <section className={`${kit.panneau} ${styles.registre}`}>
-        <Paysage peinture="entree/connexion.webp" sizes="(max-width: 1023px) 100vw, 340px" className={`${kit.vignette} ${styles.portes}`} />
+        <Paysage peinture="entree/connexion.webp" sizes="(max-width: 1023px) 100vw, 340px" prioritaire className={`${kit.vignette} ${styles.portes}`} />
         <dl className={styles.compteurs}>
           <div className={styles.compteur}>
             <dt className={kit.etiquette}>Accueillis</dt>

@@ -21,7 +21,7 @@ const quand = (instant: Date) => formaterJourEtHeure(instant, FUSEAU);
 export function AucunExplorateurLibre({ total, prochainRetour }: { total: number; prochainRetour: Date | null }) {
   return (
     <Bloc titre="Explorateurs" action={<Medaillon src="/illustrations/metiers/explorateur.webp" taille="xs" />} className={styles.bloc}>
-      <Paysage peinture="accueil/explorateurs.webp" sizes="(max-width: 760px) 100vw, 640px" className={`${kit.vignette} ${styles.peinture}`} />
+      <Paysage peinture="accueil/explorateurs.webp" sizes="(max-width: 760px) 100vw, 640px" prioritaire className={`${kit.vignette} ${styles.peinture}`} />
       <p className={styles.etat}>{total === 0 ? "Aucun explorateur" : "Tous les explorateurs sont déjà partis"}</p>
       {total > 0 && prochainRetour ? (
         <p className={styles.note}>

@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CoupleEnReserve } from "@/monde/couple";
+import { peinturesPrioritaires } from "@/test/images";
 
 // La vraie garde, branchée sur une session simulée.
 const cookie = vi.hoisted(() => ({ jetonDeSession: vi.fn() }));
@@ -185,6 +186,15 @@ describe("voir une Réserve vide (US-0809)", () => {
     connecte([]);
     // Le titre, le message et le bouton : rien d'autre, ni la présentation de la Réserve, ni « 0 Couple ».
     expect(texte(renderToStaticMarkup(await Reserve()))).toBe("Réserve · Aucun Couple pour l'instant · Envoyer une Expédition");
+  });
+
+  it("charge d'abord ses castors, à la taille où ils s'affichent : les sept dixièmes de la largeur, sur un ordinateur", async () => {
+    connecte([]);
+    const html = renderToStaticMarkup(await Reserve());
+    expect(peinturesPrioritaires(html)).toEqual(["accueil/castors.webp"]);
+    expect(html).toContain('sizes="(max-width: 760px) 100vw, 70vw"');
+    connecte(COUPLES);
+    expect(peinturesPrioritaires(renderToStaticMarkup(await Reserve()))).toEqual(["accueil/castors.webp"]);
   });
 
   it("met un bouton « Envoyer une Expédition », qui mène à l'écran d'Expédition (US-0901)", async () => {

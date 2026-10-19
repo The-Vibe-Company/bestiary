@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { peinturesPrioritaires } from "@/test/images";
 
 // La vraie garde, branchée sur une session simulée.
 const cookie = vi.hoisted(() => ({ jetonDeSession: vi.fn() }));
@@ -61,6 +62,8 @@ describe("écran du Foyer (US-0157)", () => {
     const html = renderToStaticMarkup(await Foyer());
     expect(html).toMatch(/<img[^>]*alt="La hutte du chef, au toit de chaume et à la tête de loup, dans la prairie au petit matin"/);
     expect(html).toContain("foyer%2Fprairie.webp");
+    // La hutte se charge avant tout le reste : c'est l'écran.
+    expect(peinturesPrioritaires(html)).toEqual(["foyer/prairie.webp"]);
     // Le Biome dans son ton (cuivre), le titre se lit d'un trait : « Foyer · prairie ».
     expect(html.match(/<h1[^>]*>(.*?)<\/h1>/)?.[1].replace(/<[^>]+>/g, "")).toBe("Foyer · prairie");
     expect(territoire.foyerDuTerritoire).toHaveBeenCalledWith(expect.anything(), 12);

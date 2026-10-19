@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { peinturesPrioritaires } from "@/test/images";
 
 // La vraie garde, branchée sur une session simulée.
 const cookie = vi.hoisted(() => ({ jetonDeSession: vi.fn() }));
@@ -134,6 +135,8 @@ describe("page Voyageurs, l'historique des Voyageurs (US-0342)", () => {
     connecte();
     const html = renderToStaticMarkup(await Voyageurs());
     expect(html).toMatch(/<section[^>]*><div[^>]*aria-hidden="true"[^>]*><img[^>]*alt=""[^>]*connexion\.webp/);
+    // Elle se charge avant tout le reste : c'est la peinture de l'écran.
+    expect(peinturesPrioritaires(html)).toEqual(["entree/connexion.webp"]);
   });
 
   it("n'ajoute aucune phrase d'explication : le titre, les compteurs, puis les Voyageurs", async () => {

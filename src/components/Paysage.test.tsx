@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { peinturesPrioritaires } from "@/test/images";
 import { Paysage, peintureDuBiome } from "./Paysage";
 
 /** L'illustration que le paysage charge, telle que l'optimiseur la demande. */
@@ -11,6 +12,15 @@ describe("le paysage d'une destination", () => {
     expect(peinture(html)).toBe("/illustrations/prototype/biomes/jungle-1.webp");
     expect(html).toMatch(/^<div class="[^"]+" aria-hidden="true"><img[^>]*alt=""/);
     expect(html).not.toContain("<svg");
+  });
+
+  it("se charge tout de suite, avant le reste, quand il est la peinture principale de l'écran", () => {
+    const principal = renderToStaticMarkup(<Paysage peinture="accueil/castors.webp" prioritaire />);
+    expect(peinturesPrioritaires(principal)).toEqual(["accueil/castors.webp"]);
+    expect(principal).toContain('loading="eager"');
+    const autre = renderToStaticMarkup(<Paysage peinture="accueil/castors.webp" />);
+    expect(peinturesPrioritaires(autre)).toEqual([]);
+    expect(autre).toContain('loading="lazy"');
   });
 
   it("a une peinture pour chaque Biome, et pour chaque eau par sa variante", () => {

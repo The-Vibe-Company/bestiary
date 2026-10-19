@@ -42,7 +42,7 @@ export default async function Reserve() {
       <h1 className={`${kit.titreEcran} ${styles.titre}`}>Réserve</h1>
       {couples.length === 0 ? (
         <section className={`${kit.panneau} ${styles.aucun}`}>
-          <Paysage peinture="accueil/castors.webp" sizes="(max-width: 760px) 100vw, 640px" className={styles.paysage} />
+          <Paysage peinture="accueil/castors.webp" sizes="(max-width: 760px) 100vw, 70vw" prioritaire className={styles.paysage} />
           <p className={styles.vide}>Aucun Couple pour l&apos;instant</p>
           <Link href="/jeu/expeditions/nouvelle" className={`${kit.bouton} ${kit.principal} ${kit.grand} ${styles.envoyer}`}>
             Envoyer une Expédition
@@ -50,7 +50,7 @@ export default async function Reserve() {
         </section>
       ) : (
         <section className={`${kit.panneau} ${styles.abri}`}>
-          <Paysage peinture="accueil/castors.webp" sizes="(max-width: 760px) 100vw, 280px" className={`${kit.vignette} ${styles.bandeau}`} />
+          <Paysage peinture="accueil/castors.webp" sizes="(max-width: 760px) 100vw, 280px" prioritaire className={`${kit.vignette} ${styles.bandeau}`} />
           <p className={styles.couples}>
             <strong className={styles.nombre}>{couples.length}</strong> {couples.length > 1 ? "Couples" : "Couple"}
           </p>
