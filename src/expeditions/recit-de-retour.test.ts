@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import {
   type CombatDuRetour,
   dureesReelles,
+  especesVuesGraceAuxEclaireurs,
   especesTropFortes,
   especesVuesSansSuite,
   type RetourARaconter,
@@ -425,5 +427,71 @@ describe("les pigeons partis en escorte et ceux partis comme Éclaireurs (US-097
   it("sans Éclaireur, aucune ligne : les pigeons de l'escorte sont une escorte comme les autres", () => {
     expect(recitDeRetour(retour({ eclaireurs: [], eclaireusesEnEscorte: [] }))).toEqual(recitDeRetour(retour()));
     expect(lignes({}).some((l) => l.startsWith("Éclaireurs"))).toBe(false);
+  });
+});
+
+describe("ce que les pigeons ont apporté (US-0973)", () => {
+  const lignes = (autre: Partial<RetourARaconter>) => recitDeRetour(retour(autre)).texte.split("\n");
+
+  it("la ligne des Cases dit combien les Éclaireurs en ont révélé en plus", () => {
+    expect(lignes({ casesParSesEclaireurs: 5 })[2]).toBe("12 Cases sont sorties du brouillard, dont 5 grâce à vos Éclaireurs.");
+    expect(lignes({ casesParSesEclaireurs: 1 })[2]).toBe("12 Cases sont sorties du brouillard, dont 1 grâce à vos Éclaireurs.");
+    // Toutes révélées par eux, et au singulier.
+    expect(lignes({ casesParSesEclaireurs: 12 })[2]).toBe("12 Cases sont sorties du brouillard, grâce à vos Éclaireurs.");
+    expect(lignes({ casesLevees: 1, casesParSesEclaireurs: 1 })[2]).toBe("Une Case est sortie du brouillard, grâce à vos Éclaireurs.");
+    // Sans Case en plus, la ligne d'avant ; aucune Case, rien à dire de plus.
+    expect(lignes({ casesParSesEclaireurs: 0 })[2]).toBe("12 Cases sont sorties du brouillard.");
+    expect(lignes({ casesLevees: 0, casesParSesEclaireurs: 0 })[2]).toBe("Aucune Case n'est sortie du brouillard.");
+  });
+
+  it("une ligne, après les Bêtes, nomme celles rencontrées seulement grâce à eux", () => {
+    expect(lignes({ rencontres: 2, graceAuxEclaireurs: ["Renard roux"] }).slice(3)).toEqual([
+      "2 Bêtes se sont montrées.",
+      "Rencontrée grâce à vos Éclaireurs : Renard roux.",
+    ]);
+    expect(lignes({ rencontres: 2, graceAuxEclaireurs: ["Renard roux", "Loup gris"] }).at(-1)).toBe("Rencontrées grâce à vos Éclaireurs : Renard roux et Loup gris.");
+    // Après la ligne des Bêtes vues sans suite aussi, avant celles ramenées.
+    expect(
+      lignes({
+        rencontres: 2,
+        vuesSansSuite: ["Renard roux"],
+        graceAuxEclaireurs: ["Renard roux"],
+        ramenees: [{ nom: "Poule", sexe: "femelle" }],
+      }).slice(3, 5),
+    ).toEqual(["Vos explorateurs ont vu Renard roux, mais aucune Bête ne les a suivis.", "Rencontrée grâce à vos Éclaireurs : Renard roux."]);
+  });
+
+  it("sans rien grâce aux Éclaireurs, le récit d'avant", () => {
+    expect(recitDeRetour(retour({ rencontres: 1, casesParSesEclaireurs: 0, graceAuxEclaireurs: [] }))).toEqual(recitDeRetour(retour({ rencontres: 1 })));
+  });
+});
+
+describe("les Bêtes rencontrées seulement grâce aux Éclaireurs (US-0973)", () => {
+  const HEURE = 3_600_000;
+  const apparue = aParis(9, 10);
+  /** La fin de la présence d'une Bête sauvage apparue à `apparue`. */
+  const fin = new Date(apparue.getTime() + PRESENCE_D_UNE_BETE_HEURES * HEURE);
+  const sauvage = (especeId: string, vueLe: Date) => ({ especeId, vueLe, apparueLe: apparue, beteDeNaissanceId: null });
+  const deNaissance = (especeId: string, vueLe: Date, id: number) => ({ especeId, vueLe, apparueLe: apparue, beteDeNaissanceId: id });
+
+  it("une Bête sauvage vue pendant sa présence ne doit rien aux Éclaireurs ; vue à sa fin ou après, si", () => {
+    expect(especesVuesGraceAuxEclaireurs([sauvage("souris", apparue), sauvage("pigeon", new Date(fin.getTime() - 1))], new Map())).toEqual([]);
+    expect(especesVuesGraceAuxEclaireurs([sauvage("souris", fin)], new Map())).toEqual(["souris"]);
+    expect(especesVuesGraceAuxEclaireurs([sauvage("souris", new Date(fin.getTime() + 20 * 60_000))], new Map())).toEqual(["souris"]);
+  });
+
+  it("une Bête de naissance, d'après son départ ; un départ inconnu, jamais", () => {
+    const depart = aParis(10, 8);
+    const departs = new Map([[7, depart]]);
+    expect(especesVuesGraceAuxEclaireurs([deNaissance("poule", new Date(depart.getTime() - 1), 7)], departs)).toEqual([]);
+    expect(especesVuesGraceAuxEclaireurs([deNaissance("poule", depart, 7)], departs)).toEqual(["poule"]);
+    expect(especesVuesGraceAuxEclaireurs([deNaissance("poule", depart, 8)], departs)).toEqual([]);
+  });
+
+  it("chaque Espèce une fois, dans l'ordre des vues, sans celles vues pendant leur présence", () => {
+    const apres = new Date(fin.getTime() + 60_000);
+    expect(
+      especesVuesGraceAuxEclaireurs([sauvage("pigeon", apres), sauvage("souris", apparue), sauvage("poule", apres), sauvage("pigeon", apres)], new Map()),
+    ).toEqual(["pigeon", "poule"]);
   });
 });

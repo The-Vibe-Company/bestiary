@@ -47,9 +47,10 @@ type Joueur = "A" | "B";
 
 /**
  * L'Expédition d'un joueur dans un essai : l'instant de son arrivée sur la Case, d'après la Bête de l'essai ; ses
- * Éclaireurs, des pigeons ; et si une Bête de l'Espèce la plus forte du jeu l'escorte, à portée de toute Bête.
+ * Éclaireurs, des pigeons ; et si une Bête de l'Espèce la plus forte du jeu l'escorte, à portée de toute Bête. US-0972 :
+ * et des pigeons partis dans son escorte, pas comme Éclaireurs (aucun s'il n'est pas dit).
  */
-type Pose = { arrivee: (bete: BeteSauvage) => Date; pigeons: number; escorte: boolean };
+type Pose = { arrivee: (bete: BeteSauvage) => Date; pigeons: number; escorte: boolean; pigeonsEnEscorte?: number };
 /** Les Expéditions de A et de B dans un essai ; B n'en a pas toujours. */
 type Essai = { A: Pose; B: Pose | null };
 
@@ -103,6 +104,9 @@ describe.skipIf(!URL_TEST)("les Éclaireurs gardent les Bêtes en vue (US-0970, 
     const id = rows[0].id;
     if (pose.escorte) await client.query("insert into expedition_escorte (expedition_id, espece_id, nombre, males) values ($1, $2, 1, 1)", [id, forte]);
     if (pose.pigeons > 0) await client.query("insert into expedition_eclaireur (expedition_id, espece_id, nombre, males) values ($1, $2, $3, $3)", [id, PIGEON, pose.pigeons]);
+    if (pose.pigeonsEnEscorte) {
+      await client.query("insert into expedition_escorte (expedition_id, espece_id, nombre, males) values ($1, $2, $3, $3)", [id, PIGEON, pose.pigeonsEnEscorte]);
+    }
     await programmerLeRetour(client, territoireId, id, h);
     return id;
   };
@@ -248,13 +252,27 @@ describe.skipIf(!URL_TEST)("les Éclaireurs gardent les Bêtes en vue (US-0970, 
     );
     const arriveeDeA = sejourDUneExpedition(horaires.A)!.debut;
     expect(bilans.A.recit.rencontres).toEqual(ramenee(arriveeDeA));
-    expect(bilans.A.recit.texte).toMatch(/^Une Bête s'est montrée\.\nBête ramenée au Foyer : .+\.$/m);
+    // US-0973 : le récit dit qu'elle ne l'a rencontrée que grâce à ses Éclaireurs.
+    expect(bilans.A.recit.texte).toMatch(/^Une Bête s'est montrée\.\nRencontrée grâce à vos Éclaireurs : .+\.\nBête ramenée au Foyer : .+\.$/m);
     expect(bilans.A.bestiaire).toEqual({ especeId: bete.especeId, etat: "apprivoisee", croiseeLe: arriveeDeA });
     // B était sur la Case quand A l'a rencontrée : sans Éclaireurs, elle n'y était déjà plus pour lui.
     expect(bilans.B.recit.rencontres ?? []).toEqual([]);
+    expect(bilans.B.recit.texte).not.toMatch(/grâce à vos Éclaireurs/);
     expect(bilans.B.bestiaire).toBeUndefined();
     // Aucune attaque : toutes deux finissent leur séjour, et rentrent à leur heure.
     for (const j of ["A", "B"] as const) expect(bilans[j].rentreeLe, j).toEqual(retourDUneExpedition(horaires[j]));
+  }, 240_000);
+
+  it("des pigeons partis dans l'escorte ne gardent pas la Bête en vue, seuls les Éclaireurs le font (US-0972) : arrivée peu après son départ, l'Expédition ne la rencontre pas", async () => {
+    // La même arrivée que celle d'A dans l'essai précédent, avec ses deux pigeons dans l'escorte plutôt qu'en Éclaireurs.
+    const { horaires, bilans } = await vivreDeChaqueManiere(
+      { A: { arrivee: (x) => apres(x.depart, MINUTES_DE_VUE_PAR_ECLAIREUR), pigeons: 0, pigeonsEnEscorte: 2, escorte: true }, B: null },
+      ["page ouverte", ...D_UN_BLOC],
+    );
+    expect(bilans.A.recit.rencontres ?? []).toEqual([]);
+    expect(bilans.A.recit.texte).toMatch(/^Aucune Bête ne s'est montrée\.$/m);
+    expect(bilans.A.bestiaire).toBeUndefined();
+    expect(bilans.A.rentreeLe).toEqual(retourDUneExpedition(horaires.A));
   }, 240_000);
 
   it("entre deux joueurs dont les Éclaireurs gardent la Bête en vue, la première Expédition arrivée l'emmène, même avec moins de pigeons ; l'autre ne la voit plus", async () => {
