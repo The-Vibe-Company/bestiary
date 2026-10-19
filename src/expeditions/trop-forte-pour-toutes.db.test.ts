@@ -134,7 +134,8 @@ describe.skipIf(!URL_TEST)("une Bête trop forte pour toutes les Expéditions de
       [territoires.A, JOUEURS.map((j) => territoires[j])],
     );
     // Une Bête plus rare que commune, bien trop forte pour une escorte de la plus faible commune, seule sur sa Case : aucune
-    // autre n'y apparaît de CALME avant elle à CALME après.
+    // autre n'y apparaît de CALME avant elle à CALME après. La plus tôt venue de toutes : les Territoires sont mis à l'heure
+    // jusqu'à elle, et une Bête lointaine leur faisait rejouer des semaines.
     const [de, a] = [apres(ne, 3 * JOUR), apres(ne, 40 * JOUR)];
     for (const [ici, betes] of await betesSauvagesDesCases(pool, libres.map((c) => c.id), de, a)) {
       const seule = betes.find(
@@ -146,12 +147,13 @@ describe.skipIf(!URL_TEST)("une Bête trop forte pour toutes les Expéditions de
           (i === 0 || betes[i - 1].arrivee <= apres(x.arrivee, -CALME)) &&
           (i === betes.length - 1 || betes[i + 1].arrivee >= apres(x.arrivee, CALME)),
       );
-      if (seule) {
-        [caseId, bete] = [ici, seule];
-        break;
-      }
+      if (seule && (!caseId || seule.arrivee < bete.arrivee)) [caseId, bete] = [ici, seule];
     }
     if (!caseId) throw new Error("Aucune Bête plus rare seule autour du Foyer de A.");
+
+    // Les Territoires mis à l'heure pour de bon jusqu'à trois heures avant la Bête, avant tout départ : chaque manière ne
+    // rejoue plus que ces quelques heures, et non les jours écoulés depuis la naissance.
+    for (const joueur of JOUEURS) await rattraper("territoire", territoires[joueur], { pool, jusqua: apres(bete.arrivee, -3 * HEURE) });
 
     // Les identifiants des trois Expéditions, tels que la Bête attaque A une fois B arrivée, puis B, plus tard, et épargne
     // C : ses tirages dépendent de l'identifiant de chacune, le même dans toutes les manières, et se comptent depuis sa
