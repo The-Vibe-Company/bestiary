@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type PointerEvent, type ReactNode, type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import kit from "@/components/kit.module.css";
 import { CASE_D_UN_TERRITOIRE, CASE_HORS_DE_PORTEE, versLEcran } from "@/expeditions/choix-de-destination";
@@ -293,13 +294,32 @@ const horsDePortee = ({ distance }: { distance: number }) => (distance > PORTEE_
  * destination ; rien sur une Case qui ne peut pas en être une (`refus`) : une Case d'un Territoire (US-0907), ou
  * au-delà de la portée d'exploration (US-0908). US-0907 : sur la carte ouverte pour choisir la destination
  * (`destination`, son adresse), « Choisir cette destination », qui revient à l'écran avec la Case et les autres choix
- * qu'il avait ; sur une Case qui ne peut pas en être une, le refus à sa place.
+ * qu'il avait (retour d'Antoine, 2026-10-15 : de lui-même, ChoisirLaDestination) ; sur une Case qui ne peut pas en être
+ * une, le refus à sa place, et la carte reste.
  */
 function VersLExpedition({ vers, refus, destination }: { vers: Coordonnees; refus: string | null; destination: string | null }) {
   if (refus) return destination === null ? null : <p className={styles.refus}>{refus}</p>;
+  if (destination !== null) return <ChoisirLaDestination href={versLEcran(vers, destination)} />;
   return (
-    <Link href={versLEcran(vers, destination ?? "")} className={`${kit.bouton} ${kit.principal} ${kit.grand} ${styles.envoyer}`}>
-      {destination === null ? "Envoyer une Expédition" : "Choisir cette destination"}
+    <Link href={versLEcran(vers)} className={`${kit.bouton} ${kit.principal} ${kit.grand} ${styles.envoyer}`}>
+      Envoyer une Expédition
+    </Link>
+  );
+}
+
+/**
+ * Retour d'Antoine (2026-10-15) : sur la carte ouverte pour choisir la destination, la Case touchée qui peut en être une
+ * est choisie dès que sa fiche le dit : la carte revient d'elle-même à l'écran d'Expédition (`href`), avec la Case et ses
+ * autres choix, sans second toucher. « Choisir cette destination » reste, le temps d'y aller.
+ */
+function ChoisirLaDestination({ href }: { href: string }) {
+  const router = useRouter();
+  useEffect(() => {
+    router.push(href);
+  }, [router, href]);
+  return (
+    <Link href={href} className={`${kit.bouton} ${kit.principal} ${kit.grand} ${styles.envoyer}`}>
+      Choisir cette destination
     </Link>
   );
 }

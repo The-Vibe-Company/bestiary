@@ -20,6 +20,9 @@ const serveur = vi.hoisted(() => ({ ficheDeLaCase: vi.fn(), decouvertesDepuis: v
 vi.mock("./actions", () => serveur);
 // US-0920 : le rappel d'une Expédition, depuis sa fiche, une action du serveur, comme ces fiches.
 vi.mock("@/app/jeu/expeditions/actions", () => ({ rappeler: vi.fn() }));
+/** Retour d'Antoine (2026-10-15) : où la carte s'en va d'elle-même, par le routeur de Next. */
+const routeur = vi.hoisted(() => ({ push: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => routeur }));
 
 /**
  * Ce que le <canvas> a reçu : ses gestes (mise à l'échelle, remplissages et traits avec leur couleur), le départ de
@@ -44,6 +47,7 @@ beforeEach(() => {
   images = [];
   aLaProchaineImage = new Map();
   fiches = [];
+  routeur.push.mockReset();
   serveur.ficheDeLaCase.mockImplementation((q: number, r: number) => new Promise((repondre) => void fiches.push({ q, r, repondre })));
   serveur.decouvertesDepuis.mockReset();
   serveur.decouvertesDepuis.mockResolvedValue(null);
@@ -807,6 +811,16 @@ describe("choisir la destination d'une Expédition sur la carte (US-0907)", () =
     await act(async () => fiches[0].repondre(FORET));
     expect(lien("Choisir cette destination")!.getAttribute("href")).toBe(`/jeu/expeditions/nouvelle?q=${AUTOUR[1].q}&r=${AUTOUR[1].r}&sejour=60`);
     expect(lien("Envoyer une Expédition")).toBeNull();
+    // Retour d'Antoine (2026-10-15) : un toucher suffit, la carte revient d'elle-même à l'écran avec ses autres choix.
+    expect(routeur.push).toHaveBeenCalledExactlyOnceWith(`/jeu/expeditions/nouvelle?q=${AUTOUR[1].q}&r=${AUTOUR[1].r}&sejour=60`);
+  });
+
+  it("ouverte pour choisir la destination, reste sur une Case au-delà de la portée, que sa fiche dit hors de portée (retour d'Antoine, 2026-10-15)", async () => {
+    render(<CarteDuJeu carte={CARTE} fonds={FONDS} destination="choix=destination&sejour=60" />);
+    cliquer(AUTOUR[1]);
+    await act(async () => fiches[0].repondre({ ...FORET, distance: PORTEE_D_EXPLORATION_CASES + 1 }));
+    expect(screen.getByRole("region", { name: "Fiche de la Case" }).textContent).toContain("Cette Case est hors de portée.");
+    expect(routeur.push).not.toHaveBeenCalled();
   });
 
   it("ouverte depuis la navigation, garde « Envoyer une Expédition »", async () => {
@@ -815,6 +829,8 @@ describe("choisir la destination d'une Expédition sur la carte (US-0907)", () =
     await act(async () => fiches[0].repondre(FORET));
     expect(lien("Envoyer une Expédition")!.getAttribute("href")).toBe(`/jeu/expeditions/nouvelle?q=${AUTOUR[1].q}&r=${AUTOUR[1].r}`);
     expect(lien("Choisir cette destination")).toBeNull();
+    // La fiche reste ouverte : rien ne part de soi-même.
+    expect(routeur.push).not.toHaveBeenCalled();
   });
 });
 

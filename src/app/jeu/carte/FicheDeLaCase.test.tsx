@@ -13,12 +13,16 @@ import { LEGENDE_MONTREE } from "./Legende";
 let demandes: { q: number; r: number; repondre: (fiche: Fiche | FicheInconnue | null) => void; echouer: () => void }[] = [];
 const serveur = vi.hoisted(() => ({ ficheDeLaCase: vi.fn() }));
 vi.mock("./actions", () => serveur);
+/** Retour d'Antoine (2026-10-15) : où la carte s'en va d'elle-même, par le routeur de Next. */
+const routeur = vi.hoisted(() => ({ push: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => routeur }));
 
 /** Le suivi de taille de la fiche : le dernier posé, pour annoncer un changement de taille comme le navigateur. */
 let suivi: { annoncer: () => void; arrete: boolean } | null = null;
 
 beforeEach(() => {
   demandes = [];
+  routeur.push.mockReset();
   serveur.ficheDeLaCase.mockImplementation(
     (q: number, r: number) =>
       new Promise<Fiche | FicheInconnue | null>((repondre, echouer) => {
@@ -244,6 +248,8 @@ describe("envoyer une Expédition depuis la fiche d'une Case (US-0901)", () => {
     await repondre(FORET);
     expect(envoyer()!.getAttribute("href")).toBe("/jeu/expeditions/nouvelle?q=3&r=-5");
     expect(fiche()!.contains(envoyer())).toBe(true);
+    // Depuis la navigation, la fiche reste : rien ne part de soi-même.
+    expect(routeur.push).not.toHaveBeenCalled();
   });
 
   it("le propose aussi pour une Case sous le brouillard", async () => {
@@ -282,7 +288,10 @@ describe("choisir la destination sur la carte (US-0907)", () => {
   it("propose « Choisir cette destination », qui revient à l'écran d'Expédition avec la Case et ses autres choix", async () => {
     render(<Carte destination={DEPUIS_L_ECRAN} />);
     toucher(ICI);
+    expect(routeur.push).not.toHaveBeenCalled();
     await repondre(FORET);
+    // Retour d'Antoine (2026-10-15) : la Case est choisie dès que sa fiche le dit, sans second toucher.
+    expect(routeur.push).toHaveBeenCalledExactlyOnceWith("/jeu/expeditions/nouvelle?q=3&r=-5&sejour=60");
     // La distance de la Case au Foyer, en Cases, avant de la choisir.
     expect(fiche()!.textContent).toContain("À 7 Cases de votre Foyer");
     expect(choisir()!.getAttribute("href")).toBe("/jeu/expeditions/nouvelle?q=3&r=-5&sejour=60");
@@ -297,6 +306,7 @@ describe("choisir la destination sur la carte (US-0907)", () => {
     expect(screen.getByRole("heading", { name: "Case inconnue" })).toBeTruthy();
     expect(fiche()!.textContent).toContain("À 6 Cases de votre Foyer");
     expect(choisir()!.getAttribute("href")).toBe("/jeu/expeditions/nouvelle?q=3&r=-5");
+    expect(routeur.push).toHaveBeenCalledExactlyOnceWith("/jeu/expeditions/nouvelle?q=3&r=-5");
   });
 
   it("refuse le Foyer du joueur, et une Case du Territoire d'un autre joueur, avec le message décidé à la place", async () => {
@@ -309,6 +319,8 @@ describe("choisir la destination sur la carte (US-0907)", () => {
     await repondre({ ...FORET, chef: "Loutre" });
     expect(choisir()).toBeNull();
     expect([...fiche()!.querySelectorAll("p")].map((p) => p.textContent)).toEqual(["À 7 Cases de votre Foyer", REFUS]);
+    // La carte reste, la fiche dit pourquoi.
+    expect(routeur.push).not.toHaveBeenCalled();
   });
 
   it("ne propose rien et ne refuse rien avant la fiche, ni quand elle n'a pas pu s'ouvrir", async () => {
@@ -319,6 +331,19 @@ describe("choisir la destination sur la carte (US-0907)", () => {
     await act(async () => demandes[0].echouer());
     expect(choisir()).toBeNull();
     expect(fiche()!.textContent).not.toContain(REFUS);
+    expect(routeur.push).not.toHaveBeenCalled();
+  });
+
+  it("choisie, une Case ne repart pas une seconde fois quand sa fiche se redessine ; une autre Case touchée ensuite part à son tour (retour d'Antoine, 2026-10-15)", async () => {
+    const autre = { q: 4, r: -5 };
+    const { rerender } = render(<Carte destination={DEPUIS_L_ECRAN} cases={[ICI, autre]} />);
+    toucher(ICI);
+    await repondre(FORET);
+    rerender(<Carte destination={DEPUIS_L_ECRAN} cases={[ICI, autre]} />);
+    expect(routeur.push).toHaveBeenCalledOnce();
+    toucher(autre);
+    await repondre({ ...autre, inconnue: true, distance: 5 });
+    expect(routeur.push.mock.calls).toEqual([["/jeu/expeditions/nouvelle?q=3&r=-5&sejour=60"], ["/jeu/expeditions/nouvelle?q=4&r=-5&sejour=60"]]);
   });
 });
 
@@ -339,6 +364,8 @@ describe("la portée d'exploration sur la fiche d'une Case (US-0908)", () => {
     await repondre({ ...brume, inconnue: true, distance: PORTEE_D_EXPLORATION_CASES + 1 });
     expect(choisir()).toBeNull();
     expect(lignes()).toEqual([`À ${PORTEE_D_EXPLORATION_CASES + 1} Cases de votre Foyer`, REFUS]);
+    // Retour d'Antoine (2026-10-15) : la carte reste, la fiche dit pourquoi.
+    expect(routeur.push).not.toHaveBeenCalled();
   });
 
   it("propose encore une Case au bout de la portée, à 8 Cases du Foyer", async () => {
@@ -348,6 +375,7 @@ describe("la portée d'exploration sur la fiche d'une Case (US-0908)", () => {
     expect(PORTEE_D_EXPLORATION_CASES).toBe(8);
     expect(choisir()!.getAttribute("href")).toBe("/jeu/expeditions/nouvelle?q=3&r=-5");
     expect(fiche()!.textContent).not.toContain(REFUS);
+    expect(routeur.push).toHaveBeenCalledExactlyOnceWith("/jeu/expeditions/nouvelle?q=3&r=-5");
   });
 
   it("depuis la navigation, ne propose pas « Envoyer une Expédition » vers une Case au-delà de la portée, sans rien dire de plus", async () => {
