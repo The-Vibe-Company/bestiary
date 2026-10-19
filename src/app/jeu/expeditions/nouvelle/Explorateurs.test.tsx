@@ -66,7 +66,7 @@ const raison = () => {
 describe("choisir les explorateurs (US-0902)", () => {
   it("propose les explorateurs libres avec le compteur « libres / total », puis combien partent, entre « − » et « + »", () => {
     ecran(2, 3);
-    expect(textes()).toEqual(["Explorateurs", "Libres", "2 / 3", "Partent", "−", "0", "+"]);
+    expect(textes()).toEqual(["Explorateurs", "Libres", "2 / 3", "Partent", "−", "1", "+"]);
   });
 
   it("choisit entre « − » et « + » du pas du kit, au pouce", () => {
@@ -75,32 +75,35 @@ describe("choisir les explorateurs (US-0902)", () => {
     expect([moins(), plus()].map((b) => b.className.split(" ").includes(kit.pasBouton))).toEqual([true, true]);
   });
 
-  it("part de zéro : le bouton de départ est grisé et dit pourquoi", () => {
+  it("part d'un explorateur quand il y en a de libres : le bouton de départ est actif d'emblée", () => {
+    for (const libres of [1, 2]) {
+      ecran(libres, 3);
+      expect([libres, choisis(), moins().disabled, partir().disabled, raison()]).toEqual([libres, "1", false, false, null]);
+      cleanup();
+    }
+    // Un seul libre : « + » est déjà au bout.
+    ecran(1, 3);
+    expect(plus().disabled).toBe(true);
+  });
+
+  it("laisse revenir à zéro : le bouton de départ se grise et dit pourquoi, puis se dégrise dès un explorateur choisi", async () => {
+    const joueur = userEvent.setup();
     ecran(2, 3);
+    await joueur.click(moins());
     expect(choisis()).toBe("0");
     expect(moins().disabled).toBe(true);
     expect(partir().disabled).toBe(true);
     expect(raison()).toBe("Il faut au moins un explorateur.");
-  });
-
-  it("dégrise le bouton de départ dès un explorateur choisi, et le regrise en revenant à zéro", async () => {
-    const joueur = userEvent.setup();
-    ecran(2, 3);
     await joueur.click(plus());
     expect(choisis()).toBe("1");
     expect(partir().disabled).toBe(false);
     expect(raison()).toBeNull();
     expect(screen.queryByText("Il faut au moins un explorateur.")).toBeNull();
-    await joueur.click(moins());
-    expect(choisis()).toBe("0");
-    expect(partir().disabled).toBe(true);
-    expect(raison()).toBe("Il faut au moins un explorateur.");
   });
 
   it("ne laisse pas choisir plus d'explorateurs qu'il n'y en a de libres : « + » se grise au dernier", async () => {
     const joueur = userEvent.setup();
     ecran(2, 3);
-    await joueur.click(plus());
     await joueur.click(plus());
     expect(choisis()).toBe("2");
     expect(plus().disabled).toBe(true);
@@ -123,26 +126,32 @@ describe("choisir les explorateurs (US-0902)", () => {
     const joueur = userEvent.setup();
     ouvrir("?q=3&r=-5");
     ecran(3, 3);
-    await joueur.click(plus());
+    // Tant que le joueur n'a rien choisi, l'adresse n'en dit rien : un explorateur part.
+    expect(window.location.search).toBe("?q=3&r=-5");
     await joueur.click(plus());
     expect(window.location.search).toBe("?q=3&r=-5&explorateurs=2");
     cleanup();
     ecran(3, 3);
     expect(choisis()).toBe("2");
     expect(partir().disabled).toBe(false);
-    // À zéro, l'adresse ne dit plus rien des explorateurs.
+    // Zéro, choisi, se garde aussi : le rechargement ne repart pas d'un explorateur.
     await joueur.click(moins());
     await joueur.click(moins());
-    expect(window.location.search).toBe("?q=3&r=-5");
+    expect(window.location.search).toBe("?q=3&r=-5&explorateurs=0");
+    cleanup();
+    ecran(3, 3);
+    expect([choisis(), partir().disabled]).toEqual(["0", true]);
   });
 
   it("ne croit pas l'adresse : jamais plus que les libres, ni moins que zéro, ni autre chose qu'un nombre entier", () => {
     for (const [recherche, attendu, depart] of [
       ["?explorateurs=9", "2", false],
-      ["?explorateurs=-1", "0", true],
-      ["?explorateurs=1.5", "0", true],
-      ["?explorateurs=deux", "0", true],
-      ["?explorateurs=", "0", true],
+      ["?explorateurs=0", "0", true],
+      // Ce qui n'est pas un nombre d'explorateurs ne dit rien : un explorateur part, comme sans rien dans l'adresse.
+      ["?explorateurs=-1", "1", false],
+      ["?explorateurs=1.5", "1", false],
+      ["?explorateurs=deux", "1", false],
+      ["?explorateurs=", "1", false],
     ] as const) {
       ouvrir(recherche);
       ecran(2, 3);

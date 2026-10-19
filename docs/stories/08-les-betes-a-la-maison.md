@@ -182,6 +182,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0817 · Recevoir les Bêtes une à une
 **En tant que** joueur, **je veux** voir mes Bêtes naître l'une après l'autre, **afin de** pouvoir compter sur les premières sans attendre la fin de l'Élevage.
 
+- **Statut** : Livrée le 2026-10-15 (autopilot, The-Vibe-Company/bestiary#71). Les Bêtes d'un Élevage naissent l'une après l'autre, chacune après la durée d'Élevage de l'Espèce (souris toutes les 15 min, poule toutes les 7 h 54), joueur présent ou non, et entrent aussitôt dans l'effectif ; à la dernière naissance, un récit « Élevage terminé » dit « 3 Bêtes de Souris grise ont rejoint votre effectif. », et l'éleveur redevient libre. En temps accéléré, le compte suit le rythme prévu (essayé à ×100). Tranché : les naissances se lisent à l'horloge (la k-ième à lancement + k × la durée fixée au lancement), sans migration, quel que soit le découpage du temps ; sexes alternés, femelle d'abord ; le temps s'arrête à la fin de chaque Élevage, pour qu'une Famine qui suit voie l'éleveur libre ; aucune limite de Places encore (US-0825) ni d'Entretien (US-0826).
 - **Débloquée par** : US-0810, US-0815
 - **Critères d'acceptation** :
   - Les Bêtes d'un Élevage naissent l'une après l'autre, chacune après la durée d'Élevage de l'Espèce.

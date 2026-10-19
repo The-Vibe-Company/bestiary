@@ -17,7 +17,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0902 · Choisir les explorateurs
 **En tant que** joueur, **je veux** choisir combien de mes explorateurs partent, **afin de** garder les autres pour d'autres Expéditions.
 
-- **Statut** : Livrée le 2026-10-09 (Armada, THE-1360, Zewed/bestia-2#5). Sous la destination, le bloc « Explorateurs » montre les explorateurs libres sur le total (« Libres 2 / 3 ») et le nombre qui partent, choisi au pouce entre « − » et « + ». Le choix part de zéro et ne dépasse jamais les libres ; il est gardé dans l'adresse. « Partir » reste grisé à zéro, avec « Il faut au moins un explorateur. » ; le départ lui-même arrive avec US-0911. Vérifié en vrai de 320 à 1 440 px.
+- **Statut** : Livrée le 2026-10-09 (Armada, THE-1360, Zewed/bestia-2#5). Sous la destination, le bloc « Explorateurs » montre les explorateurs libres sur le total (« Libres 2 / 3 ») et le nombre qui partent, choisi au pouce entre « − » et « + ». Le choix part d'un explorateur quand il y en a de libres (de zéro avant le 2026-10-15, The-Vibe-Company/bestiary#76) et ne dépasse jamais les libres ; il est gardé dans l'adresse. « Partir » reste grisé à zéro, avec « Il faut au moins un explorateur. » ; le départ lui-même arrive avec US-0911. Vérifié en vrai de 320 à 1 440 px.
 - **Débloquée par** : US-0901
 - **Critères d'acceptation** :
   - Seuls les Habitants au Métier d'explorateur qui ne sont pas déjà partis sont proposés, avec un compteur « libres / total ».
