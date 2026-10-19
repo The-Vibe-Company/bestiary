@@ -17,6 +17,7 @@ import { vitesse } from "@/temps/horloge";
 import { CompteurHabitants } from "./CompteurHabitants";
 import { BoutonDeconnexion } from "./Deconnexion";
 import { FamineImminente } from "./FamineImminente";
+import { IdentifierJoueur } from "./IdentifierJoueur";
 import { MenuChef } from "./MenuChef";
 import { Navigation } from "./Navigation";
 import { Presence } from "./Presence";
@@ -37,13 +38,21 @@ import { Ressources } from "./Ressources";
  * US-0323 : la Nourriture assurée, le danger est passé : l'avertissement n'est plus posé, même retenu.
  * US-0325 : en Famine, la même bande dit « Famine », avec depuis quand le Territoire la retient, lu avec le reste.
  * US-0958 : le menu du chef dit le nombre de ses Couples réunis, lu avec le reste une fois entré dans son Foyer.
+ * La mesure d'audience y reconnaît le joueur connecté (IdentifierJoueur).
  */
 export async function ActionsDuJeu() {
   await connection();
   if (!entreeDuJeuOuverte()) return null;
   const joueur = await joueurConnecte();
   if (!joueur) return null;
-  if (!joueur.nomDeChef) return <BoutonDeconnexion />;
+  const identifier = <IdentifierJoueur id={joueur.compte.id} email={joueur.compte.email} nom={joueur.nomDeChef} />;
+  if (!joueur.nomDeChef)
+    return (
+      <>
+        {identifier}
+        <BoutonDeconnexion />
+      </>
+    );
   const territoireId = joueur.recitLu ? joueur.territoireId : null;
   const [stocks, habitants, recitsNonLus, voyageurs, sansMetier, entretien, famineImminente, enFamine, couplesReunis] =
     territoireId !== null
@@ -63,6 +72,7 @@ export async function ActionsDuJeu() {
   const famine = stocks && entretien !== null ? nourriturePourEncoreDesStocks(stocks, entretien) : null;
   return (
     <>
+      {identifier}
       {stocks ? <Navigation recitsNonLus={recitsNonLus ?? 0} voyageurs={voyageurs ?? 0} sansMetier={sansMetier ?? 0} /> : null}
       {/* US-0213 : la clé change avec les quantités, pour que la barre reparte des nouvelles après un recalage. */}
       {stocks ? (

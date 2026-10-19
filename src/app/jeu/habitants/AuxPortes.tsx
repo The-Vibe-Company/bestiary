@@ -4,10 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { type MouseEvent, useEffect, useId, useOptimistic, useRef, useState, useTransition } from "react";
 import { Bloc } from "@/components/Bloc";
-import { iconeDeRessource } from "@/components/icone-de-ressource";
 import { Jauge } from "@/components/Jauge";
 import kit from "@/components/kit.module.css";
-import { Medaillon } from "@/components/Medaillon";
 import { quantiteExacte } from "@/monde/quantite";
 import { ENTRETIEN_HABITANT_PAR_HEURE, VOYAGEUR_ALERTE_MINUTES } from "@/reglages";
 import { formaterDuree } from "@/temps/affichage";
@@ -20,9 +18,6 @@ const ENTRETIEN_EN_PLUS = quantiteExacte(String(ENTRETIEN_HABITANT_PAR_HEURE));
 
 /** Le portrait d'un Voyageur, peint en bandeau en tête de sa carte : un voyageur et son chameau. */
 const PORTRAIT = "/illustrations/prototype/misc/merchant.webp";
-
-/** La Nourriture qu'il mangera, devant ce qu'il en coûtera : la Viande et les Végétaux. */
-const NOURRITURE = [iconeDeRessource("viande"), iconeDeRessource("vegetaux")];
 
 /** US-0340 : « de Joran », « d'Ines ». */
 const de = (prenom: string) => (/^[aeiouyhàâäéèêëîïôöùûüœæ]/i.test(prenom) ? `d'${prenom}` : `de ${prenom}`);
@@ -63,19 +58,19 @@ function depuisQuand(ms: number): string {
  * tête, jusqu'au choix suivant.
  *
  * US-0338 : quand les `placesLibres` du Territoire sont toutes prises, comptée d'avance celle de chaque accueil en
- * cours, « Accueillir » est grisé, et une phrase, une seule fois en tête de la partie, dit pourquoi ; un lecteur
- * d'écran l'entend avec chaque bouton grisé. Les Voyageurs attendent toujours, et « Refuser » reste possible.
+ * cours, « Accueillir » est grisé, et une phrase, une seule fois en tête de la partie, dit pourquoi (« Plus de place au
+ * Foyer. », sans redire ce qui en ajoutera) ; un lecteur d'écran l'entend avec chaque bouton grisé. Les Voyageurs
+ * attendent toujours, et « Refuser » reste possible.
  *
  * US-0342 : en tête de la partie, « Historique » mène aux Voyageurs passés, que quelqu'un attende ou non.
  *
- * US-0340 : l'Entretien qu'un Habitant de plus coûtera, devant la Viande et les Végétaux (« Mangera 2 Nourriture par
- * heure » : pas « +2 », que la barre emploie pour une production) : le dernier de la carte pour un lecteur d'écran, juste
- * au-dessus des boutons pour les yeux (AuxPortes.module.css). Quand
- * l'avertissement « famine imminente » est actif (`famineImminente`, compté par le serveur), l'accueil se confirme
- * sur place : le premier toucher sur « Accueillir » ne fait que changer sa ligne, le bouton devient « Confirmer
- * l'accueil », dans la couleur d'alerte, et une phrase, annoncée, dit ce que l'Habitant mangera ; le second toucher
- * accueille. « Refuser », un toucher ailleurs, le focus ailleurs ou Échap annulent ; le second clic d'un double clic
- * ne confirme pas. Pendant une Famine, l'avertissement reste actif : l'accueil reste possible, confirmé de même.
+ * US-0340 : ce que mange un Habitant de plus ne se redit pas sur chaque carte (retour d'Antoine, 2026-10-15). Quand
+ * l'avertissement « famine imminente » est actif (`famineImminente`, compté par le serveur), l'accueil se confirme sur
+ * place : le premier toucher sur « Accueillir » ne fait que changer sa ligne, le bouton devient « Confirmer
+ * l'accueil », dans la couleur d'alerte, et une phrase, annoncée, dit ce que l'Habitant mangera, sous les boutons, qui
+ * ne bougent pas (AuxPortes.module.css) ; le second toucher accueille. « Refuser », un toucher ailleurs, le focus
+ * ailleurs ou Échap annulent ; le second clic d'un double clic ne confirme pas. Pendant une Famine, l'avertissement
+ * reste actif : l'accueil reste possible, confirmé de même.
  *
  * US-0341 : pendant une Famine (`famine`, lue par le serveur), aucun Voyageur ne se présente ; une phrase, une seule
  * fois en tête de la partie, dit que les Voyageurs évitent un Territoire en Famine, à la place de « Personne aux
@@ -238,7 +233,7 @@ export function AuxPortes({
             <path d="M6 4.6v2.8" />
             <circle cx="6" cy="8.9" r=".75" />
           </svg>
-          Plus de place au Foyer. Des huttes en ajouteront quand les constructions seront là.
+          Plus de place au Foyer.
         </p>
       ) : null}
       {famine ? <p className={styles.famine}>Les Voyageurs évitent un Territoire en Famine.</p> : null}
@@ -318,16 +313,7 @@ export function AuxPortes({
                   <p className={styles.confirmation} role="alert">
                     {`Famine imminente : un Habitant de plus mangera ${ENTRETIEN_EN_PLUS} Nourriture par heure.`}
                   </p>
-                ) : (
-                  <p className={styles.entretien}>
-                    <span className={styles.duo} aria-hidden="true">
-                      {NOURRITURE.map((icone) => (
-                        <Medaillon key={icone} src={icone} taille="xs" />
-                      ))}
-                    </span>
-                    {`Mangera ${ENTRETIEN_EN_PLUS} Nourriture par heure`}
-                  </p>
-                )}
+                ) : null}
               </li>
             );
           })}

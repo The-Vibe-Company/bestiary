@@ -29,7 +29,7 @@ describe("le récapitulatif sur un téléphone (US-0910)", () => {
   });
 
   it("y est replié sur l'heure de retour prévue et le départ : son bouton, au pouce, déplie tout, sans rien cacher dessous", () => {
-    expect(regle(".recap:not(.deplie) .peinture,\n  .recap:not(.deplie) .lignes,\n  .recap:not(.deplie) .frise,\n  .recap:not(.deplie) .manger", mobile)).toContain("display: none;");
+    expect(regle(".recap:not(.deplie) .peinture,\n  .recap:not(.deplie) .lignes,\n  .recap:not(.deplie) .frise", mobile)).toContain("display: none;");
     expect(regle(".recap:not(.deplie) .retourPrevu", mobile)).toContain("padding: 0 30px 0 0;");
     expect(regle(".deplier", mobile)).toMatch(/width: 44px;[^}]*height: 44px;/);
     expect(regle(".deplier", mobile)).toContain("cursor: pointer;");

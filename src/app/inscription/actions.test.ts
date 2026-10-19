@@ -70,7 +70,7 @@ describe("envoi du formulaire d'inscription", () => {
   });
 
   it("crée le compte quand le formulaire est valide, avec l'empreinte de la connexion et jamais son adresse", async () => {
-    expect(await envoi("Nom@Exemple.fr")).toEqual({ erreurs: {}, email: "Nom@Exemple.fr", cree: true });
+    expect(await envoi("Nom@Exemple.fr")).toEqual({ erreurs: {}, email: "Nom@Exemple.fr", cree: true, compteId: 7 });
     const [pool, demande] = inscription.inscrireCompte.mock.calls[0];
     expect(pool).toBe(POOL);
     expect(demande).toMatchObject({ email: "Nom@Exemple.fr", motDePasse: "une phrase de passe" });

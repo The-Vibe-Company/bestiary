@@ -1,8 +1,8 @@
 /**
  * Ce que le serveur renvoie au formulaire après un envoi : les erreurs par champ (ou générale),
- * et l'adresse saisie. Jamais le mot de passe.
+ * et l'adresse saisie. Jamais le mot de passe. Une fois le compte créé, son numéro, pour la mesure d'audience.
  */
-export type EtatInscription = { erreurs: { email?: string; motDePasse?: string; general?: string }; email: string; cree?: boolean };
+export type EtatInscription = { erreurs: { email?: string; motDePasse?: string; general?: string }; email: string; cree?: boolean; compteId?: number };
 
 export const ETAT_INITIAL: EtatInscription = { erreurs: {}, email: "" };
 

@@ -79,7 +79,7 @@ describe("le récapitulatif avant le départ (US-0910)", () => {
     ouvrir("?explorateurs=2&sejour=240");
     expect(lignes()).toEqual([
       ["Explorateurs", "2"],
-      ["Escorte", "Sans escorte : Bêtes communes seulement"],
+      ["Escorte", "Sans escorte"],
       ["Destination", "7 Cases de votre Foyer"],
       ["Biome", "Forêt"],
       ["Aller", ALLER_EN_FORET],
@@ -127,7 +127,7 @@ describe("le récapitulatif avant le départ (US-0910)", () => {
     ouvrir("?explorateurs=1", { destination: null });
     expect(lignes()).toEqual([
       ["Explorateurs", "1"],
-      ["Escorte", "Sans escorte : Bêtes communes seulement"],
+      ["Escorte", "Sans escorte"],
       ["Destination", "Aucune"],
       ["Aller", "—"],
       ["Séjour", "1 h"],
@@ -138,22 +138,25 @@ describe("le récapitulatif avant le départ (US-0910)", () => {
 
   it("dit « Sans escorte » de même quand le Territoire n'a aucune Bête disponible (US-0909)", () => {
     ouvrir("?explorateurs=1&escorte=souris.2", { especes: [] });
-    expect(ligne("Escorte")).toBe("Sans escorte : Bêtes communes seulement");
+    expect(ligne("Escorte")).toBe("Sans escorte");
     expect(ligne("Force")).toBeUndefined();
     expect(ligne("Aller")).toBe(ALLER_EN_FORET);
   });
 
-  it("dit « Aucun » tant qu'aucun explorateur n'est choisi, et ne croit pas l'adresse plus que le bloc Explorateurs", () => {
-    ouvrir();
+  it("dit « Aucun » quand le joueur ne choisit aucun explorateur, un d'emblée, et ne croit pas l'adresse plus que le bloc Explorateurs", () => {
+    ouvrir("?explorateurs=0");
     expect(ligne("Explorateurs")).toBe("Aucun");
+    cleanup();
+    ouvrir();
+    expect(ligne("Explorateurs")).toBe("1");
     cleanup();
     ouvrir("?explorateurs=9");
     expect(ligne("Explorateurs")).toBe("2");
   });
 
-  it("rappelle que ceux qui partent continuent de manger pendant toute l'absence", () => {
+  it("ne redit pas à chaque départ ce que coûte l'absence ni ce que ramène une Expédition sans escorte", () => {
     ouvrir("?explorateurs=2");
-    expect(within(bloc()).getByText("Ceux qui partent continuent de manger pendant toute l'absence.")).toBeTruthy();
+    expect(bloc().textContent).not.toMatch(/continuent de manger|Bêtes communes/);
   });
 
   it("suit chaque choix de l'écran, au fil de la composition, sans recharger la page", () => {
@@ -198,9 +201,11 @@ describe("partir depuis le récapitulatif (US-0910)", () => {
 
   it("finit sur « Partir », grisé tant qu'un choix manque, qui nomme ce qui manque", () => {
     for (const [recherche, destination, attendue] of [
-      ["", null, "Il faut une destination et au moins un explorateur."],
-      ["", FORET, "Il faut au moins un explorateur."],
+      ["?explorateurs=0", null, "Il faut une destination et au moins un explorateur."],
+      ["?explorateurs=0", FORET, "Il faut au moins un explorateur."],
       ["?explorateurs=1", null, "Il faut une destination."],
+      // Un explorateur part d'emblée : seule la destination manque.
+      ["", null, "Il faut une destination."],
     ] as const) {
       ouvrir(recherche, { destination });
       expect([partir().disabled, raison()]).toEqual([true, attendue]);
@@ -214,7 +219,7 @@ describe("partir depuis le récapitulatif (US-0910)", () => {
     expect(bloc().textContent).not.toMatch(/Il faut/);
     choisir("?explorateurs=1&escorte=souris.3");
     expect([partir().disabled, raison()]).toEqual([false, null]);
-    choisir("");
+    choisir("?explorateurs=0");
     expect([partir().disabled, raison()]).toEqual([true, "Il faut au moins un explorateur."]);
   });
 });
@@ -247,6 +252,14 @@ describe("confirmer le départ (US-0911)", () => {
       ["escorte", "poule.1"],
       ["escorte", "souris.3"],
     ]);
+  });
+
+  it("envoie l'explorateur qui part d'emblée quand l'adresse n'en dit rien", async () => {
+    const joueur = userEvent.setup();
+    actions.partir.mockResolvedValue({ refus: null });
+    ouvrir("?sejour=240");
+    await joueur.click(partir());
+    expect(envoye().filter(([nom]) => nom === "explorateurs")).toEqual([["explorateurs", "1"]]);
   });
 
   it("n'envoie aucune Bête sans escorte (US-0909)", async () => {
@@ -491,7 +504,7 @@ describe("les Éclaireurs au récapitulatif (US-0976)", () => {
 
   it("sans escorte, l'Expédition reste « Sans escorte », ses Éclaireurs à part, sans force", () => {
     ouvrir("?explorateurs=1&eclaireurs=pigeon.3", { especes: [SOURIS, PIGEON] });
-    expect(ligne("Escorte")).toBe("Sans escorte : Bêtes communes seulement");
+    expect(ligne("Escorte")).toBe("Sans escorte");
     expect(ligne("Force")).toBeUndefined();
     expect(ligne("Éclaireurs")).toBe("Pigeon biset × 3");
   });

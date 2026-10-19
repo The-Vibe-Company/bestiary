@@ -214,10 +214,8 @@ describe("situer la Case dans le Monde depuis sa fiche (US-0429)", () => {
     expect(texte({ distance: 0, aVous: true })).not.toMatch(/Cases? de votre Foyer/);
   });
 
-  it("dit, d'une Case du Cœur sauvage seulement, que les Espèces les plus rares y vivent", () => {
-    expect(texte({ zone: ZONE_COEUR })).toContain("Les Espèces les plus rares vivent ici.");
-    expect(texte({ zone: ZONE_COURONNE })).not.toContain("Espèces");
-    expect(texte({ zone: 0 })).not.toContain("Espèces");
+  it("ne redit pas, d'une Case du Cœur sauvage, que les Espèces les plus rares y vivent : sa zone le dit", () => {
+    for (const zone of [ZONE_COEUR, ZONE_COURONNE, 0]) expect(texte({ zone })).not.toContain("Espèces");
   });
 });
 
@@ -225,12 +223,12 @@ describe("toucher une Case sous le brouillard (US-0438)", () => {
   /** La fiche d'une Case sous le brouillard, à 12 Cases du Foyer, telle que le serveur la donne : rien d'autre. */
   const INCONNUE: FicheInconnue = { ...ICI, inconnue: true, distance: 12 };
 
-  it("dit seulement « Case inconnue » et sa distance au Foyer, puis qu'une Expédition pourra la découvrir", async () => {
+  it("dit seulement « Case inconnue » et sa distance au Foyer, sans redire qu'une Expédition pourra la découvrir", async () => {
     render(<Carte />);
     toucher(ICI);
     await repondre(INCONNUE);
     expect(screen.getByRole("heading", { name: "Case inconnue" })).toBeTruthy();
-    expect([...fiche()!.querySelectorAll("h2, p")].map((e) => e.textContent)).toEqual(["Case inconnue", "À 12 Cases de votre Foyer", "Une Expédition pourra la découvrir."]);
+    expect([...fiche()!.querySelectorAll("h2, p")].map((e) => e.textContent)).toEqual(["Case inconnue", "À 12 Cases de votre Foyer"]);
     // Ni Biome, ni propriétaire, ni Couronne ou Cœur sauvage.
     expect(fiche()!.querySelector("dl")).toBeNull();
     expect(fiche()!.textContent).not.toMatch(/Propriétaire|Libre|Zone|Couronne|Cœur|Espèces/);
@@ -340,7 +338,7 @@ describe("la portée d'exploration sur la fiche d'une Case (US-0908)", () => {
     toucher(brume);
     await repondre({ ...brume, inconnue: true, distance: PORTEE_D_EXPLORATION_CASES + 1 });
     expect(choisir()).toBeNull();
-    expect(lignes()).toEqual([`À ${PORTEE_D_EXPLORATION_CASES + 1} Cases de votre Foyer`, "Une Expédition pourra la découvrir.", REFUS]);
+    expect(lignes()).toEqual([`À ${PORTEE_D_EXPLORATION_CASES + 1} Cases de votre Foyer`, REFUS]);
   });
 
   it("propose encore une Case au bout de la portée, à 8 Cases du Foyer", async () => {

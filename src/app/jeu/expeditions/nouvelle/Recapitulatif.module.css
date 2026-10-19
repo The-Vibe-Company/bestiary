@@ -124,13 +124,6 @@ section.recap {
   text-align: right;
 }
 
-/* Ceux qui partent mangent toujours : un rappel discret, sous le retour prévu. */
-.manger {
-  margin-top: 12px;
-  color: var(--mousse);
-  font: var(--graisse-texte) 12.5px / 1.45 var(--police);
-}
-
 /* Sur ordinateur, tout se lit : rien à déplier. */
 .deplier {
   display: none;
@@ -253,8 +246,7 @@ section.recap {
    */
   .recap:not(.deplie) .peinture,
   .recap:not(.deplie) .lignes,
-  .recap:not(.deplie) .frise,
-  .recap:not(.deplie) .manger {
+  .recap:not(.deplie) .frise {
     display: none;
   }
 

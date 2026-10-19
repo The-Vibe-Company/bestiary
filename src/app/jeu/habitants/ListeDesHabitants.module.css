@@ -341,8 +341,8 @@
   width: 132px;
 }
 
-/* L'en-tête d'un groupe : le médaillon du Métier, son nom, sa phrase, ce qu'il attend, « − N + » ; collé sous celui des
-   colonnes, son lieu de travail fondu à droite. */
+/* L'en-tête d'un groupe : le médaillon du Métier, son nom, « − N + » ; collé sous celui des colonnes, son lieu de
+   travail fondu à droite. */
 .teteDeGroupe > th {
   position: sticky;
   top: 32px;
@@ -408,22 +408,6 @@
   flex: none;
   color: var(--creme);
   font: 400 17px / 1 var(--police-titre);
-}
-
-.phrase {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--mousse);
-  font: 400 13px / 1.2 var(--police);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.servira {
-  flex: none;
-  color: var(--cuivre);
-  font: italic var(--graisse-moyenne) 12.5px / 1.2 var(--police);
-  white-space: nowrap;
 }
 
 .effectifGroupe {
@@ -730,7 +714,6 @@
   }
 
   .tete {
-    align-items: flex-start;
     gap: 11px;
     padding: 11px 12px 11px 14px;
   }
@@ -739,24 +722,8 @@
     --taille: 34px;
   }
 
-  .titreGroupe {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-
   .nomGroupe {
     font-size: 18px;
-  }
-
-  .phrase,
-  .servira {
-    white-space: normal;
-  }
-
-  .pas,
-  .effectifGroupe {
-    margin-top: 2px;
   }
 
   /* « − » et « + » au pouce. */

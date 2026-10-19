@@ -3,7 +3,7 @@
   min-width: 0;
 }
 
-/* Deux places vides d'escorte, puis la phrase, à côté. */
+/* Deux places vides d'escorte, puis « Aucune Bête », à côté. */
 .sans {
   display: flex;
   gap: 14px;

@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import posthog from "posthog-js";
 import { useActionState, useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { mesureActive } from "@/components/mesure-active";
 import { retenirAdresse } from "@/comptes/adresse-retenue";
 import { EMAIL_DEJA_UTILISEE, normaliserEmail, verifierEmail } from "@/comptes/email";
 import { REGLE_MOT_DE_PASSE, verifierMotDePasse } from "@/comptes/mot-de-passe";
@@ -27,7 +29,7 @@ export function FormulaireInscription() {
     return suite;
   }, []);
   const [etat, envoyer, enAttente] = useActionState(envoyerEtSuivre, ETAT_INITIAL);
-  if (etat.cree) return <CompteCree email={normaliserEmail(etat.email)} />;
+  if (etat.cree) return <CompteCree email={normaliserEmail(etat.email)} compteId={etat.compteId} />;
   return (
     <>
       <TitreEntree>Créer un compte</TitreEntree>
@@ -205,14 +207,21 @@ function Formulaire({ etat, envoyer, enAttente, motDePasse, setMotDePasse }: For
 /**
  * La confirmation : le compte existe, et le joueur est déjà connecté (US-0123). Le loup de Bestia
  * marqué d'une validation, l'accueil, et l'entrée dans le jeu d'un appui. Le mot de passe a
- * disparu avec le formulaire.
+ * disparu avec le formulaire. La mesure d'audience reconnaît le nouveau joueur et note l'inscription, une fois.
  */
-function CompteCree({ email }: { email: string }) {
+function CompteCree({ email, compteId }: { email: string; compteId?: number }) {
   const message = useRef<HTMLParagraphElement>(null);
+  const inscriptionNotee = useRef(false);
   useEffect(() => {
     // Le regard (et le lecteur d'écran) va droit à la confirmation.
     message.current?.focus();
   }, []);
+  useEffect(() => {
+    if (inscriptionNotee.current || !mesureActive()) return;
+    inscriptionNotee.current = true;
+    if (compteId !== undefined) posthog.identify(String(compteId), { email });
+    posthog.capture("signed_up");
+  }, [compteId, email]);
   return (
     <div className={styles.bienvenue} role="status">
       <span className={styles.validation} aria-hidden="true">

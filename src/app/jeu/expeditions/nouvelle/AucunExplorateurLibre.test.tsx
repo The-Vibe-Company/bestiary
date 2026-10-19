@@ -13,9 +13,9 @@ const textes = () => bloc().innerHTML.replace(/<[^>]+>/g, "|").split("|").filter
 const lien = () => screen.getByRole("link", { name: "Donner le Métier d'explorateur" });
 
 describe("aucun explorateur libre (US-0903)", () => {
-  it("sans aucun explorateur, dit pourquoi l'on ne peut pas partir, et mène à la page Habitants pour donner ce Métier", () => {
+  it("sans aucun explorateur, le dit, sans redire la règle, et mène à la page Habitants pour donner ce Métier", () => {
     render(<AucunExplorateurLibre total={0} prochainRetour={null} />);
-    expect(textes()).toEqual(["Explorateurs", "Aucun explorateur", "Il faut au moins un explorateur pour partir.", "Donner le Métier d'explorateur"]);
+    expect(textes()).toEqual(["Explorateurs", "Aucun explorateur", "Donner le Métier d'explorateur"]);
     expect(lien().getAttribute("href")).toBe("/jeu/habitants");
   });
 
