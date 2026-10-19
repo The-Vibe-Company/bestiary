@@ -1,6 +1,8 @@
 "use client";
 
+import posthog from "posthog-js";
 import { useTransition } from "react";
+import { mesureActive } from "./mesure-active";
 import { seDeconnecter } from "@/comptes/deconnexion";
 import styles from "./BarreHaut.module.css";
 import { rechargerVers } from "./recharger";
@@ -11,6 +13,8 @@ export function useDeconnexion() {
   function deconnecter() {
     demarrer(async () => {
       await seDeconnecter();
+      // La mesure d'audience oublie le joueur : le prochain, sur ce navigateur, repart anonyme.
+      if (mesureActive()) posthog.reset();
       // Un rechargement complet, pas une navigation interne : le navigateur oublie les pages du jeu,
       // et le bouton Précédent ne peut plus les réafficher.
       rechargerVers("/");

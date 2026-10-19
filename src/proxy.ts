@@ -3,21 +3,41 @@
 // - les pages du jeu : la session est prolongée, au plus une fois par jour (US-0119) ; expirée,
 //   elle mène à la connexion, qui le dit, et ramène ensuite à la même page (US-0125) ;
 // - l'inscription et la connexion : un joueur déjà connecté qui les ouvre va droit au jeu (US-0122) ;
-// - l'accueil : un joueur connecté qui ouvre le site, ou touche le logo, arrive sur son Foyer (US-0161).
+// - l'accueil : un joueur connecté qui ouvre le site, ou touche le logo, arrive sur son Foyer (US-0161) ;
+// - le relais de la mesure d'audience (/ingest, src/analytique.ts) : vers PostHog US, sans les cookies du jeu.
 import { NextResponse, type NextRequest } from "next/server";
+import { RELAIS_POSTHOG } from "./analytique";
 import { DEMANDE_MOT_DE_PASSE, motDePasseAccepte } from "./controle/acces";
 import { nomDuCookie, nomDuTemoin, reglagesDuCookie, reglagesDuTemoin } from "./comptes/cookie-session";
 import { compteDeLaSession, etatDeLaSession } from "./comptes/session";
 import { connexionPuis, suiteSure } from "./comptes/suite";
 import { getPool } from "./db";
 
-export const config = { matcher: ["/", "/controle", "/controle/:path*", "/jeu", "/jeu/:path*", "/inscription", "/connexion"] };
+export const config = { matcher: ["/", "/controle", "/controle/:path*", "/jeu", "/jeu/:path*", "/inscription", "/connexion", "/ingest/:path*"] };
 
 export async function proxy(request: NextRequest) {
   const chemin = request.nextUrl.pathname;
+  if (chemin.startsWith(`${RELAIS_POSTHOG}/`)) return relayerVersPostHog(request);
   if (chemin.startsWith("/controle")) return protegerControle(request);
   if (chemin === "/" || chemin === "/inscription" || chemin === "/connexion") return envoyerAuJeuSiConnecte(request);
   return suivreLaSession(request);
+}
+
+/**
+ * Les envois de la mesure d'audience, relayés tels quels vers PostHog US : ses scripts depuis us-assets, le reste
+ * depuis us.i. Le cookie de session (et tout autre cookie) et un éventuel mot de passe de contrôle restent ici.
+ */
+function relayerVersPostHog(request: NextRequest) {
+  const chemin = request.nextUrl.pathname.slice(RELAIS_POSTHOG.length);
+  const hote = /^\/(static|array)\//.test(chemin) ? "https://us-assets.i.posthog.com" : "https://us.i.posthog.com";
+  const entetes = new Headers(request.headers);
+  entetes.delete("cookie");
+  entetes.delete("authorization");
+  // L'hôte est fixé avant le chemin : aucun chemin (« //ailleurs… ») ne peut mener hors de PostHog.
+  const cible = new URL(hote);
+  cible.pathname = chemin;
+  cible.search = request.nextUrl.search;
+  return NextResponse.rewrite(cible, { request: { headers: entetes } });
 }
 
 /** L'ouverture d'une page (GET), par opposition à un envoi de formulaire. */

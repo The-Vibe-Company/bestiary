@@ -53,6 +53,8 @@ describe("la lecture d'un Récit sur la page Récits", () => {
         "Lumi a quitté le Territoire",
         "3 Blessés ont guéri",
         "1 Blessé a guéri",
+        // US-0817 : la fin d'un Élevage, l'éleveur aussi.
+        "Élevage terminé",
       ].map(medaillonDuRecit),
     ).toEqual([
       "/illustrations/metiers/explorateur.webp",
@@ -60,6 +62,7 @@ describe("la lecture d'un Récit sur la page Récits", () => {
       "/illustrations/icones/habitants.webp",
       "/illustrations/icones/habitants.webp",
       "/illustrations/icones/habitants.webp",
+      "/illustrations/metiers/eleveur.webp",
       "/illustrations/metiers/eleveur.webp",
       "/illustrations/metiers/eleveur.webp",
     ]);

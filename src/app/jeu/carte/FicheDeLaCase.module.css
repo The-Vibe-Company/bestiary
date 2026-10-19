@@ -163,12 +163,6 @@
   stroke-width: 1.4;
 }
 
-/* US-0429 : ce qui vit au Cœur sauvage, en cuivre. */
-.rares {
-  color: var(--cuivre-clair);
-  font: italic var(--graisse-moyenne) 13px / 1.35 var(--police);
-}
-
 .echec {
   padding: 16px 56px 18px 18px;
   color: var(--mousse);
