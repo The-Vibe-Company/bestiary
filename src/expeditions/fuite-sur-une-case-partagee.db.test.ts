@@ -8,8 +8,9 @@ import type { Pool, PoolClient } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
-import { type BeteSauvage, betesSauvagesDesCases } from "@/monde/betes-sauvages";
+import { type BeteSauvage, betesSauvagesDesCases, betesSauvagesDUneCase } from "@/monde/betes-sauvages";
 import { recitsDuTerritoire } from "@/monde/recits";
+import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
 import { attaqueTiree } from "@/test/attaques";
@@ -24,6 +25,8 @@ import { programmerLeRetour } from "./retour";
 const MINUTE_MS = 60_000;
 const HEURE = 60;
 const JOUR = 24 * HEURE;
+/** Le temps, en minutes, après le début de la recherche où la rare peut se montrer : une Bête venue avant y est repartie. */
+const CALME = PRESENCE_D_UNE_BETE_HEURES * HEURE + 6 * HEURE;
 /** L'aller et le retour des Expéditions de l'essai, posées sur la Case sans souci de la distance à leur Foyer. */
 const TRAJET = 30;
 /** Au plus tant d'Expéditions X posées pour en trouver une que la Bête rare attaque. */
@@ -150,12 +153,13 @@ describe.skipIf(!URL_TEST)("une Expédition en fuite quitte la Case pour tous le
 
     // Une Bête rare, trop forte pour une escorte de la plus faible commune, puis, après son départ, une commune d'une autre
     // Espèce, que le tirage donne à la première posée de deux Expéditions d'escortes égales : X. Aucune autre Bête sur la
-    // Case de deux heures avant la rare à deux heures après la commune.
+    // Case de deux heures avant la rare à deux heures après la commune. La plus tôt venue de toutes : les Territoires sont
+    // mis à l'heure jusqu'à elle, et une Bête lointaine leur faisait rejouer des semaines.
     const [de, jusqua] = [apres(a.ne, 3 * JOUR), apres(a.ne, 60 * JOUR)];
     for (const [ici, betes] of await betesSauvagesDesCases(pool, libres.map((c) => c.id), de, jusqua)) {
       const i = betes.findIndex((r, k) => {
         const s = betes[k + 1];
-        if (!s || r.rareteId === "commune" || forceDe(r.especeId) <= faible.force) return false;
+        if (!s || r.rareteId === "commune" || forceDe(r.especeId) <= faible.force || r.arrivee < apres(de, CALME)) return false;
         if (s.rareteId !== "commune" || s.especeId === faible.id || s.arrivee < apres(r.depart, 1) || s.arrivee > apres(r.arrivee, 16 * HEURE)) return false;
         if ((k > 0 && betes[k - 1].depart > apres(r.arrivee, -2 * HEURE)) || (betes[k + 2] && betes[k + 2].arrivee < apres(s.arrivee, 2 * HEURE))) return false;
         const sur = { arrivee: apres(s.arrivee, -HEURE), depart: apres(s.arrivee, HEURE) };
@@ -165,12 +169,11 @@ describe.skipIf(!URL_TEST)("une Expédition en fuite quitte la Case pour tous le
         ]);
         return suivie?.expeditionId === 1;
       });
-      if (i >= 0) {
-        [caseId, rare, commune] = [ici, betes[i], betes[i + 1]];
-        break;
-      }
+      if (i >= 0 && (!caseId || betes[i].arrivee < rare.arrivee)) [caseId, rare, commune] = [ici, betes[i], betes[i + 1]];
     }
     if (!caseId) throw new Error("Aucune Case où une Bête rare précède une commune que le tirage donnerait à X.");
+    // Ce que l'essai suppose : sur la Case, tant que X y est, la rare puis la commune, et aucune autre Bête.
+    expect((await betesSauvagesDUneCase(pool, caseId, apres(rare.arrivee, -HEURE), apres(commune.arrivee, HEURE))).map((b) => b.numero)).toEqual([rare.numero, commune.numero]);
 
     // X arrive une heure avant la rare et resterait jusqu'à une heure après l'apparition de la commune ; Y arrive au départ
     // de la rare, qu'elle ne voit pas, et reste de même.
@@ -178,6 +181,9 @@ describe.skipIf(!URL_TEST)("une Expédition en fuite quitte la Case pour tous le
     const deY = horaires(rare.depart, apres(commune.arrivee, HEURE));
     const fin = apres(retourDUneExpedition(deX)!, HEURE);
     retourDeY = retourDUneExpedition(deY)!;
+    // Les Territoires mis à l'heure pour de bon jusqu'à trois heures avant la rare, avant le départ de X et de Y : chaque
+    // manière ne rejoue plus que ces quelques heures, et non les jours écoulés depuis la naissance.
+    for (const territoireId of [territoires.A, territoires.B]) await rattraper("territoire", territoireId, { pool, jusqua: apres(rare.arrivee, -3 * HEURE) });
     // L'identifiant de X, tel que ses tirages la font attaquer par la rare : le même dans toutes les manières, pour que
     // l'attaque, et tout ce qu'elle laisse, soient les mêmes.
     let idDeX = 0;

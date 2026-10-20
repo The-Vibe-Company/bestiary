@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { BeteReperee } from "@/expeditions/betes-reperees";
 import type { ExpeditionEnCours } from "@/expeditions/en-cours";
-import { casesDesAnneaux } from "@/monde/hex";
+import { anneau, casesDesAnneaux, tourDeLAnneau } from "@/monde/hex";
 import type { CarteDuJoueur } from "@/monde/carte";
 import { BROUILLARD } from "@/monde/couleurs-de-la-carte";
 import type { Fiche } from "@/monde/fiche";
@@ -12,7 +12,7 @@ import { PORTEE_D_EXPLORATION_CASES } from "@/reglages";
 import { CarteDuJeu } from "./CarteDuJeu";
 import { aLEcran, LARGEUR_DE_CASE, vueSurLeFoyer, type Vue } from "./dessin";
 import { LEGENDE_MONTREE } from "./Legende";
-import { avancer, bornesDuZoom, cadrer, deplacer, devoiler, enChemin, flecheVersLeFoyer, limiteDeLaCarte, zoomer } from "./vue";
+import { avancer, borner, bornesDuZoom, cadrer, deplacer, devoiler, enChemin, flecheVersLeFoyer, limiteDeLaCarte, zoomer } from "./vue";
 
 /** US-0428 : les fiches de Case demandées au serveur, chacune avec de quoi lui répondre. */
 let fiches: { q: number; r: number; repondre: (fiche: Fiche | null) => void }[] = [];
@@ -26,9 +26,13 @@ vi.mock("next/navigation", () => ({ useRouter: () => routeur }));
 
 /**
  * Ce que le <canvas> a reçu : ses gestes (mise à l'échelle, remplissages et traits avec leur couleur), le départ de
- * chaque tracé, et combien de fois il a été effacé pour être redessiné.
+ * chaque tracé, et combien de fois il a été effacé pour être redessiné. Les départs de la brume n'y sont pas : la carte
+ * complète le Monde de Cases sous le brouillard (avecToutLeMonde, essayé à part), et sans elles chaque départ dit
+ * encore où est dessinée une Case de la carte essayée (`debut` : où commence le tracé en cours) ; ils sont à part (`brume`).
  */
-const toile = vi.hoisted(() => ({ gestes: [] as string[], departs: [] as [number, number][], effacements: 0 }));
+const toile = vi.hoisted(() => ({ gestes: [] as string[], departs: [] as [number, number][], effacements: 0, debut: 0, brume: [] as [number, number][] }));
+/** La couleur de la brume, celle que la page donne au brouillard. */
+const BRUME = "var(--sur-encre-pale)";
 /** La place que la page donne à la carte, en pixels. */
 const ecran = { largeur: 800, hauteur: 600 };
 /** Le suivi de taille du <canvas> : le dernier posé, pour annoncer un changement de taille comme le navigateur. */
@@ -44,6 +48,8 @@ beforeEach(() => {
   toile.gestes = [];
   toile.departs = [];
   toile.effacements = 0;
+  toile.debut = 0;
+  toile.brume = [];
   images = [];
   aLaProchaineImage = new Map();
   fiches = [];
@@ -77,7 +83,9 @@ beforeEach(() => {
       nom in reglages
         ? reglages[nom]
         : (...valeurs: number[]) => {
+            if (nom === "beginPath") toile.debut = toile.departs.length;
             if (nom === "moveTo") toile.departs.push([valeurs[0], valeurs[1]]);
+            if (nom === "fill" && reglages.fillStyle === BRUME) toile.brume.push(...toile.departs.splice(toile.debut));
             if (nom === "clearRect") toile.effacements++;
             if (nom === "setTransform") toile.gestes.push(`${nom} ${valeurs.join(" ")}`);
             if (nom === "fill") toile.gestes.push(`remplir ${reglages.fillStyle}`);
@@ -156,6 +164,8 @@ const dessineeLa = (vue: Vue, c = FOYER) => {
 };
 /** La vue à l'ouverture de la carte. */
 const ouverte = () => vueSurLeFoyer(FOYER, ecran.largeur, ecran.hauteur);
+/** Le centre du Monde, au milieu de l'écran au plus loin. */
+const CENTRE_DU_MONDE = { q: 0, r: 0 };
 /**
  * Lance ce que la carte a demandé de faire à la prochaine image de l'écran, en oubliant les tracés d'avant ; US-0426 :
  * une image affichée à l'instant `ms`.
@@ -215,7 +225,9 @@ describe("les Biomes sur la carte (US-0418)", () => {
   it("peint chaque teinte de la couleur que la page lui donne, ses motifs de bois sombre ou d'Ivoire légers, et un bord de bois sombre, comme des pièces taillées", () => {
     const carte: CarteDuJoueur = { ...CARTE, teintes: ["prairie", "mer"], cases: { ...CARTE.cases, teinte: AUTOUR.map((c) => (c.r === FOYER.r ? 0 : 1)) } };
     render(<CarteDuJeu carte={carte} fonds={["var(--biome-prairie)", "var(--biome-eau)"]} />);
-    expect(toile.gestes.slice(1, 6)).toEqual([
+    expect(toile.gestes.slice(1, 7)).toEqual([
+      // D'abord tout le Monde, sous le brouillard (avecToutLeMonde).
+      `remplir ${BRUME}`,
       "remplir var(--biome-prairie)",
       "remplir var(--biome-eau)",
       // La prairie a un motif sombre, la mer un motif clair.
@@ -223,6 +235,71 @@ describe("les Biomes sur la carte (US-0418)", () => {
       "border color-mix(in oklch, var(--ivoire) 50%, transparent)",
       "border color-mix(in oklch, var(--bois-sombre) 38%, transparent)",
     ]);
+  });
+});
+
+describe("tout le Monde sous le brouillard (retour d'Antoine, 2026-10-15)", () => {
+  /** Le bord du Monde de la carte essayée : l'anneau de sa Case la plus éloignée du centre. */
+  const BORD = anneau(FOYER) + 1;
+
+  /** Au plus loin, le Monde entier à l'écran : la vue, et le sommet du haut de chaque Case dans cette vue. */
+  const auPlusLoin = (haut = 0) => {
+    const rayon = bornesDuZoom(ecran.largeur, ecran.hauteur, haut).min;
+    // Le centre du Monde au milieu de ce qui se voit sous la barre du haut : le milieu de l'écran, haut / 2 pixels plus haut.
+    const r = 0 - haut / (3 * rayon);
+    const vue = { ...ouverte(), milieu: haut === 0 ? CENTRE_DU_MONDE : { q: -r / 2, r }, rayon };
+    const sommetLa = (c: { q: number; r: number }) => {
+      const { x, y } = aLEcran(c, vue);
+      return `${x.toFixed(6)},${(y - vue.rayon).toFixed(6)}`;
+    };
+    return { vue, sommetLa };
+  };
+  const eloigner = () => {
+    fireEvent.wheel(screen.getByRole("application", { name: "Carte du Monde" }), { deltaY: 100_000, clientX: 400, clientY: 364 });
+    toile.brume = [];
+    toile.gestes = [];
+    prochaineImage();
+  };
+
+  it("grise de la brume tout le Monde, d'un seul tracé jusqu'à son bord et pas au-delà ; les Cases de la carte de leur teinte", () => {
+    render(<CarteDuJeu carte={CARTE} fonds={FONDS} />);
+    eloigner();
+    const { sommetLa } = auPlusLoin();
+    const brume = new Set(toile.brume.map(([x, y]) => `${x.toFixed(6)},${y.toFixed(6)}`));
+    // Le grand hexagone, puis les Cases de son bord ; aucune au-delà.
+    expect(toile.brume).toHaveLength(1 + tourDeLAnneau(BORD).length);
+    expect(tourDeLAnneau(BORD).every((c) => brume.has(sommetLa(c)))).toBe(true);
+    expect(tourDeLAnneau(BORD + 1).some((c) => brume.has(sommetLa(c)))).toBe(false);
+    expect(toile.gestes.filter((g) => g === `remplir ${BRUME}`)).toHaveLength(1);
+    // Les Cases de la carte, elles, de leur teinte, par-dessus.
+    expect(AUTOUR.every((c) => departs().has(sommetLa(c)))).toBe(true);
+  });
+
+  it("au plus loin, le tient tout entier sous la barre du haut posée sur la carte, au milieu de ce qui se voit", () => {
+    const { container } = render(<CarteDuJeu carte={CARTE} fonds={FONDS} />);
+    // La barre du haut, de 120 pixels, telle que la feuille de style la donne à la carte.
+    container.querySelector("canvas")!.style.setProperty("scroll-margin-top", "120px");
+    act(() => suivi!.annoncer());
+    eloigner();
+    const { vue, sommetLa } = auPlusLoin(120);
+    expect(vue.rayon).toBeLessThan(bornesDuZoom(ecran.largeur, ecran.hauteur).min);
+    expect(tourDeLAnneau(BORD).every((c) => new Set(toile.brume.map(([x, y]) => `${x.toFixed(6)},${y.toFixed(6)}`)).has(sommetLa(c)))).toBe(true);
+    // Du sommet du haut des Cases du haut au sommet du bas de celles du bas : autant de place au-dessus qu'au-dessous.
+    // Les départs des Cases du bord : le premier est celui du grand hexagone, au centre d'une Case de ses coins.
+    const ys = toile.brume.slice(1).map(([, y]) => y);
+    const [enHaut, enBas] = [Math.min(...ys), Math.max(...ys) + 2 * vue.rayon];
+    expect(enHaut).toBeGreaterThan(120);
+    expect(enBas).toBeLessThan(ecran.hauteur);
+    expect(enHaut - 120).toBeCloseTo(ecran.hauteur - enBas, 6);
+  });
+
+  it("n'en ouvre aucune fiche : la toucher, c'est toucher hors des Cases de la carte", () => {
+    render(<CarteDuJeu carte={CARTE} fonds={FONDS} />);
+    const ajoutee = { q: FOYER.q - 3, r: FOYER.r + 3 };
+    expect(anneau(ajoutee)).toBeLessThan(BORD);
+    cliquer(ajoutee);
+    expect(fiches).toEqual([]);
+    expect(fiche()).toBeNull();
   });
 });
 
@@ -397,10 +474,16 @@ describe("zoomer à la molette ou au pavé tactile (US-0423)", () => {
     const carte = screen.getByRole("application", { name: "Carte du Monde" });
     fireEvent.wheel(carte, { deltaY: 100_000, clientX: 400, clientY: 364 });
     prochaineImage();
-    expect(dessineeLa({ ...ouverte(), rayon: bornesDuZoom(ecran.largeur, ecran.hauteur).min })).toBe(true);
-    fireEvent.wheel(carte, { deltaY: -100_000, clientX: 400, clientY: 364 });
+    // Au plus loin, le Monde entier à l'écran : son centre au milieu.
+    const auPlusLoin = { ...ouverte(), milieu: CENTRE_DU_MONDE, rayon: bornesDuZoom(ecran.largeur, ecran.hauteur).min };
+    expect(dessineeLa(auPlusLoin)).toBe(true);
+    // Puis au plus près, autour du Foyer, qui reste sous le pointeur.
+    const { x, y } = aLEcran(FOYER, auPlusLoin);
+    fireEvent.wheel(carte, { deltaY: -100_000, clientX: x, clientY: y + 64 });
     prochaineImage();
-    expect(dessineeLa({ ...ouverte(), rayon: bornesDuZoom(ecran.largeur, ecran.hauteur).max })).toBe(true);
+    const auPlusPres = zoomer(auPlusLoin, 1e6, x, y, limiteDeLaCarte(CARTE));
+    expect(auPlusPres.rayon).toBe(bornesDuZoom(ecran.largeur, ecran.hauteur).max);
+    expect(dessineeLa(auPlusPres)).toBe(true);
   });
 
   it("zoome aussi en pinçant à deux doigts, autour du point entre eux, dans les mêmes bornes (US-0424)", () => {
@@ -443,11 +526,11 @@ describe("zoomer à la molette ou au pavé tactile (US-0423)", () => {
     prochaineImage();
     const { min, max } = bornesDuZoom(ecran.largeur, ecran.hauteur);
     expect(dessineeLa({ ...deplacee, rayon: max })).toBe(true);
-    // Puis jusqu'à la vue large : « − » se grise à son tour.
+    // Puis jusqu'au plus loin, le Monde entier à l'écran : « − » se grise à son tour.
     for (let i = 0; i < 20 && !moins.disabled; i++) await user.click(moins);
     expect([plus.disabled, moins.disabled]).toEqual([false, true]);
     prochaineImage();
-    expect(dessineeLa({ ...deplacee, rayon: min })).toBe(true);
+    expect(dessineeLa({ ...deplacee, milieu: CENTRE_DU_MONDE, rayon: min })).toBe(true);
   });
 
   it("grise aussi « + » ou « − » quand la molette ou les doigts atteignent la limite (US-0425)", () => {
@@ -459,14 +542,18 @@ describe("zoomer à la molette ou au pavé tactile (US-0423)", () => {
   it("s'ouvre dans les bornes du zoom, et y reste quand l'écran change de taille", () => {
     Object.assign(ecran, { largeur: 4000, hauteur: 3000 });
     render(<CarteDuJeu carte={CARTE} fonds={FONDS} />);
-    // Sur un très grand écran, les Cases grossissent pour ne pas en montrer plus de 40 au bord.
-    expect(dessineeLa({ ...ouverte(), rayon: bornesDuZoom(4000, 3000).min })).toBe(true);
-    fireEvent.wheel(screen.getByRole("application", { name: "Carte du Monde" }), { deltaY: -100_000, clientX: 2000, clientY: 1564 });
+    // Sur un très grand écran, les Cases grossissent jusqu'au plus loin, où le Monde entier tient à l'écran.
+    const auPlusLoin = { ...ouverte(), milieu: CENTRE_DU_MONDE, rayon: bornesDuZoom(4000, 3000).min };
+    expect(dessineeLa(auPlusLoin)).toBe(true);
+    const { x, y } = aLEcran(FOYER, auPlusLoin);
+    fireEvent.wheel(screen.getByRole("application", { name: "Carte du Monde" }), { deltaY: -100_000, clientX: x, clientY: y + 64 });
     prochaineImage();
+    const auPlusPres = zoomer(auPlusLoin, 1e6, x, y, limiteDeLaCarte(CARTE));
     Object.assign(ecran, { largeur: 375, hauteur: 559 });
     toile.departs = [];
     act(() => suivi!.annoncer());
-    expect(dessineeLa({ ...ouverte(), rayon: bornesDuZoom(375, 559).max })).toBe(true);
+    expect(dessineeLa(cadrer(auPlusPres, 375, 559))).toBe(true);
+    expect(cadrer(auPlusPres, 375, 559).rayon).toBe(bornesDuZoom(375, 559).max);
   });
 });
 
@@ -508,6 +595,21 @@ describe("revenir au Foyer (US-0426)", () => {
     expect(auMilieuDeLEcran()).toBe(true);
     expect(dessineeLa(ouverte())).toBe(true);
     // Arrivé, plus rien ne bouge.
+    expect(aLaProchaineImage.size).toBe(0);
+  });
+
+  it("revient aussi du plus loin, le Monde entier à l'écran, dans les limites de chaque zoom en chemin (retour d'Antoine, 2026-10-15)", async () => {
+    render(<CarteDuJeu carte={CARTE} fonds={FONDS} />);
+    fireEvent.wheel(screen.getByRole("application", { name: "Carte du Monde" }), { deltaY: 100_000, clientX: 400, clientY: 364 });
+    prochaineImage();
+    const auPlusLoin = { ...ouverte(), milieu: CENTRE_DU_MONDE, rayon: bornesDuZoom(ecran.largeur, ecran.hauteur).min };
+    expect(dessineeLa(auPlusLoin)).toBe(true);
+    await revenir();
+    prochaineImage(1000);
+    prochaineImage(1050);
+    expect(dessineeLa(borner(enChemin(auPlusLoin, ouverte(), 1 / 6), limiteDeLaCarte(CARTE)))).toBe(true);
+    prochaineImage(1300);
+    expect(dessineeLa(ouverte())).toBe(true);
     expect(aLaProchaineImage.size).toBe(0);
   });
 
@@ -628,6 +730,12 @@ describe("retrouver la carte là où on l'a laissée (US-0427)", () => {
     prochaineImage();
     return zoomer(deplacer(ouverte(), -60, 30, 60), 2, 400, 300, 60);
   };
+
+  it("rouvre au plus loin une vue retenue au plus loin, le Monde entier au milieu (retour d'Antoine, 2026-10-15)", () => {
+    sessionStorage.setItem("bestia.vue-de-la-carte", JSON.stringify({ monde: "Aube", foyer: FOYER, milieu: FOYER, rayon: 0.5 }));
+    render(<CarteDuJeu carte={CARTE} fonds={FONDS} />);
+    expect(dessineeLa({ ...ouverte(), milieu: CENTRE_DU_MONDE, rayon: bornesDuZoom(ecran.largeur, ecran.hauteur).min })).toBe(true);
+  });
 
   it("se rouvre au même endroit et au même zoom en y revenant pendant la même visite", () => {
     const { unmount } = render(<CarteDuJeu carte={CARTE} fonds={FONDS} />);

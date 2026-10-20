@@ -2,7 +2,7 @@
 
 Tous les « (à décider) » laissés dans les stories, jalon par jalon. On les tranche au moment d'attaquer la story concernée, pas avant. Une fois décidé, on remplace la mention dans la story par la règle retenue, et on met à jour [CONTEXT.md](../../CONTEXT.md) si un mot du jeu change.
 
-192 points au total.
+191 points au total.
 
 ## [Jalon 0 · Les fondations](00-fondations.md)
 
@@ -73,7 +73,6 @@ Tous les « (à décider) » laissés dans les stories, jalon par jalon. On les 
 
 - [US-0819](08-les-betes-a-la-maison.md) · Ajouter un Élevage à la file : une longueur maximale de file (chiffre à régler) ; chaque éleveur a la sienne (US-0844).
 - [US-0820](08-les-betes-a-la-maison.md) · Annuler un Élevage : ce qui dépasserait la limite de stock est perdu, et la confirmation le signale.
-- [US-0824](08-les-betes-a-la-maison.md) · Occuper des Places selon la taille : les Bêtes du Couple en Réserve occupent des Places, ou non.
 - [US-0826](08-les-betes-a-la-maison.md) · Payer l'Entretien chaque heure : ce que mange un omnivore (l'une ou l'autre selon les stocks, ou un partage fixe entre les deux).
 - [US-0826](08-les-betes-a-la-maison.md) · Payer l'Entretien chaque heure : les Bêtes du Couple en Réserve mangent un Entretien, ou non.
 - [US-0832](08-les-betes-a-la-maison.md) · Voir des Bêtes affamées retourner à l'état sauvage : combien partent à chaque heure : autant qu'il faut pour que l'Entretien de celles qui restent soit payé, ou (chiffre à régler) Bêtes par heure de Famine, comme pour les Habitants (étape 16).
