@@ -1,0 +1,55 @@
+src/app/jeu/ElevagesEnCours.test.tsx
+  s_7c7d151152e4a5::t_e354dd33998dac 93-123
+src/app/jeu/ElevagesEnCours.tsx
+  s_7c7d151152e4a5::t_1c2a04bbd5b234 6,19-20,25-31,38,44-46
+src/app/jeu/reserve/[espece]/BlocElever.module.css
+  s_7c7d151152e4a5::t_458a424663d751 50-92
+src/app/jeu/reserve/[espece]/BlocElever.test.tsx
+  s_7c7d151152e4a5::t_cab6cb96ef8713 8,517-522,526,532,539,558,568,575,592,672,678-764
+src/app/jeu/reserve/[espece]/BlocElever.tsx
+  s_7c7d151152e4a5::t_6c1807726502f7 11,82-86,94,103,109-111,138-139,163-166,197-217,219-224,226-332,334-336
+src/app/jeu/reserve/[espece]/actions.test.ts
+  s_7c7d151152e4a5::t_48f69cb8501f67 15,19-25,29-33,48,218,244-289
+src/app/jeu/reserve/[espece]/actions.ts
+  s_7c7d151152e4a5::t_23119408d7d531 7,14-15,17,31-33,49-50,54
+src/app/jeu/reserve/[espece]/page.test.tsx
+  s_7c7d151152e4a5::t_2cbd97940c17bc 264-267
+src/app/jeu/reserve/[espece]/page.tsx
+  s_7c7d151152e4a5::t_587233ce31b0fd 132
+src/monde/elevage.ts
+  s_7c7d151152e4a5::t_b79a26ca48e56d 53-65
+src/monde/elevages-en-cours.db.test.ts
+  s_7c7d151152e4a5::t_17fc667c82ac06 12,145-163
+src/monde/elevages-en-cours.ts
+  s_7c7d151152e4a5::t_3b70ec9e4f884b 9-12
+src/monde/lancer-un-elevage.db.test.ts
+  s_7c7d151152e4a5::t_7a2dd954abf5b0 14,153-200
+src/monde/lancer-un-elevage.ts
+  s_7c7d151152e4a5::t_3dfc81b5398f2e 1-2,5,11,13-16,19-23,41-47,49,62,75-82,85-88,91-115,128,130
+src/monde/naissances.db.test.ts
+  s_7c7d151152e4a5::t_34c3fff2616859 130-165
+src/monde/naissances.ts
+  s_7c7d151152e4a5::t_eb22269917c117 23-24,29,38,49,59-65
+src/monde/suivi-d-elevage.test.ts
+  s_7c7d151152e4a5::t_43797f5fc0ee7c 2-3,48-70
+src/monde/suivi-d-elevage.ts
+  s_7c7d151152e4a5::t_7ee1d2c18db118 2-3,5,10-15,57-70
+src/reglages.ts
+  s_7c7d151152e4a5::t_d2b5db97a70fba 422-427
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fe70eb0b70ff3282033fce118b23419c096a4e3b",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
