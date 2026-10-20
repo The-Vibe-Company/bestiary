@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { sexeDUneBeteDeNaissance } from "@/monde/betes-de-naissance";
-import { type BeteSauvage, betesSauvagesDUneCase, type Sexe, sexeTire } from "@/monde/betes-sauvages";
+import { type BeteSauvage, betesSauvagesDesCases, type Sexe, sexeTire } from "@/monde/betes-sauvages";
 import type { Coordonnees } from "@/monde/hex";
 import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { lireMarquePage } from "@/temps/marque-page";
@@ -62,8 +62,12 @@ describe.skipIf(!URL_TEST)("le sexe tiré au hasard (US-0937, sur base)", () => 
        order by c.q, c.r`,
       [territoireId],
     );
-    for (const ici of cases.filter((c) => !prises.has(c.id))) {
-      const betes = await betesSauvagesDUneCase(pool, ici.id, apresLe, fin);
+    // La plus tôt venue de toutes : l'essai met le Territoire à l'heure jusqu'à elle, et une Bête lointaine lui faisait
+    // rejouer des semaines.
+    let choisie: { caseId: number; place: Coordonnees; bete: BeteSauvage } | null = null;
+    const libres = cases.filter((c) => !prises.has(c.id));
+    for (const [id, betes] of await betesSauvagesDesCases(pool, libres.map((c) => c.id), apresLe, fin)) {
+      const ici = libres.find((c) => c.id === id)!;
       const bete = betes.find(
         (b, i) =>
           accepte(b, ici) &&
@@ -72,12 +76,11 @@ describe.skipIf(!URL_TEST)("le sexe tiré au hasard (US-0937, sur base)", () => 
           (i === 0 || betes[i - 1].arrivee <= apres(b.arrivee, -CALME)) &&
           (i === betes.length - 1 || betes[i + 1].arrivee >= apres(b.arrivee, CALME)),
       );
-      if (bete) {
-        prises.add(ici.id);
-        return { caseId: ici.id, place: { q: ici.q, r: ici.r }, bete };
-      }
+      if (bete && (!choisie || bete.arrivee < choisie.bete.arrivee)) choisie = { caseId: id, place: { q: ici.q, r: ici.r }, bete };
     }
-    throw new Error("Aucune Bête seule telle que l'essai la veut.");
+    if (!choisie) throw new Error("Aucune Bête seule telle que l'essai la veut.");
+    prises.add(choisie.caseId);
+    return choisie;
   };
   /** Une Bête plus rare que commune, du sexe `sexe` à son Apprivoisement. */
   const rareDuSexe = (sexe: Sexe) => (b: BeteSauvage, place: Coordonnees) => b.rareteId !== "commune" && sexeTire({ graine, ...place }, b.numero) === sexe;

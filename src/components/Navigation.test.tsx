@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const adresse = vi.hoisted(() => ({ page: "/jeu" }));
@@ -28,6 +28,64 @@ describe("navigation du jeu (US-0302)", () => {
       ["Habitants", "/jeu/habitants"],
       ["Récits", "/jeu/recits"],
     ]);
+  });
+
+  it("garde le nom de chaque entrée comme nom de son lien, sans infobulle native : sur ordinateur, ce nom est l'infobulle", () => {
+    render(<Navigation recitsNonLus={2} voyageurs={1} />);
+    expect(entrees().map((lien) => lien.getAttribute("title"))).toEqual([null, null, null, null, null, null]);
+    expect(screen.getByRole("link", { name: "Foyer" }).querySelector("span")?.textContent).toBe("Foyer");
+  });
+
+  it("ferme par Échap l'infobulle de l'entrée au focus, jusqu'à ce que le focus la quitte ; une autre touche ne la ferme pas", () => {
+    render(<Navigation />);
+    const carte = screen.getByRole("link", { name: "Carte" });
+    fireEvent.focus(carte);
+    fireEvent.keyDown(carte, { key: "Enter" });
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(false);
+    fireEvent.keyDown(carte, { key: "Escape" });
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(true);
+    // Le nom du lien ne change pas.
+    expect(screen.getByRole("link", { name: "Carte" })).toBe(carte);
+    fireEvent.blur(carte);
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(false);
+  });
+
+  it("ferme par Échap, pressé n'importe où, l'infobulle de l'entrée survolée, jusqu'à ce que le pointeur la quitte", () => {
+    render(<Navigation />);
+    const [carte, reserve] = [screen.getByRole("link", { name: "Carte" }), screen.getByRole("link", { name: "Réserve" })];
+    fireEvent.mouseEnter(carte);
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(true);
+    fireEvent.mouseLeave(carte);
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(false);
+    // Fermée au focus, elle le reste quand le pointeur passe sur une autre entrée et la quitte, ou passe sur elle.
+    fireEvent.focus(carte);
+    fireEvent.keyDown(carte, { key: "Escape" });
+    fireEvent.mouseEnter(reserve);
+    fireEvent.mouseLeave(reserve);
+    fireEvent.mouseEnter(carte);
+    fireEvent.mouseLeave(carte);
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(true);
+    expect(reserve.hasAttribute("data-sans-bulle")).toBe(false);
+  });
+
+  it("ne tient pas fermée l'infobulle d'une entrée cliquée : le focus d'un clic ne la montre pas, le pointeur parti, elle se rouvre", () => {
+    render(<Navigation />);
+    const carte = screen.getByRole("link", { name: "Carte" });
+    fireEvent.mouseEnter(carte);
+    fireEvent.pointerDown(carte);
+    fireEvent.focus(carte);
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(true);
+    fireEvent.mouseLeave(carte);
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(false);
+    // Au clavier ensuite, le même lien la tient fermée tant qu'il garde le focus.
+    fireEvent.blur(carte);
+    fireEvent.focus(carte);
+    fireEvent.keyDown(carte, { key: "Escape" });
+    fireEvent.mouseEnter(carte);
+    fireEvent.mouseLeave(carte);
+    expect(carte.hasAttribute("data-sans-bulle")).toBe(true);
   });
 
   it("porte sur l'entrée « Récits » le nombre de Récits non lus, en chiffres, et le dit dans son nom (US-0324)", () => {
