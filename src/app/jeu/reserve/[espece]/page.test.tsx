@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { Echantillon } from "@/app/jeu/carte/Echantillon";
 import { FORMATS_ESPECE } from "@/components/IllustrationEspece";
 import type { FicheDEspece } from "@/monde/effectif";
+import type { ElevageEnCours } from "@/monde/suivi-d-elevage";
 import { peinturesPrioritaires } from "@/test/images";
 
 // La vraie garde, branchée sur une session simulée.
@@ -39,6 +40,11 @@ const elevage = vi.hoisted(() => ({
   eleveurLibre: vi.fn(async (): Promise<{ id: number; prenom: string } | null> => ({ id: 5, prenom: "Brune" })),
 }));
 vi.mock("@/monde/elevage", async (original) => ({ ...(await original<object>()), elevageAcquis: elevage.elevageAcquis, eleveurLibre: elevage.eleveurLibre }));
+// US-0818 : les Élevages en cours du Territoire, lus sur base (src/monde/elevages-en-cours.db.test.ts), et la page relue
+// après chaque naissance.
+const enCours = vi.hoisted(() => ({ elevagesEnCours: vi.fn(async (): Promise<ElevageEnCours[]> => []) }));
+vi.mock("@/monde/elevages-en-cours", () => enCours);
+vi.mock("next/navigation", async (original) => ({ ...(await original<object>()), useRouter: () => ({ refresh: vi.fn() }) }));
 // US-0822 : les Places de l'Habitat du Foyer, lues sur base (src/monde/habitat.db.test.ts).
 const habitat = vi.hoisted(() => ({ placesDeLHabitat: vi.fn(async () => ({ occupees: 21, total: 500 })) }));
 vi.mock("@/monde/habitat", () => habitat);
@@ -247,6 +253,22 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
     const bloc = trouver(await FicheDeLEspece({ params: Promise.resolve({ espece: "poule" }), searchParams: Promise.resolve({}) }));
     expect(bloc?.props.maintenant).toEqual(MAINTENANT);
     expect(bloc?.props.vitesse).toBe(3);
+  });
+
+  it("y suit l'Élevage en cours de l'Espèce, à l'heure de la fiche, à la place de la quantité et du bouton (US-0818)", async () => {
+    connecte();
+    /** Un Élevage en cours de l'Espèce `especeId` : trois Bêtes confiées à Hael, la première née, 4 h 30 avant la fiche. */
+    const elevageDe = (especeId: string) => ({ especeId, espece: especeId, illustration: null, eleveur: "Hael", quantite: 3, lanceLe: new Date(MAINTENANT.getTime() - 270 * 60_000), dureeMinutes: 180 });
+    elevage.elevageAcquis.mockResolvedValueOnce(true);
+    enCours.elevagesEnCours.mockResolvedValueOnce([elevageDe("souris"), elevageDe("poule")]);
+    const html = await ouvrir("poule");
+    expect(enCours.elevagesEnCours).toHaveBeenLastCalledWith(expect.anything(), 12, MAINTENANT);
+    const bloc = html.slice(html.indexOf("<section", html.indexOf('id="elever"'))).replace(/<[^>]+>/g, "|").split("|").filter(Boolean);
+    expect(bloc).toEqual(["Élever", "Places : ", "21 / 500", "Élevage en cours", "Éleveur", "Hael", "Bêtes nées", "1 / 3", "Prochaine Bête", "dans 1 h 30", "Dernière Bête", "9 octobre à 14:12"]);
+    // L'Élevage en cours d'une autre Espèce ne change rien au bloc.
+    elevage.elevageAcquis.mockResolvedValueOnce(true);
+    enCours.elevagesEnCours.mockResolvedValueOnce([elevageDe("souris")]);
+    expect(await ouvrir("poule")).toMatch(/<button type="submit"[^>]*>Élever<\/button>/);
   });
 
   it("ne le propose pas pour une Espèce sans Couple, même avec des Bêtes (US-0812)", async () => {

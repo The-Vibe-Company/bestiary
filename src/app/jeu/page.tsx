@@ -11,12 +11,14 @@ import { Medaillon } from "@/components/Medaillon";
 import { getPool } from "@/db";
 import { recapitulatifDAbsence } from "@/monde/absence";
 import { nombreDeBetes } from "@/monde/effectif";
+import { elevagesEnCours } from "@/monde/elevages-en-cours";
 import { departsNonLus, departsPendantLAbsence } from "@/monde/famine";
 import { stocksDuTerritoire } from "@/monde/stocks";
 import { foyerDuTerritoire } from "@/monde/territoire";
-import { maintenant } from "@/temps/horloge";
+import { maintenant, vitesse } from "@/temps/horloge";
 import styles from "./page.module.css";
 import { BlocProduction } from "./BlocProduction";
+import { ElevagesEnCours } from "./ElevagesEnCours";
 import { RecapAbsence } from "./RecapAbsence";
 
 export const metadata: Metadata = { title: "Foyer" };
@@ -53,17 +55,22 @@ const ecriteau = (...classes: string[]) => [kit.panneau, kit.verre, styles.ecrit
  *
  * US-0810 : sous la production, le bloc « Bêtes » dit le total des Bêtes du Territoire et ouvre la page Bêtes : l'entrée
  * de son effectif, sans septième onglet dans la navigation.
+ *
+ * US-0818 : sous les Bêtes, le bloc « Élevages » résume les Élevages en cours, un par éleveur, ou dit « Aucun Élevage en
+ * cours » (ElevagesEnCours), à l'heure du jeu de l'accueil, qui avance au rythme du jeu.
  */
 export default async function Foyer() {
   await connection();
   if (!entreeDuJeuOuverte()) notFound();
   const { territoireId } = await exigerCompte("/jeu");
   const foyer = territoireId === null ? null : await foyerDuTerritoire(getPool(), territoireId);
-  const recap = territoireId === null ? { gains: [], pleins: [] } : await recapitulatifDAbsence(getPool(), territoireId, maintenant());
+  const instant = maintenant();
+  const recap = territoireId === null ? { gains: [], pleins: [] } : await recapitulatifDAbsence(getPool(), territoireId, instant);
   const stocks = territoireId === null ? [] : await stocksDuTerritoire(getPool(), territoireId);
   const departs = territoireId === null ? null : await departsNonLus(getPool(), territoireId);
   const [voyageurs, nonLus] = territoireId === null ? [0, 0] : await Promise.all([voyageursALHeure(territoireId), recitsNonLusALHeure(territoireId)]);
   const betes = territoireId === null ? 0 : await nombreDeBetes(getPool(), territoireId);
+  const elevages = territoireId === null ? [] : await elevagesEnCours(getPool(), territoireId, instant);
   return (
     <main className={`${styles.page} ${foyer ? styles.avecProduction : ""}`}>
       {departs ? (
@@ -117,6 +124,7 @@ export default async function Foyer() {
           </Bloc>
         </Link>
       ) : null}
+      {foyer ? <ElevagesEnCours elevages={elevages} maintenant={instant} vitesse={vitesse()} /> : null}
     </main>
   );
 }

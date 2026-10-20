@@ -20,3 +20,19 @@ describe("le bloc « Bêtes » du Foyer (US-0810)", () => {
     expect(regle(".lienBetes")).toContain("order: 2;");
   });
 });
+
+describe("le bloc « Élevages » du Foyer (US-0818)", () => {
+  it("se pose dans la colonne du Foyer, sous les Bêtes", () => {
+    expect(regle(".page .elevages")).toContain("order: 3;");
+  });
+
+  it("tient chaque Élevage sur une ligne : le médaillon, l'Espèce et son éleveur, qui cèdent de leur largeur, puis les Bêtes nées", () => {
+    expect(regle(".ligneElevage")).toContain("grid-template-columns: 34px minmax(0, 1fr) auto;");
+    expect(regle(".neesElevage")).toContain("font-variant-numeric: tabular-nums;");
+    expect(regle(".ligneElevage:focus-visible")).toContain("outline: 2px solid var(--cuivre-clair);");
+  });
+
+  it("n'écrit aucune couleur en clair : les jetons du kit seulement", () => {
+    expect(CSS).not.toMatch(/oklch|#[0-9a-f]{3,8}\b|rgb\(/i);
+  });
+});
