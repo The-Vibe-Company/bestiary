@@ -7,9 +7,6 @@ import "server-only";
 import type { Pool, PoolClient } from "pg";
 import type { EntretienDesBetesLu } from "./nourriture";
 
-/** US-0826 : aucune Bête à nourrir. */
-export const SANS_BETES: EntretienDesBetesLu = { viande: "0", vegetaux: "0", omnivores: "0" };
-
 /**
  * US-0826 : l'Entretien des Bêtes de l'effectif du Territoire, par heure, en Nourriture (numeric de Postgres, en texte) :
  * celui des carnivores, que seule la Viande paie, celui des herbivores, que seuls les Végétaux paient, et celui des

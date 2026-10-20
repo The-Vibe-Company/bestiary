@@ -2,6 +2,7 @@ import type { Pool } from "pg";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
+import { betesSauvagesDesCases } from "@/monde/betes-sauvages";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
@@ -152,11 +153,15 @@ describe.skipIf(!URL_TEST)("payer l'Entretien des Bêtes chaque heure (US-0826, 
   it("les Bêtes sorties en escorte mangent toujours, sur les Stocks du Territoire ; les Bêtes du Couple, en Réserve, ne mangent pas (décidé le 2026-10-19)", async () => {
     const t = await naitre();
     await ajouter(t.territoireId, [[carnivore.id, "male", 4]]);
-    // Deux carnivores partent en escorte : ils mangent comme ceux restés au Foyer.
+    // Deux carnivores partent en escorte : ils mangent comme ceux restés au Foyer. Sur une Case libre où aucune Bête plus
+    // rare que commune ne se montre pendant l'essai : une attaque (US-0943) leur coûterait des Bêtes (US-0944).
+    const { rows: libres } = await pool.query<{ id: number }>("select id from case_du_monde where monde_id = $1 and chef_id is null order by id limit 40", [mondeId]);
+    const sauvages = await betesSauvagesDesCases(pool, libres.map((c) => c.id), t.ne, new Date(t.ne.getTime() + 3 * HEURE));
+    const calme = libres.find((c) => sauvages.get(c.id)!.every((b) => b.rareteId === "commune"));
+    expect(calme, "aucune Case calme parmi les quarante premières").toBeDefined();
     const { rows } = await pool.query<{ id: number }>(
-      `insert into expedition (territoire_id, case_id, part_le, trajet_minutes, sejour_minutes)
-       select $1, c.id, $3, 30, 600 from case_du_monde c where c.monde_id = $2 and c.chef_id is null order by c.id limit 1 returning id`,
-      [t.territoireId, mondeId, t.ne],
+      "insert into expedition (territoire_id, case_id, part_le, trajet_minutes, sejour_minutes) values ($1, $2, $3, 30, 600) returning id",
+      [t.territoireId, calme!.id, t.ne],
     );
     await pool.query("insert into expedition_escorte (expedition_id, espece_id, nombre, males) values ($1, $2, 2, 2)", [rows[0].id, carnivore.id]);
     // Un mâle et une femelle de poule : leur Couple se réunit et part en Réserve, hors de l'effectif.
