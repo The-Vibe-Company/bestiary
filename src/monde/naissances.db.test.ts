@@ -11,7 +11,7 @@ import { reunirLesCouples } from "./couple";
 import { dureeDUneBeteEleveeMinutes } from "./cout-d-elevage";
 import { lancerUnElevage } from "./lancer-un-elevage";
 import { FIN_D_ELEVAGE, FINS_D_ELEVAGE } from "./recit-d-elevage";
-import { marquerUnRecitLu } from "./recits";
+import { ecrireUnRecit, marquerUnRecitLu } from "./recits";
 import { formaterJourEtHeure } from "@/temps/affichage";
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
@@ -297,6 +297,29 @@ describe.skipIf(!URL_TEST)("recevoir les Bêtes une à une (US-0817, sur base)",
         expect.objectContaining({ id: recap.id, titre: FINS_D_ELEVAGE, texte: lesDeux(t), lu: true }),
         expect.objectContaining({ titre: FIN_D_ELEVAGE, texte: "1 Bête de Souris grise a rejoint votre effectif.", lu: false }),
       ]);
+    });
+
+    it("ne reprend jamais un autre Récit non lu, même plus récent : seul celui d'une fin d'Élevage se complète", async () => {
+      const t = await partir();
+      /** Un autre Récit, non lu, tel qu'il est écrit. */
+      const autre = async (titre: string, survenuLe: Date) =>
+        (await pool.query<{ id: number; titre: string; texte: string; survenuLe: Date; lu: boolean }>(
+          "select id, titre, texte, survenu_le as \"survenuLe\", lu_le is not null as lu from recit where territoire_id = $1 and titre = $2 and survenu_le = $3",
+          [t.territoireId, titre, survenuLe],
+        )).rows[0];
+      // Un Voyageur accueilli, dit juste avant la fin de l'Élevage de la souris : le Récit le plus récent, non lu.
+      const accueil = { titre: "Lumi a rejoint le Territoire", texte: "Lumi, sans Métier, a rejoint le Territoire.", survenuLe: apres(t, 3 * souris - 1) };
+      await ecrireUnRecit(pool, t.territoireId, accueil);
+      await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, 3 * souris) });
+      expect(await recitsEntiers(t.territoireId)).toEqual([expect.objectContaining({ titre: FIN_D_ELEVAGE, texte: "3 Bêtes de Souris grise ont rejoint votre effectif.", lu: false })]);
+      expect(await autre(accueil.titre, accueil.survenuLe)).toMatchObject({ ...accueil, lu: false });
+      // Un autre encore, plus récent que celui de la souris, avant la fin du pigeon : c'est celui de la souris qui se complète.
+      const guerison = { titre: "2 Blessés ont guéri", texte: "2 Bêtes de Souris grise sont guéries.", survenuLe: apres(t, pigeon - 1) };
+      await ecrireUnRecit(pool, t.territoireId, guerison);
+      await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, pigeon) });
+      expect(await recitsEntiers(t.territoireId)).toEqual([expect.objectContaining({ titre: FINS_D_ELEVAGE, texte: lesDeux(t), survenuLe: apres(t, pigeon), lu: false })]);
+      expect(await autre(guerison.titre, guerison.survenuLe)).toMatchObject({ ...guerison, lu: false });
+      expect(await autre(accueil.titre, accueil.survenuLe)).toMatchObject({ ...accueil, lu: false });
     });
 
     it("donne le même Récit par tranches ou d'un bloc, et ne reprend jamais le Récit non lu d'un autre Territoire", async () => {
