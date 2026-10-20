@@ -23,6 +23,30 @@
   font-weight: var(--graisse-titre);
 }
 
+/*
+ * US-0818 : l'Élevage en cours, sous les Places, à la place de l'éleveur libre, de la quantité et du bouton : son
+ * étiquette, puis ses chiffres, libellés et valeurs en deux colonnes (kit.cles). La main y va au lancement.
+ */
+.suivi {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  border-radius: var(--arrondi-net);
+}
+
+.suivi:focus-visible {
+  outline: 2px solid var(--cuivre-clair);
+  outline-offset: 4px;
+}
+
+/*
+ * Les nombres en chiffres alignés, sur les valeurs mêmes : le décompte ne bouge pas en avançant. Un sélecteur plus fort
+ * que celui du kit (.cles dd, dont le « font » remet les chiffres à leur forme), quel que soit l'ordre des feuilles.
+ */
+.suivi .chiffres dd {
+  font-variant-numeric: tabular-nums;
+}
+
 /* Le bouton sous le compteur. */
 .formulaire {
   margin-top: 14px;
@@ -105,8 +129,12 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* La quantité que « − », « + » ou « Max » viennent de donner, pour les lecteurs d'écran seulement. */
-.annonce {
+/*
+ * La quantité que « − », « + » ou « Max » viennent de donner, et US-0818, l'Élevage lancé (que son suivi montre), pour
+ * les lecteurs d'écran seulement.
+ */
+.annonce,
+.lance {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -138,22 +166,6 @@
   margin-top: 10px;
   color: var(--braise);
   font: var(--graisse-titre) 13.5px / 1.35 var(--police);
-}
-
-/* US-0815 : l'Élevage lancé, juste sous le bouton, en vert clair, son texte en clair ; vide, la région ne prend pas de place. */
-.lance {
-  margin-top: 10px;
-  color: var(--cuivre-clair);
-  font: var(--graisse-titre) 13.5px / 1.35 var(--police);
-}
-
-.lance:empty {
-  margin-top: 0;
-}
-
-.lance:focus-visible {
-  outline: 2px solid var(--cuivre-clair);
-  outline-offset: 2px;
 }
 
 .quantite .refus {

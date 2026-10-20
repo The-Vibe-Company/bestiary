@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { Pool, type PoolConfig } from "pg";
 import { env } from "../env";
 
 let pool: Pool | undefined;
@@ -11,7 +11,7 @@ export function getPool(): Pool {
   return pool;
 }
 
-export function createPool(connectionString: string, reglages: { max?: number; connectionTimeoutMillis?: number } = {}): Pool {
+export function createPool(connectionString: string, reglages: Omit<PoolConfig, "connectionString"> = {}): Pool {
   // Échouer vite plutôt que d'attendre sans fin une base qui ne répond pas.
   return new Pool({ connectionString: withStrictSsl(connectionString), connectionTimeoutMillis: 5_000, ...reglages });
 }

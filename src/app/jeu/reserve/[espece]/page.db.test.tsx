@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { reunirLesCouples } from "@/monde/couple";
+import { lancerUnElevage } from "@/monde/lancer-un-elevage";
 import { lireMarquePage } from "@/temps/marque-page";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
 
@@ -13,6 +14,8 @@ vi.mock("@/comptes/garde", () => garde);
 const base = vi.hoisted(() => ({ pool: null as Pool | null }));
 vi.mock("@/db", async (original) => ({ ...(await original<object>()), getPool: () => base.pool }));
 vi.mock("next/server", async (original) => ({ ...(await original<object>()), connection: async () => {} }));
+// US-0818 : la page relue après chaque naissance d'un Élevage en cours.
+vi.mock("next/navigation", async (original) => ({ ...(await original<object>()), useRouter: () => ({ refresh: vi.fn() }) }));
 
 import FicheDeLEspece from "./page";
 
@@ -172,6 +175,22 @@ describe.skipIf(!URL_TEST)("ouvrir la fiche d'une Espèce, sur base (US-0803)", 
     expect(await elever("souris")).toBe(true);
     // Trois poules, sans Couple : leur fiche s'ouvre (US-0810), sans Élevage.
     expect(await elever("poule")).toBe(false);
+  });
+
+  it("suit dans le bloc « Élever » l'Élevage en cours de l'Espèce, lancé pour de bon, à la place de la quantité et du bouton (US-0818)", async () => {
+    const t = await naitre();
+    await reunir(t, "souris");
+    await pool.query("update habitant set metier = 'eleveur', prenom = 'Hael' where id = (select min(id) from habitant where territoire_id = $1)", [t.territoireId]);
+    await pool.query("update stock set quantite = 1000000, limite = 1000000, reste = 0, plein_depuis = null where territoire_id = $1 and ressource_id in ('viande', 'vegetaux')", [
+      t.territoireId,
+    ]);
+    expect(await lancerUnElevage(pool, t.territoireId, "souris", 2, new Date())).toMatchObject({ lance: { quantite: 2, eleveur: "Hael" } });
+    garde.exigerCompte.mockResolvedValue({ id: 1, email: "nom@exemple.fr", nomDeChef: "Ourse", territoireId: t.territoireId, recitLu: true });
+    const html = renderToStaticMarkup(await FicheDeLEspece({ params: Promise.resolve({ espece: "souris" }), searchParams: Promise.resolve({}) }));
+    const bloc = html.slice(html.indexOf('id="elever"')).replace(/<[^>]+>/g, "");
+    expect(bloc).toContain("Élevage en coursÉleveurHaelBêtes nées0 / 2Prochaine Bêtedans ");
+    expect(bloc).not.toContain("Aucun éleveur libre.");
+    expect(html).not.toMatch(/name="quantite"/);
   });
 
   it("affiche le Biome d'Habitat et le Rôle enregistrés pour l'Espèce, ou « Aucun Rôle » (US-0806)", async () => {

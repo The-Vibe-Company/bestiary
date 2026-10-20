@@ -22,9 +22,22 @@ export function urlBaseDeTest(): string | undefined {
 
 export const URL_TEST = urlBaseDeTest();
 
+/**
+ * Un pool sur la base de test, réglé pour ne rien laisser traîner sur un Postgres que plusieurs copies de travail se
+ * partagent : peu de connexions par fichier, rendues dès qu'elles ne servent plus, et le serveur lui-même coupe une
+ * transaction laissée ouverte sans rien faire (une minute) ou une requête qui n'en finit pas (deux minutes), ce qu'un
+ * essai interrompu ou un worker tué laissait tourner jusque-là.
+ */
 export function poolDeTest(reglages?: { max?: number; connectionTimeoutMillis?: number }) {
   if (!URL_TEST) throw new Error("Pas de base de test : lancez npm run db:test-setup.");
-  return createPool(URL_TEST, reglages);
+  return createPool(URL_TEST, {
+    max: 4,
+    idleTimeoutMillis: 10_000,
+    allowExitOnIdle: true,
+    application_name: "bestia-test",
+    options: "-c statement_timeout=120000 -c idle_in_transaction_session_timeout=60000",
+    ...reglages,
+  });
 }
 
 /**
