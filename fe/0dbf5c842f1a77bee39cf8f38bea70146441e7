@@ -1,0 +1,39 @@
+src/app/jeu/expeditions/ListeDesExpeditions.test.tsx
+  s_3496f97cbb458e::t_5ad393f6a65bec 6,55-59
+src/app/jeu/expeditions/ListeDesExpeditions.tsx
+  s_7c7d151152e4a5::t_1aa057e3de04d2 29,31
+src/app/jeu/expeditions/PanneauDeLExpedition.tsx
+  s_7c7d151152e4a5::t_314ae8a0fc3504 63-74,93
+src/app/jeu/expeditions/page.test.tsx
+  s_7c7d151152e4a5::t_c90c32c1bc2170 75,118-122
+src/app/jeu/habitants/voyageurs/page.test.tsx
+  s_7c7d151152e4a5::t_12c5a16e594de2 59
+src/app/jeu/reserve/page.test.tsx
+  s_3496f97cbb458e::t_ab06d5a5831287 191,195
+src/app/jeu/reserve/page.tsx
+  s_7c7d151152e4a5::t_01d1fdb77d0d54 45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fe0dbf5c842f1a77bee39cf8f38bea70146441e7",
+  "prompts": {},
+  "sessions": {
+    "s_3496f97cbb458e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3d217b49-e99a-4e3a-9db4-7a070050bf9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
