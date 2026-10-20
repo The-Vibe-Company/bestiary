@@ -15,33 +15,32 @@ const LOSANGES_AU_PLUS = 12;
 
 /**
  * US-0902 : le nombre d'explorateurs choisis, lu dans l'adresse sans la croire : un entier, de zéro au nombre de
- * libres ; zéro pour tout le reste, et quand l'adresse n'en dit rien.
+ * libres. Quand l'adresse n'en dit rien (ou rien qui soit un nombre d'explorateurs), un explorateur part, s'il y en a un
+ * de libre : le joueur n'a pas à le choisir (retour d'Antoine, 2026-10-15) ; zéro, choisi, se garde dans l'adresse.
  */
 export function explorateursChoisis(recherche: URLSearchParams, libres: number): number {
   const texte = recherche.get(PARAMETRE) ?? "";
-  return /^\d{1,6}$/.test(texte) ? Math.min(Number(texte), libres) : 0;
+  return Math.min(/^\d{1,6}$/.test(texte) ? Number(texte) : 1, libres);
 }
 
 /**
  * US-0902 : le bloc Explorateurs de l'écran d'Expédition. Seuls les Habitants au Métier d'explorateur qui ne sont
  * pas déjà partis sont proposés, avec le compteur « libres / total », un losange par explorateur devant lui, allumé
  * pour chaque libre (tant qu'ils tiennent : LOSANGES_AU_PLUS). Le joueur choisit combien partent, au pouce,
- * entre « − » et « + », à partir de zéro : « + » se grise quand tous les libres sont choisis, « − » à zéro. Le
- * nombre choisi vit dans l'adresse (replaceState, que Next.js relie à useSearchParams, comme le filtre de la page
- * Habitants) : il survit à un rechargement, sans charger l'historique de chaque essai, et le départ (Partir) le
- * relit. Choisir ne retient personne : rien ne change avant le départ (US-0911).
+ * entre « − » et « + », à partir d'un s'il y a un libre (de zéro sinon) : « + » se grise quand tous les libres sont
+ * choisis, « − » à zéro. Le nombre choisi, zéro compris, vit dans l'adresse (replaceState, que Next.js relie à
+ * useSearchParams, comme le filtre de la page Habitants) : il survit à un rechargement, sans charger l'historique de
+ * chaque essai, et le départ (Partir) le relit. Choisir ne retient personne : rien ne change avant le départ (US-0911).
  */
 export function Explorateurs({ libres, total }: ExplorateursDuTerritoire) {
   const recherche = useSearchParams();
   const nombre = explorateursChoisis(recherche, libres);
 
-  /** Garde `n` explorateurs choisis dans l'adresse, avec ses autres choix ; à zéro, l'adresse n'en dit plus rien. */
+  /** Garde `n` explorateurs choisis dans l'adresse, avec ses autres choix, zéro compris (sans lui, un explorateur part). */
   function choisir(n: number) {
     const parametres = new URLSearchParams(recherche.toString());
-    if (n === 0) parametres.delete(PARAMETRE);
-    else parametres.set(PARAMETRE, String(n));
-    const suite = parametres.toString();
-    window.history.replaceState(null, "", suite ? `?${suite}` : window.location.pathname);
+    parametres.set(PARAMETRE, String(n));
+    window.history.replaceState(null, "", `?${parametres.toString()}`);
   }
 
   return (

@@ -214,7 +214,8 @@ export const CARTE_DEBORD_CASES = 2;
 export const CARTE_PAS_CLAVIER_CASES = 3;
 /**
  * US-0423 : le zoom de la carte va d'une vue large, où la moitié de sa plus petite dimension à l'écran couvre
- * 40 Cases, à une vue rapprochée où elle n'en couvre que 4 (valeurs provisoires, à régler en jouant).
+ * 40 Cases, à une vue rapprochée où elle n'en couvre que 4 (valeurs provisoires, à régler en jouant). Retour d'Antoine
+ * (2026-10-15) : au plus loin, le Monde entier tient à l'écran, quitte à aller au-delà de la vue large (vue.ts).
  */
 export const CARTE_ZOOM_LARGE_CASES = 40;
 export const CARTE_ZOOM_PROCHE_CASES = 4;

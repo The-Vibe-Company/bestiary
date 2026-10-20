@@ -249,7 +249,13 @@ describe.skipIf(!URL_TEST)("chef d'un compte (sur base)", () => {
     });
 
     it("donne des Cases différentes, bien espacées, à des chefs qui naissent au même instant", async () => {
-      const comptes = await Promise.all(Array.from({ length: 8 }, () => nouveauCompte()));
+      // Huit comptes d'un coup, avec une seule empreinte de mot de passe, comme la rafale de trente plus bas : huit
+      // empreintes à la fois prennent un gigaoctet de mémoire, et sous la charge de la suite, bien plus que le délai.
+      const empreinte = await calculerEmpreinte("une phrase de passe");
+      const { rows: comptes } = await pool.query<{ id: number }>(
+        "insert into compte (email, empreinte_mot_de_passe) select $1 || '-espaces-' || n || '@essai.test', $2 from generate_series(1, 8) as n returning id",
+        [lancement, empreinte],
+      );
       await Promise.all(Array.from({ length: 10 }, () => pool.query("select pg_sleep(0.2)")));
       const noms = ["Abeille", "Bison", "Castor", "Daim", "Écureuil", "Faon", "Gerboise", "Hérisson"];
       await Promise.all(comptes.map((compte, i) => enregistrerNomDeChef(pool, compte.id, nomUnique(noms[i]), Math.random, mondeId)));

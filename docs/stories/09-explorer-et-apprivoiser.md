@@ -17,7 +17,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0902 · Choisir les explorateurs
 **En tant que** joueur, **je veux** choisir combien de mes explorateurs partent, **afin de** garder les autres pour d'autres Expéditions.
 
-- **Statut** : Livrée le 2026-10-09 (Armada, THE-1360, Zewed/bestia-2#5). Sous la destination, le bloc « Explorateurs » montre les explorateurs libres sur le total (« Libres 2 / 3 ») et le nombre qui partent, choisi au pouce entre « − » et « + ». Le choix part de zéro et ne dépasse jamais les libres ; il est gardé dans l'adresse. « Partir » reste grisé à zéro, avec « Il faut au moins un explorateur. » ; le départ lui-même arrive avec US-0911. Vérifié en vrai de 320 à 1 440 px.
+- **Statut** : Livrée le 2026-10-09 (Armada, THE-1360, Zewed/bestia-2#5). Sous la destination, le bloc « Explorateurs » montre les explorateurs libres sur le total (« Libres 2 / 3 ») et le nombre qui partent, choisi au pouce entre « − » et « + ». Le choix part d'un explorateur quand il y en a de libres (de zéro avant le 2026-10-15, The-Vibe-Company/bestiary#76) et ne dépasse jamais les libres ; il est gardé dans l'adresse. « Partir » reste grisé à zéro, avec « Il faut au moins un explorateur. » ; le départ lui-même arrive avec US-0911. Vérifié en vrai de 320 à 1 440 px.
 - **Débloquée par** : US-0901
 - **Critères d'acceptation** :
   - Seuls les Habitants au Métier d'explorateur qui ne sont pas déjà partis sont proposés, avec un compteur « libres / total ».
@@ -788,7 +788,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0972 · Un pigeon en escorte n'éclaire pas
 **En tant que** joueur, **je veux** savoir ce que fait un pigeon que j'envoie en escorte, **afin de** choisir entre sa force et son Rôle.
 
-- **Statut** : Livrée le 2026-10-15 (autopilot, The-Vibe-Company/bestiary#64). Un pigeon parti dans l'escorte combat comme toute Bête : il compte dans la force et risque les mêmes pertes ; il ne lève pas plus de brouillard (seuls les Éclaireurs le font). Le récit du retour distingue les deux : « Éclaireurs : Pigeon biset × 1 ; en escorte : Pigeon biset × 2. ». Le combat et le brouillard le faisaient déjà (ils ne lisent que l'escorte, ou que les Éclaireurs) : c'est prouvé par des essais. Reste : l'essai « ne garde pas les Bêtes en vue », à ajouter quand US-0970 l'aura construit.
+- **Statut** : Livrée le 2026-10-15 (autopilot, The-Vibe-Company/bestiary#64). Un pigeon parti dans l'escorte combat comme toute Bête : il compte dans la force et risque les mêmes pertes ; il ne lève pas plus de brouillard (seuls les Éclaireurs le font). Le récit du retour distingue les deux : « Éclaireurs : Pigeon biset × 1 ; en escorte : Pigeon biset × 2. ». Le combat et le brouillard le faisaient déjà (ils ne lisent que l'escorte, ou que les Éclaireurs) : c'est prouvé par des essais. L'essai « ne garde pas les Bêtes en vue » est venu avec US-0970 (The-Vibe-Company/bestiary#74).
 - **Débloquée par** : US-0969
 - **Critères d'acceptation** :
   - Un pigeon parti dans l'escorte combat comme toute Bête : il compte dans la force et risque les mêmes pertes.
@@ -798,6 +798,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0973 · Les pigeons dans le récit
 **En tant que** joueur, **je veux** que le récit dise ce que mes pigeons ont apporté, **afin de** juger s'ils valent la peine.
 
+- **Statut** : Livrée le 2026-10-19 (autopilot, The-Vibe-Company/bestiary#75). Le récit du retour dit ce que les Éclaireurs ont révélé en plus : « 18 Cases sont sorties du brouillard, dont 14 grâce à vos Éclaireurs. » (« …, grâce à vos Éclaireurs. » quand elles le sont toutes), et nomme les Bêtes rencontrées seulement grâce à eux, vues au départ de leur présence ou après : « Rencontrée grâce à vos Éclaireurs : Écureuil roux. ». Sans Éclaireur, le récit ne change pas. Tranché : une Case en plus est une Case que l'Expédition a découverte la première, hors du rayon qu'elle aurait levé sans Éclaireur ; rien n'est compté après un changement de Monde.
 - **Débloquée par** : US-0969, US-0970, US-0940
 - **Critères d'acceptation** :
   - Le récit indique combien de Cases supplémentaires les Éclaireurs ont révélées.

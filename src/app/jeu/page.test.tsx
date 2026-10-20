@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ElevageEnCours } from "@/monde/suivi-d-elevage";
 
 // La vraie garde, branchée sur une session simulée.
 const cookie = vi.hoisted(() => ({ jetonDeSession: vi.fn() }));
@@ -35,6 +36,13 @@ vi.mock("@/monde/recits", async (original) => ({ ...(await original<object>()), 
 // US-0810 : le total des Bêtes du Territoire, lu sur base (src/monde/effectif.db.test.ts).
 const effectif = vi.hoisted(() => ({ nombreDeBetes: vi.fn(async () => 16) }));
 vi.mock("@/monde/effectif", () => effectif);
+// US-0818 : les Élevages en cours du Territoire, lus sur base (src/monde/elevages-en-cours.db.test.ts), à l'heure du jeu
+// de l'accueil, et la page relue après chaque naissance.
+const MAINTENANT = vi.hoisted(() => new Date("2026-10-15T10:00:00Z"));
+vi.mock("@/temps/horloge", async (original) => ({ ...(await original<object>()), maintenant: () => MAINTENANT, vitesse: () => 3 }));
+const enCours = vi.hoisted(() => ({ elevagesEnCours: vi.fn(async (): Promise<ElevageEnCours[]> => []) }));
+vi.mock("@/monde/elevages-en-cours", () => enCours);
+vi.mock("next/navigation", async (original) => ({ ...(await original<object>()), useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/temps/rattraper", () => ({ rattraper: vi.fn(async () => new Date()) }));
 vi.mock("@/db", () => ({ getPool: () => ({}) }));
 vi.mock("next/server", async (original) => ({ ...(await original<object>()), connection: async () => {} }));
@@ -70,16 +78,18 @@ describe("écran du Foyer (US-0157)", () => {
     connecte();
     const html = renderToStaticMarkup(await Foyer());
     expect(html).not.toContain("Bienvenue");
-    expect(html).not.toMatch(/<p[ >]/);
+    // Pour seule ligne, celle du bloc « Élevages » sans Élevage en cours (US-0818).
+    expect([...html.matchAll(/<p[ >].*?<\/p>/g)].map((m) => m[0].replace(/<[^>]+>/g, ""))).toEqual(["Aucun Élevage en cours"]);
   });
 
-  it("montre à côté sa production horaire et le Biome qui l'explique, et dit ce que le Biome ne donne pas (US-0217)", async () => {
+  it("montre à côté sa production horaire et le Biome qui l'explique, et, éteinte à 0/h, ce que le Biome ne donne pas, sans le redire en phrase (US-0217)", async () => {
     connecte();
     const html = renderToStaticMarkup(await Foyer());
     expect(stocks.stocksDuTerritoire).toHaveBeenCalledWith(expect.anything(), 12);
     expect(html).toMatch(/<h2[^>]*>Production · prairie<\/h2>/);
     const lignes = [...html.matchAll(/<li(?: [^>]*)?>(.*?)<\/li>/g)].map((m) => m[1].replace(/<img[^>]*\/>/g, "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
-    expect(lignes).toEqual(["Viande +8/h", "Végétaux +14,5/h", "Bois +4/h", "Ce Biome ne donne pas de Pierre."]);
+    expect(lignes).toEqual(["Viande +8/h", "Végétaux +14,5/h", "Bois +4/h", "Pierre 0/h"]);
+    expect(html).toMatch(/<li[^>]*data-nulle=""[^>]*>.*?Pierre.*?<\/li>/);
   });
 
   it("ne mène à aucune fonction qui n'existe pas encore : ni bouton, ni menu, et pour seul lien la page Bêtes (US-0163, US-0810)", async () => {
@@ -87,8 +97,9 @@ describe("écran du Foyer (US-0157)", () => {
     const html = renderToStaticMarkup(await Foyer());
     expect(html).not.toMatch(/<(button|form|nav|input|select)[ >]/);
     expect([...html.matchAll(/<a [^>]*href="([^"]*)"/g)].map((m) => m[1])).toEqual(["/jeu/betes"]);
-    // L'illustration, son titre, le bloc Production (US-0217) avec l'icône de chaque Ressource, puis le bloc Bêtes.
-    expect(html.match(/<(img|h1|h2)[ >]/g)).toEqual(["<img ", "<h1 ", "<h2 ", "<img ", "<img ", "<img ", "<img ", "<h2 "]);
+    // L'illustration, son titre, le bloc Production (US-0217) avec l'icône de chaque Ressource, le bloc Bêtes, puis le bloc
+    // Élevages (US-0818).
+    expect(html.match(/<(img|h1|h2)[ >]/g)).toEqual(["<img ", "<h1 ", "<h2 ", "<img ", "<img ", "<img ", "<img ", "<h2 ", "<h2 "]);
   });
 
   it("ouvre la page Bêtes d'un bloc « Bêtes » qui en dit le total, sous la production (US-0810)", async () => {
@@ -100,10 +111,31 @@ describe("écran du Foyer (US-0157)", () => {
     expect(html.indexOf("Production · prairie")).toBeLessThan(html.indexOf('href="/jeu/betes"'));
   });
 
+  it("résume sous les Bêtes les Élevages en cours, chacun menant à la fiche de son Espèce, à l'heure du jeu de l'accueil (US-0818)", async () => {
+    connecte();
+    const souris = { especeId: "souris", espece: "Souris", illustration: null, eleveur: "Hael", quantite: 2, lanceLe: new Date(MAINTENANT.getTime() - 20 * 60_000), dureeMinutes: 15 };
+    enCours.elevagesEnCours.mockResolvedValueOnce([souris]);
+    const html = renderToStaticMarkup(await Foyer());
+    expect(enCours.elevagesEnCours).toHaveBeenLastCalledWith(expect.anything(), 12, MAINTENANT);
+    const bloc = html.slice(html.indexOf(">Élevages</h2>") + 1);
+    expect(bloc.replace(/<[^>]+>/g, "|").split("|").filter(Boolean)).toEqual(["Élevages", "Souris", "Hael · prochaine dans 10 min", "1 / 2"]);
+    expect(bloc).toMatch(/<a [^>]*href="\/jeu\/reserve\/souris#elever"/);
+    expect(html.indexOf('href="/jeu/betes"')).toBeLessThan(html.indexOf(">Élevages</h2>"));
+  });
+
+  it("dit « Aucun Élevage en cours » sans Élevage en cours (US-0818)", async () => {
+    connecte();
+    const html = renderToStaticMarkup(await Foyer());
+    expect(html).toMatch(/<h2[^>]*>Élevages<\/h2><p[^>]*>Aucun Élevage en cours<\/p>/);
+  });
+
   it("n'a pas de bloc « Bêtes » sans Foyer (Monde complet)", async () => {
     connecte();
     chefs.chefDuCompte.mockResolvedValueOnce({ nom: "Ourse", territoireId: null, recitLu: false });
-    expect(renderToStaticMarkup(await Foyer())).not.toContain("/jeu/betes");
+    const html = renderToStaticMarkup(await Foyer());
+    expect(html).not.toContain("/jeu/betes");
+    // Ni de bloc « Élevages » (US-0818).
+    expect(html).not.toContain("Élevage");
   });
 
   it("pose sur l'illustration ce que le Foyer a produit pendant l'absence (US-0216)", async () => {

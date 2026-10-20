@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { BROUILLARD, COULEURS } from "@/monde/couleurs-de-la-carte";
 import { anneau, casesDesAnneaux, distance, SOMMETS_DE_CASE, voisines, type Coordonnees } from "@/monde/hex";
 import { ZONE_COEUR, ZONE_COURONNE } from "@/monde/zones";
-import { aLEcran, type CarteADessiner, dessinerLaCarte, enSvg, LARGEUR_DE_CASE, MOTIFS, tailleDuRepere, vueSurLeFoyer, type Peinture, type Pinceau, type Vue } from "./dessin";
+import { aLEcran, avecToutLeMonde, type CarteADessiner, dessinerLaCarte, enSvg, LARGEUR_DE_CASE, MOTIFS, tailleDuRepere, vueSurLeFoyer, type Peinture, type Pinceau, type Vue } from "./dessin";
 import { bornesDuZoom, deplacer, limiteDeLaCarte, zoomer } from "./vue";
 
 type Point = { x: number; y: number };
@@ -430,6 +430,61 @@ describe("le brouillard (US-0437)", () => {
   });
 });
 
+describe("tout le Monde sous le brouillard (retour d'Antoine, 2026-10-15)", () => {
+  // Un Monde de 4 Cases de rayon qui n'a en base que sa Couronne, ses deux derniers anneaux : le Foyer découvert, en
+  // prairie ; le reste sous le brouillard.
+  const couronne = casesDesAnneaux(3, 4);
+  const FOYER = { q: 3, r: 0 };
+  const teinteDe = (c: Coordonnees) => (c.q === FOYER.q && c.r === FOYER.r ? 0 : 1);
+  const carte: CarteADessiner = { foyer: FOYER, foyers: [], teintes: ["prairie", BROUILLARD], cases: enColonnes(couronne, teinteDe) };
+  const vue = vueSurLeFoyer({ q: 0, r: 0 }, 800, 600);
+  /** Combien de fois le polygone t tourne autour du point p, dans un sens (+1) ou dans l'autre (-1). */
+  const tours = (p: Point, t: Point[]) =>
+    t.reduce((n, a, i) => {
+      const b = t[(i + 1) % t.length];
+      const gauche = (b.x - a.x) * (p.y - a.y) - (p.x - a.x) * (b.y - a.y);
+      if (a.y <= p.y && b.y > p.y && gauche > 0) return n + 1;
+      if (a.y > p.y && b.y <= p.y && gauche < 0) return n - 1;
+      return n;
+    }, 0);
+  /** Si le point p est peint par un remplissage : comme le <canvas>, ses tracés en tournent autour, ensemble, au moins une fois (« nonzero »). */
+  const sous = (p: Point, peint: Peint) => peint.traces.reduce((n, t) => n + tours(p, t), 0) !== 0;
+  /** Le relief peint, des motifs d'essai nommés pour se reconnaître. */
+  const RELIEF = { terre: () => "terre" as unknown as CanvasPattern, brume: () => "nuages" as unknown as CanvasPattern };
+
+  it("donne à la carte le rayon du Monde, et au besoin la teinte du brouillard, pour sa couleur ; rien d'autre ne change", () => {
+    expect(avecToutLeMonde(carte, 4)).toEqual({ ...carte, rayon: 4 });
+    expect(avecToutLeMonde({ ...carte, teintes: ["prairie"] }, 4).teintes).toEqual(["prairie", BROUILLARD]);
+  });
+
+  it("grise d'abord tout le Monde, d'un seul tracé de la brume puis de son relief, jusqu'à son bord et pas au-delà ; ses Cases découvertes par-dessus", () => {
+    const { pinceau, peints } = pinceauDEssai();
+    dessinerLaCarte(pinceau, avecToutLeMonde(carte, 4), vue, { ...peinture(["vert", "brume"]), relief: RELIEF });
+    const [brume, nuages] = peints;
+    expect([brume.couleur, nuages.couleur]).toEqual(["brume", "nuages"]);
+    expect(nuages.traces).toEqual(brume.traces);
+    expect(peints.slice(2).filter((p) => ["brume", "nuages"].includes(p.couleur))).toEqual([]);
+    // Chaque Case du Monde dessous, du centre à chacun de ses sommets (à un rien près vers l'intérieur) ; rien au-delà.
+    for (const c of casesDesAnneaux(0, 4)) {
+      const { x, y } = aLEcran(c, vue);
+      for (const s of [{ x: 0, y: 0 }, ...SOMMETS_DE_CASE]) expect(sous({ x: x + 0.99 * s.x * vue.rayon, y: y + 0.99 * s.y * vue.rayon }, brume)).toBe(true);
+    }
+    for (const c of casesDesAnneaux(5, 6)) expect(sous(aLEcran(c, vue), brume)).toBe(false);
+    // Le Foyer découvert, de sa couleur et du relief de la terre, par-dessus.
+    for (const couleur of ["vert", "terre"]) expect(peints.find((p) => p.couleur === couleur)!.traces.map((t) => cle(milieu(t)))).toEqual([cle(aLEcran(FOYER, vue))]);
+  });
+
+  it("ne laisse rien deviner : qu'elle ait ou non en base les Cases sous le brouillard, et ce qu'elles cachent, la carte se dessine de même", () => {
+    const dessin = (c: CarteADessiner) => {
+      const { pinceau, peints } = pinceauDEssai();
+      dessinerLaCarte(pinceau, avecToutLeMonde(c, 4), vue, { ...peinture(["vert", "brume"]), relief: RELIEF });
+      return peints;
+    };
+    const enBase = { ...carte, foyers: [{ q: 0, r: 1 }], cases: enColonnes(casesDesAnneaux(0, 4), teinteDe, (c) => (anneau(c) <= 1 ? ZONE_COEUR : 0)) };
+    expect(dessin(enBase)).toEqual(dessin(carte));
+  });
+});
+
 describe("la carte écrite en SVG, pour sa légende (US-0432)", () => {
   /** Une vue de la carte centrée sur la Case (0, 0), posée en (0, 0) : rien d'autre n'y touche. */
   const vue = vueSurLeFoyer({ q: 0, r: 0 }, 0, 0);
@@ -680,8 +735,9 @@ describe("une carte fluide sur mobile (US-0435)", () => {
     expect(fermetures(MONDE)).toBe(fermetures([{ q: 0, r: 0 }]));
   });
 
-  it("dézoomée au maximum, ne dessine encore que les Cases à l'écran, et un peu autour : à moins d'une Case de son bord", () => {
-    const vue = dezoomee({ q: 0, r: 0 });
+  it("éloignée, ne dessine encore que les Cases à l'écran, et un peu autour : à moins d'une Case de son bord", () => {
+    // La vue large d'avant le retour d'Antoine (2026-10-15), de 40 Cases au bord : le Monde y déborde de l'écran.
+    const vue = { ...dezoomee({ q: 0, r: 0 }), rayon: Math.min(LARGEUR, HAUTEUR) / 2 / 40 / Math.sqrt(3) };
     const { pinceau, peints } = pinceauDEssai();
     dessinerLaCarte(pinceau, { ...FOYER_LOIN, teintes: SANS_MOTIF, cases: enColonnes(MONDE) }, vue, peinture(["blanc"]));
     const dessinees = new Set(peints[0].traces.map((t) => cle(milieu(t))));
@@ -694,6 +750,25 @@ describe("une carte fluide sur mobile (US-0435)", () => {
     const autour = new Set(centres.filter(({ x, y }) => x > -2 * vue.rayon && x < LARGEUR + 2 * vue.rayon && y > -2 * vue.rayon && y < HAUTEUR + 2 * vue.rayon).map(cle));
     expect([...dessinees].filter((ici) => !autour.has(ici))).toEqual([]);
     expect(dessinees.size).toBeLessThan(MONDE.length);
+  });
+
+  it("dézoomée au maximum, trace tout le Monde sous le brouillard d'un seul tenant : son bord, et non chacune de ses Cases (retour d'Antoine, 2026-10-15)", () => {
+    // Aube, qui n'a en base que sa Couronne, toute sous le brouillard.
+    const brumeuse = { ...FOYER_LOIN, teintes: [BROUILLARD], cases: enColonnes(casesDesAnneaux(55, 60)) };
+    const { pinceau, peints } = pinceauDEssai();
+    dessinerLaCarte(pinceau, avecToutLeMonde(brumeuse, 60), dezoomee({ q: 0, r: 0 }), peinture(["brume"]));
+    const brume = peints.filter((p) => p.couleur === "brume");
+    expect(brume).toHaveLength(1);
+    // Le grand hexagone, et les 360 Cases du bord : six sommets chacun, au lieu de six pour chacune des 10 981 Cases.
+    expect(brume[0].traces).toHaveLength(1 + 6 * 60);
+    expect(brume[0].traces.flat()).toHaveLength(6 * (1 + 6 * 60));
+  });
+
+  it("dézoomée au maximum, dessine le Monde entier, qui tient sur ce téléphone (retour d'Antoine, 2026-10-15)", () => {
+    const vue = dezoomee({ q: 0, r: 0 });
+    const { pinceau, peints } = pinceauDEssai();
+    dessinerLaCarte(pinceau, { ...FOYER_LOIN, teintes: SANS_MOTIF, cases: enColonnes(MONDE) }, vue, peinture(["blanc"]));
+    expect(new Set(peints[0].traces.map((t) => cle(milieu(t)))).size).toBe(MONDE.length);
   });
 
   it("ne garde rien d'une image à l'autre : après des milliers d'images, glissée et zoomée, la même vue se redessine des mêmes gestes", () => {

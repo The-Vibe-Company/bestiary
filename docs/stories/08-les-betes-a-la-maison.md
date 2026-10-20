@@ -182,6 +182,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0817 · Recevoir les Bêtes une à une
 **En tant que** joueur, **je veux** voir mes Bêtes naître l'une après l'autre, **afin de** pouvoir compter sur les premières sans attendre la fin de l'Élevage.
 
+- **Statut** : Livrée le 2026-10-15 (autopilot, The-Vibe-Company/bestiary#71). Les Bêtes d'un Élevage naissent l'une après l'autre, chacune après la durée d'Élevage de l'Espèce (souris toutes les 15 min, poule toutes les 7 h 54), joueur présent ou non, et entrent aussitôt dans l'effectif ; à la dernière naissance, un récit « Élevage terminé » dit « 3 Bêtes de Souris grise ont rejoint votre effectif. », et l'éleveur redevient libre. En temps accéléré, le compte suit le rythme prévu (essayé à ×100). Tranché : les naissances se lisent à l'horloge (la k-ième à lancement + k × la durée fixée au lancement), sans migration, quel que soit le découpage du temps ; sexes alternés, femelle d'abord ; le temps s'arrête à la fin de chaque Élevage, pour qu'une Famine qui suit voie l'éleveur libre ; aucune limite de Places encore (US-0825) ni d'Entretien (US-0826).
 - **Débloquée par** : US-0810, US-0815
 - **Critères d'acceptation** :
   - Les Bêtes d'un Élevage naissent l'une après l'autre, chacune après la durée d'Élevage de l'Espèce.
@@ -192,6 +193,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0818 · Suivre l'Élevage en cours
 **En tant que** joueur, **je veux** voir où en est mon Élevage, **afin de** savoir quand naîtra la prochaine Bête.
 
+- **Statut** : Livrée le 2026-10-20 (autopilot, The-Vibe-Company/bestiary#84). Pendant un Élevage, le bloc « Élever » de la fiche le suit à la place de la quantité et du bouton : l'éleveur, les Bêtes nées sur la quantité, le temps avant la prochaine, l'heure de la dernière ; le décompte avance sans recharger et la page relue ailleurs dit la même chose ; après un lancement, le suivi paraît aussitôt (plus de « Aucun éleveur libre. »). Sur l'accueil, sous les Bêtes, le bloc « Élevages » résume les Élevages en cours, un par éleveur, ou dit « Aucun Élevage en cours ». Tranché : rien de nouveau en base, tout se lit du lancement, de la quantité et de la durée (`src/monde/suivi-d-elevage.ts`) ; la page se relit une seconde après chaque naissance (`useRelireLaPageA`, que la liste des Expéditions utilise aussi). Deux remarques moyennes de la relecture corrigées (la main déplacée par une relecture de fond).
 - **Débloquée par** : US-0817
 - **Critères d'acceptation** :
   - Le bloc « Élever » montre l'Élevage en cours : Bêtes déjà nées sur quantité demandée, temps avant la prochaine naissance, heure de la dernière.
@@ -262,6 +264,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0824 · Occuper des Places selon la taille
 **En tant que** joueur, **je veux** que chaque Bête occupe des Places selon sa taille, **afin de** comprendre qu'un grand animal se loge moins facilement qu'un petit.
 
+- **Statut** : Livrée le 2026-10-19 (autopilot, The-Vibe-Company/bestiary#80). Les règles en place la font : les Places se lisent de l'effectif (effectif × taille, Espèce par Espèce). Une Bête née d'un Élevage occupe aussitôt les Places de sa taille (poule 31,623 : 0, puis 31,623, puis 63,246) ; une Bête morte au combat libère les siennes à l'instant, un Blessé garde les siennes ; une Bête en sortie garde les siennes. Tranché : le Couple en Réserve ne prend pas de Place (comme US-0822). Prouvée par des essais ; vérifiée en vrai (« Places : 67 / 500 » pour deux poules et trois souris).
 - **Débloquée par** : US-0817, US-0822
 - **Critères d'acceptation** :
   - Chaque Bête née occupe autant de Places que la taille de son Espèce.

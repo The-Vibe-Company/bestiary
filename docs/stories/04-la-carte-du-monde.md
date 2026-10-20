@@ -242,7 +242,7 @@ Le joueur découvre le Monde qu'il partage avec les autres : une grande carte en
 - **Débloquée par** : US-0420
 - **Critères d'acceptation** :
   - La molette et le geste de zoom du pavé tactile zooment autour du pointeur.
-  - Le zoom va d'une vue large de 40 Cases de rayon à une vue rapprochée de 4 Cases (provisoire, `CARTE_ZOOM_LARGE_CASES`, `CARTE_ZOOM_PROCHE_CASES`).
+  - Le zoom va d'une vue large de 40 Cases de rayon à une vue rapprochée de 4 Cases (provisoire, `CARTE_ZOOM_LARGE_CASES`, `CARTE_ZOOM_PROCHE_CASES`). Depuis le 2026-10-19 (retour d'Antoine, The-Vibe-Company/bestiary#81), la vue la plus large montre le Monde entier, toutes les Cases inconnues grisées sous le brouillard.
   - La page elle-même ne zoome pas.
 
 ### US-0424 · Zoomer en pinçant

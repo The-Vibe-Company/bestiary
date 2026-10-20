@@ -83,10 +83,10 @@ function Place({ habitants, places }: { habitants: number; places: number }) {
 }
 
 /**
- * US-0318 : l'Entretien des Habitants : la ligne du calcul, « 3 Habitants × 2 Nourriture = », puis le total ; dessous, la
- * Viande et les Végétaux qui le paient, leur quantité et leur solde par heure, comme la barre du haut les compte (US-0319) ;
- * US-0320 : enfin, combien de temps la Nourriture le paiera encore, au rythme du moment : « Nourriture assurée », ou
- * « Nourriture pour encore 7 h », en alerte.
+ * US-0318 : l'Entretien des Habitants : son total par heure, sans le calcul qui redit ce que mange chaque Habitant
+ * (retour d'Antoine, 2026-10-15) ; dessous, la Viande et les Végétaux qui le paient, leur quantité et leur solde par
+ * heure, comme la barre du haut les compte (US-0319) ; US-0320 : enfin, combien de temps la Nourriture le paiera
+ * encore, au rythme du moment : « Nourriture assurée », ou « Nourriture pour encore 7 h », en alerte.
  */
 function Entretien({ entretien, stocks }: { entretien: EntretienDesHabitants; stocks: Stock[] }) {
   const nourriture = stocks.filter((s) => s.famille === "nourriture");
@@ -96,7 +96,6 @@ function Entretien({ entretien, stocks }: { entretien: EntretienDesHabitants; st
     <section className={`${kit.panneau} ${styles.entretien}`} data-alerte={heures === null ? undefined : ""}>
       <h2 className={kit.etiquette}>Entretien</h2>
       <p className={styles.ligneEntretien}>
-        {`${nombreDHabitants(entretien.habitants)} × ${quantiteExacte(String(entretien.parHabitant))} Nourriture = `}
         <strong className={styles.totalEntretien}>{`${quantiteExacte(entretien.parHeure)} Nourriture par heure`}</strong>
       </p>
       {nourriture.length > 0 ? (
@@ -132,8 +131,8 @@ function Entretien({ entretien, stocks }: { entretien: EntretienDesHabitants; st
  * Métiers, leurs effectifs (US-0309), qui filtrent le tableau (US-0314) ; au centre, sous « Habitants » et le bandeau des
  * Habitants sans Métier (US-0313), une ligne par Habitant, groupées par Métier, avec son prénom, son Métier, son état et
  * la date de son arrivée, dans l'ordre de la lecture (US-0303), d'où l'on donne un Métier à un Habitant sans Métier
- * (US-0308), en change (US-0310), le retire (US-0311) ou le renvoie (US-0330) ; en tête de chaque groupe, le Métier et sa
- * phrase (US-0307), où l'on répartit les Habitants avec « − » et « + » (US-0312) ; sans aucun Habitant, une phrase à leur
+ * (US-0308), en change (US-0310), le retire (US-0311) ou le renvoie (US-0330) ; en tête de chaque groupe, le Métier
+ * (US-0307), où l'on répartit les Habitants avec « − » et « + » (US-0312) ; sans aucun Habitant, une phrase à leur
  * place (US-0329). À droite, la colonne de contexte : les Voyageurs aux portes (US-0332), la place du Territoire, avec
  * « Plus de place » quand elle est toute prise (US-0305), l'Entretien des Habitants par heure (US-0318) et combien de temps
  * la Nourriture le paiera (US-0320), d'après les Stocks lus une fois le Territoire mis à l'heure. Sur une tablette et un
@@ -157,11 +156,10 @@ export default async function Habitants() {
   ]);
   const montres = habitants.map(({ id, prenom, metier, etat, arriveLe }) => ({ id, prenom, metier, etat, arriveLe: DATE_D_ARRIVEE.format(arriveLe) }));
   const auChoix = metiers.map(({ id, nom }) => ({ id, nom, icone: iconeDeMetier(id) }));
-  const auTableau = metiers.map(({ id, nom, phrase, servira }) => ({ id, nom, phrase, servira, icone: iconeDeMetier(id) }));
   return (
     <main className={styles.page}>
       {/* US-0309, US-0314 : le rail des Métiers ; US-0303, US-0307, US-0312 : le tableau des Habitants, groupé par Métier. */}
-      <ListeDesHabitants habitants={montres} metiers={auTableau} />
+      <ListeDesHabitants habitants={montres} metiers={auChoix} />
       <div className={styles.contexte}>
         {/* US-0332 : les Voyageurs aux portes, en tête de la colonne : ils repartent s'ils attendent trop. */}
         {/* US-0333 : leur compte à rebours suit le temps du jeu, à sa vitesse ; US-0338 : la place qui reste règle l'accueil. */}

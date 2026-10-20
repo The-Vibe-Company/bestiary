@@ -239,9 +239,12 @@ describe.skipIf(!URL_TEST)("lancer un Élevage (US-0815, sur base)", () => {
     await reunir(t, "pigeon");
     await eleveurs([t.habitants[0], t.habitants[1]]);
     await pool.query("update habitant set metier = 'chasseur' where id = $1", [t.habitants[2]]);
-    await nourriture(t.territoireId, "1000", "1000");
-    expect(await lancerUnElevage(pool, t.territoireId, "souris", 1, t.ne)).toMatchObject({ lance: { quantite: 1 } });
-    expect(await lancerUnElevage(pool, t.territoireId, "pigeon", 1, t.ne)).toMatchObject({ lance: { quantite: 1 } });
+    await nourriture(t.territoireId, "50000", "50000");
+    // Des Élevages plus longs que les dix heures de l'essai (US-0817 : un Élevage fini rend son éleveur libre).
+    const [souris, pigeon] = [await taille("souris"), await taille("pigeon")].map(dureeDUneBeteEleveeMinutes);
+    const [nSouris, nPigeons] = [Math.ceil((11 * 60) / souris), Math.ceil((11 * 60) / pigeon)];
+    expect(await lancerUnElevage(pool, t.territoireId, "souris", nSouris, t.ne)).toMatchObject({ lance: { quantite: nSouris } });
+    expect(await lancerUnElevage(pool, t.territoireId, "pigeon", nPigeons, t.ne)).toMatchObject({ lance: { quantite: nPigeons } });
     // Plus de Nourriture, et plus de production : le Foyer passe à un voisin (comme pour les explorateurs, US-0921).
     await nourriture(t.territoireId, "0", "0");
     const voisin = await naitre();

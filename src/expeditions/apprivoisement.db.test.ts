@@ -4,7 +4,7 @@ import { bestiaireDuTerritoire } from "@/bestiaire/bestiaire";
 import { enregistrerNomDeChef } from "@/chefs/chef";
 import { creerCompte } from "@/comptes/compte";
 import { betesDeNaissancePresentes } from "@/monde/betes-de-naissance";
-import { type BeteSauvage, betesSauvagesDUneCase } from "@/monde/betes-sauvages";
+import { type BeteSauvage, betesSauvagesDesCases, betesSauvagesDUneCase } from "@/monde/betes-sauvages";
 import { type Coordonnees, distance } from "@/monde/hex";
 import { PRESENCE_D_UNE_BETE_HEURES } from "@/reglages";
 import { lireMarquePage } from "@/temps/marque-page";
@@ -75,28 +75,34 @@ describe.skipIf(!URL_TEST)("la Bête à portée suit l'Expédition (US-0934, sur
    * Une Bête sauvage seule, telle que `accepte` la veut, sur une Case libre à 2 à 6 Cases du Foyer du Territoire qu'aucun
    * autre essai n'a prise, apparue après `apresLe` : aucune autre n'apparaît sur sa Case de CALME heures avant elle à CALME
    * heures après, et aucune n'y est donc de 6 heures avant son apparition à 6 heures après son départ. Sa Case et la Bête.
+   * La plus tôt venue de toutes : l'essai met ses Territoires à l'heure jusqu'à elle, et une Bête lointaine leur faisait
+   * rejouer des semaines.
    */
   const uneBeteSeule = async (territoireId: number, apresLe: Date, accepte: (b: BeteSauvage) => boolean) => {
     const fin = apres(apresLe, 30 * JOUR);
-    for (let ecart = 2; ecart <= 6; ecart++) {
-      for (let rang = 0, ici = await aLEcart(territoireId, ecart); ici; ici = await aLEcart(territoireId, ecart, ++rang)) {
-        if (prises.has(ici.caseId)) continue;
-        const betes = await betesSauvagesDUneCase(pool, ici.caseId, apresLe, fin);
-        const bete = betes.find(
-          (b, i) =>
-            accepte(b) &&
-            b.arrivee >= apres(apresLe, CALME) &&
-            b.arrivee <= apres(fin, -CALME) &&
-            (i === 0 || betes[i - 1].arrivee <= apres(b.arrivee, -CALME)) &&
-            (i === betes.length - 1 || betes[i + 1].arrivee >= apres(b.arrivee, CALME)),
-        );
-        if (bete) {
-          prises.add(ici.caseId);
-          return { ...ici, bete };
-        }
-      }
+    const { rows: libres } = await pool.query<Coordonnees & { id: number }>(
+      `select c.id, c.q, c.r from territoire t join case_du_monde f on f.id = t.foyer_case_id
+         join case_du_monde c on c.monde_id = f.monde_id and c.chef_id is null
+       where t.id = $1 and greatest(abs(c.q - f.q), abs(c.r - f.r), abs(c.q - f.q + c.r - f.r)) between 2 and 6`,
+      [territoireId],
+    );
+    const candidates = libres.filter((c) => !prises.has(c.id));
+    let choisie: { place: Coordonnees; caseId: number; bete: BeteSauvage } | null = null;
+    for (const [caseId, betes] of await betesSauvagesDesCases(pool, candidates.map((c) => c.id), apresLe, fin)) {
+      const bete = betes.find(
+        (b, i) =>
+          accepte(b) &&
+          b.arrivee >= apres(apresLe, CALME) &&
+          b.arrivee <= apres(fin, -CALME) &&
+          (i === 0 || betes[i - 1].arrivee <= apres(b.arrivee, -CALME)) &&
+          (i === betes.length - 1 || betes[i + 1].arrivee >= apres(b.arrivee, CALME)),
+      );
+      const ici = candidates.find((c) => c.id === caseId)!;
+      if (bete && (!choisie || bete.arrivee < choisie.bete.arrivee)) choisie = { place: { q: ici.q, r: ici.r }, caseId, bete };
     }
-    throw new Error("Aucune Bête seule telle que l'essai la veut.");
+    if (!choisie) throw new Error("Aucune Bête seule telle que l'essai la veut.");
+    prises.add(choisie.caseId);
+    return choisie;
   };
   /** Une Bête plus rare que commune : plus forte que la commune la plus faible. */
   const rare = (b: BeteSauvage) => b.rareteId !== "commune";
@@ -234,6 +240,10 @@ describe.skipIf(!URL_TEST)("la Bête à portée suit l'Expédition (US-0934, sur
     const [a, b, c] = [await naitre(), await naitre(), await naitre()];
     const { caseId, bete } = await uneBeteSeule(a.territoireId, apres(a.ne, 3 * JOUR), rare);
     const [debut, fin] = [apres(bete.arrivee, -3 * HEURE), apres(bete.depart, 3 * HEURE)];
+    // Les trois Territoires mis à l'heure pour de bon jusqu'au début de la scène, avant tout départ (le premier, deux
+    // heures et demie avant la Bête) : chaque façon de les rattraper ne rejoue plus que la scène, et non les jours écoulés
+    // depuis leur naissance.
+    for (const t of [a, b, c]) await rattraperA(t.territoireId, debut);
     const faibleDeA = await poser(a.territoireId, caseId, apres(bete.arrivee, -2 * HEURE), 6 * HEURE, [[faible, 1]]);
     const sansEscorteDeC = await poser(c.territoireId, caseId, apres(bete.arrivee, 30), 4 * HEURE);
     const forteDeB = await poser(b.territoireId, caseId, apres(bete.arrivee, HEURE), 4 * HEURE, [[forte, 1]]);

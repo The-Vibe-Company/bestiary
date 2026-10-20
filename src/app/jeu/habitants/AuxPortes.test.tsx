@@ -403,7 +403,7 @@ describe("accueillir un Voyageur déjà reparti (US-0337)", () => {
 });
 
 describe("bloquer l'accueil quand la place manque (US-0338)", () => {
-  const PHRASE = "Plus de place au Foyer. Des huttes en ajouteront quand les constructions seront là.";
+  const PHRASE = "Plus de place au Foyer.";
   /** Les boutons « Accueillir » de la partie, grisés ou non, dans l'ordre des lignes. */
   const grises = () => within(partie()).getAllByRole("button", { name: /^Accueillir / }).map((b) => (b as HTMLButtonElement).disabled);
   /** Les phrases de la partie qui disent que la place manque. */
@@ -417,8 +417,9 @@ describe("bloquer l'accueil quand la place manque (US-0338)", () => {
     }
   });
 
-  it("dit une seule fois, dans la partie, qu'il n'y a plus de place et que des huttes en ajouteront, et chaque « Accueillir » grisé y renvoie", () => {
+  it("dit une seule fois, dans la partie, qu'il n'y a plus de place, sans redire ce qui en ajoutera, et chaque « Accueillir » grisé y renvoie", () => {
     render(<AuxPortes placesLibres={0} voyageurs={TROIS} maintenant={MAINTENANT} />);
+    expect(partie().textContent).not.toContain("huttes");
     expect(phrases()).toHaveLength(1);
     const id = phrases()[0].id;
     expect(id).not.toBe("");
@@ -519,7 +520,7 @@ describe("fermer les portes pendant une Famine (US-0341)", () => {
     expect(elements().map(([balise, texte]) => (balise === "P" ? texte : balise))).toEqual([
       "H2",
       "A",
-      "Plus de place au Foyer. Des huttes en ajouteront quand les constructions seront là.",
+      "Plus de place au Foyer.",
       PHRASE,
       "UL",
     ]);
@@ -569,26 +570,25 @@ describe("ne jamais accueillir deux fois (US-0339)", () => {
 });
 
 describe("mesurer l'Entretien en plus avant d'accueillir (US-0340)", () => {
-  const ENTRETIEN = `Mangera ${ENTRETIEN_HABITANT_PAR_HEURE} Nourriture par heure`;
   const PHRASE = `Famine imminente : un Habitant de plus mangera ${ENTRETIEN_HABITANT_PAR_HEURE} Nourriture par heure.`;
   /** Le bouton d'accueil de la ligne d'un Voyageur, qu'il dise « Accueillir » ou « Confirmer l'accueil ». */
   const accueil = (prenom: string) => within(ligne(prenom)).getAllByRole("button")[0] as HTMLButtonElement;
   /** Ce que dit le bouton d'accueil de chaque ligne, et s'il est dans la couleur d'alerte. */
   const accueils = () => prenoms().map((prenom) => [accueil(prenom!).textContent, accueil(prenom!).hasAttribute("data-confirmer")]);
-  /** La dernière ligne de texte de la ligne de chaque Voyageur, sous ses boutons. */
-  const dessous = () => prenoms().map((prenom) => ligne(prenom!).lastElementChild?.textContent);
+  /** Ce que la ligne de chaque Voyageur dit sous ses boutons : la phrase de la confirmation, ou rien (null). */
+  const dessous = () => prenoms().map((prenom) => (ligne(prenom!).lastElementChild?.getAttribute("role") === "alert" ? ligne(prenom!).lastElementChild!.textContent : null));
   /** Les messages annoncés de la partie. */
   const alertes = () => within(partie()).queryAllByRole("alert").map((a) => a.textContent);
 
-  it(`rappelle sous « Accueillir », sur la ligne de chaque Voyageur, l'Entretien qu'il coûtera : « ${ENTRETIEN} »`, () => {
+  it("ne redit pas, sur la ligne de chaque Voyageur, ce qu'il mangera : la même règle pour tous (retour d'Antoine)", () => {
     render(<AuxPortes placesLibres={LIBRES} voyageurs={TROIS} maintenant={MAINTENANT} />);
-    expect(dessous()).toEqual([ENTRETIEN, ENTRETIEN, ENTRETIEN]);
-    for (const { prenom } of TROIS) expect(ligne(prenom).lastElementChild?.previousElementSibling?.contains(accueil(prenom))).toBe(true);
+    expect(dessous()).toEqual([null, null, null]);
+    expect(partie().textContent).not.toContain("Mangera");
   });
 
-  it("le rappelle aussi quand « Accueillir » est grisé faute de place, sans rien demander de plus", async () => {
+  it("ne demande rien de plus quand « Accueillir » est grisé faute de place", async () => {
     render(<AuxPortes placesLibres={0} voyageurs={TROIS} maintenant={MAINTENANT} famineImminente />);
-    expect(dessous()).toEqual([ENTRETIEN, ENTRETIEN, ENTRETIEN]);
+    expect(dessous()).toEqual([null, null, null]);
     await userEvent.setup().click(accueil("Ines"));
     expect(accueils()).toEqual([
       ["Accueillir", false],
@@ -616,8 +616,8 @@ describe("mesurer l'Entretien en plus avant d'accueillir (US-0340)", () => {
         ["Confirmer l'accueil", true],
         ["Accueillir", false],
       ]);
-      // La phrase prend la place du rappel, sur sa ligne seulement ; un lecteur d'écran l'entend aussitôt.
-      expect(dessous()).toEqual([ENTRETIEN, PHRASE, ENTRETIEN]);
+      // La phrase, sous ses boutons, sur sa ligne seulement ; un lecteur d'écran l'entend aussitôt.
+      expect(dessous()).toEqual([null, PHRASE, null]);
       expect(within(ligne("Joran")).getByRole("alert").textContent).toBe(PHRASE);
       // Le bouton dit toujours, pour un lecteur d'écran, qui il accueille.
       expect(accueil("Joran").getAttribute("aria-label")).toBe("Confirmer l'accueil de Joran");
@@ -669,7 +669,7 @@ describe("mesurer l'Entretien en plus avant d'accueillir (US-0340)", () => {
         ["Accueillir", false],
         ["Accueillir", false],
       ]);
-      expect(dessous()).toEqual([ENTRETIEN, ENTRETIEN]);
+      expect(dessous()).toEqual([null, null]);
     });
 
     it("un toucher ailleurs annule la confirmation ; le toucher suivant sur « Accueillir » la redemande", async () => {
@@ -678,7 +678,7 @@ describe("mesurer l'Entretien en plus avant d'accueillir (US-0340)", () => {
       await utilisateur.click(accueil("Joran"));
       await utilisateur.click(document.body);
       expect(accueils()[1]).toEqual(["Accueillir", false]);
-      expect(dessous()).toEqual([ENTRETIEN, ENTRETIEN, ENTRETIEN]);
+      expect(dessous()).toEqual([null, null, null]);
       await utilisateur.click(accueil("Joran"));
       expect(actions.accueillirUnVoyageur).not.toHaveBeenCalled();
       expect(accueils()[1]).toEqual(["Confirmer l'accueil", true]);
@@ -710,7 +710,7 @@ describe("mesurer l'Entretien en plus avant d'accueillir (US-0340)", () => {
         ["Accueillir", false],
         ["Confirmer l'accueil", true],
       ]);
-      expect(dessous()).toEqual([ENTRETIEN, ENTRETIEN, PHRASE]);
+      expect(dessous()).toEqual([null, null, PHRASE]);
     });
 
     it("laisse accueillir dès le premier toucher quand la page relue n'a plus l'avertissement", async () => {

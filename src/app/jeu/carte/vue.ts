@@ -2,7 +2,7 @@
 // taille sont les Cases. Des calculs seuls, sans rien demander au navigateur : ils se vérifient à part. Le dessin
 // (dessin.ts) reçoit la vue telle quelle ; son milieu est une Case en coordonnées non entières, entre deux Cases.
 import { anneau, centre, DIRECTIONS, type Coordonnees } from "@/monde/hex";
-import { CARTE_DEBORD_CASES, CARTE_PAS_CLAVIER_CASES, CARTE_ZOOM_LARGE_CASES, CARTE_ZOOM_PROCHE_CASES } from "@/reglages";
+import { CARTE_DEBORD_CASES, CARTE_PAS_CLAVIER_CASES, CARTE_ZOOM_LARGE_CASES, CARTE_ZOOM_PROCHE_CASES, MONDE_RAYON } from "@/reglages";
 import { aLEcran, type Cadre, type CarteADessiner, type Vue, vueSurLeFoyer } from "./dessin";
 
 /** Un point du plan de `centre`, où une Case a un rayon de 1. */
@@ -22,23 +22,50 @@ function surLeSegment(p: Point, a: Point, b: Point): Point {
 }
 
 /**
- * US-0420 : jusqu'où peut aller le milieu de l'écran, en anneau : CARTE_DEBORD_CASES au-delà de la Case de la
- * carte la plus éloignée du centre. Sur Aube, qui n'a en base que sa Couronne, c'est encore le bord du Monde.
+ * L'anneau de la Case de la carte la plus éloignée du centre (ou de son Foyer) : le bord du Monde, même sur Aube, qui
+ * n'a en base que sa Couronne.
  */
-export function limiteDeLaCarte(carte: CarteADessiner): number {
+export function rayonDuMonde(carte: CarteADessiner): number {
   let plusLoin = anneau(carte.foyer);
   for (let i = 0; i < carte.cases.q.length; i++) plusLoin = Math.max(plusLoin, anneau({ q: carte.cases.q[i], r: carte.cases.r[i] }));
-  return plusLoin + CARTE_DEBORD_CASES;
+  return plusLoin;
+}
+
+/** US-0420 : jusqu'où peut aller le milieu de l'écran, en anneau : CARTE_DEBORD_CASES au-delà du bord du Monde. */
+export function limiteDeLaCarte(carte: CarteADessiner): number {
+  return rayonDuMonde(carte) + CARTE_DEBORD_CASES;
+}
+
+/**
+ * Retour d'Antoine (2026-10-15) : le centre de la limite du milieu de la vue (borner), dans le plan : celui du Monde,
+ * jusqu'à la vue large ; au-delà, d'autant plus abaissé que la carte s'éloigne, jusqu'à poser au plus loin le centre du
+ * Monde au milieu de ce qui se voit sous la barre du haut (`haut`).
+ */
+function origine(vue: Vue): Point {
+  // 0 - … : jamais de « -0 ».
+  return { x: 0, y: 0 - ((1 - recentrage(vue)) * (vue.haut ?? 0)) / 2 / vue.rayon };
+}
+
+/** Retour d'Antoine (2026-10-15) : à combien d'anneaux le milieu de la vue est du centre de sa limite (origine). */
+function eloignement(vue: Vue): number {
+  const [ici, o] = [centre(vue.milieu), origine(vue)];
+  return anneau(depuisLePlan({ x: ici.x - o.x, y: ici.y - o.y }));
 }
 
 /**
  * US-0420 : la vue, son milieu ramené à au plus `limite` Cases du centre du Monde : au point le plus proche du
- * grand hexagone de ce rayon. Arrêtée contre son bord, la carte glisse encore le long de lui.
+ * grand hexagone de ce rayon. Arrêtée contre son bord, la carte glisse encore le long de lui. Retour d'Antoine
+ * (2026-10-15) : éloignée au-delà de la vue large, la limite se resserre avec le zoom (recentrage) autour de son centre
+ * (origine), jusqu'à n'être plus que lui au plus loin, où le Monde entier tient à l'écran ; jamais à moins de `auMoins`
+ * anneaux de lui, dans la limite d'avant (voir deplacer et devoiler).
  */
-export function borner(vue: Vue, limite: number): Vue {
-  if (anneau(vue.milieu) <= limite) return vue;
+export function borner(vue: Vue, limite: number, auMoins = 0): Vue {
+  const resserree = Math.max(recentrage(vue) * limite, Math.min(auMoins, limite));
+  const o = origine(vue);
+  if (eloignement(vue) <= resserree) return vue;
+  if (resserree <= 0) return { ...vue, milieu: depuisLePlan(o) };
   const ici = centre(vue.milieu);
-  const coins = DIRECTIONS.map((d) => centre({ q: d.q * limite, r: d.r * limite }));
+  const coins = DIRECTIONS.map((d) => centre({ q: d.q * resserree, r: d.r * resserree })).map((c) => ({ x: c.x + o.x, y: c.y + o.y }));
   const auBord = coins
     .map((coin, i) => surLeSegment(ici, coin, coins[(i + 1) % coins.length]))
     .reduce((a, b) => (Math.hypot(a.x - ici.x, a.y - ici.y) <= Math.hypot(b.x - ici.x, b.y - ici.y) ? a : b));
@@ -47,11 +74,13 @@ export function borner(vue: Vue, limite: number): Vue {
 
 /**
  * US-0420 : la vue après avoir fait glisser la carte de (dx, dy) pixels : chaque Case se déplace d'autant à
- * l'écran, sans que le milieu sorte des limites.
+ * l'écran, sans que le milieu sorte des limites. Retour d'Antoine (2026-10-15) : une carte déjà au-delà de la limite de
+ * son zoom, glissée pour dévoiler une Case (devoiler), n'y est pas ramenée d'un coup : elle peut s'en rapprocher, pas
+ * s'en éloigner.
  */
 export function deplacer(vue: Vue, dx: number, dy: number, limite: number): Vue {
   const ici = centre(vue.milieu);
-  return borner({ ...vue, milieu: depuisLePlan({ x: ici.x - dx / vue.rayon, y: ici.y - dy / vue.rayon }) }, limite);
+  return borner({ ...vue, milieu: depuisLePlan({ x: ici.x - dx / vue.rayon, y: ici.y - dy / vue.rayon }) }, limite, eloignement(vue));
 }
 
 /**
@@ -64,20 +93,52 @@ export function avancer(vue: Vue, colonnes: number, rangees: number, limite: num
   return deplacer(vue, -colonnes * CARTE_PAS_CLAVIER_CASES * colonne, -rangees * CARTE_PAS_CLAVIER_CASES * rangee, limite);
 }
 
+/** US-0423 : le rayon d'une Case à l'écran, en pixels, quand la moitié de la plus petite dimension de la carte couvre `cases` largeurs de Case. */
+const rayonPour = (largeur: number, hauteur: number, cases: number) => Math.min(largeur, hauteur) / 2 / cases / Math.sqrt(3);
+
+/**
+ * Retour d'Antoine (2026-10-15) : le rayon d'une Case à l'écran, en pixels, où le Monde entier tient sur une carte de
+ * `largeur` × `hauteur` pixels, sous ses `haut` premiers pixels cachés par la barre du haut : le grand hexagone de
+ * MONDE_RAYON Cases (aux Cases pointe en haut, il a ses pointes à gauche et à droite) fait √3 (2 R + 1) rayons de large
+ * et 3 R + 2 de haut ; une Case de marge tout autour.
+ */
+export function rayonPourToutLeMonde(largeur: number, hauteur: number, haut = 0): number {
+  const r = MONDE_RAYON + 1;
+  const visible = hauteur - haut > 0 ? hauteur - haut : hauteur;
+  return Math.min(largeur / (Math.sqrt(3) * (2 * r + 1)), visible / (3 * r + 2));
+}
+
 /**
  * US-0423 : le plus petit et le plus grand rayon d'une Case à l'écran, en pixels, sur une carte de `largeur` ×
- * `hauteur` pixels : de la vue large, où la moitié de sa plus petite dimension couvre CARTE_ZOOM_LARGE_CASES
- * largeurs de Case, à la vue rapprochée, où elle n'en couvre que CARTE_ZOOM_PROCHE_CASES.
+ * `hauteur` pixels : de la vue la plus éloignée à la vue rapprochée, où la moitié de sa plus petite dimension ne couvre
+ * que CARTE_ZOOM_PROCHE_CASES largeurs de Case. Retour d'Antoine (2026-10-15) : au plus loin, le Monde entier tient à
+ * l'écran (rayonPourToutLeMonde), sur un téléphone aussi ; jamais moins loin que la vue large d'avant
+ * (CARTE_ZOOM_LARGE_CASES).
  */
-export function bornesDuZoom(largeur: number, hauteur: number): { min: number; max: number } {
-  const rayonPour = (cases: number) => Math.min(largeur, hauteur) / 2 / cases / Math.sqrt(3);
-  return { min: rayonPour(CARTE_ZOOM_LARGE_CASES), max: rayonPour(CARTE_ZOOM_PROCHE_CASES) };
+export function bornesDuZoom(largeur: number, hauteur: number, haut = 0): { min: number; max: number } {
+  return {
+    min: Math.min(rayonPourToutLeMonde(largeur, hauteur, haut), rayonPour(largeur, hauteur, CARTE_ZOOM_LARGE_CASES)),
+    max: rayonPour(largeur, hauteur, CARTE_ZOOM_PROCHE_CASES),
+  };
+}
+
+/**
+ * Retour d'Antoine (2026-10-15) : de combien la limite du milieu de la vue (borner) se resserre à ce zoom : pas du tout
+ * jusqu'à la vue large (CARTE_ZOOM_LARGE_CASES), comme avant ; au-delà, d'autant plus que la carte s'éloigne, jusqu'à
+ * ramener le milieu au centre du Monde au plus loin (bornesDuZoom), où le Monde entier tient à l'écran. Entre 0 et 1.
+ */
+export function recentrage(vue: Vue): number {
+  if (Math.min(vue.largeur, vue.hauteur) <= 0) return 1;
+  const large = rayonPour(vue.largeur, vue.hauteur, CARTE_ZOOM_LARGE_CASES);
+  const min = bornesDuZoom(vue.largeur, vue.hauteur, vue.haut).min;
+  if (vue.rayon >= large || large <= min) return 1;
+  return Math.min(1, Math.max(0, (vue.rayon - min) / (large - min)));
 }
 
 /** US-0423 : le rayon d'une Case ramené dans les bornes du zoom ; tel quel tant que la carte n'a pas de place à l'écran. */
-function dansLesBornes(rayon: number, largeur: number, hauteur: number): number {
+function dansLesBornes(rayon: number, largeur: number, hauteur: number, haut = 0): number {
   if (Math.min(largeur, hauteur) <= 0) return rayon;
-  const { min, max } = bornesDuZoom(largeur, hauteur);
+  const { min, max } = bornesDuZoom(largeur, hauteur, haut);
   return Math.min(max, Math.max(min, rayon));
 }
 
@@ -87,16 +148,17 @@ function dansLesBornes(rayon: number, largeur: number, hauteur: number): number 
  */
 export function zoomPossible(vue: Vue): { rapprocher: boolean; eloigner: boolean } {
   if (Math.min(vue.largeur, vue.hauteur) <= 0) return { rapprocher: false, eloigner: false };
-  const { min, max } = bornesDuZoom(vue.largeur, vue.hauteur);
+  const { min, max } = bornesDuZoom(vue.largeur, vue.hauteur, vue.haut);
   return { rapprocher: vue.rayon < max * (1 - 1e-9), eloigner: vue.rayon > min * (1 + 1e-9) };
 }
 
 /**
  * US-0423 : la vue sur une carte de `largeur` × `hauteur` pixels, à l'ouverture ou quand l'écran change de taille :
- * le même endroit au milieu, le zoom ramené dans ses bornes pour cette taille.
+ * le même endroit au milieu, le zoom ramené dans ses bornes pour cette taille. Retour d'Antoine (2026-10-15) : et `haut`
+ * pixels cachés en haut, sous la barre du haut (ceux de la vue si rien n'est dit).
  */
-export function cadrer(vue: Vue, largeur: number, hauteur: number): Vue {
-  return { ...vue, largeur, hauteur, rayon: dansLesBornes(vue.rayon, largeur, hauteur) };
+export function cadrer(vue: Vue, largeur: number, hauteur: number, haut = vue.haut): Vue {
+  return { ...vue, largeur, hauteur, ...(haut !== undefined && { haut }), rayon: dansLesBornes(vue.rayon, largeur, hauteur, haut) };
 }
 
 /**
@@ -105,7 +167,7 @@ export function cadrer(vue: Vue, largeur: number, hauteur: number): Vue {
  * milieu aux limites de la carte.
  */
 export function zoomer(vue: Vue, facteur: number, x: number, y: number, limite: number): Vue {
-  const rayon = dansLesBornes(vue.rayon * facteur, vue.largeur, vue.hauteur);
+  const rayon = dansLesBornes(vue.rayon * facteur, vue.largeur, vue.hauteur, vue.haut);
   const [dx, dy] = [x - vue.largeur / 2, y - vue.hauteur / 2];
   const ici = centre(vue.milieu);
   const vise = { x: ici.x + dx / vue.rayon, y: ici.y + dy / vue.rayon };
@@ -114,7 +176,7 @@ export function zoomer(vue: Vue, facteur: number, x: number, y: number, limite: 
 
 /** US-0426 : la vue au retour sur le Foyer : lui au milieu, au zoom de l'ouverture, ramené dans les bornes de cet écran. */
 export function retourAuFoyer(vue: Vue, foyer: Coordonnees): Vue {
-  return cadrer(vueSurLeFoyer(foyer, vue.largeur, vue.hauteur), vue.largeur, vue.hauteur);
+  return cadrer(vueSurLeFoyer(foyer, vue.largeur, vue.hauteur), vue.largeur, vue.hauteur, vue.haut);
 }
 
 /**
@@ -218,5 +280,7 @@ export function devoiler(vue: Vue, c: Coordonnees, cache: Cadre, limite: number)
   ];
   if (glissements.length === 0) return vue;
   const [dx, dy] = glissements.reduce((a, b) => (Math.hypot(a[0], a[1]) <= Math.hypot(b[0], b[1]) ? a : b));
-  return deplacer(vue, dx, dy, limite);
+  // Retour d'Antoine (2026-10-15) : dans la limite d'avant, même au plus loin, où le milieu ne bouge plus sinon.
+  const ici = centre(vue.milieu);
+  return borner({ ...vue, milieu: depuisLePlan({ x: ici.x - dx / vue.rayon, y: ici.y - dy / vue.rayon }) }, limite, limite);
 }
