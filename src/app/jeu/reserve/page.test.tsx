@@ -188,11 +188,11 @@ describe("voir une Réserve vide (US-0809)", () => {
     expect(texte(renderToStaticMarkup(await Reserve()))).toBe("Réserve · Aucun Couple pour l'instant · Envoyer une Expédition");
   });
 
-  it("charge d'abord ses castors, à la taille où ils s'affichent : les sept dixièmes de la largeur, sur un ordinateur", async () => {
+  it("charge d'abord ses castors, à la taille où ils s'affichent : toute la largeur aux seuils de sa feuille de style, sinon les sept dixièmes", async () => {
     connecte([]);
     const html = renderToStaticMarkup(await Reserve());
     expect(peinturesPrioritaires(html)).toEqual(["accueil/castors.webp"]);
-    expect(html).toContain('sizes="(max-width: 760px) 100vw, 70vw"');
+    expect(html).toContain('sizes="(max-width: 820px) 100vw, (max-height: 500px) 100vw, 70vw"');
     connecte(COUPLES);
     expect(peinturesPrioritaires(renderToStaticMarkup(await Reserve()))).toEqual(["accueil/castors.webp"]);
   });

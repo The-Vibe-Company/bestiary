@@ -3,6 +3,7 @@ import { act, cleanup, render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ExpeditionEnCours } from "@/expeditions/en-cours";
+import { peinturesPrioritaires } from "@/test/images";
 
 // US-0916 : le routeur, observé pour voir la page se relire au retour d'une Expédition.
 const routeur = vi.hoisted(() => ({ refresh: vi.fn() }));
@@ -49,6 +50,11 @@ describe("la liste des Expéditions en cours, en direct (US-0918)", () => {
       ["Séjour", "repart dans 3 h 30"],
     ]);
     expect([...document.querySelectorAll("li strong")].map((d) => d.textContent)).toEqual(["Forêt", "Case inconnue"]);
+  });
+
+  it("charge d'abord le paysage de la première Expédition, la peinture de l'écran ; les autres en approchant de l'écran", () => {
+    const { container } = render(<ListeDesExpeditions expeditions={[vers(5, avant(18)), vers(6, avant(90), { destination: { q: 4, r: -5, inconnue: true, distance: 1 } })]} maintenant={MAINTENANT} />);
+    expect(peinturesPrioritaires(container.innerHTML)).toEqual(["prototype/biomes/forest-1.webp"]);
   });
 
   it("fait avancer les comptes à rebours sans recharger la page, et change la phase à son heure", async () => {

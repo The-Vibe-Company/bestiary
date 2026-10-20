@@ -60,7 +60,18 @@ function debutDeLaPhase(expedition: ExpeditionEnCours, phase: Phase): Date | nul
  *
  * US-0945 : en fuite après un combat, elle est au retour avec la mention « en fuite », comme sur la carte.
  */
-export function PanneauDeLExpedition({ expedition, instant, serre = false }: { expedition: ExpeditionEnCours; instant: Date; serre?: boolean }) {
+export function PanneauDeLExpedition({
+  expedition,
+  instant,
+  serre = false,
+  prioritaire = false,
+}: {
+  expedition: ExpeditionEnCours;
+  instant: Date;
+  serre?: boolean;
+  /** Le premier panneau de l'écran : son paysage est la peinture principale, chargée tout de suite, avant le reste. */
+  prioritaire?: boolean;
+}) {
   const [deplie, setDeplie] = useState(false);
   const [rappelEnCours, demarrer] = useTransition();
   const prefixe = useId();
@@ -79,7 +90,7 @@ export function PanneauDeLExpedition({ expedition, instant, serre = false }: { e
   return (
     <article className={[kit.panneau, styles.panneau, serre && styles.serre, deplie && styles.deplie].filter(Boolean).join(" ")} aria-labelledby={id("destination")}>
       <div className={styles.tableau}>
-        <Paysage biome={inconnue ? undefined : destination.biome} brume={inconnue} sizes="(max-width: 760px) 100vw, 50vw" className={styles.paysage} />
+        <Paysage biome={inconnue ? undefined : destination.biome} brume={inconnue} sizes="(max-width: 760px) 100vw, 50vw" prioritaire={prioritaire} className={styles.paysage} />
         <div className={styles.ligne} data-ligne="">
           <strong id={id("destination")} className={styles.destination}>
             {inconnue ? "Case inconnue" : destination.biome}

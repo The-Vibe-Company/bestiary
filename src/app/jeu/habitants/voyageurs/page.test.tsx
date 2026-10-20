@@ -56,7 +56,7 @@ describe("page Voyageurs, l'historique des Voyageurs (US-0342)", () => {
       .map((t) => t.replaceAll("&#x27;", "'"));
   /** Le texte de chaque ligne de Voyageur, ses morceaux (le prénom, l'arrivée, le sort) séparés par « · ». */
   const lignes = (html: string) =>
-    [...html.matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(([, ligne]) => [...ligne.matchAll(/<span[^>]*>(.*?)<\/span>/g)].map(([, morceau]) => morceau.replace(/<[^>]+>/g, "")).join(" · "));
+    [...html.matchAll(/<li(?:\s[^>]*)?>(.*?)<\/li>/g)].map(([, ligne]) => [...ligne.matchAll(/<span[^>]*>(.*?)<\/span>/g)].map(([, morceau]) => morceau.replace(/<[^>]+>/g, "")).join(" · "));
   /** Les deux compteurs d'en-tête, chacun son nom et son nombre. */
   const compteurs = (html: string) => [...html.matchAll(/<dt[^>]*>(.*?)<\/dt><dd[^>]*>(.*?)<\/dd>/g)].map(([, nom, nombre]) => [nom, nombre]);
 
