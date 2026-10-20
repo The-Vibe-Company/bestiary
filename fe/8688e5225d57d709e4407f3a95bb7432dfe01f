@@ -1,0 +1,54 @@
+src/monde/entretien-des-betes.db.test.ts
+  s_7c7d151152e4a5::t_f2e99d6506e116 252-265
+  s_7c7d151152e4a5::t_22974ce2bcf323 1-251
+src/monde/production.db.test.ts
+  s_7c7d151152e4a5::t_37a812d47175fd 82,86,94,140
+src/monde/nourriture.db.test.ts
+  s_7c7d151152e4a5::t_840af85d483bed 63
+src/monde/famine-en-expedition.db.test.ts
+  s_7c7d151152e4a5::t_219d9ec71e8aee 11,71-75,77,198-199,202-203,215,219-223,237-241,248-249
+src/monde/production.ts
+  s_97a431cfa65ca7::t_60cdcbd8b3f4ab 302
+  s_97a431cfa65ca7::t_ff0679da0d5e96 180-186,188-194
+  s_97a431cfa65ca7::t_c14329101e3411 174-176,195
+  s_97a431cfa65ca7::t_04c7b3321b493b 153-157
+  s_97a431cfa65ca7::t_14e4bf204aa694 238-240
+  s_97a431cfa65ca7::t_e214b774d2ee2a 307-314
+  s_7c7d151152e4a5::t_47d6bf9989e505 8,128-136,147-149,169-171,234-235,242,299-300
+src/monde/entretien.db.test.ts
+  s_7c7d151152e4a5::t_4ca84a1393af8d 20-21,334,342,354,394
+src/monde/nourriture.test.ts
+  s_7c7d151152e4a5::t_6a048c44fb57f1 122-207
+src/monde/naissances.ts
+  s_7c7d151152e4a5::t_83318ea04af1c9 21,61-65,67-69,71-76,79
+src/monde/entretien-des-betes.ts
+  s_7c7d151152e4a5::t_da4409c0288bb6 1-29
+src/monde/nourriture.ts
+  s_7c7d151152e4a5::t_b7ede2e1a6ef27 7-18,49-55,57-73,81-82,84,89-94
+src/temps/regles.ts
+  s_7c7d151152e4a5::t_f7aca75418e66e 8-9,16-17,29-34,38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fe8688e5225d57d709e4407f3a95bb7432dfe01f",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    },
+    "s_97a431cfa65ca7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0fb77bea-e470-4301-91e2-b9c67ca65e18",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
