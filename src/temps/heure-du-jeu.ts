@@ -1,4 +1,5 @@
-// L'heure du jeu qui avance dans le navigateur, pour les comptes à rebours en direct. Dans le navigateur seulement.
+// L'heure du jeu qui avance dans le navigateur, pour les comptes à rebours en direct, et la page relue à son heure. Dans le navigateur seulement.
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 /**
@@ -17,4 +18,28 @@ export function useHeureDuJeu(maintenant: Date, vitesse = 1): Date {
     return () => clearInterval(battement);
   }, [base]);
   return new Date(base + (ecoule?.base === base ? vitesse * ecoule.ms : 0));
+}
+
+/** Le plus long délai qu'un minuteur du navigateur sache attendre : au-delà, il partirait aussitôt. */
+const DELAI_MAX_MS = 2_147_483_647;
+/** US-0916 : le temps réel laissé au serveur après l'instant attendu (un retour, une naissance), avant de relire la page. */
+const RELIRE_APRES_MS = 1_000;
+
+/**
+ * US-0818 : relit la page une seconde réelle après l'instant du jeu `quand` (une naissance ; US-0916, le retour d'une
+ * Expédition), le temps que le serveur y soit : elle repart alors de la nouvelle heure du jeu, et de ce qu'elle a changé. L'attente se compte depuis l'heure du
+ * jeu à l'affichage (`maintenant`), au rythme du jeu (`vitesse`). Rien sans instant, pour un instant déjà passé à
+ * l'affichage, ou trop lointain pour un minuteur du navigateur.
+ */
+export function useRelireLaPageA(quand: Date | null, maintenant: Date, vitesse = 1): void {
+  const routeur = useRouter();
+  const attendu = quand?.getTime() ?? null;
+  const lecture = maintenant.getTime();
+  useEffect(() => {
+    if (attendu === null || attendu <= lecture) return;
+    const releve = (attendu - lecture) / vitesse + RELIRE_APRES_MS;
+    if (releve > DELAI_MAX_MS) return;
+    const minuteur = setTimeout(() => routeur.refresh(), Math.ceil(releve));
+    return () => clearTimeout(minuteur);
+  }, [attendu, lecture, vitesse, routeur]);
 }
