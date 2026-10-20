@@ -193,6 +193,7 @@ Le joueur retrouve dans la Réserve les Couples réunis en explorant, découvre 
 ### US-0818 · Suivre l'Élevage en cours
 **En tant que** joueur, **je veux** voir où en est mon Élevage, **afin de** savoir quand naîtra la prochaine Bête.
 
+- **Statut** : Livrée le 2026-10-20 (autopilot, The-Vibe-Company/bestiary#84). Pendant un Élevage, le bloc « Élever » de la fiche le suit à la place de la quantité et du bouton : l'éleveur, les Bêtes nées sur la quantité, le temps avant la prochaine, l'heure de la dernière ; le décompte avance sans recharger et la page relue ailleurs dit la même chose ; après un lancement, le suivi paraît aussitôt (plus de « Aucun éleveur libre. »). Sur l'accueil, sous les Bêtes, le bloc « Élevages » résume les Élevages en cours, un par éleveur, ou dit « Aucun Élevage en cours ». Tranché : rien de nouveau en base, tout se lit du lancement, de la quantité et de la durée (`src/monde/suivi-d-elevage.ts`) ; la page se relit une seconde après chaque naissance (`useRelireLaPageA`, que la liste des Expéditions utilise aussi). Deux remarques moyennes de la relecture corrigées (la main déplacée par une relecture de fond).
 - **Débloquée par** : US-0817
 - **Critères d'acceptation** :
   - Le bloc « Élever » montre l'Élevage en cours : Bêtes déjà nées sur quantité demandée, temps avant la prochaine naissance, heure de la dernière.

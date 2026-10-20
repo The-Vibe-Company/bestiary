@@ -20,6 +20,7 @@
     "db:guard": "tsx scripts/check-migrations.ts",
     "db:dev-setup": "tsx scripts/db-dev-setup.ts",
     "test": "vitest run",
+    "test:cibles": "vitest run --changed origin/main",
     "check:code": "npm run lint && npm run typecheck && npm run db:guard && npm run test",
     "icones": "tsx scripts/generate-icons.ts",
     "emails": "tsx scripts/generate-emails.ts",
