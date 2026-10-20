@@ -22,6 +22,10 @@ export default defineConfig({
     globalSetup: ["./src/test/preparer-base.ts"],
     // Chaque fichier de test démarre sans VERCEL_ENV (voir src/test/environnement.ts).
     setupFiles: ["./src/test/environnement.ts"],
+    // Deux fichiers à la fois, pas un par cœur : sur un poste, plusieurs copies de travail partagent le même Postgres
+    // local, et chaque fichier sur base y ouvre ses connexions et y génère son Monde d'essai. La ligne de commande
+    // peut toujours en demander moins (--maxWorkers=1).
+    maxWorkers: 2,
     testTimeout: 20_000,
     // La préparation de la base de test passe un fichier à la fois (src/test/base.ts) : sous charge,
     // l'attente dépasse les 10 s par défaut d'un beforeAll.
