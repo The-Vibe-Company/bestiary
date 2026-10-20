@@ -320,12 +320,20 @@ describe.skipIf(!URL_TEST)("l'Espèce croisée entre au Bestiaire (US-0933, sur 
     expect([...(await vues(premiere)), ...(await vues(seconde))].map((r) => r.nouvelleEspece)).toEqual([true, false]);
   });
 
-  it("inscrit les Espèces des Rencontres retenues avant lui (migration 0057), à leur première Rencontre, une seule fois", async () => {
+  it("inscrit les Espèces des Rencontres retenues avant lui (migration 0057), à leur première Rencontre, une seule fois, et les siennes seulement", async () => {
     const { territoireId, ne } = await naitre();
     const { caseId, bete } = await uneBeteSeule(territoireId, apres(ne, 3 * JOUR), plusRare);
     const premiere = await poser(territoireId, caseId, apres(bete.arrivee, 30), 30, HEURE);
     const seconde = await poser(territoireId, caseId, apres(bete.arrivee, 90), 30, HEURE);
     await rattraperA(territoireId, apres(bete.depart, JOUR));
+    // Un autre chef du même Monde d'essai, avec sa propre Rencontre : rejouée par cet essai, la migration ne la lit pas.
+    // Rejouée sur toute la base, elle parcourait les Rencontres de tous les Territoires, et un autre fichier qui supprimait
+    // son compte pendant l'instruction la faisait échouer sur la clé étrangère du Territoire disparu (THE-1475).
+    const autre = await naitre();
+    const sienne = await uneBeteSeule(autre.territoireId, apres(autre.ne, 3 * JOUR), plusRare);
+    const laSienne = await poser(autre.territoireId, sienne.caseId, apres(sienne.bete.arrivee, 30), 30, HEURE);
+    await rattraperA(autre.territoireId, apres(sienne.bete.depart, JOUR));
+    expect(await rencontresDUneExpedition(pool, laSienne)).toHaveLength(1);
     // Son inscription seulement : la table est déjà là (src/test/preparer-base.ts).
     const migration = readFileSync(join(process.cwd(), "drizzle/0057_bestiaire.sql"), "utf8")
       .split("--> statement-breakpoint")
@@ -335,16 +343,19 @@ describe.skipIf(!URL_TEST)("l'Espèce croisée entre au Bestiaire (US-0933, sur 
 
     const client = await pool.connect();
     let inscrites: { especeId: string; etat: string; croiseeLe: Date }[];
+    let deLAutre: typeof inscrites;
     let nouvelles: boolean[];
     try {
       await client.query("begin");
-      // Retenues avant le Bestiaire : rien ne les inscrivait.
-      await client.query("delete from bestiaire where territoire_id = $1", [territoireId]);
+      // Retenues avant le Bestiaire : rien ne les inscrivait, chez l'un comme chez l'autre.
+      await client.query("delete from bestiaire where territoire_id = any($1::int[])", [[territoireId, autre.territoireId]]);
       expect(await bestiaireDuTerritoire(client, territoireId)).toEqual([]);
+      expect(await bestiaireDuTerritoire(client, autre.territoireId)).toEqual([]);
       await client.query(migration);
       // Rejouée, elle ne change rien.
       await client.query(migration);
       inscrites = await bestiaireDuTerritoire(client, territoireId);
+      deLAutre = await bestiaireDuTerritoire(client, autre.territoireId);
       nouvelles = [...(await rencontresDUneExpedition(client, premiere)), ...(await rencontresDUneExpedition(client, seconde))].map((r) => r.nouvelleEspece);
     } finally {
       await client.query("rollback");
@@ -352,6 +363,8 @@ describe.skipIf(!URL_TEST)("l'Espèce croisée entre au Bestiaire (US-0933, sur 
     }
     expect(inscrites).toEqual([{ especeId: bete.especeId, etat: "croisee", croiseeLe: apres(bete.arrivee, HEURE) }]);
     expect(nouvelles).toEqual([true, false]);
+    // Rien chez l'autre chef : l'essai n'a rejoué la migration que sur son Territoire.
+    expect(deLAutre).toEqual([]);
   });
 
   it("trouve encore une Bête seule quand les essais précédents, nés tout près, ont pris toutes les Cases à 2 du Foyer", async () => {
