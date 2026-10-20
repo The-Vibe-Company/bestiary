@@ -42,6 +42,9 @@ vi.mock("@/monde/production", async (original) => ({ ...(await original<object>(
 // US-0341 : la Famine que le Territoire retient, lue par la vraie garde ; aucune, sauf quand un essai en met une.
 const famine = vi.hoisted(() => ({ famineDepuis: vi.fn(async (): Promise<number | null> => null) }));
 vi.mock("@/monde/famine", async (original) => ({ ...(await original<object>()), ...famine }));
+// US-0826 : l'Entretien des Bêtes de l'effectif, lu sur base (src/monde/entretien-des-betes.db.test.ts) ; aucune Bête ici.
+const betes = vi.hoisted(() => ({ entretienDesBetes: vi.fn(async () => ({ viande: "0.000000", vegetaux: "0.000000", omnivores: "0.000000" })) }));
+vi.mock("@/monde/entretien-des-betes", () => betes);
 const temps = vi.hoisted(() => ({ rattraper: vi.fn(async () => new Date()) }));
 vi.mock("@/temps/rattraper", () => temps);
 vi.mock("@/db", () => ({ getPool: () => ({}) }));
@@ -577,6 +580,26 @@ describe("page Habitants (US-0302, US-0303, US-0305, US-0307, US-0308, US-0309, 
     ]);
     await afficher();
     expect(texte(tenue())).toBe("Nourriture pour encore moins d'une heure");
+  });
+
+  it("compte l'Entretien des Bêtes de l'effectif dans le temps que tiendra la Nourriture, et dans l'avertissement confié à « Aux portes » (US-0826)", async () => {
+    // Douze Habitants (24) et des carnivores qui mangent 8 de Viande par heure, toute sa production : la Viande, à 12, se
+    // vide en 1 h ; les Végétaux, montés à 102, paient alors les 24 pour 14 produits : 10 h 12 de plus. Sans les carnivores,
+    // la Viande tiendrait 3 h, puis les Végétaux, à 106, 53 h.
+    connecte(12);
+    stocks.stocksDuTerritoire.mockResolvedValue([
+      unStock("viande", "nourriture", "12.000000", "8.000000"),
+      unStock("vegetaux", "nourriture", "100.000000", "14.000000"),
+      ...STOCKS_DE_PRAIRIE.slice(2),
+    ]);
+    betes.entretienDesBetes.mockResolvedValueOnce({ viande: "8.000000", vegetaux: "0.000000", omnivores: "0.000000" });
+    await afficher();
+    expect(betes.entretienDesBetes).toHaveBeenCalledWith(expect.anything(), 12);
+    expect(texte(tenue())).toBe("Nourriture pour encore 11 h");
+    expect(portes.AuxPortes.mock.lastCall?.[0].famineImminente).toBe(true);
+    await afficher();
+    expect(texte(tenue())).toBe("Nourriture pour encore 2 j 8 h");
+    expect(portes.AuxPortes.mock.lastCall?.[0].famineImminente).toBe(false);
   });
 
   it("met en tête du groupe de chaque Métier son nom seul, sans redire ce qu'il fait ni ce qu'il attend, dans l'ordre des huit Métiers (US-0307)", async () => {

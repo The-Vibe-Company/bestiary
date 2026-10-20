@@ -9,8 +9,10 @@ import { chefDuCompte, naitreSurLaCouronne } from "@/chefs/chef";
 import { getPool } from "@/db";
 import { recevoirLesBetesDeNaissance } from "@/monde/betes-de-naissance";
 import { nombreDeCouples } from "@/monde/couple";
+import { entretienDesBetes } from "@/monde/entretien-des-betes";
 import { famineDepuis } from "@/monde/famine";
 import { entretienDesHabitants, nombreDHabitants, nombreSansMetier } from "@/monde/habitants";
+import type { EntretienDesBetesLu } from "@/monde/nourriture";
 import { famineImminenteDepuis } from "@/monde/production";
 import { nombreDeRecitsNonLus } from "@/monde/recits";
 import { type Stock, stocksDuTerritoire } from "@/monde/stocks";
@@ -139,6 +141,16 @@ export async function sansMetierALHeure(territoireId: number): Promise<number> {
 export async function entretienALHeure(territoireId: number): Promise<string> {
   await mettreALHeure(territoireId);
   return (await entretienDesHabitants(getPool(), territoireId)).parHeure;
+}
+
+/**
+ * US-0826 : l'Entretien des Bêtes de l'effectif par heure, en Nourriture (numeric de Postgres, en texte), par régime, pour
+ * l'avertissement « famine imminente » de la barre du haut, lu après la mise à l'heure du Territoire, comme les Stocks :
+ * le même que le calcul du jeu prélève (entretienDesBetes).
+ */
+export async function entretienDesBetesALHeure(territoireId: number): Promise<EntretienDesBetesLu> {
+  await mettreALHeure(territoireId);
+  return entretienDesBetes(getPool(), territoireId);
 }
 
 /**

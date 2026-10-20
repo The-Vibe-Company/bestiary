@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import {
   couplesReunisALHeure,
   entretienALHeure,
+  entretienDesBetesALHeure,
   famineALHeure,
   famineImminenteALHeure,
   habitantsALHeure,
@@ -54,7 +55,7 @@ export async function ActionsDuJeu() {
       </>
     );
   const territoireId = joueur.recitLu ? joueur.territoireId : null;
-  const [stocks, habitants, recitsNonLus, voyageurs, sansMetier, entretien, famineImminente, enFamine, couplesReunis] =
+  const [stocks, habitants, recitsNonLus, voyageurs, sansMetier, entretien, famineImminente, enFamine, couplesReunis, betes] =
     territoireId !== null
       ? await Promise.all([
           stocksALHeure(territoireId),
@@ -66,10 +67,12 @@ export async function ActionsDuJeu() {
           famineImminenteALHeure(territoireId),
           famineALHeure(territoireId),
           couplesReunisALHeure(territoireId),
+          entretienDesBetesALHeure(territoireId),
         ])
-      : [null, null, null, null, null, null, null, null, null];
+      : [null, null, null, null, null, null, null, null, null, null];
   // US-0321 : dans combien d'heures de jeu la Nourriture ne paiera plus l'Entretien ; null quand elle est assurée.
-  const famine = stocks && entretien !== null ? nourriturePourEncoreDesStocks(stocks, entretien) : null;
+  // US-0826 : les Bêtes de l'effectif mangent aussi, comme le calcul du jeu les compte.
+  const famine = stocks && entretien !== null ? nourriturePourEncoreDesStocks(stocks, entretien, betes ?? undefined) : null;
   return (
     <>
       {identifier}

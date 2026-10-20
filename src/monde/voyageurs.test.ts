@@ -154,6 +154,16 @@ describe("l'avertissement « famine imminente » au moment d'accueillir (US-0340
     expect(avertissementDeFamine(stocks("0.000000", "22.000000"), "24.000000")).toBe(true);
   });
 
+  // US-0826 : douze Habitants (24) et des carnivores qui mangent 8 de Viande par heure, toute sa production : la Viande, à
+  // 12, se vide en 1 h ; les Végétaux, montés à 102, paient alors les 24 pour 14 produits : 10 h 12 de plus, sous le seuil.
+  // Sans les carnivores, la Viande tiendrait 3 h, puis les Végétaux, à 106, 53 h.
+  it("compte l'Entretien des Bêtes, comme le calcul du jeu (US-0826)", () => {
+    expect(avertissementDeFamine(stocks("12.000000", "100.000000"), "24.000000")).toBe(false);
+    expect(avertissementDeFamine(stocks("12.000000", "100.000000"), "24.000000", null, { viande: "8.000000", vegetaux: "0.000000", omnivores: "0.000000" })).toBe(true);
+    // Les omnivores mangent après les Habitants : quand la production nourrit ceux-ci, aucun avertissement, poules ou non.
+    expect(avertissementDeFamine(stocks("60.000000", "100.000000"), "6.000000", null, { viande: "0.000000", vegetaux: "0.000000", omnivores: "30.000000" })).toBe(false);
+  });
+
   // US-0323 : à 13 h tout juste (Végétaux 26, −2 par heure), dans la marge : actif seulement si le Territoire le retient.
   it("le reste dans la marge du seuil tant que le Territoire retient l'avertissement, comme la bande", () => {
     expect(avertissementDeFamine(stocks("0.000000", "26.000000"), "24.000000", null)).toBe(false);
