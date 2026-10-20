@@ -2,10 +2,10 @@
 // un temps après la fin de leur durée, d'autant plus longtemps qu'ils sont nombreux, jusqu'à un plafond : l'Expédition peut
 // encore les rencontrer, et les emmener, même arrivée peu après leur départ (src/expeditions/apprivoisement.ts, finDeVue).
 // L'effet ne vaut que pour l'Expédition qui a les Éclaireurs : il se lit de ses seuls Éclaireurs, fixés au départ, le même
-// pour tous les Territoires qui la calculent (vueProlongee, src/expeditions/apprivoisement.ts). Côté serveur uniquement.
+// pour tous les Territoires qui la calculent (vueProlongee, src/expeditions/eclaireurs.ts). Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
-import { vueProlongee } from "./apprivoisement";
+import { vueProlongee } from "./eclaireurs";
 
 /**
  * US-0970 : la vue prolongée (vueProlongee) de chaque Expédition `ids` qui a des Éclaireurs, de toutes leurs Espèces ;

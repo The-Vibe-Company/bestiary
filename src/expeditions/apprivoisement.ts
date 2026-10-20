@@ -7,7 +7,6 @@
 // au départ (horaires, escorte, force) : il a lieu une fois pour toutes, le même quel que soit le Territoire rattrapé en
 // premier. Les Rencontres (src/expeditions/rencontres.ts) l'appliquent. Côté serveur comme dans le navigateur.
 import { hacher } from "@/monde/couronne";
-import { MINUTES_DE_VUE_AU_PLUS, MINUTES_DE_VUE_PAR_ECLAIREUR } from "@/reglages";
 
 /** US-0934 : la Rareté des Bêtes toujours à portée. */
 export const COMMUNE = "commune";
@@ -27,15 +26,6 @@ export type BeteSurLaCase = { arrivee: Date; depart: Date; force: number; rarete
  * après la fin de sa durée (src/expeditions/vue-des-eclaireurs.ts) ; absente : aucune.
  */
 export type ExpeditionSurLaCase = { id: number; arrivee: Date; depart: Date; escorte: number | null; vueProlongee?: number };
-
-/**
- * US-0970 : combien de millisecondes du jeu `eclaireurs` Éclaireurs (US-0976, toutes Espèces ensemble) gardent en vue une
- * Bête après la fin de sa durée : MINUTES_DE_VUE_PAR_ECLAIREUR chacun, jusqu'à MINUTES_DE_VUE_AU_PLUS ; aucune sans
- * Éclaireur. US-0971 : le récapitulatif de l'écran d'Expédition l'annonce avant le départ.
- */
-export function vueProlongee(eclaireurs: number): number {
-  return Math.min(Math.max(eclaireurs, 0) * MINUTES_DE_VUE_PAR_ECLAIREUR, MINUTES_DE_VUE_AU_PLUS) * 60_000;
-}
 
 /**
  * US-0970 : jusqu'où une Expédition dont les Éclaireurs gardent les Bêtes en vue `vueProlongee` millisecondes de plus voit

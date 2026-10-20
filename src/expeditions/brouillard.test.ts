@@ -6,7 +6,8 @@ import {
   BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES,
   BROUILLARD_LEVE_SUR_LE_CHEMIN_CASES,
 } from "@/reglages";
-import { casesRevelees, rayonDesEclaireurs } from "./brouillard";
+import { casesRevelees } from "./brouillard";
+import { rayonDesEclaireurs } from "./eclaireurs";
 import { cheminDUneExpedition } from "./chemin";
 import type { HorairesDUneExpedition } from "./phase";
 

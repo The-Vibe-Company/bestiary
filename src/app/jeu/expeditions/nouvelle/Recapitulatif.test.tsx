@@ -532,8 +532,10 @@ describe("les Éclaireurs au récapitulatif (US-0976)", () => {
 
 describe("l'effet des Éclaireurs avant le départ (US-0971)", () => {
   /** Deux Espèces Éclaireuses pour l'essai : leurs Bêtes peuvent partir en Éclaireurs, à côté de l'escorte. */
-  const PIGEON: EspeceDisponible = { id: "pigeon", nom: "Pigeon biset", illustration: "especes/pigeon.webp", disponibles: 3, force: 2216, vitesse: 80, males: 2, femelles: 1, coupleReuni: false, eclaireuse: true };
+  const PIGEON: EspeceDisponible = { id: "pigeon", nom: "Pigeon biset", illustration: "especes/pigeon.webp", disponibles: 9, force: 2216, vitesse: 80, males: 5, femelles: 4, coupleReuni: false, eclaireuse: true };
   const POULE_ECLAIREUSE: EspeceDisponible = { ...POULE, eclaireuse: true };
+  /** Assez d'Éclaireurs pour atteindre les deux plafonds, et un de plus. */
+  const TROP = Math.max(Math.ceil(MINUTES_DE_VUE_AU_PLUS / MINUTES_DE_VUE_PAR_ECLAIREUR), Math.ceil(BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES / BROUILLARD_LEVE_PAR_ECLAIREUR_CASES)) + 1;
   /** Ce que dit la ligne « Avec eux » de `rayon` Cases de brouillard en plus et de `minutes` de vue en plus. */
   const apport = (rayon: number, minutes: number) => `Brouillard levé +${rayon} ${rayon > 1 ? "Cases" : "Case"}, Bêtes en vue +${formaterMinutes(minutes)}`;
 
@@ -551,6 +553,9 @@ describe("l'effet des Éclaireurs avant le départ (US-0971)", () => {
     expect(ligne("Avec eux")).toBe(
       apport(Math.min(4 * BROUILLARD_LEVE_PAR_ECLAIREUR_CASES, BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES), Math.min(4 * MINUTES_DE_VUE_PAR_ECLAIREUR, MINUTES_DE_VUE_AU_PLUS)),
     );
+    // Les deux plafonds atteints et dépassés : ni plus de Cases, ni plus de temps.
+    choisir(`?explorateurs=1&eclaireurs=pigeon.${TROP - 1}&eclaireurs=poule.1`);
+    expect(ligne("Avec eux")).toBe(apport(BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES, MINUTES_DE_VUE_AU_PLUS));
   });
 
   it("garde la force de l'escorte seule, Éclaireurs ou non ; sans Éclaireur, rien n'en est dit", () => {
@@ -577,6 +582,10 @@ describe("l'effet des Éclaireurs avant le départ (US-0971)", () => {
     const avant = new Date(arrivee.getTime() - MINUTES_DE_VUE_PAR_ECLAIREUR * 60_000);
     ouvrir("?explorateurs=1&eclaireurs=pigeon.1", { especes: [SOURIS, PIGEON], betes: [repere(avant)] });
     expect(ligne("À l'arrivée")).toBe("Pigeon biset ne sera plus là");
+    // Une milliseconde plus tard, elle est encore en vue à l'arrivée : la limite est celle des Rencontres (vueLe).
+    cleanup();
+    ouvrir("?explorateurs=1&eclaireurs=pigeon.1", { especes: [SOURIS, PIGEON], betes: [repere(new Date(avant.getTime() + 1))] });
+    expect(ligne("À l'arrivée")).toBeUndefined();
     // Avec un Éclaireur de plus, elle l'est encore.
     choisir("?explorateurs=1&eclaireurs=pigeon.2");
     expect(ligne("À l'arrivée")).toBeUndefined();

@@ -2,31 +2,17 @@
 // Territoire, Case après Case, à l'heure de son passage (passagesDUneExpedition, src/expeditions/position.ts), puis autour
 // de sa destination à son arrivée. Il se lève par decouvrir (src/monde/brouillard.ts, US-0442), la seule écriture du
 // brouillard : levé, il le reste pour toujours, et pour ce Territoire seulement. US-0969 : les Éclaireurs de l'Expédition
-// (US-0976) l'agrandissent. Côté serveur et scripts ; rayonDesEclaireurs aussi dans le navigateur, où le récapitulatif
-// de l'écran d'Expédition l'annonce avant le départ (US-0971).
+// (US-0976) l'agrandissent (rayonDesEclaireurs, src/expeditions/eclaireurs.ts). Côté serveur et scripts uniquement.
 import type { Pool, PoolClient } from "pg";
 import { decouvrir } from "@/monde/brouillard";
 import { casesDansLeRayon, type Coordonnees } from "@/monde/hex";
-import {
-  BROUILLARD_LEVE_AUTOUR_DE_LA_DESTINATION_CASES,
-  BROUILLARD_LEVE_PAR_ECLAIREUR_CASES,
-  BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES,
-  BROUILLARD_LEVE_SUR_LE_CHEMIN_CASES,
-} from "@/reglages";
+import { BROUILLARD_LEVE_AUTOUR_DE_LA_DESTINATION_CASES, BROUILLARD_LEVE_SUR_LE_CHEMIN_CASES } from "@/reglages";
+import { rayonDesEclaireurs } from "./eclaireurs";
 import type { HorairesDUneExpedition } from "./phase";
 import { passagesDUneExpedition } from "./position";
 
 /** US-0914 : une Case qu'une Expédition a sortie du brouillard, et l'instant du jeu où elle l'a fait : son premier passage d'où elle la voit. */
 export type CaseRevelee = Coordonnees & { le: Date };
-
-/**
- * US-0969 : de combien de Cases les `eclaireurs` Éclaireurs d'une Expédition (US-0976, toutes Espèces ensemble) agrandissent
- * le rayon du brouillard qu'elle lève, sur son chemin comme autour de sa destination : BROUILLARD_LEVE_PAR_ECLAIREUR_CASES
- * par Éclaireur, jusqu'à BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES. Aucune sans Éclaireur.
- */
-export function rayonDesEclaireurs(eclaireurs: number): number {
-  return Math.min(Math.max(0, eclaireurs) * BROUILLARD_LEVE_PAR_ECLAIREUR_CASES, BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES);
-}
 
 /**
  * US-0914 : les Cases qu'une Expédition partie du `foyer` vers la `destination` a sorties du brouillard à l'instant du jeu
