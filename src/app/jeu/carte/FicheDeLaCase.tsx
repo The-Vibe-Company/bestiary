@@ -224,7 +224,7 @@ export function FicheDeLaCase({
           <Bandeau biome={null} titre="Case inconnue" />
           <div className={styles.corps}>
             <Distance cases={fiche.distance} />
-            <VersLExpedition vers={laCase} destination={destination} refus={horsDePortee(fiche)} />
+            <VersLExpedition vers={laCase} destination={destination} refus={refusDeDestination(fiche)} />
           </div>
         </>
       ) : fiche ? (
@@ -242,7 +242,7 @@ export function FicheDeLaCase({
               </div>
             </dl>
             {fiche.distance > 0 ? <Distance cases={fiche.distance} /> : null}
-            <VersLExpedition vers={laCase} destination={destination} refus={fiche.chef !== null || fiche.distance === 0 ? CASE_D_UN_TERRITOIRE : horsDePortee(fiche)} />
+            <VersLExpedition vers={laCase} destination={destination} refus={refusDeDestination(fiche)} />
           </div>
         </>
       ) : echec ? (
@@ -289,11 +289,20 @@ function Distance({ cases }: { cases: number }) {
 const horsDePortee = ({ distance }: { distance: number }) => (distance > PORTEE_D_EXPLORATION_CASES ? CASE_HORS_DE_PORTEE : null);
 
 /**
+ * Pourquoi une Case, d'après sa fiche, ne peut pas être la destination d'une Expédition : une Case d'un Territoire, le
+ * Foyer du joueur ou celle d'un chef (US-0907), ou au-delà de la portée d'exploration (US-0908) ; null si elle le peut.
+ * Sous le brouillard, la fiche ne sait que la distance. Ce que la fiche affiche, et ce sur quoi la carte part (CarteDuJeu).
+ */
+export const refusDeDestination = (fiche: Fiche | FicheInconnue): string | null =>
+  "inconnue" in fiche ? horsDePortee(fiche) : fiche.chef !== null || fiche.distance === 0 ? CASE_D_UN_TERRITOIRE : horsDePortee(fiche);
+
+/**
  * US-0901 : « Envoyer une Expédition », au pied de la fiche, vers l'écran d'Expédition avec la Case `vers` pour
  * destination ; rien sur une Case qui ne peut pas en être une (`refus`) : une Case d'un Territoire (US-0907), ou
  * au-delà de la portée d'exploration (US-0908). US-0907 : sur la carte ouverte pour choisir la destination
  * (`destination`, son adresse), « Choisir cette destination », qui revient à l'écran avec la Case et les autres choix
- * qu'il avait ; sur une Case qui ne peut pas en être une, le refus à sa place.
+ * qu'il avait (retour d'Antoine, 2026-10-15 : la carte y va d'elle-même, CarteDuJeu ; le lien reste le temps d'y aller) ;
+ * sur une Case qui ne peut pas en être une, le refus à sa place, et la carte reste.
  */
 function VersLExpedition({ vers, refus, destination }: { vers: Coordonnees; refus: string | null; destination: string | null }) {
   if (refus) return destination === null ? null : <p className={styles.refus}>{refus}</p>;

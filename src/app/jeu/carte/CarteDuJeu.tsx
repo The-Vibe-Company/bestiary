@@ -1,9 +1,11 @@
 "use client";
 
 import { getImageProps } from "next/image";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { BeteReperee } from "@/expeditions/betes-reperees";
 import { cheminDUneExpedition } from "@/expeditions/chemin";
+import { versLEcran } from "@/expeditions/choix-de-destination";
 import type { ExpeditionEnCours } from "@/expeditions/en-cours";
 import type { CarteDuJoueur } from "@/monde/carte";
 import { couleur } from "@/monde/couleurs-de-la-carte";
@@ -15,7 +17,7 @@ import { CasesDecouvertes } from "./CasesDecouvertes";
 import { nombreDeDecouvertes, useDecouvertes } from "./decouvertes";
 import { avecToutLeMonde, type Cadre, dessinerLaCarte, type Peinture, vueSurLeFoyer, type Hutte, type Vue } from "./dessin";
 import { ExpeditionsSurLaCarte, placerLesReperes, type Repere, reperesSous, repereTouche } from "./ExpeditionsSurLaCarte";
-import { FicheDeLaCase, useFicheDeLaCase } from "./FicheDeLaCase";
+import { FicheDeLaCase, refusDeDestination, useFicheDeLaCase } from "./FicheDeLaCase";
 import { FlecheDuFoyer, placerLaFleche } from "./FlecheDuFoyer";
 import { suivreLesGestes } from "./gestes";
 import { LEGENDE_MONTREE } from "./Legende";
@@ -104,6 +106,13 @@ export function CarteDuJeu({
   const choisie = useRef<Coordonnees | null>(null);
   // US-0908 : si la carte est ouverte pour choisir la destination d'une Expédition, où elle grise ce qui est hors de portée.
   const enChoix = useRef(destination !== null);
+  // Retour d'Antoine (2026-10-15) : pendant ce choix, la Case touchée qui peut être une destination est choisie dès que
+  // sa fiche le dit : la carte revient d'elle-même à l'écran d'Expédition. Partie (`enRoute`, l'adresse où elle va), elle
+  // n'écoute plus les touchers, et ne repart pas.
+  const router = useRouter();
+  const enRoute = useRef<string | null>(null);
+  // Un choix fait avant que l'adresse de la carte change (le choix commence ou s'arrête) ne la fait pas partir.
+  const choixPerime = useRef(true);
   const pourLaFiche = useRef<{ redessiner: () => void; montrer: (c: Coordonnees, cache: Cadre) => void }>({ redessiner: () => {}, montrer: () => {} });
   // US-0913 : l'Expédition dont la fiche est ouverte : une seule fiche à la fois, d'une Case ou d'une Expédition. US-0948 :
   // ou d'une Bête repérée, la Bête regardée.
@@ -113,6 +122,7 @@ export function CarteDuJeu({
     (c: Coordonnees | null) => {
       setSuivie(null);
       setRegardee(null);
+      choixPerime.current = false;
       choisir(c);
     },
     [choisir],
@@ -288,7 +298,7 @@ export function CarteDuJeu({
       // point, puis la Case dessous (repereTouche) ; sinon, la Case dessous. Pendant le choix d'une destination, toujours
       // la Case : une Expédition qui y séjourne ne l'empêche pas d'être choisie. US-0948 : de même du repère d'une Bête.
       toucher: (x, y) => {
-        if (!vue) return;
+        if (!vue || enRoute.current !== null) return;
         const touchables = reperesAToucher();
         const touche = enChoix.current ? null : repereTouche(touchables, x, y, ouvertActuel.current);
         const repere = touchables.find((r) => r.id === touche);
@@ -364,10 +374,27 @@ export function CarteDuJeu({
   }, [laCase]);
   // US-0908 : ce qui est au-delà de la portée, grisé aussitôt que commence le choix de la destination, et plus du tout
   // une fois qu'il s'arrête.
+  // Retour d'Antoine (2026-10-15) : la même carte peut rester montée d'une adresse à l'autre (« ?choix=destination » ou
+  // non) : quand le choix commence ou s'arrête, elle oublie son départ et ferme la fiche, pour ne pas rester sourde aux
+  // touchers ni repartir sans nouveau toucher.
   useEffect(() => {
     enChoix.current = destination !== null;
+    enRoute.current = null;
+    choixPerime.current = true;
+    fermer();
     pourLaFiche.current.redessiner();
-  }, [destination]);
+  }, [destination, fermer]);
+  // Retour d'Antoine (2026-10-15) : l'écran d'Expédition avec la Case choisie et ses autres choix, dès que sa fiche dit
+  // qu'elle peut être la destination. Une seule fois : l'adresse ne change pas quand la fiche se redessine, et partie, la
+  // carte n'écoute plus les touchers (enRoute). Ici, et non dans la fiche, pour ne pas repartir quand React rejoue les
+  // effets d'un composant qui se monte (StrictMode).
+  const versLEcranChoisi = destination !== null && choix?.fiche && !refusDeDestination(choix.fiche) ? versLEcran(choix.case, destination) : null;
+  useEffect(() => {
+    // Après l'effet ci-dessus, qui périme le choix d'avant quand l'adresse change : il ne part pas.
+    if (versLEcranChoisi === null || choixPerime.current) return;
+    enRoute.current = versLEcranChoisi;
+    router.push(versLEcranChoisi);
+  }, [versLEcranChoisi, router]);
   const montrer = useCallback((c: Coordonnees, cache: Cadre) => pourLaFiche.current.montrer(c, cache), []);
   return (
     <div className={styles.cadre}>

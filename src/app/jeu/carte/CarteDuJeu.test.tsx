@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { BeteReperee } from "@/expeditions/betes-reperees";
 import type { ExpeditionEnCours } from "@/expeditions/en-cours";
@@ -20,6 +21,9 @@ const serveur = vi.hoisted(() => ({ ficheDeLaCase: vi.fn(), decouvertesDepuis: v
 vi.mock("./actions", () => serveur);
 // US-0920 : le rappel d'une Expédition, depuis sa fiche, une action du serveur, comme ces fiches.
 vi.mock("@/app/jeu/expeditions/actions", () => ({ rappeler: vi.fn() }));
+/** Retour d'Antoine (2026-10-15) : où la carte s'en va d'elle-même, par le routeur de Next. */
+const routeur = vi.hoisted(() => ({ push: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => routeur }));
 
 /**
  * Ce que le <canvas> a reçu : ses gestes (mise à l'échelle, remplissages et traits avec leur couleur), le départ de
@@ -50,6 +54,7 @@ beforeEach(() => {
   images = [];
   aLaProchaineImage = new Map();
   fiches = [];
+  routeur.push.mockReset();
   serveur.ficheDeLaCase.mockImplementation((q: number, r: number) => new Promise((repondre) => void fiches.push({ q, r, repondre })));
   serveur.decouvertesDepuis.mockReset();
   serveur.decouvertesDepuis.mockResolvedValue(null);
@@ -915,6 +920,112 @@ describe("choisir la destination d'une Expédition sur la carte (US-0907)", () =
     await act(async () => fiches[0].repondre(FORET));
     expect(lien("Choisir cette destination")!.getAttribute("href")).toBe(`/jeu/expeditions/nouvelle?q=${AUTOUR[1].q}&r=${AUTOUR[1].r}&sejour=60`);
     expect(lien("Envoyer une Expédition")).toBeNull();
+    // Retour d'Antoine (2026-10-15) : un toucher suffit, la carte revient d'elle-même à l'écran avec ses autres choix.
+    expect(routeur.push).toHaveBeenCalledExactlyOnceWith(`/jeu/expeditions/nouvelle?q=${AUTOUR[1].q}&r=${AUTOUR[1].r}&sejour=60`);
+  });
+
+  it("ouverte pour choisir la destination, reste sur une Case au-delà de la portée, que sa fiche dit hors de portée (retour d'Antoine, 2026-10-15)", async () => {
+    render(<CarteDuJeu carte={CARTE} fonds={FONDS} destination="choix=destination&sejour=60" />);
+    cliquer(AUTOUR[1]);
+    await act(async () => fiches[0].repondre({ ...FORET, distance: PORTEE_D_EXPLORATION_CASES + 1 }));
+    expect(screen.getByRole("region", { name: "Fiche de la Case" }).textContent).toContain("Cette Case est hors de portée.");
+    expect(routeur.push).not.toHaveBeenCalled();
+    // Une autre Case, à portée, touchée ensuite, part.
+    cliquer(AUTOUR[2]);
+    await act(async () => fiches[1].repondre({ ...FORET, ...AUTOUR[2] }));
+    expect(routeur.push).toHaveBeenCalledExactlyOnceWith(`/jeu/expeditions/nouvelle?q=${AUTOUR[2].q}&r=${AUTOUR[2].r}&sejour=60`);
+  });
+
+  it("partie vers l'écran, n'écoute plus les touchers, ni fiche ni second départ, même quand la carte se redessine (retour d'Antoine, 2026-10-15)", async () => {
+    const { rerender } = render(<CarteDuJeu carte={CARTE} fonds={FONDS} destination="choix=destination" />);
+    cliquer(AUTOUR[1]);
+    await act(async () => fiches[0].repondre(FORET));
+    expect(routeur.push).toHaveBeenCalledOnce();
+    cliquer(AUTOUR[2]);
+    expect(fiches).toHaveLength(1);
+    rerender(<CarteDuJeu carte={CARTE} fonds={FONDS} destination="choix=destination" />);
+    act(() => suivi!.annoncer());
+    expect(routeur.push).toHaveBeenCalledOnce();
+  });
+
+  it("restée montée quand le choix s'arrête ou recommence, oublie son départ et ferme la fiche : elle écoute de nouveau, sans repartir d'elle-même", async () => {
+    const { rerender } = render(<CarteDuJeu carte={CARTE} fonds={FONDS} destination="choix=destination" />);
+    cliquer(AUTOUR[1]);
+    await act(async () => fiches[0].repondre(FORET));
+    expect(routeur.push).toHaveBeenCalledOnce();
+    // Le joueur ouvre la carte depuis la navigation avant que l'écran d'Expédition n'arrive : la même carte, sans choix.
+    rerender(<CarteDuJeu carte={CARTE} fonds={FONDS} destination={null} />);
+    expect(fiche()).toBeNull();
+    cliquer(AUTOUR[2]);
+    expect(fiches).toHaveLength(2);
+    await act(async () => fiches[1].repondre({ ...FORET, ...AUTOUR[2] }));
+    expect(lien("Envoyer une Expédition")).not.toBeNull();
+    expect(routeur.push).toHaveBeenCalledOnce();
+    // Puis revient en arrière, sur la carte ouverte pour choisir : rien ne part sans nouveau toucher.
+    rerender(<CarteDuJeu carte={CARTE} fonds={FONDS} destination="choix=destination" />);
+    expect(fiche()).toBeNull();
+    expect(routeur.push).toHaveBeenCalledOnce();
+    cliquer(AUTOUR[2]);
+    await act(async () => fiches[2].repondre({ ...FORET, ...AUTOUR[2] }));
+    expect(routeur.push).toHaveBeenCalledTimes(2);
+  });
+
+  it("ne part qu'une fois, même quand React rejoue ses effets en développement (StrictMode)", async () => {
+    render(
+      <StrictMode>
+        <CarteDuJeu carte={CARTE} fonds={FONDS} destination="choix=destination" />
+      </StrictMode>,
+    );
+    cliquer(AUTOUR[1]);
+    await act(async () => fiches.forEach((f) => f.repondre(FORET)));
+    expect(routeur.push).toHaveBeenCalledExactlyOnceWith(`/jeu/expeditions/nouvelle?q=${AUTOUR[1].q}&r=${AUTOUR[1].r}`);
+  });
+
+  it("touchée une seconde Case avant la réponse de la première, part vers la seconde seule, quand sa fiche le dit", async () => {
+    render(<CarteDuJeu carte={CARTE} fonds={FONDS} destination="choix=destination" />);
+    cliquer(AUTOUR[1]);
+    cliquer(AUTOUR[2]);
+    expect(fiches).toHaveLength(2);
+    await act(async () => fiches[0].repondre(FORET));
+    expect(routeur.push).not.toHaveBeenCalled();
+    await act(async () => fiches[1].repondre({ ...FORET, ...AUTOUR[2] }));
+    expect(routeur.push).toHaveBeenCalledExactlyOnceWith(`/jeu/expeditions/nouvelle?q=${AUTOUR[2].q}&r=${AUTOUR[2].r}`);
+  });
+
+  it("au doigt comme à la souris", async () => {
+    render(<CarteDuJeu carte={CARTE} fonds={FONDS} destination="choix=destination" />);
+    const { x, y } = dansLaPage(AUTOUR[1]);
+    const doigt = { pointerType: "touch", pointerId: 7 };
+    pointeur("pointerdown", x, y, doigt);
+    pointeur("pointerup", x, y, doigt);
+    await act(async () => fiches[0].repondre(FORET));
+    expect(routeur.push).toHaveBeenCalledExactlyOnceWith(`/jeu/expeditions/nouvelle?q=${AUTOUR[1].q}&r=${AUTOUR[1].r}`);
+  });
+
+  /** La carte jusqu'à 3 Cases du Foyer : une flèche du clavier met une de ses Cases au milieu de l'écran. */
+  const AUTOUR_LARGE = casesDesAnneaux(0, 3).map((c) => ({ q: c.q + FOYER.q, r: c.r + FOYER.r }));
+  const LARGE: CarteDuJoueur = { ...CARTE, cases: { q: AUTOUR_LARGE.map((c) => c.q), r: AUTOUR_LARGE.map((c) => c.r), teinte: AUTOUR_LARGE.map(() => 0), zone: AUTOUR_LARGE.map(() => 0) } };
+
+  it("au clavier aussi : Entrée touche la Case au milieu de l'écran, le Foyer d'abord, refusé ; une flèche plus loin, une Case qui part", async () => {
+    render(<CarteDuJeu carte={LARGE} fonds={FONDS} destination="choix=destination" />);
+    const user = userEvent.setup();
+    await user.tab();
+    expect(document.activeElement).toBe(screen.getByRole("application", { name: "Carte du Monde" }));
+    await user.keyboard("{Enter}");
+    expect(fiches.map((f) => [f.q, f.r])).toEqual([[FOYER.q, FOYER.r]]);
+    await act(async () => fiches[0].repondre({ ...FORET, ...FOYER, biome: "Prairie", chef: "Ourse", aVous: true, distance: 0 }));
+    expect(screen.getByRole("region", { name: "Fiche de la Case" }).textContent).toContain("Cette Case appartient à un Territoire.");
+    expect(routeur.push).not.toHaveBeenCalled();
+    await user.keyboard("{ArrowRight}");
+    prochaineImage();
+    await user.keyboard("{Enter}");
+    const aLEst = { q: FOYER.q + 3, r: FOYER.r };
+    expect(fiches.map((f) => [f.q, f.r])).toEqual([
+      [FOYER.q, FOYER.r],
+      [aLEst.q, aLEst.r],
+    ]);
+    await act(async () => fiches[1].repondre({ ...FORET, ...aLEst, distance: 3 }));
+    expect(routeur.push).toHaveBeenCalledExactlyOnceWith(`/jeu/expeditions/nouvelle?q=${aLEst.q}&r=${aLEst.r}`);
   });
 
   it("ouverte depuis la navigation, garde « Envoyer une Expédition »", async () => {
@@ -923,6 +1034,8 @@ describe("choisir la destination d'une Expédition sur la carte (US-0907)", () =
     await act(async () => fiches[0].repondre(FORET));
     expect(lien("Envoyer une Expédition")!.getAttribute("href")).toBe(`/jeu/expeditions/nouvelle?q=${AUTOUR[1].q}&r=${AUTOUR[1].r}`);
     expect(lien("Choisir cette destination")).toBeNull();
+    // La fiche reste ouverte : rien ne part de soi-même.
+    expect(routeur.push).not.toHaveBeenCalled();
   });
 });
 
