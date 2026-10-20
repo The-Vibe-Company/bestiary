@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { EspeceDeLEffectif } from "@/monde/effectif";
+import { peinturesPrioritaires } from "@/test/images";
 import type { RoleAuFoyer } from "@/monde/roles";
 
 // La vraie garde, branchée sur une session simulée.
@@ -99,6 +100,13 @@ describe("voir l'effectif par Espèce (US-0810)", () => {
     ]);
     // Un lecteur d'écran lit chaque Espèce d'une traite, son effectif accordé.
     expect(especesMontrees(html).map((e) => e.nom)).toEqual(["Poule, Commune, 1 Bête", "Souris grise, Commune, 12 Bêtes", "Pigeon biset, Peu commune, 3 Bêtes"]);
+  });
+
+  it("charge d'abord la peinture de l'écran, le mammouth, avec des Bêtes comme sans", async () => {
+    connecte();
+    expect(peinturesPrioritaires(renderToStaticMarkup(await Betes()))).toEqual(["accueil/mammouth.webp"]);
+    connecte([]);
+    expect(peinturesPrioritaires(renderToStaticMarkup(await Betes()))).toEqual(["accueil/mammouth.webp"]);
   });
 
   it("affiche en haut de la page le total des Bêtes, avant la liste", async () => {

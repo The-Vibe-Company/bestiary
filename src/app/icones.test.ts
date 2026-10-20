@@ -19,6 +19,8 @@ describe("icônes et titre d'onglet", () => {
       encre: paletteHex(palette, "--encre"),
       citron: paletteHex(palette, "--citron"),
       fond: paletteHex(palette, "--fond"),
+      // Le fond de la page avant toute feuille de style (le layout racine).
+      abysse: paletteHex(palette, "--sarcelle-abysse"),
     });
     const onglet = readFileSync(join(root, "src/app/icon.svg"), "utf8");
     expect(onglet).toContain(`fill="${couleurs.encre}"`);

@@ -40,7 +40,7 @@ export default async function ExpeditionsEnCours() {
       </div>
       {expeditions.length === 0 ? (
         <section className={`${kit.panneau} ${styles.aucune}`}>
-          <Paysage peinture="accueil/explorateurs.webp" sizes="(max-width: 760px) 100vw, 640px" className={styles.paysage} />
+          <Paysage peinture="accueil/explorateurs.webp" sizes="(max-width: 760px) 100vw, 640px" prioritaire className={styles.paysage} />
           <p className={styles.vide}>Aucune Expédition en cours</p>
           <Link href="/jeu/expeditions/nouvelle" className={`${kit.bouton} ${kit.principal} ${kit.grand} ${styles.preparer}`}>
             Préparer une Expédition

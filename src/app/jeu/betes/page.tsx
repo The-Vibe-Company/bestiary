@@ -73,7 +73,7 @@ export default async function Betes() {
       <h1 className={`${kit.titreEcran} ${styles.titre}`}>Bêtes</h1>
       {especes.length === 0 ? (
         <section className={`${kit.panneau} ${styles.aucune}`}>
-          <Paysage peinture="accueil/mammouth.webp" sizes="(max-width: 820px) 100vw, 75vw" className={styles.paysage} />
+          <Paysage peinture="accueil/mammouth.webp" sizes="(max-width: 820px) 100vw, 75vw" prioritaire className={styles.paysage} />
           <p className={styles.vide}>Aucune Bête pour l&apos;instant</p>
           <Link href="/jeu/expeditions/nouvelle" className={`${kit.bouton} ${kit.principal} ${kit.grand} ${styles.envoyer}`}>
             Envoyer une Expédition
@@ -81,7 +81,7 @@ export default async function Betes() {
         </section>
       ) : (
         <section className={`${kit.panneau} ${styles.bilan}`}>
-          <Paysage peinture="accueil/mammouth.webp" sizes="(max-width: 820px) 60vw, 70vw" className={styles.bandeau} />
+          <Paysage peinture="accueil/mammouth.webp" sizes="(max-width: 820px) 60vw, 70vw" prioritaire className={styles.bandeau} />
           <p className={styles.total}>
             <strong className={styles.nombre}>{total}</strong> {betes(total)}
           </p>

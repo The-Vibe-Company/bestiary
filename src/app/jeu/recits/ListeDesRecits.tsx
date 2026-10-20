@@ -104,7 +104,7 @@ export function ListeDesRecits({ recits }: { recits: RecitAffiche[] }) {
       </ul>
       {ouvert === null ? (
         <div className={styles.attente} aria-hidden="true">
-          <Paysage peinture="accueil/plateau.webp" sizes="(max-width: 1023px) 1px, 60vw" className={`${kit.vignette} ${styles.peintureAttente}`} />
+          <Paysage peinture="accueil/plateau.webp" sizes="(max-width: 1023px) 1px, 60vw" prioritaire className={`${kit.vignette} ${styles.peintureAttente}`} />
           <Medaillon src={MEDAILLON_DES_RECITS} taille="xl" className={styles.medaillonAttente} />
           <p className={styles.choisir}>Choisissez un récit.</p>
         </div>

@@ -26,9 +26,9 @@ export function ListeDesExpeditions({ expeditions, maintenant, vitesse = 1 }: { 
 
   return (
     <ul className={styles.expeditions}>
-      {expeditions.map((expedition) => (
+      {expeditions.map((expedition, i) => (
         <li key={expedition.id}>
-          <PanneauDeLExpedition expedition={expedition} instant={instant} serre={expeditions.length > 2} />
+          <PanneauDeLExpedition expedition={expedition} instant={instant} serre={expeditions.length > 2} prioritaire={i === 0} />
         </li>
       ))}
     </ul>

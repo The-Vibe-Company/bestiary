@@ -13,7 +13,7 @@ type IllustrationProps = {
   ratio?: string;
   /** La largeur affichée selon l'écran, pour charger la bonne taille (voir next/image). */
   sizes?: string;
-  /** À charger tout de suite : l'illustration principale, visible sans défiler. */
+  /** La peinture principale de l'écran, visible sans défiler : chargée tout de suite, avant le reste. */
   prioritaire?: boolean;
   className?: string;
 };
@@ -41,7 +41,8 @@ export function Illustration({ chemin, alt, ratio, sizes = "100vw", prioritaire,
           alt={alt}
           fill
           sizes={sizes}
-          preload={prioritaire}
+          loading={prioritaire ? "eager" : "lazy"}
+          fetchPriority={prioritaire ? "high" : undefined}
           className={styles.image}
           onError={() => setEchec(true)}
         />

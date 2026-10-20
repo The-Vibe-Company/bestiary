@@ -64,7 +64,7 @@ describe("page Récits (US-0324)", () => {
   };
   /** Le texte de chaque ligne de Récit, tel qu'un lecteur d'écran l'entend, ses morceaux séparés par « · ». */
   const lignes = (html: string) =>
-    [...entendu(html).matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(([, ligne]) =>
+    [...entendu(html).matchAll(/<li(?:\s[^>]*)?>(.*?)<\/li>/g)].map(([, ligne]) =>
       ligne
         .replace(/<[^>]+>/g, "|")
         .split("|")
@@ -101,7 +101,7 @@ describe("page Récits (US-0324)", () => {
   it("marque les Récits non lus, et eux seuls, d'un mot et pas de la couleur seule", async () => {
     connecte();
     const html = renderToStaticMarkup(await Recits());
-    const marques = [...html.matchAll(/<li([^>]*)>.*?<\/li>/g)].map(([ligne, attributs]) => [/data-non-lu/.test(attributs), ligne.includes(">nouveau<")]);
+    const marques = [...html.matchAll(/<li(\s[^>]*)?>.*?<\/li>/g)].map(([ligne, attributs]) => [/data-non-lu/.test(attributs), ligne.includes(">nouveau<")]);
     expect(marques).toEqual([
       [true, true],
       [false, false],
@@ -371,7 +371,7 @@ describe("page Récits (US-0324)", () => {
       TROIS_RECITS[1],
     ]);
     const html = renderToStaticMarkup(await Recits());
-    const [avec, ...sans] = [...html.matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(([, ligne]) => ligne);
+    const [avec, ...sans] = [...html.matchAll(/<li(?:\s[^>]*)?>(.*?)<\/li>/g)].map(([, ligne]) => ligne);
     // Sous la ligne du récit, son titre, sa date et son résumé, avant sa lecture repliée.
     const annonce = avec.match(/<\/button>(.*?)<div id="[^"]+"[^>]*hidden=""/)?.[1] ?? "";
     expect(annonce).toMatch(/^<div[^>]*><figure[^>]*>.*<\/figure><\/div>$/);

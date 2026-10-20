@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ExpeditionEnCours } from "@/expeditions/en-cours";
+import { peinturesPrioritaires } from "@/test/images";
 
 // La vraie garde, branchée sur une session simulée.
 const cookie = vi.hoisted(() => ({ jetonDeSession: vi.fn() }));
@@ -71,7 +72,7 @@ describe("la liste des Expéditions en cours (US-0911, US-0918)", () => {
   };
   /** Le texte du panneau de chaque Expédition de la liste, ses morceaux séparés par « · ». */
   const lignes = (html: string) =>
-    [...html.matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(([, ligne]) =>
+    [...html.matchAll(/<li(?:\s[^>]*)?>(.*?)<\/li>/g)].map(([, ligne]) =>
       ligne
         .replace(/<[^>]+>/g, "|")
         .split("|")
@@ -110,6 +111,13 @@ describe("la liste des Expéditions en cours (US-0911, US-0918)", () => {
     expect(html).toContain("Aucune Expédition en cours");
     expect(html).not.toContain("<ul");
     expect(html).toMatch(/<a[^>]*href="\/jeu\/expeditions\/nouvelle"[^>]*>Préparer une Expédition<\/a>/);
+    // Ses explorateurs peints se chargent avant tout le reste : c'est l'écran.
+    expect(peinturesPrioritaires(html)).toEqual(["accueil/explorateurs.webp"]);
+  });
+
+  it("avec des Expéditions, charge d'abord le paysage de la première, et lui seul", async () => {
+    connecte();
+    expect(peinturesPrioritaires(renderToStaticMarkup(await ExpeditionsEnCours()))).toEqual(["prototype/biomes/forest-1.webp"]);
   });
 
   it("renvoie vers la connexion sans session, qui ramènera ensuite ici", async () => {

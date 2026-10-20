@@ -5,6 +5,7 @@ import { Echantillon } from "@/app/jeu/carte/Echantillon";
 import { FORMATS_ESPECE } from "@/components/IllustrationEspece";
 import type { FicheDEspece } from "@/monde/effectif";
 import type { ElevageEnCours } from "@/monde/suivi-d-elevage";
+import { peinturesPrioritaires } from "@/test/images";
 
 // La vraie garde, branchée sur une session simulée.
 const cookie = vi.hoisted(() => ({ jetonDeSession: vi.fn() }));
@@ -113,6 +114,8 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
     expect(effectif.especeDuTerritoire).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, "poule");
     expect(html).toMatch(/<img[^>]*alt="Poule"[^>]*sizes="[^"]*"/);
     expect(html).toContain(`sizes="${FORMATS_ESPECE.grand}"`);
+    // Elle se charge avant tout le reste : c'est la peinture de la fiche.
+    expect(peinturesPrioritaires(html)).toEqual(["especes/poule.webp"]);
     expect(html).toMatch(/<h1[^>]*>Poule<\/h1>/);
     expect(html).toMatch(/<span[^>]*data-rarete="commune"[^>]*>Commune<\/span>/);
     expect(metadata.title).toBe("Réserve");

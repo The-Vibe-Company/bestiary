@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { peinturesPrioritaires } from "@/test/images";
 
 // La vraie garde, branchée sur une session simulée.
 const cookie = vi.hoisted(() => ({ jetonDeSession: vi.fn() }));
@@ -55,7 +56,7 @@ describe("page Voyageurs, l'historique des Voyageurs (US-0342)", () => {
       .map((t) => t.replaceAll("&#x27;", "'"));
   /** Le texte de chaque ligne de Voyageur, ses morceaux (le prénom, l'arrivée, le sort) séparés par « · ». */
   const lignes = (html: string) =>
-    [...html.matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(([, ligne]) => [...ligne.matchAll(/<span[^>]*>(.*?)<\/span>/g)].map(([, morceau]) => morceau.replace(/<[^>]+>/g, "")).join(" · "));
+    [...html.matchAll(/<li(?:\s[^>]*)?>(.*?)<\/li>/g)].map(([, ligne]) => [...ligne.matchAll(/<span[^>]*>(.*?)<\/span>/g)].map(([, morceau]) => morceau.replace(/<[^>]+>/g, "")).join(" · "));
   /** Les deux compteurs d'en-tête, chacun son nom et son nombre. */
   const compteurs = (html: string) => [...html.matchAll(/<dt[^>]*>(.*?)<\/dt><dd[^>]*>(.*?)<\/dd>/g)].map(([, nom, nombre]) => [nom, nombre]);
 
@@ -134,6 +135,8 @@ describe("page Voyageurs, l'historique des Voyageurs (US-0342)", () => {
     connecte();
     const html = renderToStaticMarkup(await Voyageurs());
     expect(html).toMatch(/<section[^>]*><div[^>]*aria-hidden="true"[^>]*><img[^>]*alt=""[^>]*connexion\.webp/);
+    // Elle se charge avant tout le reste : c'est la peinture de l'écran.
+    expect(peinturesPrioritaires(html)).toEqual(["entree/connexion.webp"]);
   });
 
   it("n'ajoute aucune phrase d'explication : le titre, les compteurs, puis les Voyageurs", async () => {

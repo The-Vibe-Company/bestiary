@@ -2,6 +2,7 @@ import { readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { peinturesPrioritaires } from "@/test/images";
 import { Illustration, IllustrationManquante } from "./Illustration";
 
 const DOSSIER = join(__dirname, "../../public/illustrations");
@@ -22,6 +23,15 @@ describe("illustrations", () => {
     expect(html).toContain('sizes="(max-width: 820px) 100vw, 50vw"');
     expect(html).toMatch(/srcSet="\/_next\/image\?url=%2Fillustrations%2Fprototype%2Fbiomes%2Fforest-1\.webp&amp;w=\d+/);
     expect(html).toContain("aspect-ratio:3 / 2");
+  });
+
+  it("chargent tout de suite, avant le reste, la peinture principale d'un écran ; les autres en approchant de l'écran", () => {
+    const principale = renderToStaticMarkup(<Illustration chemin="accueil/plateau.webp" alt="Le plateau" prioritaire />);
+    expect(peinturesPrioritaires(principale)).toEqual(["accueil/plateau.webp"]);
+    expect(principale).toContain('loading="eager"');
+    const autre = renderToStaticMarkup(<Illustration chemin="accueil/plateau.webp" alt="Le plateau" />);
+    expect(peinturesPrioritaires(autre)).toEqual([]);
+    expect(autre).toContain('loading="lazy"');
   });
 
   it("ont un visuel de remplacement : la tête de loup", () => {
