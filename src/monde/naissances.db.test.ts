@@ -10,7 +10,9 @@ import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai,
 import { reunirLesCouples } from "./couple";
 import { dureeDUneBeteEleveeMinutes } from "./cout-d-elevage";
 import { lancerUnElevage } from "./lancer-un-elevage";
-import { FIN_D_ELEVAGE } from "./recit-d-elevage";
+import { FIN_D_ELEVAGE, FINS_D_ELEVAGE } from "./recit-d-elevage";
+import { marquerUnRecitLu } from "./recits";
+import { formaterJourEtHeure } from "@/temps/affichage";
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
 const MONDE_D_ESSAI = "Essai des naissances d'un Élevage (US-0817)";
@@ -75,14 +77,24 @@ describe.skipIf(!URL_TEST)("recevoir les Bêtes une à une (US-0817, sur base)",
         ])
       ).rows.map((e) => [e.sexe, e.nombre]),
     );
-  /** Les Récits de fin d'Élevage du Territoire : leur texte et leur instant. */
+  /** Les Récits de fin d'Élevage du Territoire, d'un seul ou de plusieurs (US-0821) : leur texte et leur instant. */
   const recits = async (territoireId: number) =>
     (
-      await pool.query<{ texte: string; survenuLe: Date }>("select texte, survenu_le as \"survenuLe\" from recit where territoire_id = $1 and titre = $2 order by survenu_le, id", [
-        territoireId,
-        FIN_D_ELEVAGE,
-      ])
+      await pool.query<{ texte: string; survenuLe: Date }>(
+        "select texte, survenu_le as \"survenuLe\" from recit where territoire_id = $1 and titre in ($2, $3) order by survenu_le, id",
+        [territoireId, FIN_D_ELEVAGE, FINS_D_ELEVAGE],
+      )
     ).rows;
+  /** Les mêmes, avec leur titre, leur identifiant et s'ils sont lus. */
+  const recitsEntiers = async (territoireId: number) =>
+    (
+      await pool.query<{ id: number; titre: string; texte: string; survenuLe: Date; lu: boolean }>(
+        "select id, titre, texte, survenu_le as \"survenuLe\", lu_le is not null as lu from recit where territoire_id = $1 and titre in ($2, $3) order by survenu_le, id",
+        [territoireId, FIN_D_ELEVAGE, FINS_D_ELEVAGE],
+      )
+    ).rows;
+  /** US-0821 : « le 20 octobre à 15:31 », comme le Récit l'écrit. */
+  const le = (instant: Date) => `le ${formaterJourEtHeure(instant, "Europe/Paris")}`;
   /** L'Espèce qu'élève l'éleveur du Territoire (null : libre). */
   const eleve = async (territoireId: number) =>
     (await pool.query<{ espece_elevee: string | null }>("select espece_elevee from habitant where territoire_id = $1 and metier = 'eleveur'", [territoireId])).rows[0]
@@ -183,9 +195,12 @@ describe.skipIf(!URL_TEST)("recevoir les Bêtes une à une (US-0817, sur base)",
     const pigeons = (await pool.query<{ nombre: number }>("select sum(nombre)::int as nombre from effectif where territoire_id = $1 and espece_id = 'pigeon'", [t.territoireId]))
       .rows[0].nombre;
     expect(pigeons).toBe(1);
-    expect((await recits(t.territoireId)).map((r) => r.texte).sort()).toEqual([
-      "1 Bête de Pigeon biset a rejoint votre effectif.",
-      "2 Bêtes de Souris grise ont rejoint votre effectif.",
+    // US-0821 : les deux fins, non lues, dans un seul Récit, la souris d'abord (finie la première), daté du pigeon.
+    expect(await recits(t.territoireId)).toEqual([
+      {
+        texte: `3 Bêtes ont rejoint votre effectif :\n2 Bêtes de Souris grise, ${le(apres(t, 2 * souris))}\n1 Bête de Pigeon biset, ${le(apres(t, pigeon))}`,
+        survenuLe: apres(t, pigeon),
+      },
     ]);
     expect((await pool.query("select count(*)::int as n from habitant where territoire_id = $1 and espece_elevee is not null", [t.territoireId])).rows[0].n).toBe(0);
     expect(await effectif(voisin.territoireId)).toEqual({});
@@ -234,5 +249,62 @@ describe.skipIf(!URL_TEST)("recevoir les Bêtes une à une (US-0817, sur base)",
     expect(await restants(dUnBloc.territoireId)).toEqual([dUnBloc.habitants[0]]);
     expect(await restants(coupe.territoireId)).toEqual([coupe.habitants[0]]);
   });
-});
 
+  describe("retrouver les Bêtes nées pendant l'absence (US-0821)", () => {
+    /** Un Territoire qui élève 3 souris (Hael) et 1 pigeon (l'autre éleveur), lancés à la même minute, puis le joueur s'en va. */
+    const partir = async () => {
+      const t = await elever(3);
+      await reunir(t, "pigeon");
+      await pool.query("update habitant set metier = 'eleveur' where id = $1", [t.habitants[1]]);
+      expect(await lancerUnElevage(pool, t.territoireId, "pigeon", 1, t.debut)).toMatchObject({ lance: { quantite: 1 } });
+      return t;
+    };
+    let pigeon: number;
+    beforeAll(async () => {
+      pigeon = dureeDUneBeteEleveeMinutes((await pool.query<{ t: number }>("select taille as t from espece where id = 'pigeon'")).rows[0].t);
+    });
+    /** Le texte du Récit des deux Élevages finis, la souris d'abord. */
+    const lesDeux = (t: { debut: Date; ne: Date }) =>
+      `4 Bêtes ont rejoint votre effectif :\n3 Bêtes de Souris grise, ${le(apres(t, 3 * souris))}\n1 Bête de Pigeon biset, ${le(apres(t, pigeon))}`;
+
+    it("au retour, l'effectif compte les Bêtes nées pendant l'absence, et un seul Récit non lu les récapitule, daté de la dernière fin", async () => {
+      const t = await partir();
+      // Dix heures sans le joueur : le passage régulier du Monde fait avancer ses Élevages (Étape 3).
+      await rattraperLesAbsents({ pool, maintenant: apres(t, 10 * 60), parmi: { territoire: [t.territoireId] } });
+      expect(await effectif(t.territoireId)).toEqual({ femelle: 2, male: 1 });
+      expect(await recitsEntiers(t.territoireId)).toEqual([expect.objectContaining({ titre: FINS_D_ELEVAGE, texte: lesDeux(t), survenuLe: apres(t, pigeon), lu: false })]);
+      // Le joueur revient : la page ouverte met le Territoire à l'heure, sans rien changer.
+      await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, 10 * 60 + 5) });
+      expect(await effectif(t.territoireId)).toEqual({ femelle: 2, male: 1 });
+      expect(await recits(t.territoireId)).toHaveLength(1);
+    });
+
+    it("tant que le Récit n'est pas lu, chaque Élevage fini s'y ajoute ; lu, le suivant repart à neuf", async () => {
+      const t = await partir();
+      // La souris finit la première : un Récit d'un seul Élevage, comme US-0817.
+      await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, 3 * souris) });
+      expect(await recitsEntiers(t.territoireId)).toEqual([expect.objectContaining({ titre: FIN_D_ELEVAGE, texte: "3 Bêtes de Souris grise ont rejoint votre effectif.", lu: false })]);
+      // Le pigeon finit ensuite, le Récit non lu : il s'y ajoute, le Récit prend sa date.
+      await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, pigeon) });
+      const [recap] = await recitsEntiers(t.territoireId);
+      expect(recap).toMatchObject({ titre: FINS_D_ELEVAGE, texte: lesDeux(t), survenuLe: apres(t, pigeon), lu: false });
+      expect(await recitsEntiers(t.territoireId)).toHaveLength(1);
+      // Lu, puis un nouvel Élevage : un nouveau Récit, le premier intact.
+      expect(await marquerUnRecitLu(pool, t.territoireId, recap.id, apres(t, pigeon + 1))).toBe(true);
+      expect(await lancerUnElevage(pool, t.territoireId, "souris", 1, apres(t, pigeon + 2))).toMatchObject({ lance: { quantite: 1 } });
+      await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, pigeon + 2 + souris) });
+      expect(await recitsEntiers(t.territoireId)).toEqual([
+        expect.objectContaining({ id: recap.id, titre: FINS_D_ELEVAGE, texte: lesDeux(t), lu: true }),
+        expect.objectContaining({ titre: FIN_D_ELEVAGE, texte: "1 Bête de Souris grise a rejoint votre effectif.", lu: false }),
+      ]);
+    });
+
+    it("donne le même Récit par tranches ou d'un bloc, et ne reprend jamais le Récit non lu d'un autre Territoire", async () => {
+      const [parTranches, dUnBloc] = [await partir(), await partir()];
+      for (let minutes = 10; minutes <= pigeon + 10; minutes += 10) await rattraper("territoire", parTranches.territoireId, { pool, jusqua: apres(parTranches, minutes) });
+      await rattraper("territoire", dUnBloc.territoireId, { pool, jusqua: apres(dUnBloc, pigeon + 10) });
+      expect(await recits(parTranches.territoireId)).toEqual([{ texte: lesDeux(parTranches), survenuLe: apres(parTranches, pigeon) }]);
+      expect(await recits(dUnBloc.territoireId)).toEqual([{ texte: lesDeux(dUnBloc), survenuLe: apres(dUnBloc, pigeon) }]);
+    });
+  });
+});

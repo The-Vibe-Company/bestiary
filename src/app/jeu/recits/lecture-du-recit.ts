@@ -3,7 +3,7 @@
 // la frise (Frise) et sa destination en paysage (Paysage), lus dans le texte que le jeu a écrit (recitDeRetour).
 import type { DureesDUneExpedition } from "@/components/Frise";
 import { RETOUR_D_EXPEDITION } from "@/expeditions/resume-du-retour";
-import { FIN_D_ELEVAGE } from "@/monde/recit-d-elevage";
+import { FIN_D_ELEVAGE, FINS_D_ELEVAGE } from "@/monde/recit-d-elevage";
 import { estUnRecitDeGuerison } from "@/monde/recit-de-guerison";
 
 /**
@@ -28,8 +28,8 @@ export function medaillonDuRecit(titre: string): string {
   if (titre === RETOUR_D_EXPEDITION) return MEDAILLONS.expedition;
   if (titre.includes("Famine")) return MEDAILLONS.famine;
   if (estUnRecitDeGuerison(titre)) return MEDAILLONS.guerison;
-  // US-0817 : la fin d'un Élevage, l'éleveur aussi.
-  if (titre === FIN_D_ELEVAGE) return MEDAILLONS.guerison;
+  // US-0817 : la fin d'un Élevage, l'éleveur aussi ; US-0821 : de plusieurs, de même.
+  if (titre === FIN_D_ELEVAGE || titre === FINS_D_ELEVAGE) return MEDAILLONS.guerison;
   return MEDAILLONS.habitants;
 }
 
