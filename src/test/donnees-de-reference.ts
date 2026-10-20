@@ -20,20 +20,9 @@ export function ecrituresSansCopie(texte: string): string[] {
   const copieCalculee = /create\s+temp(?:orary)?\s+table\s+"?\$\{/i.test(texte);
   const chargeTout = /lireDonnees\(/.test(texte) && /chargerJeu\(/.test(texte);
   return TABLES.filter((nom) => {
-    const copiee =
-      copieCalculee ||
-      new RegExp(
-        `create\\s+temp(?:orary)?\\s+table\\s+${table(nom)}`,
-        "i",
-      ).test(texte);
-    const ecriteDuJeu = new RegExp(
-      `(?:update|insert\\s+into|delete\\s+from)\\s+(?:public\\.)"?${nom}"?(?![\\w"])`,
-      "i",
-    ).test(texte);
-    const ecrite = new RegExp(
-      `(?:update|insert\\s+into|delete\\s+from)\\s+${table(nom)}`,
-      "i",
-    ).test(texte);
+    const copiee = copieCalculee || new RegExp(`create\\s+temp(?:orary)?\\s+table\\s+${table(nom)}`, "i").test(texte);
+    const ecriteDuJeu = new RegExp(`(?:update|insert\\s+into|delete\\s+from)\\s+(?:public\\.)"?${nom}"?(?![\\w"])`, "i").test(texte);
+    const ecrite = new RegExp(`(?:update|insert\\s+into|delete\\s+from)\\s+${table(nom)}`, "i").test(texte);
     return ecriteDuJeu || ((ecrite || chargeTout) && !copiee);
   });
 }
