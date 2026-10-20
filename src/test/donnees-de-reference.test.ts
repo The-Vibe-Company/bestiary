@@ -30,13 +30,14 @@ describe("les essais sur base et les données de référence du jeu", () => {
     expect(ecrituresSansCopie(`await client.query("update espece set vitesse = 2.5 where id = 'souris'");`)).toEqual(["espece"]);
     expect(ecrituresSansCopie(`insert into "ressource" (id) values ('x')`)).toEqual(["ressource"]);
     expect(ecrituresSansCopie(`DELETE FROM production_biome where biome_id = 'prairie'`)).toEqual(["production_biome"]);
-    // Les autres façons de tenir des lignes, les mêmes verrous que #65 et #89.
+    // Les autres façons de tenir des lignes, les mêmes verrous que #65 et #89, et leurs variantes.
     expect(ecrituresSansCopie(`truncate rarete; merge into ressource using v on true when matched then update set x = 1; update only metier set x = 1; lock table biome in exclusive mode`)).toEqual([
       "biome",
       "metier",
       "rarete",
       "ressource",
     ]);
+    expect(ecrituresSansCopie(`delete from only rarete; lock espece; lock table only metier in share mode; truncate biome, "role"`)).toEqual(["biome", "espece", "metier", "rarete", "role"]);
   });
 
   it("laisse passer celle qui se fait dans une copie propre à la transaction", () => {
@@ -69,6 +70,9 @@ describe("les essais sur base et les données de référence du jeu", () => {
     expect(ecrituresSansCopie(`create temp table metier on commit drop as table public.metier;\nawait chargerJeu(client, METIERS, lireJeu(METIERS));`)).toEqual([]);
     // Nommer un jeu sans le charger n'écrit rien : lireJeu(METIERS) compare un fichier à la base.
     expect(ecrituresSansCopie(`expect(await lesMetiers(pool)).toEqual(lireJeu(METIERS));`)).toEqual([]);
+    // Ni le nommer ailleurs que comme le jeu chargé : un jeu d'essai propre au fichier, à côté d'une constante du même nom.
+    expect(ecrituresSansCopie(`const RESSOURCES = 3;\nawait chargerJeu(client, jeu, entrees); // pas ESPECES.colonnes`)).toEqual([]);
+    expect(ecrituresSansCopie(`await chargerJeu(\n  client,\n  ESPECES_D_ESSAI,\n  essais,\n);`)).toEqual(["espece"]);
   });
 
   it("ne confond pas une table du jeu avec une autre qui en commence le nom, ni avec une table qui n'en est pas", () => {
