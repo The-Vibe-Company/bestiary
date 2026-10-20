@@ -1,0 +1,71 @@
+docs/stories/04-la-carte-du-monde.md
+  s_7c7d151152e4a5::t_a8a7b81e873477 245
+docs/stories/08-les-betes-a-la-maison.md
+  s_7c7d151152e4a5::t_2b028621941118 266
+docs/stories/README.md
+  s_7c7d151152e4a5::t_29ae6456a96b82 7
+docs/stories/a-decider.md
+  s_7c7d151152e4a5::t_0ffb9d95a5198b 5
+src/app/jeu/carte/CarteDuJeu.test.tsx
+  s_7c7d151152e4a5::t_3ae5c533624f10 7,15,26-28,30-32,48-49,82,84,163-164,224-226,237-301,473-478,480-482,525,529,541-545,547,551-552,597-611,730-735
+src/app/jeu/carte/CarteDuJeu.tsx
+  s_7c7d151152e4a5::t_56b207bb6f67c7 16,25,172-174,176,178,250-252,257-258,318
+src/app/jeu/carte/dessin.test.ts
+  s_7c7d151152e4a5::t_2cd18535e4fd13 7,433-487,738-740,755-773
+src/app/jeu/carte/dessin.ts
+  s_7c7d151152e4a5::t_e71296642bf06d 11-12,14,78-82,389-418,630-644,657-659,676-677,679,684
+src/app/jeu/carte/page.module.css
+  s_7c7d151152e4a5::t_a6afd2d8ab669c 80-81,87
+src/app/jeu/carte/styles.test.ts
+  s_7c7d151152e4a5::t_4c1ce4f3c50f70 28-31
+src/app/jeu/carte/vue.test.ts
+  s_7c7d151152e4a5::t_ea7aa1bc55dbf6 2-3,16,50-52,110-120,122,125,127-190,198-199,204-205,222-223,440-460
+src/app/jeu/carte/vue.ts
+  s_7c7d151152e4a5::t_9faf248d29c694 5,25-26,28,31-52,57-60,62-66,68,77-79,83,96-110,113-116,118-135,139,141,151,157-158,160-161,170,179,283-285
+src/bestiaire/bestiaire.db.test.ts
+  s_7c7d151152e4a5::t_ab44ec26941978 94-95,99-100,112-116,118,222-223,226-227,232,234-238
+src/chefs/chef.db.test.ts
+  s_7c7d151152e4a5::t_653e680529731a 252-258
+src/components/BarreHaut.module.css
+  s_7c7d151152e4a5::t_b62a8a927bbaef 309,311,394,865-869,902-995
+src/components/BarreHaut.test.tsx
+  s_7c7d151152e4a5::t_4e787840ad71a8 55-60,62,82-83,88-145
+src/components/Navigation.test.tsx
+  s_7c7d151152e4a5::t_3646fcfaac6af6 2,33-90
+src/components/Navigation.tsx
+  s_7c7d151152e4a5::t_27bab648e9fbf5 6,45-48,52-75,93-110
+src/expeditions/apprivoisement.db.test.ts
+  s_7c7d151152e4a5::t_e5a83cb81f8ca2 7,78-79,83-101,103-105,243-246
+src/expeditions/arrivee-plus-forte.db.test.ts
+  s_7c7d151152e4a5::t_796df3ad4fc0c7 208-209,224,229-231
+src/expeditions/fuite-sur-une-case-partagee.db.test.ts
+  s_7c7d151152e4a5::t_dcebd386d70481 11,13,28-29,156-157,162,172,175-176,184-186
+src/expeditions/sexe.db.test.ts
+  s_7c7d151152e4a5::t_fbf02c76cf25c5 6,65-70,79,81-83
+src/expeditions/trop-forte-pour-toutes.db.test.ts
+  s_7c7d151152e4a5::t_0502a94d99bba7 137-138,150,154-157
+src/monde/habitat.db.test.ts
+  s_7c7d151152e4a5::t_608f0f4f432948 7-9,11,13,103-166
+src/monde/habitat.ts
+  s_7c7d151152e4a5::t_acf6789057b27f 16-20
+src/reglages.ts
+  s_7c7d151152e4a5::t_7c3d8584a4c51f 217-218
+src/styles/formes.css
+  s_7c7d151152e4a5::t_5973e1e2409007 79-83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d2792658f52326e9ddd736902b0fde56c8a9ebec",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
