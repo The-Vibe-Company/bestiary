@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.45.3",
-    "next": "16.3.7",
+    "next": "16.3.8",
     "pg": "^8.23.0",
     "posthog-js": "^1.438.10",
     "react": "19.2.8",
@@ -43,7 +43,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@next/env": "^16.3.7",
+    "@next/env": "^16.3.8",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
@@ -53,7 +53,7 @@
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9",
-    "eslint-config-next": "16.3.7",
+    "eslint-config-next": "16.3.8",
     "jsdom": "^29.1.1",
     "sharp": "^0.35.5",
     "tsx": "^4.23.15",
