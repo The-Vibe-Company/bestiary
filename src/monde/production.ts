@@ -5,6 +5,7 @@ import "server-only";
 import type { Pool, PoolClient } from "pg";
 import { ENTRETIEN_HABITANT_PAR_HEURE, FAMINE_IMMINENTE_HEURES, FAMINE_IMMINENTE_MARGE_HEURES } from "@/reglages";
 import { AU_FOYER, faireRepartirUnHabitant, finirLaFamine } from "./famine";
+import type { EntretienDesBetesLu } from "./nourriture";
 
 /**
  * Ce que le Territoire $1 produit par heure, Ressource par Ressource : la somme de toutes ses Cases,
@@ -124,6 +125,15 @@ const FIN_FAMINE_IMMINENTE = `${FAMINE_IMMINENTE_HEURES + FAMINE_IMMINENTE_MARGE
  * US-0328 : la Famine finit en $2 quand la Nourriture y paie de nouveau l'Entretien (un départ qui l'a ramené sous la
  * production, de la Nourriture ajoutée) : le calcul rend alors son début (famineFinie), pour le Récit de sa fin, et
  * ne programme plus de départ.
+ *
+ * US-0826 : l'Entretien des Bêtes de l'effectif s'y prélève aussi, par heure, dans les mêmes pas : celui des carnivores
+ * ($4) sur la seule Viande, celui des herbivores ($5) sur les seuls Végétaux, celui des omnivores ($6) comme celui des
+ * Habitants, avec qui ils forment la demande partagée : la moitié sur chaque Stock tant que les deux le peuvent, puis tout
+ * sur celui qui reste. Chaque Stock paie d'abord les Bêtes qui ne mangent que lui ; le premier qui ne le peut plus donne
+ * tout ce qu'il a, à elles d'abord, puis sa production, et l'autre paie ses propres Bêtes et tout le reste de la demande
+ * partagée, jusqu'à se vider à son tour. Une Bête qui n'est pas nourrie n'a pas encore de conséquence (étape 36). La
+ * Famine des Habitants garde son sens : elle commence quand ce que les Stocks donnent à la demande partagée, une fois
+ * payées les Bêtes qui ne mangent qu'eux, ne paie plus l'Entretien des Habitants (e) ; les omnivores ont faim avant eux.
  */
 export const PRODUIRE = `
   with production as (${PRODUCTION_DU_TERRITOIRE}),
@@ -134,10 +144,17 @@ export const PRODUIRE = `
       (extract(epoch from $3::timestamptz) - extract(epoch from $2::timestamptz)) * 1000000 as k
   ),
   -- Chaque Stock en unités de reste ; tant que les deux le peuvent, la Viande et les Végétaux paient chacun la moitié de l'Entretien.
+  -- US-0826 : e, l'Entretien des Habitants ; dd, celui des Bêtes qui ne mangent que ce Stock (les carnivores $4 la Viande,
+  -- les herbivores $5 les Végétaux) ; sh, la demande partagée, les Habitants et les omnivores $6. Chaque Stock de
+  -- Nourriture paie ses Bêtes, puis la moitié de la demande partagée.
   etat as (
     select s.ressource_id, r.famille = 'nourriture' as nourriture, s.quantite * 3600000000 + s.reste as s0,
       s.limite * 3600000000 as l, coalesce(production.par_heure, 0) as p, entretien.par_heure as e,
-      case when r.famille = 'nourriture' then entretien.par_heure / 2 else 0 end as c1, pas.t0
+      case s.ressource_id when 'viande' then $4::numeric when 'vegetaux' then $5::numeric else 0 end as dd,
+      entretien.par_heure + $6::numeric as sh,
+      case when r.famille = 'nourriture'
+        then case s.ressource_id when 'viande' then $4::numeric when 'vegetaux' then $5::numeric else 0 end + (entretien.par_heure + $6::numeric) / 2
+        else 0 end as c1, pas.t0
     from stock s join ressource r on r.id = s.ressource_id
       left join production on production.ressource_id = s.ressource_id
       cross join entretien cross join pas
@@ -149,19 +166,33 @@ export const PRODUIRE = `
   -- puis, comme d1 et d2 plus bas, celui où l'autre ne peut plus payer tout le reste.
   famine_d1 as materialized (select partage.*, min(da) over () as f1 from partage where nourriture),
   famine_s1 as materialized (select famine_d1.*, ${apresPas("s0", "p", "c1", "l", "f1")} as fs1 from famine_d1),
+  -- US-0826 : au pas f1, le Stock qui ne peut plus payer donne tout ce qu'il a, à ses Bêtes d'abord ; l'autre paie ses Bêtes
+  -- et tout le reste de la demande partagée s'il le peut (fc2) ; ensuite, le premier ne donne que sa production, l'autre
+  -- paie tout le reste (fc3).
   famine_pas as (
     select famine_s1.*,
-      case when da = f1 then fs1 + p else least(fs1 + p, e - (sum(fs1 + p) over () - (fs1 + p))) end as fc2,
-      case when da = f1 then p else e - (sum(p) over () - p) end as fc3
+      case when da = f1 then fs1 + p
+        else least(fs1 + p, dd + sh - greatest(0, (sum(fs1 + p) over () - (fs1 + p)) - (sum(dd) over () - dd))) end as fc2,
+      case when da = f1 then p else dd + sh - greatest(0, (sum(p) over () - p) - (sum(dd) over () - dd)) end as fc3
     from famine_s1
   ),
   famine_s2 as materialized (select famine_pas.*, ${unPas("fs1", "p", "fc2", "l")} as fs2 from famine_pas),
-  -- La Nourriture manque dès f1 quand ce qu'y donnent les deux Stocks n'atteint pas l'Entretien : ni l'un ni l'autre ne
-  -- peut payer sa moitié, ou l'autre ne peut pas payer tout le reste (US-0325 : deux Stocks vides, dont l'un produit au
-  -- moins sa moitié, mais pas l'Entretien à eux deux).
+  -- g2 : les pas, après f1, où l'autre paie tout le reste ; au suivant, il donne tout ce qu'il a (fs3 + p).
+  famine_s3 as materialized (select famine_s2.*, ${pasImpaye("fs2", "p", "fc3", "l")} as g2 from famine_s2),
+  famine_s4 as materialized (select famine_s3.*, ${apresPas("fs2", "p", "fc3", "l", "g2")} as fs3 from famine_s3),
+  -- US-0325, US-0826 : la Famine commence au premier pas où les Habitants ne reçoivent plus tout leur Entretien e : ce que
+  -- les deux Stocks donnent à la demande partagée, une fois payées leurs Bêtes, n'y suffit plus. Au pas f1 ; sinon, les
+  -- deux vides dès f1, au suivant si leur production n'y suffit pas ; sinon, au pas où l'autre se vide à son tour, ou au
+  -- suivant ; jamais si sa production, ou leur production à tous deux, y suffit.
   famine as (
-    select case when sum(fc2) < min(e) then min(f1) else min(f1 + 1 + ${pasImpaye("fs2", "p", "fc3", "l")}) end as pas
-    from famine_s2
+    select case
+        when sum(greatest(0, fc2 - dd)) < min(e) then min(f1)
+        when bool_and(coalesce(da = f1, false)) then case when sum(greatest(0, p - dd)) < min(e) then min(f1) + 1 end
+        when min(g2) is null then null
+        when sum(case when g2 is null then greatest(0, p - dd) else greatest(0, fs3 + p - dd) end) < min(e) then min(f1) + 1 + min(g2)
+        when sum(greatest(0, p - dd)) < min(e) then min(f1) + 2 + min(g2)
+      end as pas
+    from famine_s4
   ),
   -- US-0326 : le pas du prochain départ de Famine, compté depuis $2 : une heure pleine après le début de la Famine
   -- (debut, avant $2 quand elle dure déjà, comme le Territoire le retient), toujours après $2 ; null hors Famine, ou
@@ -200,11 +231,15 @@ export const PRODUIRE = `
   avant_d1 as materialized (select bascule.*, ${apresPas("s0", "p", "c1", "l", "d1")} as s1 from bascule),
   -- Au pas d1, le Stock qui ne peut plus payer donne tout ce qu'il a (s1 + p), l'autre le reste de l'Entretien s'il le peut (c2) ;
   -- ensuite, le premier ne donne que sa production, l'autre tout le reste (c3). Il n'y a que deux Stocks de Nourriture.
+  -- US-0826 : le Stock qui ne peut plus payer donne à ses Bêtes d'abord ; l'autre paie ses Bêtes et tout le reste de la
+  -- demande partagée, les Habitants et les omnivores.
   pas_d1 as (
     select avant_d1.*,
-      case when da = d1 then s1 + p else least(s1 + p, e - (sum(s1 + p) over (partition by nourriture) - (s1 + p))) end as c2,
-      case when da = d1 then p else e - (sum(p) over (partition by nourriture) - p) end as c3
+      case when da = d1 then s1 + p
+        else least(s1 + p, dd + sh - greatest(0, (sum(s1 + p) over meme_famille - (s1 + p)) - (sum(dd) over meme_famille - dd))) end as c2,
+      case when da = d1 then p else dd + sh - greatest(0, (sum(p) over meme_famille - p) - (sum(dd) over meme_famille - dd)) end as c3
     from avant_d1
+    window meme_famille as (partition by nourriture)
   ),
   apres_d1 as materialized (select pas_d1.*, ${unPas("s1", "p", "c2", "l")} as s2 from pas_d1),
   -- d2 : le premier pas où l'autre ne peut plus payer tout le reste ; il donne alors tout ce qu'il a, et les deux restent vides.
@@ -261,13 +296,22 @@ export const PRODUIRE = `
  * fois la Famine commencée, au milieu d'un calcul, et le mécanisme du temps n'applique à leur instant que les
  * événements programmés avant le calcul en cours. Après un départ à `jusqua` même, un calcul de durée nulle note
  * aussitôt ce qu'il change à la Famine. US-0328 : une Famine finie en chemin, son Récit est écrit à l'instant de sa fin.
+ * US-0826 : avec l'Entretien des Bêtes `betes`, lu au début de la tranche (entretienDesBetes) : l'effectif ne change pas
+ * pendant elle, le temps s'arrêtant à chaque naissance, à chaque attaque et à chaque retour.
  */
-export async function produire(client: PoolClient, territoireId: number, depuis: Date, jusqua: Date): Promise<void> {
+export async function produire(client: PoolClient, territoireId: number, depuis: Date, jusqua: Date, betes: EntretienDesBetesLu): Promise<void> {
   // Les instants des départs tombent à la microseconde : ils passent en texte, qu'une Date arrondirait.
   let debut: Date | string = depuis;
   for (;;) {
     const calcul: { atteint: string; depart: boolean; famineFinie: string | null } | undefined = (
-      await client.query<{ atteint: string; depart: boolean; famineFinie: string | null }>(PRODUIRE, [territoireId, debut, jusqua])
+      await client.query<{ atteint: string; depart: boolean; famineFinie: string | null }>(PRODUIRE, [
+        territoireId,
+        debut,
+        jusqua,
+        betes.viande,
+        betes.vegetaux,
+        betes.omnivores,
+      ])
     ).rows[0];
     // US-0328 : la Famine a fini en `debut`, par un départ ou de la Nourriture ajoutée : un Récit le dit.
     if (calcul?.famineFinie) await finirLaFamine(client, territoireId, calcul.famineFinie, debut);

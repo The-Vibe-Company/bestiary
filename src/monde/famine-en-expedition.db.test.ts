@@ -8,6 +8,7 @@ import { rattraperLesAbsents } from "@/temps/absents";
 import { lireMarquePage } from "@/temps/marque-page";
 import { rattraper } from "@/temps/rattraper";
 import { mondeDEssai, nomDEssai, poolDeTest, preparerMondeDeTest, suffixeDEssai, territoireDuCompte, URL_TEST } from "@/test/base";
+import { entretienDesBetes } from "./entretien-des-betes";
 import { EN_EXPEDITION } from "./etat-habitant";
 import { DEPART_DE_FAMINE } from "./famine";
 import { entretienDesHabitants, habitantsDuTerritoire } from "./habitants";
@@ -67,11 +68,13 @@ describe.skipIf(!URL_TEST)("ceux qui sont partis mangent toujours (US-0921, sur 
     metier: i >= 15 ? "explorateur" : i % 3 === 1 ? null : i % 2 === 0 ? "chasseur" : "bucheron",
   }));
   /**
-   * Vingt Habitants (40 d'Entretien), comme la Famine les essaie (US-0325) : la Viande, à 8 − 20 = −12 par heure, se
-   * vide en 6 h ; les Végétaux, à 288 − 6 × 6 = 252, paient alors 32 et en produisent 14 : 14 h de plus. Tous
-   * comptés, la Nourriture tient 20 h tout juste. Sans les cinq explorateurs, elle tiendrait bien plus longtemps.
+   * Vingt Habitants (40 d'Entretien), comme la Famine les essaie (US-0325), et les deux souris de l'escorte, omnivores,
+   * qui mangent 0,334 par heure avec eux (US-0826) : 20,167 sur chaque Stock. La Viande, à 8 − 20,167 = −12,167 par
+   * heure, se vide en 6 h ; les Végétaux, à 293,678 − 6 × 6,167 = 256,676, paient alors 32,334 et en produisent 14 :
+   * 14 h de plus. Tous comptés, la Nourriture tient 20 h tout juste. Sans les cinq explorateurs, elle tiendrait bien
+   * plus longtemps.
    */
-  const vingtHeures = () => naitre(VINGT, "72", "288");
+  const vingtHeures = () => naitre(VINGT, "73.002", "293.678");
   const apres = (ne: Date, ms: number) => new Date(ne.getTime() + ms);
 
   /**
@@ -192,11 +195,12 @@ describe.skipIf(!URL_TEST)("ceux qui sont partis mangent toujours (US-0921, sur 
     it("prend leur Entretien sur les Stocks pendant toute l'Expédition, comme celui des Habitants restés au Foyer", async () => {
       const t = await vingtHeures();
       await partir(t);
-      // Vingt bouches : la Viande à −12 par heure, les Végétaux à −6. Sans les explorateurs, la Viande ne perdrait que 7.
+      // Vingt bouches et deux souris : la Viande à −12,167 par heure, les Végétaux à −6,167. Sans les explorateurs, la
+      // Viande ne perdrait que 7,167.
       await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t.ne, 5 * HEURE) });
       expect(await nourriture(t.territoireId)).toEqual([
-        { ressource_id: "vegetaux", quantite: "258.000000" },
-        { ressource_id: "viande", quantite: "12.000000" },
+        { ressource_id: "vegetaux", quantite: "262.843000" },
+        { ressource_id: "viande", quantite: "12.167000" },
       ]);
       // La Famine commence à 20 h pile, comme si personne n'était parti.
       await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t.ne, 20 * HEURE - 1) });
@@ -208,11 +212,15 @@ describe.skipIf(!URL_TEST)("ceux qui sont partis mangent toujours (US-0921, sur 
   });
 
   describe("l'avertissement « famine imminente » tient compte des Expéditions en cours", () => {
-    it("la barre du haut annonce le temps que tient la Nourriture, explorateurs partis compris", async () => {
+    it("la barre du haut annonce le temps que tient la Nourriture, explorateurs partis et souris de l'escorte compris", async () => {
       const t = await vingtHeures();
       await partir(t);
       const stocks = await stocksDuTerritoire(pool, t.territoireId);
-      expect(nourriturePourEncoreDesStocks(stocks, (await entretienDesHabitants(pool, t.territoireId)).parHeure)).toBe(20);
+      // US-0826 : avec l'Entretien des souris parties en escorte, comme le calcul du jeu le prélève.
+      expect(nourriturePourEncoreDesStocks(stocks, (await entretienDesHabitants(pool, t.territoireId)).parHeure, await entretienDesBetes(pool, t.territoireId))).toBeCloseTo(
+        20,
+        9,
+      );
     });
 
     it("devient imminente à son instant exact, 12 h avant la Famine, comme si personne n'était parti", async () => {
@@ -226,14 +234,19 @@ describe.skipIf(!URL_TEST)("ceux qui sont partis mangent toujours (US-0921, sur 
   });
 
   describe("en Famine pendant une Expédition, seuls les Habitants restés au Foyer s'en vont", () => {
-    /** Les neuf départs de Famine attendus, de 21 h à 29 h : les sans Métier d'abord, puis les derniers arrivés restés au Foyer. */
+    /**
+     * Les neuf départs de Famine attendus, de 21 h à 29 h : les sans Métier d'abord, puis les derniers arrivés restés au
+     * Foyer. US-0826 : les deux souris, omnivores, mangent après les Habitants sur la Nourriture partagée : onze Habitants
+     * vivent de ce que produit la prairie, et ce sont les souris qui ont faim, sans conséquence encore (étape 36).
+     */
     const NEUF_DEPARTS = ["H14", "H11", "H08", "H05", "H02", "H15", "H13", "H12", "H10"].map((prenom, i) => ({ prenom, instant: us(21 + i) }));
 
     it("un explorateur absent ne part pas : le suivant resté au Foyer part à sa place", async () => {
       const t = await vingtHeures();
       await partir(t);
       await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t.ne, 40 * HEURE) });
-      // Onze bouches, explorateurs compris, mangent 22 par heure, ce que la prairie produit : la Famine a fini à 29 h.
+      // Onze bouches, explorateurs compris, mangent 22 par heure, ce que la prairie produit, avant les deux souris : la
+      // Famine a fini à 29 h.
       expect(await departs(t.territoireId, t.ne)).toEqual(NEUF_DEPARTS);
       expect(await restants(t.territoireId)).toEqual([
         ...["H01", "H03", "H04", "H06", "H07", "H09"].map((prenom) => ({ prenom, parti: false })),

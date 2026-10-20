@@ -60,7 +60,7 @@ describe.skipIf(!URL_TEST)("combien de temps tiendra la Nourriture, contre le ca
   };
   /** Le calcul même du jeu, entre deux instants comptés en heures depuis le début de l'essai. */
   const produire = (territoireId: number, de: number, a: number) =>
-    pool.query(PRODUIRE, [territoireId, new Date(DEBUT.getTime() + de * HEURE), new Date(DEBUT.getTime() + a * HEURE)]);
+    pool.query(PRODUIRE, [territoireId, new Date(DEBUT.getTime() + de * HEURE), new Date(DEBUT.getTime() + a * HEURE), "0", "0", "0"]);
   const nourritureEnStock = async (territoireId: number) =>
     (
       await pool.query<{ id: string; quantite: string }>(

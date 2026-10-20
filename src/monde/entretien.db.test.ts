@@ -17,6 +17,8 @@ type Reglage = { quantite: string; reste?: string; limite?: string };
 type Compte = { quantite: string; reste: string; produit: string; plein: string | null };
 
 const [ZERO, UN, DEUX, MILLE, MILLION] = [0, 1, 2, 1000, 1_000_000].map(BigInt);
+/** US-0826 : sans Bête à nourrir, les trois derniers paramètres de PRODUIRE : carnivores, herbivores, omnivores. */
+const SANS_BETES = ["0", "0", "0"];
 /** Un millionième vaut 3 600 unités de reste. */
 const UNITE_DE_RESTE = BigInt(3600);
 const min = (a: bigint, b: bigint) => (a < b ? a : b);
@@ -329,7 +331,7 @@ describe.skipIf(!URL_TEST)("l'Entretien des Habitants (US-0316, sur base)", () =
       const resultats: Record<Ressource, Compte>[] = [];
       // D'un coup.
       await regler(territoireId, habitants, stocks);
-      await pool.query(PRODUIRE, [territoireId, debut, arrivee]);
+      await pool.query(PRODUIRE, [territoireId, debut, arrivee, ...SANS_BETES]);
       resultats.push(await comptes(territoireId));
       // Le calcul même du jeu, mille fois de suite côté base : mille minutes une à une.
       await regler(territoireId, habitants, stocks);
@@ -337,7 +339,7 @@ describe.skipIf(!URL_TEST)("l'Entretien des Habitants (US-0316, sur base)", () =
         `do $do$ begin
            for i in 0..999 loop
              execute $calcul$${PRODUIRE}$calcul$
-               using ${territoireId}, timestamptz '${debut}' + make_interval(mins => i), timestamptz '${debut}' + make_interval(mins => i + 1);
+               using ${territoireId}, timestamptz '${debut}' + make_interval(mins => i), timestamptz '${debut}' + make_interval(mins => i + 1), 0, 0, 0;
            end loop;
          end $do$`,
       );
@@ -349,7 +351,7 @@ describe.skipIf(!URL_TEST)("l'Entretien des Habitants (US-0316, sur base)", () =
            for i in 0..996 loop
              execute $calcul$${PRODUIRE}$calcul$
                using ${territoireId}, timestamptz '${debut}' + ((i::bigint * 60000000000) / 997) * interval '1 microsecond',
-                 timestamptz '${debut}' + (((i + 1)::bigint * 60000000000) / 997) * interval '1 microsecond';
+                 timestamptz '${debut}' + (((i + 1)::bigint * 60000000000) / 997) * interval '1 microsecond', 0, 0, 0;
            end loop;
          end $do$`,
       );
@@ -389,7 +391,7 @@ describe.skipIf(!URL_TEST)("l'Entretien des Habitants (US-0316, sur base)", () =
       // En un calcul, ou coupé en deux ou trois n'importe où, même en calculs vides.
       const coupes = [ZERO, ...Array.from({ length: tirer(3) }, () => BigInt(tirer(Number(pas) + 1))).sort((a, b) => (a < b ? -1 : 1)), pas];
       await regler(territoireId, habitants, reglages);
-      for (let i = 0; i + 1 < coupes.length; i++) await pool.query(PRODUIRE, [territoireId, instant(t0 + coupes[i]), instant(t0 + coupes[i + 1])]);
+      for (let i = 0; i + 1 < coupes.length; i++) await pool.query(PRODUIRE, [territoireId, instant(t0 + coupes[i]), instant(t0 + coupes[i + 1]), ...SANS_BETES]);
       expect(await comptes(territoireId), `essai ${essai} : ${habitants} Habitants, ${pas} pas, coupé en ${coupes.join(", ")}`).toEqual(
         deroulerPasAPas(depart, habitants, t0, pas),
       );

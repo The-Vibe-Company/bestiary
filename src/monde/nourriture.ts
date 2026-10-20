@@ -5,6 +5,18 @@ import { FAMINE_IMMINENTE_HEURES, FAMINE_IMMINENTE_MARGE_HEURES } from "@/reglag
 export type StockDeNourriture = { quantite: number; parHeure: number; limite: number };
 
 /**
+ * US-0826 : l'Entretien des Bêtes par heure, en Nourriture : celui des carnivores, que seule la Viande paie, celui des
+ * herbivores, que seuls les Végétaux paient, et celui des omnivores, que l'une ou l'autre paie, comme les Habitants.
+ */
+export type EntretienDesBetes = { viande: number; vegetaux: number; omnivores: number };
+
+/** US-0826 : l'Entretien des Bêtes tel que la base le lit, en texte (numeric de Postgres ; entretienDesBetes). */
+export type EntretienDesBetesLu = { viande: string; vegetaux: string; omnivores: string };
+
+/** US-0826 : aucune Bête à nourrir. */
+const AUCUNE_BETE: EntretienDesBetes = { viande: 0, vegetaux: 0, omnivores: 0 };
+
+/**
  * Les heures avant qu'un Stock qui paie `paie` par heure soit vide (0 s'il l'est déjà), Infinity s'il ne
  * l'est jamais. Au-dessus de sa limite, il ne produit plus (US-0230) : il paie sans rien recevoir jusqu'à
  * elle, puis sa production le soutient.
@@ -34,14 +46,31 @@ function quantiteApres(stock: StockDeNourriture, paie: number, heures: number): 
  *
  * L'Entretien est le total des Habitants, pas la somme des parts que la barre montre (stocksDuTerritoire) :
  * quand les deux Stocks sont vides, ces parts ne valent plus que leur production.
+ *
+ * US-0826 : avec l'Entretien des Bêtes (`betes`) : chaque Stock paie d'abord les Bêtes qui ne mangent que lui
+ * (les carnivores la Viande, les herbivores les Végétaux), puis la moitié de la demande partagée, les Habitants et
+ * les omnivores ; le premier vide donne sa production à ses Bêtes d'abord, et l'autre paie tout le reste. Le temps
+ * rendu reste celui des Habitants : jusqu'au premier instant où ils ne reçoivent plus tout leur Entretien, les Bêtes
+ * d'un Stock vide pouvant avoir faim avant eux ; null quand la production, une fois payées les Bêtes qui ne mangent
+ * qu'elle, les nourrit.
  */
-export function nourriturePourEncore(viande: StockDeNourriture, vegetaux: StockDeNourriture, entretienParHeure: number): number | null {
-  if (viande.parHeure + vegetaux.parHeure >= entretienParHeure) return null;
-  const moitie = entretienParHeure / 2;
-  const [premier, autre] = heuresAvantVide(viande, moitie) <= heuresAvantVide(vegetaux, moitie) ? [viande, vegetaux] : [vegetaux, viande];
-  const vide = heuresAvantVide(premier, moitie);
-  const ensuite = { ...autre, quantite: quantiteApres(autre, moitie, vide) };
-  return vide + heuresAvantVide(ensuite, entretienParHeure - premier.parHeure);
+export function nourriturePourEncore(
+  viande: StockDeNourriture,
+  vegetaux: StockDeNourriture,
+  entretienParHeure: number,
+  betes: EntretienDesBetes = AUCUNE_BETE,
+): number | null {
+  const pourLesHabitants = Math.max(0, viande.parHeure - betes.viande) + Math.max(0, vegetaux.parHeure - betes.vegetaux);
+  if (pourLesHabitants >= entretienParHeure) return null;
+  const partage = entretienParHeure + betes.omnivores;
+  const stocks = [
+    { stock: viande, siennes: betes.viande },
+    { stock: vegetaux, siennes: betes.vegetaux },
+  ].map((s) => ({ ...s, paie: s.siennes + partage / 2 }));
+  const [premier, autre] = heuresAvantVide(stocks[0].stock, stocks[0].paie) <= heuresAvantVide(stocks[1].stock, stocks[1].paie) ? stocks : [stocks[1], stocks[0]];
+  const vide = heuresAvantVide(premier.stock, premier.paie);
+  const ensuite = { ...autre.stock, quantite: quantiteApres(autre.stock, autre.paie, vide) };
+  return vide + heuresAvantVide(ensuite, autre.siennes + partage - Math.max(0, premier.stock.parHeure - premier.siennes));
 }
 
 /** US-0321 : un Stock tel que la base le lit, en texte (stocksDuTerritoire) : sa famille, sa quantité, sa production par heure et sa limite. */
@@ -49,14 +78,20 @@ type StockLu = { famille: string; quantite: string; parHeure: string; limite: st
 
 /**
  * US-0321 : nourriturePourEncore sur les Stocks tels que la base les lit, la Viande puis les Végétaux, et
- * l'Entretien total en texte ; null quand la Nourriture est assurée, ou sans Stock de Nourriture.
+ * l'Entretien total en texte ; null quand la Nourriture est assurée, ou sans Stock de Nourriture. US-0826 : avec
+ * l'Entretien des Bêtes tel que la base le lit (entretienDesBetes), s'il y en a.
  */
-export function nourriturePourEncoreDesStocks(stocks: StockLu[], entretienParHeure: string): number | null {
+export function nourriturePourEncoreDesStocks(stocks: StockLu[], entretienParHeure: string, betes?: EntretienDesBetesLu): number | null {
   const [viande, vegetaux] = stocks
     .filter((s) => s.famille === "nourriture")
     .map((s) => ({ quantite: Number(s.quantite), parHeure: Number(s.parHeure), limite: Number(s.limite) }));
   if (!viande || !vegetaux) return null;
-  return nourriturePourEncore(viande, vegetaux, Number(entretienParHeure));
+  return nourriturePourEncore(
+    viande,
+    vegetaux,
+    Number(entretienParHeure),
+    betes && { viande: Number(betes.viande), vegetaux: Number(betes.vegetaux), omnivores: Number(betes.omnivores) },
+  );
 }
 
 /** Une heure, en millisecondes. */
