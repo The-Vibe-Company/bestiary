@@ -7,7 +7,7 @@ import type { Pool, PoolClient } from "pg";
 import { FAMINE_IMMINENTE_HEURES, HISTORIQUE_VOYAGEURS_JOURS, VOYAGEUR_ATTEND_HEURES, VOYAGEUR_TOUTES_LES_HEURES, VOYAGEURS_EN_ATTENTE_MAX } from "@/reglages";
 import { programmerEvenement, type Evenement } from "@/temps/avancer";
 import { ajouterUnHabitant, plusDePlace } from "./habitants";
-import { famineImminenteRetenue, nourriturePourEncoreDesStocks } from "./nourriture";
+import { type EntretienDesBetesLu, famineImminenteRetenue, nourriturePourEncoreDesStocks } from "./nourriture";
 import { ecrireUnRecit, type NouveauRecit } from "./recits";
 import type { Stock } from "./stocks";
 
@@ -320,10 +320,11 @@ export async function refuserLeVoyageur(base: Pool | PoolClient, territoireId: n
  * plus que FAMINE_IMMINENTE_HEURES heures d'Entretien, ou moins, sur les Stocks et l'Entretien lus une fois le
  * Territoire mis à l'heure ; US-0323 : et, entre le seuil et sa marge, tant que le Territoire le retient (`depuis`,
  * famineImminenteDepuis). Pendant une Famine (US-0325), la Nourriture ne tient plus du tout :
- * l'avertissement reste actif, et l'accueil reste possible, avec la même confirmation.
+ * l'avertissement reste actif, et l'accueil reste possible, avec la même confirmation. US-0826 : avec l'Entretien des
+ * Bêtes (`betes`), comme le calcul du jeu le compte.
  */
-export function avertissementDeFamine(stocks: Stock[], entretienParHeure: string, depuis: number | null = null): boolean {
-  const heures = nourriturePourEncoreDesStocks(stocks, entretienParHeure);
+export function avertissementDeFamine(stocks: Stock[], entretienParHeure: string, depuis: number | null = null, betes?: EntretienDesBetesLu): boolean {
+  const heures = nourriturePourEncoreDesStocks(stocks, entretienParHeure, betes);
   // US-0323 : entre le seuil et la marge, l'avertissement retenu par le Territoire (`depuis`) reste actif, comme la bande.
   return heures !== null && (heures <= FAMINE_IMMINENTE_HEURES || famineImminenteRetenue(heures, depuis) !== null);
 }

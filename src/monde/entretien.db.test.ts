@@ -17,6 +17,8 @@ type Reglage = { quantite: string; reste?: string; limite?: string };
 type Compte = { quantite: string; reste: string; produit: string; plein: string | null };
 
 const [ZERO, UN, DEUX, MILLE, MILLION] = [0, 1, 2, 1000, 1_000_000].map(BigInt);
+/** US-0826 : sans Bête à nourrir, les trois derniers paramètres de PRODUIRE : carnivores, herbivores, omnivores. */
+const SANS_BETES = ["0", "0", "0"];
 /** Un millionième vaut 3 600 unités de reste. */
 const UNITE_DE_RESTE = BigInt(3600);
 const min = (a: bigint, b: bigint) => (a < b ? a : b);
@@ -26,25 +28,41 @@ const enMillioniemes = (n: bigint) => `${n / MILLION}.${(n % MILLION).toString()
 /** Un instant compté en microsecondes depuis l'origine des temps, écrit pour la base, microsecondes comprises. */
 const instant = (us: bigint) => new Date(Number(us / MILLION) * 1000).toISOString().replace(".000Z", `.${(us % MILLION).toString().padStart(6, "0")}Z`);
 
+/** US-0826 : l'Entretien des Bêtes par heure, tel que PRODUIRE le reçoit : les carnivores (Viande), les herbivores (Végétaux), les omnivores. */
+type Betes = { viande: bigint; vegetaux: bigint; omnivores: bigint };
+const SANS_BETE: Betes = { viande: ZERO, vegetaux: ZERO, omnivores: ZERO };
+
 /**
  * La règle de l'Entretien déroulée pas à pas, une microseconde à la fois, telle que PRODUIRE la décrit,
  * pour comparer son calcul d'un coup à la règle elle-même. Les Stocks sont en unités de reste
  * (quantité × 3 600 000 000 + reste) : une production de p par heure ajoute p à chaque pas.
+ * US-0826 : avec l'Entretien des Bêtes : chaque Stock paie d'abord les Bêtes qui ne mangent que lui, puis la moitié de
+ * la demande partagée (les Habitants et les omnivores) ; celui qui ne le peut pas donne tout ce qu'il a, et l'autre paie
+ * ses Bêtes et tout le reste de la demande partagée, moins ce que le premier lui a laissé au-delà de ses Bêtes.
  */
-function deroulerPasAPas(depart: Record<Ressource, { s: bigint; l: bigint; p: bigint }>, habitants: number, t0: bigint, pas: bigint): Record<Ressource, Compte> {
-  const e = BigInt(habitants * ENTRETIEN_HABITANT_PAR_HEURE);
+function deroulerPasAPas(
+  depart: Record<Ressource, { s: bigint; l: bigint; p: bigint }>,
+  habitants: number,
+  t0: bigint,
+  pas: bigint,
+  betes: Betes = SANS_BETE,
+): Record<Ressource, Compte> {
+  const e = BigInt(habitants * ENTRETIEN_HABITANT_PAR_HEURE) + betes.omnivores;
   const moitie = e / DEUX;
   expect(moitie * DEUX).toBe(e);
+  const [dv, dg] = [betes.viande, betes.vegetaux];
   const etat = Object.fromEntries(RESSOURCES.map((id) => [id, { ...depart[id], produit: ZERO, plein: depart[id].s >= depart[id].l ? t0 : null }])) as Record<
     Ressource,
     { s: bigint; l: bigint; p: bigint; produit: bigint; plein: bigint | null }
   >;
   for (let t = t0; t < t0 + pas; t++) {
-    // Chacun paie la moitié ; celui qui ne le peut pas donne tout ce qu'il a, l'autre paie le reste s'il le peut.
+    // Chacun paie ses Bêtes et la moitié de la demande partagée ; celui qui ne le peut pas donne tout ce qu'il a, l'autre
+    // paie ses Bêtes et le reste s'il le peut.
     const [v, g] = [etat.viande.s + etat.viande.p, etat.vegetaux.s + etat.vegetaux.p];
-    let paie: Record<Ressource, bigint> = { viande: moitie, vegetaux: moitie, bois: ZERO, pierre: ZERO };
-    if (v < moitie) paie = { ...paie, viande: v, vegetaux: min(g, e - v) };
-    else if (g < moitie) paie = { ...paie, viande: min(v, e - g), vegetaux: g };
+    let paie: Record<Ressource, bigint> = { viande: dv + moitie, vegetaux: dg + moitie, bois: ZERO, pierre: ZERO };
+    if (v < dv + moitie && g < dg + moitie) paie = { ...paie, viande: v, vegetaux: g };
+    else if (v < dv + moitie) paie = { ...paie, viande: v, vegetaux: min(g, dg + e - max(ZERO, v - dv)) };
+    else if (g < dg + moitie) paie = { ...paie, viande: min(v, dv + e - max(ZERO, g - dg)), vegetaux: g };
     for (const id of RESSOURCES) {
       const stock = etat[id];
       const c = paie[id];
@@ -329,7 +347,7 @@ describe.skipIf(!URL_TEST)("l'Entretien des Habitants (US-0316, sur base)", () =
       const resultats: Record<Ressource, Compte>[] = [];
       // D'un coup.
       await regler(territoireId, habitants, stocks);
-      await pool.query(PRODUIRE, [territoireId, debut, arrivee]);
+      await pool.query(PRODUIRE, [territoireId, debut, arrivee, ...SANS_BETES]);
       resultats.push(await comptes(territoireId));
       // Le calcul même du jeu, mille fois de suite côté base : mille minutes une à une.
       await regler(territoireId, habitants, stocks);
@@ -337,7 +355,7 @@ describe.skipIf(!URL_TEST)("l'Entretien des Habitants (US-0316, sur base)", () =
         `do $do$ begin
            for i in 0..999 loop
              execute $calcul$${PRODUIRE}$calcul$
-               using ${territoireId}, timestamptz '${debut}' + make_interval(mins => i), timestamptz '${debut}' + make_interval(mins => i + 1);
+               using ${territoireId}, timestamptz '${debut}' + make_interval(mins => i), timestamptz '${debut}' + make_interval(mins => i + 1), 0, 0, 0;
            end loop;
          end $do$`,
       );
@@ -349,7 +367,7 @@ describe.skipIf(!URL_TEST)("l'Entretien des Habitants (US-0316, sur base)", () =
            for i in 0..996 loop
              execute $calcul$${PRODUIRE}$calcul$
                using ${territoireId}, timestamptz '${debut}' + ((i::bigint * 60000000000) / 997) * interval '1 microsecond',
-                 timestamptz '${debut}' + (((i + 1)::bigint * 60000000000) / 997) * interval '1 microsecond';
+                 timestamptz '${debut}' + (((i + 1)::bigint * 60000000000) / 997) * interval '1 microsecond', 0, 0, 0;
            end loop;
          end $do$`,
       );
@@ -372,8 +390,12 @@ describe.skipIf(!URL_TEST)("l'Entretien des Habitants (US-0316, sur base)", () =
     };
     const choisir = <T,>(valeurs: T[]) => valeurs[tirer(valeurs.length)];
     const origine = BigInt(Date.UTC(2026, 0, 1)) * MILLE;
-    for (let essai = 0; essai < 48; essai++) {
+    for (let essai = 0; essai < 72; essai++) {
       const habitants = choisir([0, 3, 9, 10, 11, 12, 15, 20, 40]);
+      // US-0826 : une fois sur deux, des Bêtes mangent aussi : carnivores et herbivores sur leur seul Stock, omnivores (un
+      // nombre pair, la moitié pour chaque Stock) avec les Habitants.
+      const betes: Betes =
+        essai % 2 ? { viande: BigInt(choisir([0, 3, 7, 20])), vegetaux: BigInt(choisir([0, 5, 12, 30])), omnivores: BigInt(choisir([0, 2, 6, 10])) } : SANS_BETE;
       // Des Stocks minuscules, en millionièmes et en reste, pour que tout bascule en quelques milliers de microsecondes.
       const depart = {} as Record<Ressource, { s: bigint; l: bigint; p: bigint }>;
       const reglages = {} as Record<Ressource, Reglage>;
@@ -389,12 +411,46 @@ describe.skipIf(!URL_TEST)("l'Entretien des Habitants (US-0316, sur base)", () =
       // En un calcul, ou coupé en deux ou trois n'importe où, même en calculs vides.
       const coupes = [ZERO, ...Array.from({ length: tirer(3) }, () => BigInt(tirer(Number(pas) + 1))).sort((a, b) => (a < b ? -1 : 1)), pas];
       await regler(territoireId, habitants, reglages);
-      for (let i = 0; i + 1 < coupes.length; i++) await pool.query(PRODUIRE, [territoireId, instant(t0 + coupes[i]), instant(t0 + coupes[i + 1])]);
-      expect(await comptes(territoireId), `essai ${essai} : ${habitants} Habitants, ${pas} pas, coupé en ${coupes.join(", ")}`).toEqual(
-        deroulerPasAPas(depart, habitants, t0, pas),
+      for (let i = 0; i + 1 < coupes.length; i++) {
+        await pool.query(PRODUIRE, [territoireId, instant(t0 + coupes[i]), instant(t0 + coupes[i + 1]), String(betes.viande), String(betes.vegetaux), String(betes.omnivores)]);
+      }
+      expect(await comptes(territoireId), `essai ${essai} : ${habitants} Habitants, ${JSON.stringify(betes, (_, x) => (typeof x === "bigint" ? Number(x) : x))}, ${pas} pas, coupé en ${coupes.join(", ")}`).toEqual(
+        deroulerPasAPas(depart, habitants, t0, pas, betes),
       );
     }
   }, 120_000);
+
+  it("commence la Famine au pas exact où les Habitants ne reçoivent plus tout leur Entretien, Bêtes comprises, dans chacun de ses cas (US-0826)", async () => {
+    const { territoireId } = await naitre();
+    const p = await prairie();
+    const origine = BigInt(Date.UTC(2026, 3, 1)) * MILLE;
+    /** La Famine du Territoire, en microsecondes après `t0` ; null hors Famine. */
+    const famine = async (t0: bigint) =>
+      (await pool.query<{ us: string | null }>("select ((extract(epoch from famine_depuis) * 1000000)::bigint - $2::bigint)::text as us from territoire where id = $1", [territoireId, String(t0)]))
+        .rows[0].us;
+    /** Douze Habitants (24 par pas), les Stocks à `viande` et `vegetaux` unités de reste, puis `pas` pas d'un coup avec ces Bêtes. */
+    const vivre = async (viande: number, vegetaux: number, betes: [string, string, string], pas: number) => {
+      const t0 = origine + BigInt(Math.floor(Math.random() * 1_000_000));
+      await regler(territoireId, 12, { viande: { quantite: "0", reste: String(viande) }, vegetaux: { quantite: "0", reste: String(vegetaux) } });
+      await pool.query("update territoire set famine_depuis = null, famine_imminente_depuis = null where id = $1", [territoireId]);
+      await pool.query(PRODUIRE, [territoireId, instant(t0), instant(t0 + BigInt(pas)), ...betes]);
+      return famine(t0);
+    };
+    expect([p.viande, p.vegetaux]).toEqual([8, 14]);
+    // Les Stocks vides et des carnivores qui mangent toute la Viande produite : il reste 14 pour 24, la Famine dès le premier pas.
+    expect(await vivre(0, 0, ["8", "0", "0"], 5)).toBe("0");
+    // Les deux Stocks ne peuvent plus payer au premier pas, mais ce qu'ils ont encore (10 + 8 − 8 de Viande, 14 de Végétaux)
+    // nourrit les Habitants ce pas-là ; au suivant, la production seule (0 + 14) ne suffit plus : la Famine au deuxième pas.
+    expect(await vivre(10, 0, ["8", "0", "0"], 5)).toBe("1");
+    // Dix omnivores avec les Habitants (34 partagés, 17 sur chaque Stock) : la Viande, vide, donne ses 8 ; les Végétaux, à 30,
+    // paient 26 pour 14 produits, 12 de moins par pas ; au quatrième pas, leurs 6 et 14 et les 8 de Viande nourrissent encore
+    // les Habitants (28 pour 24, les omnivores ont faim) ; au cinquième, 22 ne suffisent plus : la Famine à ce pas.
+    expect(await vivre(0, 30, ["0", "0", "10"], 8)).toBe("4");
+    // Sans Bête, les mêmes Stocks nourrissent les Habitants tant qu'il en reste : la Famine au troisième pas.
+    expect(await vivre(0, 30, ["0", "0", "0"], 8)).toBe("3");
+    // Assez de production : aucune Famine, même les Stocks vides, quand les Bêtes mangent moins que la production ne laisse.
+    expect(await vivre(0, 0, ["0", "0", "0"], 5)).toBeNull();
+  });
 
   it("dit l'Entretien pris sur chaque Stock par heure, au rythme du moment, pour la barre du haut", async () => {
     const p = await prairie();

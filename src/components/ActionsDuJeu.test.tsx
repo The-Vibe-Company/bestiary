@@ -19,6 +19,7 @@ const garde = vi.hoisted(() => ({
   famineImminenteALHeure: vi.fn(async (): Promise<number | null> => null),
   famineALHeure: vi.fn(async (): Promise<number | null> => null),
   couplesReunisALHeure: vi.fn(async () => 0),
+  entretienDesBetesALHeure: vi.fn(async () => ({ viande: "0.000000", vegetaux: "0.000000", omnivores: "0.000000" })),
 }));
 vi.mock("@/comptes/garde", () => garde);
 // US-0321 : le vrai avertissement, observé pour voir ce que la barre lui confie.
@@ -48,6 +49,7 @@ describe("actions du joueur dans la barre, sur les pages du jeu", () => {
     garde.famineImminenteALHeure.mockClear();
     garde.famineALHeure.mockClear();
     garde.couplesReunisALHeure.mockClear();
+    garde.entretienDesBetesALHeure.mockClear();
     famine.FamineImminente.mockClear();
   });
   const joueur = (chef: { nomDeChef: string | null; territoireId?: number | null; recitLu?: boolean }) =>
@@ -267,6 +269,18 @@ describe("actions du joueur dans la barre, sur les pages du jeu", () => {
       const { heures, vitesse } = famine.FamineImminente.mock.lastCall?.[0] ?? {};
       expect(heures).toBeCloseTo(13.75, 9);
       expect(vitesse).toBe(1);
+    });
+
+    it("compte l'Entretien des Bêtes de l'effectif, lu à l'heure avec le reste de la barre (US-0826)", async () => {
+      joueur({ nomDeChef: "Ourse", territoireId: 12, recitLu: true });
+      // Douze Habitants (24) et des carnivores qui mangent 8 de Viande par heure, toute sa production : la Viande, à 12, se
+      // vide en 1 h ; les Végétaux, à 102, paient alors les 24 pour 14 produits : 10 h 12 de plus. Sans eux, 56 h.
+      garde.stocksALHeure.mockResolvedValueOnce(nourriture("12.000000", "100.000000"));
+      garde.entretienALHeure.mockResolvedValueOnce("24.000000");
+      garde.entretienDesBetesALHeure.mockResolvedValueOnce({ viande: "8.000000", vegetaux: "0.000000", omnivores: "0.000000" });
+      const html = await rendu();
+      expect(garde.entretienDesBetesALHeure).toHaveBeenCalledWith(12);
+      expect(avertissement(html)?.[2]).toContain("Nourriture pour encore 11");
     });
 
     it("ne dit rien quand la Nourriture est assurée", async () => {

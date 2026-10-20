@@ -119,6 +119,92 @@ describe("combien de temps tiendra la Nourriture (US-0320)", () => {
   });
 });
 
+/** US-0826 : l'Entretien des Bêtes par heure : des carnivores (Viande), des herbivores (Végétaux), des omnivores (l'un ou l'autre). */
+type Betes = { viande: number; vegetaux: number; omnivores: number };
+
+/**
+ * US-0826 : la règle de l'Entretien déroulée pas à pas avec les Bêtes, telle que PRODUIRE la décrit. Chaque Stock paie
+ * d'abord les Bêtes qui ne mangent que lui, puis la moitié de la demande partagée (les Habitants, puis les omnivores) ;
+ * celui qui ne le peut pas donne tout ce qu'il a, à ses Bêtes d'abord, et l'autre paie tout le reste s'il le peut.
+ * Rend les heures écoulées avant le premier pas où les Habitants ne reçoivent plus tout leur Entretien ; null s'ils le
+ * reçoivent encore au bout de `jusqua` heures.
+ */
+function deroulementAvecBetes(viande: StockDeNourriture, vegetaux: StockDeNourriture, entretien: number, betes: Betes, pas: number, jusqua = 3000): number | null {
+  const unPas = (s: number, p: number, c: number, l: number) => Math.max(s - c, Math.min(s + p - c, l));
+  const [h, dv, dg, partage] = [entretien * pas, betes.viande * pas, betes.vegetaux * pas, (entretien + betes.omnivores) * pas];
+  const [pv, pg] = [viande.parHeure * pas, vegetaux.parHeure * pas];
+  let [v, g] = [viande.quantite, vegetaux.quantite];
+  for (let n = 0; n * pas < jusqua; n++) {
+    const [av, ag] = [v + pv, g + pg];
+    const [cv1, cg1] = [dv + partage / 2, dg + partage / 2];
+    let [cv, cg] = [cv1, cg1];
+    if (av < cv1 && ag < cg1) [cv, cg] = [av, ag];
+    else if (av < cv1) [cv, cg] = [av, Math.min(ag, dg + partage - Math.max(0, av - dv))];
+    else if (ag < cg1) [cv, cg] = [Math.min(av, dv + partage - Math.max(0, ag - dg)), ag];
+    if (Math.max(0, cv - dv) + Math.max(0, cg - dg) < h - 1e-9) return n * pas;
+    [v, g] = [unPas(v, pv, cv, viande.limite), unPas(g, pg, cg, vegetaux.limite)];
+  }
+  return null;
+}
+
+describe("combien de temps tiendra la Nourriture des Habitants, avec l'Entretien des Bêtes (US-0826)", () => {
+  const sans: Betes = { viande: 0, vegetaux: 0, omnivores: 0 };
+
+  it("sans Bête, rend ce que rendait la règle des seuls Habitants", () => {
+    expect(nourriturePourEncore(stock(100, 8), stock(100, 14), 24, sans)).toBeCloseTo(100, 9);
+    expect(nourriturePourEncore(stock(100, 8), stock(100, 14), 6, sans)).toBeNull();
+  });
+
+  it("fait payer les carnivores par la seule Viande : vide, elle laisse les Végétaux nourrir les Habitants", () => {
+    // La Viande paie 4 aux carnivores et 3 aux Habitants : vide en 100 / 7 h ; les Végétaux, qui produisent 100, paient
+    // alors les 6 des Habitants. Les carnivores ont faim, les Habitants non : la Nourriture des Habitants est assurée.
+    expect(nourriturePourEncore(stock(100, 0), stock(1000, 100), 6, { ...sans, viande: 4 })).toBeNull();
+  });
+
+  it("vide plus vite la Nourriture que les Bêtes partagent avec les Habitants", () => {
+    // Deux omnivores à 3 par heure : 6 + 6 = 12 partagés, 6 sur chaque Stock, qui ne produisent rien : 100 h ; sans eux, 200 h.
+    expect(nourriturePourEncore(stock(600, 0), stock(600, 0), 6, sans)).toBeCloseTo(200, 9);
+    expect(nourriturePourEncore(stock(600, 0), stock(600, 0), 6, { ...sans, omnivores: 6 })).toBeCloseTo(100, 9);
+    // Des herbivores à 6 par heure sur les Végétaux : ceux-ci, à 9 par heure, se vident en 66,67 h ; la Viande, qui en a
+    // payé 3, en a encore 400 et paie alors les 6 des Habitants : 66,67 h de plus.
+    expect(nourriturePourEncore(stock(600, 0), stock(600, 0), 6, { ...sans, vegetaux: 6 })).toBeCloseTo(600 / 9 + 400 / 6, 9);
+  });
+
+  it("rend null quand ce que la production laisse aux Habitants, après les Bêtes qui ne mangent qu'elle, les nourrit", () => {
+    expect(nourriturePourEncore(stock(0, 10), stock(0, 10), 12, { ...sans, viande: 5 })).toBeNull();
+    expect(nourriturePourEncore(stock(0, 10), stock(0, 10), 12, { ...sans, viande: 9 })).toBe(0);
+  });
+
+  it("donne le temps d'un déroulement pas à pas, à un pas près, avec des Bêtes de tous les régimes", () => {
+    const tirer = hasard(826);
+    const pas = 1 / 60;
+    const entier = (max: number) => Math.round(tirer() * max);
+    for (let essai = 0; essai < 90; essai++) {
+      const viande = stock(entier(2500), entier(20), 200 + entier(1800));
+      const vegetaux = stock(entier(2500), entier(20), 200 + entier(1800));
+      const betes = { viande: entier(8), vegetaux: entier(8), omnivores: entier(8) };
+      const entretien = 2 + entier(20);
+      const calcule = nourriturePourEncore(viande, vegetaux, entretien, betes);
+      const deroule = deroulementAvecBetes(viande, vegetaux, entretien, betes, pas);
+      const cas = JSON.stringify({ viande, vegetaux, entretien, betes });
+      if (deroule === null) expect(calcule === null || calcule > 2900, cas).toBe(true);
+      else {
+        expect(calcule, cas).not.toBeNull();
+        expect(Math.abs(calcule! - deroule), cas).toBeLessThanOrEqual(2 * pas);
+      }
+    }
+  });
+
+  it("lit l'Entretien des Bêtes tel que la base le rend, en texte (nourriturePourEncoreDesStocks)", () => {
+    const lus = [
+      { famille: "nourriture", quantite: "600", parHeure: "0", limite: "1000" },
+      { famille: "nourriture", quantite: "600", parHeure: "0", limite: "1000" },
+    ];
+    expect(nourriturePourEncoreDesStocks(lus, "6", { viande: "0", vegetaux: "0", omnivores: "6" })).toBeCloseTo(100, 9);
+    expect(nourriturePourEncoreDesStocks(lus, "6")).toBeCloseTo(200, 9);
+  });
+});
+
 describe("dire combien de temps tiendra la Nourriture (US-0320)", () => {
   /** Une espace insécable entre un nombre et son unité, pour qu'ils ne se séparent jamais. */
   const _ = " ";

@@ -8,9 +8,10 @@ import { Jauge } from "@/components/Jauge";
 import kit from "@/components/kit.module.css";
 import { Medaillon } from "@/components/Medaillon";
 import { getPool } from "@/db";
+import { entretienDesBetes } from "@/monde/entretien-des-betes";
 import { type EntretienDesHabitants, entretienDesHabitants, habitantsDuTerritoire, placesDuTerritoire } from "@/monde/habitants";
 import { iconeDeMetier, lesMetiers } from "@/monde/metiers";
-import { nourriturePourEncore, tenueDeLaNourriture } from "@/monde/nourriture";
+import { type EntretienDesBetesLu, nourriturePourEncoreDesStocks, tenueDeLaNourriture } from "@/monde/nourriture";
 import { quantiteAffichee, quantiteExacte, soldeAffiche, soldeEnMots, soldeHoraire } from "@/monde/quantite";
 import type { Stock } from "@/monde/stocks";
 import { avertissementDeFamine, voyageursAuxPortes } from "@/monde/voyageurs";
@@ -86,12 +87,12 @@ function Place({ habitants, places }: { habitants: number; places: number }) {
  * US-0318 : l'Entretien des Habitants : son total par heure, sans le calcul qui redit ce que mange chaque Habitant
  * (retour d'Antoine, 2026-10-15) ; dessous, la Viande et les Végétaux qui le paient, leur quantité et leur solde par
  * heure, comme la barre du haut les compte (US-0319) ; US-0320 : enfin, combien de temps la Nourriture le paiera
- * encore, au rythme du moment : « Nourriture assurée », ou « Nourriture pour encore 7 h », en alerte.
+ * encore, au rythme du moment : « Nourriture assurée », ou « Nourriture pour encore 7 h », en alerte. US-0826 : ce temps
+ * compte l'Entretien des Bêtes (`betes`), comme le calcul du jeu ; la ligne par Espèce arrive avec US-0827.
  */
-function Entretien({ entretien, stocks }: { entretien: EntretienDesHabitants; stocks: Stock[] }) {
+function Entretien({ entretien, stocks, betes }: { entretien: EntretienDesHabitants; stocks: Stock[]; betes: EntretienDesBetesLu }) {
   const nourriture = stocks.filter((s) => s.famille === "nourriture");
-  const [viande, vegetaux] = nourriture.map((s) => ({ quantite: Number(s.quantite), parHeure: Number(s.parHeure), limite: Number(s.limite) }));
-  const heures = viande && vegetaux ? nourriturePourEncore(viande, vegetaux, Number(entretien.parHeure)) : null;
+  const heures = nourriturePourEncoreDesStocks(stocks, entretien.parHeure, betes);
   return (
     <section className={`${kit.panneau} ${styles.entretien}`} data-alerte={heures === null ? undefined : ""}>
       <h2 className={kit.etiquette}>Entretien</h2>
@@ -116,7 +117,7 @@ function Entretien({ entretien, stocks }: { entretien: EntretienDesHabitants; st
           })}
         </ul>
       ) : null}
-      {viande && vegetaux ? (
+      {nourriture.length === 2 ? (
         <p className={styles.tenue} data-baisse={heures === null ? undefined : ""}>
           {heures === null ? <Coche /> : <Alerte />}
           {tenueDeLaNourriture(heures)}
@@ -144,7 +145,7 @@ export default async function Habitants() {
   await connection();
   if (!entreeDuJeuOuverte()) notFound();
   const { territoireId } = await exigerCompte("/jeu/habitants");
-  const [habitants, places, entretien, metiers, stocks, voyageurs, famineDepuis, famine] = await Promise.all([
+  const [habitants, places, entretien, metiers, stocks, voyageurs, famineDepuis, famine, betes] = await Promise.all([
     territoireId === null ? [] : habitantsDuTerritoire(getPool(), territoireId),
     territoireId === null ? 0 : placesDuTerritoire(getPool(), territoireId),
     territoireId === null ? null : entretienDesHabitants(getPool(), territoireId),
@@ -153,6 +154,8 @@ export default async function Habitants() {
     territoireId === null ? [] : voyageursAuxPortes(getPool(), territoireId),
     territoireId === null ? null : famineImminenteALHeure(territoireId),
     territoireId === null ? null : famineALHeure(territoireId),
+    // US-0826 : l'Entretien des Bêtes, que la Nourriture paie avec celui des Habitants.
+    territoireId === null ? null : entretienDesBetes(getPool(), territoireId),
   ]);
   const montres = habitants.map(({ id, prenom, metier, etat, arriveLe }) => ({ id, prenom, metier, etat, arriveLe: DATE_D_ARRIVEE.format(arriveLe) }));
   const auChoix = metiers.map(({ id, nom }) => ({ id, nom, icone: iconeDeMetier(id) }));
@@ -171,12 +174,12 @@ export default async function Habitants() {
           maintenant={maintenant()}
           vitesse={vitesse()}
           placesLibres={places - habitants.length}
-          famineImminente={entretien !== null && avertissementDeFamine(stocks, entretien.parHeure, famineDepuis)}
+          famineImminente={entretien !== null && avertissementDeFamine(stocks, entretien.parHeure, famineDepuis, betes ?? undefined)}
           famine={famine !== null}
           metiers={auChoix}
         />
         <Place habitants={habitants.length} places={places} />
-        {entretien ? <Entretien entretien={entretien} stocks={stocks} /> : null}
+        {entretien && betes ? <Entretien entretien={entretien} stocks={stocks} betes={betes} /> : null}
       </div>
     </main>
   );

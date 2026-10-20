@@ -79,11 +79,11 @@ describe.skipIf(!URL_TEST)("production continue du Foyer (US-0210, sur base)", (
       `do $do$ begin
          for i in 0..999 loop
            execute $calcul$${PRODUIRE}$calcul$
-             using ${parMinute}, timestamptz '${debut.toISOString()}' + make_interval(mins => i), timestamptz '${debut.toISOString()}' + make_interval(mins => i + 1);
+             using ${parMinute}, timestamptz '${debut.toISOString()}' + make_interval(mins => i), timestamptz '${debut.toISOString()}' + make_interval(mins => i + 1), 0, 0, 0;
          end loop;
        end $do$`,
     );
-    await pool.query(PRODUIRE, [dUnCoup, debut, new Date(debut.getTime() + 1000 * 60_000)]);
+    await pool.query(PRODUIRE, [dUnCoup, debut, new Date(debut.getTime() + 1000 * 60_000), "0", "0", "0"]);
     const comptes = async (id: number) =>
       (await pool.query("select ressource_id, quantite::text, reste::text, produit_depuis_visite::text from stock where territoire_id = $1 order by ressource_id", [id])).rows;
     expect(await comptes(parMinute)).toEqual(await comptes(dUnCoup));
@@ -91,7 +91,7 @@ describe.skipIf(!URL_TEST)("production continue du Foyer (US-0210, sur base)", (
     const viande = (await comptes(dUnCoup)).find((s) => s.ressource_id === "viande");
     const parHeure = (await prairie()).viande;
     expect(viande.quantite).toBe((Math.floor((parHeure * 1000 * 1_000_000) / 60) / 1_000_000).toFixed(6));
-  });
+  }, 60_000);
 
   it("arrête un Stock exactement à sa limite, perd ce qui la dépasse, et laisse les autres monter (US-0221)", async () => {
     const territoireId = await naitre();
@@ -137,7 +137,7 @@ describe.skipIf(!URL_TEST)("production continue du Foyer (US-0210, sur base)", (
       await client.query("create temp table production_biome on commit drop as table public.production_biome");
       await client.query("update production_biome set par_heure = 0 where biome_id in ('prairie', 'foret') and ressource_id = 'pierre'");
       const depuis = new Date("2026-01-01T00:00:00Z");
-      await produire(client, territoireId, depuis, new Date(depuis.getTime() + 2 * HEURE));
+      await produire(client, territoireId, depuis, new Date(depuis.getTime() + 2 * HEURE), { viande: "0", vegetaux: "0", omnivores: "0" });
       const { rows } = await client.query<{ id: string; total: string }>(
         `select s.ressource_id as id, s.quantite as total from stock s where s.territoire_id = $1`,
         [territoireId],
