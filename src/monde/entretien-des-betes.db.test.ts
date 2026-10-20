@@ -31,8 +31,12 @@ describe.skipIf(!URL_TEST)("payer l'Entretien des Bêtes chaque heure (US-0826, 
   const nes: string[] = [];
   /** Ce qu'une Case de prairie, Biome du Foyer, produit par heure : la Viande et les Végétaux. */
   let prairie: { viande: number; vegetaux: number };
-  /** L'Entretien par heure du suricate (carnivore), de l'écureuil (herbivore) et de la poule (omnivore). */
-  let mange: { suricate: number; ecureuil: number; poule: number };
+  /**
+   * Une Espèce de chaque régime, et son Entretien par heure : le pigeon (herbivore) et la poule (omnivore), du jeu ; et la
+   * commune carnivore qui mange le moins, lue en base sans la nommer (aucune Espèce d'essai nommée, US-0924).
+   */
+  let carnivore: { id: string; mange: number };
+  let mange: { pigeon: number; poule: number };
 
   /**
    * Un joueur qui vient de naître, sans Habitant (`habitants` en garde autant), la Viande et les Végétaux à `nourriture`,
@@ -93,14 +97,18 @@ describe.skipIf(!URL_TEST)("payer l'Entretien des Bêtes chaque heure (US-0826, 
     );
     prairie = Object.fromEntries(p.map((r) => [r.id, r.parHeure])) as typeof prairie;
     const { rows: e } = await pool.query<{ id: string; regime: string; entretien: number }>(
-      "select id, regime, entretien_par_heure::float8 as entretien from espece where id in ('suricate', 'ecureuil', 'poule')",
+      "select id, regime, entretien_par_heure::float8 as entretien from espece where id in ('pigeon', 'poule')",
     );
     expect(e.map((x) => [x.id, x.regime]).sort()).toEqual([
-      ["ecureuil", "herbivore"],
+      ["pigeon", "herbivore"],
       ["poule", "omnivore"],
-      ["suricate", "carnivore"],
     ]);
     mange = Object.fromEntries(e.map((r) => [r.id, r.entretien])) as typeof mange;
+    const { rows: c } = await pool.query<{ id: string; mange: number }>(
+      "select id, entretien_par_heure::float8 as mange from espece where regime = 'carnivore' and rarete_id = 'commune' order by entretien_par_heure, id limit 1",
+    );
+    carnivore = c[0];
+    expect(carnivore.mange).toBeGreaterThan(0);
   });
   afterEach(async () => {
     // Chaque essai rend ses Foyers à la Couronne du Monde d'essai.
@@ -115,42 +123,42 @@ describe.skipIf(!URL_TEST)("payer l'Entretien des Bêtes chaque heure (US-0826, 
     const t = await naitre();
     expect(await entretienDesBetes(pool, t.territoireId)).toEqual({ viande: six(0), vegetaux: six(0), omnivores: six(0) });
     await ajouter(t.territoireId, [
-      ["suricate", "male", 2],
-      ["suricate", "femelle", 1],
-      ["ecureuil", "femelle", 4],
+      [carnivore.id, "male", 2],
+      [carnivore.id, "femelle", 1],
+      ["pigeon", "femelle", 4],
       ["poule", "femelle", 3],
     ]);
-    expect(await entretienDesBetes(pool, t.territoireId)).toEqual({ viande: six(3 * mange.suricate), vegetaux: six(4 * mange.ecureuil), omnivores: six(3 * mange.poule) });
+    expect(await entretienDesBetes(pool, t.territoireId)).toEqual({ viande: six(3 * carnivore.mange), vegetaux: six(4 * mange.pigeon), omnivores: six(3 * mange.poule) });
   });
 
   it("chaque heure, chaque Bête mange l'Entretien de son Espèce : un carnivore de la Viande, un herbivore des Végétaux, un omnivore moitié de chaque (décidé le 2026-10-19)", async () => {
     const t = await naitre();
     await ajouter(t.territoireId, [
-      ["suricate", "male", 2],
-      ["ecureuil", "femelle", 3],
+      [carnivore.id, "male", 2],
+      ["pigeon", "femelle", 3],
       ["poule", "femelle", 2],
     ]);
     await avancer(t, 1);
-    // En une heure, la prairie produit, et les Bêtes mangent : 2 suricates sur la Viande, 3 écureuils sur les Végétaux, et
+    // En une heure, la prairie produit, et les Bêtes mangent : 2 carnivores sur la Viande, 3 pigeons sur les Végétaux, et
     // les 2 poules, 10 en tout, 5 sur chaque Stock.
     expect(await nourriture(t.territoireId)).toEqual({
-      viande: { quantite: six(500 + prairie.viande - 2 * mange.suricate - mange.poule), reste: "0.000000" },
-      vegetaux: { quantite: six(500 + prairie.vegetaux - 3 * mange.ecureuil - mange.poule), reste: "0.000000" },
+      viande: { quantite: six(500 + prairie.viande - 2 * carnivore.mange - mange.poule), reste: "0.000000" },
+      vegetaux: { quantite: six(500 + prairie.vegetaux - 3 * mange.pigeon - mange.poule), reste: "0.000000" },
     });
     await avancer(t, 4);
-    expect((await nourriture(t.territoireId)).viande.quantite).toBe(six(500 + 4 * (prairie.viande - 2 * mange.suricate - mange.poule)));
+    expect((await nourriture(t.territoireId)).viande.quantite).toBe(six(500 + 4 * (prairie.viande - 2 * carnivore.mange - mange.poule)));
   });
 
   it("les Bêtes sorties en escorte mangent toujours, sur les Stocks du Territoire ; les Bêtes du Couple, en Réserve, ne mangent pas (décidé le 2026-10-19)", async () => {
     const t = await naitre();
-    await ajouter(t.territoireId, [["suricate", "male", 4]]);
-    // Deux suricates partent en escorte : ils mangent comme ceux restés au Foyer.
+    await ajouter(t.territoireId, [[carnivore.id, "male", 4]]);
+    // Deux carnivores partent en escorte : ils mangent comme ceux restés au Foyer.
     const { rows } = await pool.query<{ id: number }>(
       `insert into expedition (territoire_id, case_id, part_le, trajet_minutes, sejour_minutes)
        select $1, c.id, $3, 30, 600 from case_du_monde c where c.monde_id = $2 and c.chef_id is null order by c.id limit 1 returning id`,
       [t.territoireId, mondeId, t.ne],
     );
-    await pool.query("insert into expedition_escorte (expedition_id, espece_id, nombre, males) values ($1, 'suricate', 2, 2)", [rows[0].id]);
+    await pool.query("insert into expedition_escorte (expedition_id, espece_id, nombre, males) values ($1, $2, 2, 2)", [rows[0].id, carnivore.id]);
     // Un mâle et une femelle de poule : leur Couple se réunit et part en Réserve, hors de l'effectif.
     await ajouter(t.territoireId, [
       ["poule", "male", 1],
@@ -162,25 +170,28 @@ describe.skipIf(!URL_TEST)("payer l'Entretien des Bêtes chaque heure (US-0826, 
     } finally {
       client.release();
     }
-    expect(await entretienDesBetes(pool, t.territoireId)).toEqual({ viande: six(4 * mange.suricate), vegetaux: six(0), omnivores: six(0) });
+    expect(await entretienDesBetes(pool, t.territoireId)).toEqual({ viande: six(4 * carnivore.mange), vegetaux: six(0), omnivores: six(0) });
     await avancer(t, 2);
-    expect((await nourriture(t.territoireId)).viande.quantite).toBe(six(500 + 2 * (prairie.viande - 4 * mange.suricate)));
+    expect((await nourriture(t.territoireId)).viande.quantite).toBe(six(500 + 2 * (prairie.viande - 4 * carnivore.mange)));
     expect((await nourriture(t.territoireId)).vegetaux.quantite).toBe(six(500 + 2 * prairie.vegetaux));
   });
 
   it("chaque Stock nourrit d'abord les Bêtes qui ne mangent que lui ; vide, il laisse l'autre nourrir les Habitants, qui ne sont pas en Famine (décidé le 2026-10-19)", async () => {
-    // Trois Habitants (6 par heure, 3 sur chaque Stock) et huit suricates (20 par heure, sur la seule Viande) : la Viande,
-    // à 10, se vide en 40 minutes ; dès lors elle donne sa production aux suricates, qui ont faim, et les Végétaux paient
-    // tout l'Entretien des Habitants, qu'ils produisent largement : aucune Famine.
-    const t = await naitre(10, 3);
-    expect([prairie.viande, prairie.vegetaux, mange.suricate]).toEqual([8, 14, 2.5]);
+    // Trois Habitants (6 par heure, 3 sur chaque Stock) et assez de carnivores pour manger plus de Viande qu'elle n'en
+    // produit (`dd`, au moins 9 par heure) : la Viande, à dd − 5, se vide en une heure tout juste (8 produits, dd + 3
+    // mangés) ; dès lors elle donne toute sa production aux carnivores, qui ont faim, et les Végétaux paient tout
+    // l'Entretien des Habitants, qu'ils produisent largement : aucune Famine.
+    expect([prairie.viande, prairie.vegetaux]).toEqual([8, 14]);
+    const n = Math.ceil(9 / carnivore.mange);
+    const dd = n * carnivore.mange;
+    const t = await naitre(dd - 5, 3);
     await pool.query("update stock set quantite = 1000 where territoire_id = $1 and ressource_id = 'vegetaux'", [t.territoireId]);
-    await ajouter(t.territoireId, [["suricate", "male", 8]]);
+    await ajouter(t.territoireId, [[carnivore.id, "male", n]]);
     await avancer(t, 5);
     expect(await nourriture(t.territoireId)).toEqual({
       viande: { quantite: "0.000000", reste: "0.000000" },
-      // 40 minutes à 14 − 3 = +11, puis 4 h 20 à 14 − 6 = +8.
-      vegetaux: { quantite: six(1000 + 11 * (2 / 3) + 8 * (13 / 3)), reste: "0.000000" },
+      // Une heure à 14 − 3 = +11, puis quatre heures à 14 − 6 = +8.
+      vegetaux: { quantite: six(1000 + 11 + 4 * 8), reste: "0.000000" },
     });
     expect(await famine(t.territoireId)).toBeNull();
     // La barre du haut le lit de même : la Nourriture des Habitants est assurée.
