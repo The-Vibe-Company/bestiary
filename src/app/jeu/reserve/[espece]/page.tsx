@@ -14,6 +14,7 @@ import { blessesAffiches, blessesDans } from "@/monde/blesses-affiches";
 import { coutDUneBeteElevee, dureeDUneBeteEleveeMinutes, nourritureDuRegime } from "@/monde/cout-d-elevage";
 import { blessesParEspece, especeDuTerritoire, type Regime } from "@/monde/effectif";
 import { elevageAcquis, eleveurLibre } from "@/monde/elevage";
+import { elevagesEnCours } from "@/monde/elevages-en-cours";
 import { placesDeLHabitat } from "@/monde/habitat";
 import { caracteristiqueAffichee as nombre } from "@/monde/quantite";
 import { maintenant, vitesse } from "@/temps/horloge";
@@ -128,7 +129,7 @@ export default async function FicheDeLEspece({
           Fermer
         </Link>
       </article>
-      {territoireId !== null && (await elevageAcquis(getPool(), territoireId, espece)) ? <BlocElever especeId={espece} places={await placesDeLHabitat(getPool(), territoireId)} nourriture={await nourritureDuRegime(getPool(), territoireId, fiche.regime)} eleveur={(await eleveurLibre(getPool(), territoireId))?.prenom ?? null} elevage={{ cout: coutDUneBeteElevee(fiche.entretienParHeure), nourriture: REGIMES[fiche.regime].nourriture, dureeMinutes: dureeDUneBeteEleveeMinutes(fiche.taille) }} maintenant={instant} vitesse={vitesse()} /> : null}
+      {territoireId !== null && (await elevageAcquis(getPool(), territoireId, espece)) ? <BlocElever especeId={espece} places={await placesDeLHabitat(getPool(), territoireId)} nourriture={await nourritureDuRegime(getPool(), territoireId, fiche.regime)} eleveur={(await eleveurLibre(getPool(), territoireId))?.prenom ?? null} elevage={{ cout: coutDUneBeteElevee(fiche.entretienParHeure), nourriture: REGIMES[fiche.regime].nourriture, dureeMinutes: dureeDUneBeteEleveeMinutes(fiche.taille) }} elevageEnCours={(await elevagesEnCours(getPool(), territoireId, instant)).find((e) => e.especeId === espece) ?? null} maintenant={instant} vitesse={vitesse()} /> : null}
     </main>
   );
 }
