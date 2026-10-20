@@ -779,6 +779,7 @@ Le joueur envoie ses explorateurs, seuls ou avec une escorte de Bêtes, vers des
 ### US-0971 · L'effet des pigeons avant le départ
 **En tant que** joueur, **je veux** voir ce que mes pigeons éclaireurs apporteront avant de partir, **afin de** décider combien en emmener.
 
+- **Statut** : Livrée le 2026-10-20 (autopilot, The-Vibe-Company/bestiary#85). Sous les Éclaireurs du récapitulatif, une ligne « Avec eux » dit ce qu'ils apportent, par exemple « Brouillard levé +2 Cases, Bêtes en vue +1 h » : toutes les Espèces d'Éclaireurs comptent ensemble, dans les plafonds d'US-0969 et d'US-0970 ; sans Éclaireur, rien. La force reste celle de l'escorte seule (un pigeon en escorte n'y apporte rien, US-0972). L'avertissement « ne sera plus là » (US-0949) tient compte de la vue prolongée : une Bête que les Éclaireurs garderont en vue à l'arrivée n'est plus dite partie. Tranché : `rayonDesEclaireurs` et `vueProlongee` vivent dans un module pur, `src/expeditions/eclaireurs.ts`, que le navigateur lit sans tirer le brouillard côté serveur.
 - **Débloquée par** : US-0969, US-0970, US-0910
 - **Critères d'acceptation** :
   - Le récapitulatif indique ce qu'apportent les Éclaireurs choisis : rayon de brouillard en plus, présence prolongée des Bêtes.

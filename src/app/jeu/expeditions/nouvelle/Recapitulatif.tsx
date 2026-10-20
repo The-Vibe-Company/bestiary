@@ -9,11 +9,12 @@ import { Paysage } from "@/components/Paysage";
 import { dureeDuTrajetMinutes, sansEscorte } from "@/expeditions/allure";
 import { forceQuiManque } from "@/expeditions/apprivoisement";
 import { casesDuFoyer } from "@/expeditions/choix-de-destination";
+import { rayonDesEclaireurs, vueProlongee } from "@/expeditions/eclaireurs";
 import { forceDeLEscorte } from "@/expeditions/force";
 import { horaireDuSejour } from "@/expeditions/sejour";
 import type { EspeceDisponible } from "@/monde/effectif";
 import type { Coordonnees } from "@/monde/hex";
-import { formaterJourEtHeure } from "@/temps/affichage";
+import { formaterJourEtHeure, formaterMinutes } from "@/temps/affichage";
 import { eclaireursChoisis, entier, escorteChoisie } from "./Escorte";
 import { explorateursChoisis } from "./Explorateurs";
 import { Partir } from "./Partir";
@@ -36,6 +37,15 @@ const uneEspece = (nom: string, nombre: number) => `${nom} × ${nombre}`;
  * (Hérisson, Hibou), le « de » reste entier.
  */
 const de = (nom: string) => (/^[aeiouyàâäéèêëîïôöùûüœæ]/i.test(nom) ? `d'${nom}` : `de ${nom}`);
+
+/**
+ * US-0971 : ce qu'apportent `eclaireurs` Éclaireurs, toutes Espèces ensemble, en bref : « Brouillard levé +2 Cases, Bêtes
+ * en vue +40 min » (rayonDesEclaireurs, US-0969 ; vueProlongee, US-0970).
+ */
+const apportDesEclaireurs = (eclaireurs: number) => {
+  const rayon = rayonDesEclaireurs(eclaireurs);
+  return `Brouillard levé +${rayon} ${rayon > 1 ? "Cases" : "Case"}, Bêtes en vue +${formaterMinutes(vueProlongee(eclaireurs) / MINUTE_MS)}`;
+};
 
 /** US-0961 : « Seule femelle de Poule : sans elle, pas de Couple. », pour la seule Bête d'un sexe qu'emmène l'escorte. */
 const seuleDeSonSexe = ({ nom, seule }: Pick<EspeceDisponible, "nom" | "seule">) =>
@@ -75,6 +85,9 @@ export type BeteAChercher = { espece: string; force: number; rareteId: string; j
  * Couple (`seule`, betesDisponibles), une ligne le dit en nommant l'Espèce et le sexe, en braise au-dessus du retour
  * prévu, gardée en vue même replié : un simple avertissement, « Partir » ne demande rien de plus. Les Éclaireurs ne
  * combattent pas : ils ne la risquent pas.
+ * US-0971 : sous les Éclaireurs, ce qu'ils apportent (apportDesEclaireurs) ; rien sans Éclaireur. Ils gardent en vue les
+ * Bêtes repérées plus longtemps : une Bête ne « sera plus là » que partie avant l'arrivée plus longtemps qu'ils ne la
+ * gardent en vue.
  */
 export function Recapitulatif({
   libres,
@@ -110,6 +123,8 @@ export function Recapitulatif({
   const risquees = escorte.filter((e) => e.seule && !e.coupleReuni);
   const eclaireurs = eclaireursChoisis(recherche, especes);
   const eclaireuses = especes.filter((e) => eclaireurs.get(e.id)! > 0);
+  const nombreDEclaireurs = eclaireuses.reduce((n, e) => n + eclaireurs.get(e.id)!, 0);
+  const vue = vueProlongee(nombreDEclaireurs);
   const force = sansEscorte(choix) ? null : forceDeLEscorte(escorte.map((e) => ({ force: e.force, nombre: choix.get(e.id)! })));
   const aller = destination ? dureeDuTrajetMinutes(destination.distance, escorte.map((e) => ({ vitesse: e.vitesse, nombre: choix.get(e.id)! }))) : null;
   // Un départ à l'heure du jeu, qui avance au rythme du jeu ; le retour dure autant que l'aller (US-0912), après le
@@ -156,6 +171,12 @@ export function Recapitulatif({
               <dd>{eclaireuses.map((e) => uneEspece(e.nom, eclaireurs.get(e.id)!)).join(", ")}</dd>
             </div>
           ) : null}
+          {nombreDEclaireurs > 0 ? (
+            <div>
+              <dt>Avec eux</dt>
+              <dd>{apportDesEclaireurs(nombreDEclaireurs)}</dd>
+            </div>
+          ) : null}
           <div>
             <dt>Destination</dt>
             <dd>{destination ? casesDuFoyer(destination.distance) : "Aucune"}</dd>
@@ -193,9 +214,9 @@ export function Recapitulatif({
               <dd>{seuleDeSonSexe(e)}</dd>
             </div>
           ))}
-          {/* US-0949 : une Bête repérée partie avant l'arrivée prévue ne sera plus là. */}
+          {/* US-0949 : une Bête repérée partie avant l'arrivée prévue ne sera plus là ; US-0971 : ni en vue des Éclaireurs. */}
           {betes.map((bete, i) =>
-            horaire && bete.jusquA <= horaire.debut ? (
+            horaire && bete.jusquA.getTime() + vue <= horaire.debut.getTime() ? (
               <div key={i} data-essentiel="" data-partie="">
                 <dt>À l&apos;arrivée</dt>
                 <dd>{`${bete.espece} ne sera plus là`}</dd>
