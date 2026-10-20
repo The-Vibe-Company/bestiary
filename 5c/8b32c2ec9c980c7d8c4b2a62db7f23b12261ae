@@ -1,0 +1,33 @@
+src/app/jeu/expeditions/nouvelle/Recapitulatif.test.tsx
+  s_7c7d151152e4a5::t_acb9a65d8a0805 535,537-538,556-558,585-588
+src/app/jeu/expeditions/nouvelle/Recapitulatif.tsx
+  s_7c7d151152e4a5::t_860870c4b7883f 10,12
+src/expeditions/apprivoisement.test.ts
+  s_7c7d151152e4a5::t_8a86cc3058fd42 2
+src/expeditions/brouillard.test.ts
+  s_7c7d151152e4a5::t_6ff60b9427e9ef 9-10
+src/expeditions/brouillard.ts
+  s_7c7d151152e4a5::t_25f4444329a9d1 5,9-10
+src/expeditions/eclaireurs.test.ts
+  s_7c7d151152e4a5::t_f04a4ffc29544d 1-29
+src/expeditions/eclaireurs.ts
+  s_7c7d151152e4a5::t_7f9357219f6f87 1-27
+src/expeditions/vue-des-eclaireurs.ts
+  s_7c7d151152e4a5::t_799b3243903782 5,8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5c8b32c2ec9c980c7d8c4b2a62db7f23b12261ae",
+  "prompts": {},
+  "sessions": {
+    "s_7c7d151152e4a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a29eecb1-aff7-46c8-aee7-b990bcc7e60c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Zewed <dewez.antoine2@gmail.com>"
+    }
+  }
+}
