@@ -76,8 +76,11 @@
   --hauteur-fiche: 0px;
 }
 
-/* Sous 1 200 px, les Stocks ne tiennent plus à coup sûr à côté des onglets : ils passent en rangée dessous. */
-@media (min-width: 1024px) and (max-width: 1199px) {
+/*
+ * Sous 1 200 px, les Stocks ne tiennent plus à coup sûr à côté des onglets nommés : sans survol, où les onglets gardent
+ * leur nom, ils passent en rangée dessous. Avec le survol, les onglets en médaillons seuls leur laissent la place.
+ */
+@media (min-width: 1024px) and (max-width: 1199px) and (hover: none) {
   :root:has([data-bande-ressources]) {
     --hauteur-bande: 52px;
   }

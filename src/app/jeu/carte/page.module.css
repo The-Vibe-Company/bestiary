@@ -77,11 +77,14 @@
 /*
  * US-0420 : la carte se prend à la main pour la faire glisser, sans rien sélectionner de la page en chemin.
  * US-0421 : au doigt, c'est elle qui glisse, pas la page ; ni bulle de menu ni loupe quand il s'attarde.
+ * Retour d'Antoine (2026-10-15) : la barre du haut est posée sur la carte ; sa hauteur, en marge de défilement, dit à la
+ * carte (CarteDuJeu) combien de son haut est caché : au plus loin, le Monde entier tient au-dessous.
  */
 .carte {
   display: block;
   width: 100%;
   height: 100%;
+  scroll-margin-top: var(--hauteur-barre);
   cursor: grab;
   user-select: none;
   touch-action: none;

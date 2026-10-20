@@ -13,7 +13,7 @@ import { BetesRepereesSurLaCarte, placerLesBetes, type RepereDeBete } from "./Be
 import { BoutonsDeLaCarte } from "./BoutonsDeLaCarte";
 import { CasesDecouvertes } from "./CasesDecouvertes";
 import { nombreDeDecouvertes, useDecouvertes } from "./decouvertes";
-import { type Cadre, dessinerLaCarte, type Peinture, vueSurLeFoyer, type Hutte, type Vue } from "./dessin";
+import { avecToutLeMonde, type Cadre, dessinerLaCarte, type Peinture, vueSurLeFoyer, type Hutte, type Vue } from "./dessin";
 import { ExpeditionsSurLaCarte, placerLesReperes, type Repere, reperesSous, repereTouche } from "./ExpeditionsSurLaCarte";
 import { FicheDeLaCase, useFicheDeLaCase } from "./FicheDeLaCase";
 import { FlecheDuFoyer, placerLaFleche } from "./FlecheDuFoyer";
@@ -22,7 +22,7 @@ import { LEGENDE_MONTREE } from "./Legende";
 import { glisser } from "./mouvement";
 import { reliefDesCases } from "./relief";
 import styles from "./page.module.css";
-import { avancer, cadrer, caseSous, deplacer, devoiler, limiteDeLaCarte, retourAuFoyer, zoomer, zoomPossible } from "./vue";
+import { avancer, borner, cadrer, caseSous, deplacer, devoiler, limiteDeLaCarte, rayonDuMonde, retourAuFoyer, zoomer, zoomPossible } from "./vue";
 import { retenirLaVue, vueRetenue } from "./vue-retenue";
 
 /**
@@ -169,11 +169,13 @@ export function CarteDuJeu({
   // ci-dessous, qu'une nouvelle lecture de la page remet en place avec elle.
   const decouverte = useDecouvertes(carte);
   const decouvertes = useMemo(() => nombreDeDecouvertes(decouverte), [decouverte]);
-  const aDessiner = useRef(decouverte);
+  // Retour d'Antoine (2026-10-15) : tout le Monde dessiné, grisé sous le brouillard, et pas seulement ses Cases en base.
+  const toutLeMonde = useMemo(() => avecToutLeMonde(decouverte, rayonDuMonde(decouverte)), [decouverte]);
+  const aDessiner = useRef(toutLeMonde);
   useEffect(() => {
-    aDessiner.current = decouverte;
+    aDessiner.current = toutLeMonde;
     pourLaFiche.current.redessiner();
-  }, [decouverte]);
+  }, [toutLeMonde]);
   useEffect(() => {
     const canvas = toile.current;
     const pinceau = canvas?.getContext("2d");
@@ -245,11 +247,15 @@ export function CarteDuJeu({
     // US-0423 : le zoom ramené dans les bornes de cette taille. US-0427 : à l'ouverture, la vue retenue s'il y en a une.
     const redimensionner = () => {
       const { width: largeur, height: hauteur } = canvas.getBoundingClientRect();
+      // Retour d'Antoine (2026-10-15) : le haut de la carte caché sous la barre du haut, que sa feuille de style lui donne
+      // en marge de défilement (page.module.css) : au plus loin, le Monde entier tient au-dessous.
+      const haut = parseFloat(getComputedStyle(canvas).scrollMarginTop) || 0;
       const densite = window.devicePixelRatio || 1;
       canvas.width = Math.round(largeur * densite);
       canvas.height = Math.round(hauteur * densite);
       pinceau.setTransform(densite, 0, 0, densite, 0, 0);
-      vue = cadrer(vue ?? vueRetenue(carte, largeur, hauteur) ?? vueSurLeFoyer(carte.foyer, largeur, hauteur), largeur, hauteur);
+      // Retour d'Antoine (2026-10-15) : le milieu aussi ramené dans sa limite, qui se resserre au zoom le plus éloigné.
+      vue = borner(cadrer(vue ?? vueRetenue(carte, largeur, hauteur) ?? vueSurLeFoyer(carte.foyer, largeur, hauteur), largeur, hauteur, haut), limite);
       dessiner();
       griser();
     };
@@ -309,7 +315,7 @@ export function CarteDuJeu({
       mouvement = glisser(vue, retourAuFoyer(vue, carte.foyer), (etape) => {
         cancelAnimationFrame(image);
         image = 0;
-        vue = cadrer(etape, vue!.largeur, vue!.hauteur);
+        vue = borner(cadrer(etape, vue!.largeur, vue!.hauteur, vue!.haut), limite);
         dessiner();
         griser();
       });

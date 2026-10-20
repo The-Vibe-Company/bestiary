@@ -8,9 +8,10 @@ export const LARGEUR_DE_CASE = 28;
 
 /**
  * Ce que montre la carte : la taille de l'écran en pixels, la Case posée en son milieu, et le rayon d'une Case à
- * l'écran (de son centre à un sommet), en pixels.
+ * l'écran (de son centre à un sommet), en pixels. Retour d'Antoine (2026-10-15) : `haut`, les pixels du haut de la carte
+ * cachés sous la barre du haut, posée dessus (aucun si rien n'est dit) : au plus loin, le Monde entier tient au-dessous.
  */
-export type Vue = { largeur: number; hauteur: number; milieu: Coordonnees; rayon: number };
+export type Vue = { largeur: number; hauteur: number; milieu: Coordonnees; rayon: number; haut?: number };
 
 /** Ce que la carte demande au pinceau d'un <canvas> : une petite partie de CanvasRenderingContext2D. */
 export type Pinceau = Pick<
@@ -74,6 +75,11 @@ export type CarteADessiner = {
   cases: { q: number[]; r: number[]; teinte: number[]; zone: number[] };
   foyer: Coordonnees;
   foyers: Coordonnees[];
+  /**
+   * Retour d'Antoine (2026-10-15) : le rayon du Monde, quand il se dessine en entier (avecToutLeMonde) : le grand
+   * hexagone de ce rayon autour de son centre, sous le brouillard partout où la carte n'a pas de Case découverte.
+   */
+  rayon?: number;
 };
 
 /** US-0419 : l'illustration de la hutte du chef, telle que le navigateur l'a chargée, et sa taille en pixels. */
@@ -380,6 +386,36 @@ export function rangsDesCases(cases: CarteADessiner["cases"]): Map<string, numbe
   return rangs;
 }
 
+/**
+ * Retour d'Antoine (2026-10-15) : la carte à dessiner en entier, le Monde de `rayon` anneaux autour de son centre (son
+ * bord, même sur Aube qui n'a en base que sa Couronne) : grisé sous le brouillard partout où elle n'a pas de Case
+ * découverte, pour que sa forme se lise et non la seule bande de la Couronne. Rien de ce que le brouillard cache n'y
+ * entre : ni Biome, ni zone, ni Foyer ; seulement la teinte du brouillard, ajoutée s'il le faut pour sa couleur.
+ */
+export function avecToutLeMonde(carte: CarteADessiner, rayon: number): CarteADessiner {
+  return { ...carte, teintes: carte.teintes.includes(BROUILLARD) ? carte.teintes : [...carte.teintes, BROUILLARD], rayon };
+}
+
+/** Les Cases du bord du Monde, par rayon : calculées une fois. */
+const bordsDuMonde = new Map<number, Coordonnees[]>();
+
+/**
+ * Retour d'Antoine (2026-10-15) : ajoute au tracé en cours tout le Monde de `rayon` anneaux, d'un seul tenant : le grand
+ * hexagone qui passe par le centre des six Cases de ses coins, et les Cases de son bord à l'écran, qui le complètent
+ * jusqu'à leurs côtés ; tous dans le même sens que tracerLaCase, pour que le remplissage les couvre sans trou. Quelques
+ * centaines de sommets au plus, et non les six de chacune de ses milliers de Cases : le Monde entier tient à l'écran.
+ */
+function tracerLeMonde(pinceau: Pinceau, rayon: number, vue: Vue) {
+  const coins = [...DIRECTIONS].reverse().map((d) => aLEcran({ q: d.q * rayon, r: d.r * rayon }, vue));
+  pinceau.moveTo(coins[0].x, coins[0].y);
+  for (const { x, y } of coins.slice(1)) pinceau.lineTo(x, y);
+  if (!bordsDuMonde.has(rayon)) bordsDuMonde.set(rayon, tourDeLAnneau(rayon));
+  for (const c of bordsDuMonde.get(rayon)!) {
+    const { x, y } = aLEcran(c, vue);
+    if (aLaVue(x, y, vue)) tracerLaCase(pinceau, x, y, vue.rayon);
+  }
+}
+
 /** US-0433 : les côtés où s'arrête chaque zone, par carte : calculés une fois, redessinés à chaque image. */
 const limitesDesCartes = new WeakMap<CarteADessiner["cases"], Map<number, [number, number][]>>();
 
@@ -592,6 +628,21 @@ function poserLeRelief(pinceau: Pinceau, parTeinte: { x: number; y: number }[][]
 }
 
 /**
+ * Retour d'Antoine (2026-10-15) : tout le Monde de `rayon` anneaux, de la couleur du brouillard (la teinte `brume`) puis
+ * de son relief, d'un seul tracé : le fond sur lequel se posent les Cases découvertes.
+ */
+function poserLeMonde(pinceau: Pinceau, rayon: number, brume: number, vue: Vue, peinture: Peinture) {
+  pinceau.beginPath();
+  tracerLeMonde(pinceau, rayon, vue);
+  pinceau.fillStyle = peinture.fonds[brume];
+  pinceau.fill();
+  const relief = peinture.relief?.brume(vue, aLEcran({ q: 0, r: 0 }, vue));
+  if (!relief) return;
+  pinceau.fillStyle = relief;
+  pinceau.fill();
+}
+
+/**
  * US-0417 : dessine les Cases du Monde en hexagones, en colonnes comme le serveur les envoie. Seules celles qui
  * touchent l'écran sont tracées. US-0418 : chacune de la couleur de sa teinte (son Biome, ou sa variante d'eau),
  * puis le motif de sa teinte par-dessus, d'un geste par teinte ; enfin une légère bordure d'un pixel entre toutes.
@@ -603,7 +654,9 @@ function poserLeRelief(pinceau: Pinceau, parTeinte: { x: number; y: number }[][]
  * joueur, lui, est toujours découvert. US-0908 : pendant le choix de la destination d'une Expédition (`portee`), tout
  * cela grisé au-delà de la portée d'exploration ; ni le Foyer du joueur, ni la Case choisie, ni son repère. US-0913 :
  * par-dessus, les Expéditions en cours du joueur (`expeditions`) : leurs chemins et le fanion de leurs destinations,
- * sous le Foyer, la Case choisie et le repère du Foyer.
+ * sous le Foyer, la Case choisie et le repère du Foyer. Retour d'Antoine (2026-10-15) : une carte qui a son `rayon`
+ * (avecToutLeMonde) pose d'abord tout le Monde de la brume, d'un seul tracé (tracerLeMonde), puis ses seules Cases
+ * découvertes par-dessus : celles sous le brouillard sont déjà grisées, qu'elle les ait ou non.
  */
 export function dessinerLaCarte(
   pinceau: Pinceau,
@@ -620,11 +673,15 @@ export function dessinerLaCarte(
   const parTeinte = carte.teintes.map((): { x: number; y: number }[] => []);
   const { q, r, teinte } = carte.cases;
   const brume = carte.teintes.indexOf(BROUILLARD);
+  const monde = carte.rayon !== undefined && brume >= 0 ? carte.rayon : null;
+  if (monde !== null) poserLeMonde(pinceau, monde, brume, vue, peinture);
   for (let i = 0; i < q.length; i++) {
+    if (monde !== null && teinte[i] === brume) continue;
     const ici = aLEcran({ q: q[i], r: r[i] }, vue);
     if (aLaVue(ici.x, ici.y, vue)) parTeinte[teinte[i]].push(ici);
   }
   parTeinte.forEach((centres, t) => {
+    if (monde !== null && t === brume) return;
     pinceau.beginPath();
     for (const { x, y } of centres) tracerLaCase(pinceau, x, y, vue.rayon);
     pinceau.fillStyle = peinture.fonds[t];
