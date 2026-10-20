@@ -419,3 +419,9 @@ export const BROUILLARD_LEVE_PAR_LES_ECLAIREURS_PLAFOND_CASES = 2;
  */
 export const MINUTES_DE_VUE_PAR_ECLAIREUR = 20;
 export const MINUTES_DE_VUE_AU_PLUS = 120;
+
+/**
+ * US-0819 : un éleveur a sa file d'Élevages : celui en cours, et ceux qui le suivront sans temps mort ; 3 au plus, celui
+ * en cours compris (valeur provisoire, à régler en jouant) ; src/monde/lancer-un-elevage.ts.
+ */
+export const ELEVAGES_PAR_FILE_AU_PLUS = 3;

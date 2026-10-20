@@ -5,7 +5,7 @@ import { act } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // L'action serveur d'un Élevage demandé (actions.test.ts, actions.db.test.ts) : ici, ce que le bloc en montre.
-type Etat = { refus: string | null; lance?: { quantite: number; eleveur: string } };
+type Etat = { refus: string | null; lance?: { quantite: number; eleveur: string; enFile?: boolean } };
 const actions = vi.hoisted(() => ({ elever: vi.fn<(avant: Etat, formulaire: FormData) => Promise<Etat>>(async () => ({ refus: null })) }));
 vi.mock("./actions", () => actions);
 // US-0818 : la page relue après chaque naissance d'un Élevage en cours.
@@ -514,28 +514,29 @@ describe("suivre l'Élevage en cours (US-0818)", () => {
   /** La valeur de la ligne `libelle` de l'Élevage en cours. */
   const valeur = (libelle: string) => within(suivi()).getByText(libelle).nextElementSibling?.textContent;
 
-  it("montre l'Élevage en cours de l'Espèce à la place de la quantité et du bouton : son éleveur, les Bêtes nées sur la quantité, le temps avant la prochaine et l'heure de la dernière", () => {
-    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur="Brune" elevage={POULE_ELEVEE} elevageEnCours={POULES} maintenant={MAINTENANT} />);
-    expect(bloc().textContent).toBe("ÉleverPlaces : 21 / 500Élevage en coursÉleveurHaelBêtes nées1 / 3Prochaine Bêtedans 7 h 28Dernière Bête14 octobre à 03:22");
-    expect(within(bloc()).queryByRole("button")).toBeNull();
-    expect(within(bloc()).queryByLabelText("Quantité")).toBeNull();
+  it("montre l'Élevage en cours de l'Espèce à la place de l'éleveur libre : son éleveur, les Bêtes nées sur la quantité, le temps avant la prochaine et l'heure de la dernière ; puis un Élevage à ajouter à la file (US-0819)", () => {
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur="Brune" elevage={POULE_ELEVEE} elevages={[POULES]} maintenant={MAINTENANT} />);
+    expect(bloc().textContent).toBe(
+      "ÉleverPlaces : 21 / 500Élevage en coursÉleveurHaelBêtes nées1 / 3Prochaine Bêtedans 7 h 28Dernière Bête14 octobre à 03:22Quantité−+MaxCoût840 Viande ou VégétauxDurée par Bête7 h 54Durée totale7 h 54Dernière Bête14 octobre à 11:16Ajouter à la file",
+    );
+    expect(within(bloc()).queryByRole("button", { name: "Élever" })).toBeNull();
   });
 
   it("ne dit plus « Aucun éleveur libre. » quand l'éleveur est pris par l'Élevage en cours", () => {
-    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevageEnCours={POULES} maintenant={MAINTENANT} />);
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevages={[POULES]} maintenant={MAINTENANT} />);
     expect(bloc().textContent).not.toContain("Aucun éleveur libre.");
     expect(valeur("Éleveur")).toBe("Hael");
   });
 
   it("dit « Aucun » quand l'éleveur de l'Élevage n'est plus là", () => {
-    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevageEnCours={{ ...POULES, eleveur: null }} maintenant={MAINTENANT} />);
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevages={[{ ...POULES, eleveur: null }]} maintenant={MAINTENANT} />);
     expect(valeur("Éleveur")).toBe("Aucun");
   });
 
   it("fait avancer le décompte et les naissances sans recharger, au rythme du jeu, et dit la même chose une fois la page relue", async () => {
     vi.useFakeTimers();
     const { rerender } = render(
-      <BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevageEnCours={POULES} maintenant={MAINTENANT} vitesse={60} />,
+      <BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevages={[POULES]} maintenant={MAINTENANT} vitesse={60} />,
     );
     // Une minute réelle, une heure de jeu.
     await act(async () => vi.advanceTimersByTime(60_000));
@@ -554,7 +555,7 @@ describe("suivre l'Élevage en cours (US-0818)", () => {
         nourriture={NOURRITURE}
         eleveur={null}
         elevage={POULE_ELEVEE}
-        elevageEnCours={POULES}
+        elevages={[POULES]}
         maintenant={new Date(MAINTENANT.getTime() + 448 * MINUTE)}
         vitesse={60}
       />,
@@ -564,14 +565,14 @@ describe("suivre l'Élevage en cours (US-0818)", () => {
 
   it("une fois la dernière née, n'attend plus de Bête, le temps que la page relue rende le bloc", async () => {
     vi.useFakeTimers();
-    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevageEnCours={POULES} maintenant={MAINTENANT} vitesse={60} />);
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevages={[POULES]} maintenant={MAINTENANT} vitesse={60} />);
     await act(async () => vi.advanceTimersByTime(922_000));
     expect([valeur("Bêtes nées"), valeur("Prochaine Bête")]).toEqual(["3 / 3", "—"]);
   });
 
   it("relit la page une seconde réelle après chaque naissance, pour l'effectif, les Places, et l'éleveur libre à la fin", async () => {
     vi.useFakeTimers();
-    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevageEnCours={POULES} maintenant={MAINTENANT} vitesse={60} />);
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevages={[POULES]} maintenant={MAINTENANT} vitesse={60} />);
     // La deuxième poule naît 448 minutes de jeu après l'ouverture : 448 secondes réelles.
     await act(async () => vi.advanceTimersByTime(448_999));
     expect(routeur.refresh).not.toHaveBeenCalled();
@@ -588,7 +589,7 @@ describe("suivre l'Élevage en cours (US-0818)", () => {
 
   /** Le bloc tel que la page le donne, avec ou sans Élevage en cours (`enCours`) : la page relue n'a que cela de changé. */
   const bloc0 = (enCours: typeof POULES | null, eleveur: string | null = "Hael") => (
-    <BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={eleveur} elevage={POULE_ELEVEE} elevageEnCours={enCours} maintenant={MAINTENANT} />
+    <BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={eleveur} elevage={POULE_ELEVEE} elevages={enCours ? [enCours] : []} maintenant={MAINTENANT} />
   );
   /** La région du lancement, pour les lecteurs d'écran. */
   const dit = () => within(bloc()).getAllByRole("status").find((r) => r.tagName === "P")?.textContent;
@@ -668,9 +669,96 @@ describe("suivre l'Élevage en cours (US-0818)", () => {
     await u.click(within(bloc()).getByRole("button", { name: "Élever" }));
     await within(bloc()).findByText("Élevage lancé : 3 Bêtes, confié à Hael.");
     // La page relue par l'action : Hael n'est plus libre, l'Élevage est en cours.
-    rerender(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevageEnCours={{ ...POULES, lanceLe: MAINTENANT }} maintenant={MAINTENANT} />);
+    rerender(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevages={[{ ...POULES, lanceLe: MAINTENANT }]} maintenant={MAINTENANT} />);
     expect(document.activeElement).toBe(suivi());
     expect(within(bloc()).getAllByRole("status").find((r) => r.tagName === "P")?.textContent).toBe("Élevage lancé : 3 Bêtes, confié à Hael.");
     expect(valeur("Bêtes nées")).toBe("0 / 3");
+  });
+});
+
+describe("ajouter un Élevage à la file (US-0819)", () => {
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+    actions.elever.mockReset();
+  });
+
+  const MINUTE = 60_000;
+  /** Trois poules confiées à Hael, en cours : lancées 500 minutes avant l'ouverture, la dernière naît le 14 octobre à 03:22. */
+  const POULES = { especeId: "poule", espece: "Poule", illustration: null, eleveur: "Hael", quantite: 3, lanceLe: new Date(MAINTENANT.getTime() - 500 * MINUTE), dureeMinutes: 474 };
+  /** Deux poules qui les suivront, lancées à leur fin : la dernière naît le 14 octobre à 19:10. */
+  const DEUX = { ...POULES, quantite: 2, lanceLe: new Date(POULES.lanceLe.getTime() + 3 * 474 * MINUTE) };
+  /** Une poule derrière : la file est pleine (3 Élevages). Sa dernière naît le 15 octobre à 03:04. */
+  const UNE = { ...POULES, quantite: 1, lanceLe: new Date(DEUX.lanceLe.getTime() + 2 * 474 * MINUTE) };
+  const bloc = () => screen.getByRole("heading", { name: "Élever" }).closest("section")!;
+  const bouton = () => within(bloc()).getByRole("button", { name: "Ajouter à la file" }) as HTMLButtonElement;
+  const ouvrir = (elevages: (typeof POULES)[], eleveur: string | null = null) =>
+    render(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={eleveur} elevage={POULE_ELEVEE} elevages={elevages} maintenant={MAINTENANT} />);
+
+  it("pendant l'Élevage, propose la quantité, le coût et la durée d'un autre, et « Ajouter à la file » à la place d'« Élever », qui le dit à la demande", async () => {
+    const u = userEvent.setup();
+    actions.elever.mockResolvedValue({ refus: null, lance: { quantite: 1, eleveur: "Hael", enFile: true } });
+    ouvrir([POULES]);
+    expect(bouton().disabled).toBe(false);
+    expect(within(bloc()).getByLabelText("Quantité")).toBeTruthy();
+    await u.click(bouton());
+    const formulaire = actions.elever.mock.calls[0][1];
+    expect([formulaire.get("espece"), formulaire.get("quantite"), formulaire.get("file")]).toEqual(["poule", "1", "1"]);
+    expect(within(bloc()).getAllByRole("status").find((r) => r.tagName === "P")?.textContent).toBe("Élevage ajouté à la file : 1 Bête, confié à Hael.");
+  });
+
+  it("n'envoie pas « file » sans Élevage en cours : « Élever » lance, comme avant", async () => {
+    const u = userEvent.setup();
+    actions.elever.mockResolvedValue({ refus: null, lance: { quantite: 1, eleveur: "Brune" } });
+    ouvrir([], "Brune");
+    await u.click(within(bloc()).getByRole("button", { name: "Élever" }));
+    expect(actions.elever.mock.calls[0][1].get("file")).toBeNull();
+    expect(within(bloc()).getAllByRole("status").find((r) => r.tagName === "P")?.textContent).toBe("Élevage lancé : 1 Bête, confié à Brune.");
+  });
+
+  it("compte la dernière Bête de l'Élevage à ajouter depuis la fin de la file, et la suit à chaque changement de quantité", async () => {
+    const u = userEvent.setup();
+    ouvrir([POULES]);
+    const valeur = (libelle: string) => within(bloc()).getByText(libelle, { selector: "form dt" }).nextElementSibling?.textContent;
+    // La fin de l'Élevage en cours, le 14 octobre à 03:22, plus 7 h 54.
+    expect(valeur("Dernière Bête")).toBe("14 octobre à 11:16");
+    await u.click(within(bloc()).getByRole("button", { name: "Une Bête de plus" }));
+    expect(valeur("Dernière Bête")).toBe("14 octobre à 19:10");
+    // Derrière deux Élevages, depuis la fin du dernier.
+    cleanup();
+    ouvrir([POULES, DEUX]);
+    expect(valeur("Dernière Bête")).toBe("15 octobre à 03:04");
+  });
+
+  it("affiche la file sous l'Élevage en cours : chaque Élevage qui suivra, sa quantité et l'heure de sa dernière Bête ; rien sans suite", () => {
+    ouvrir([POULES, DEUX, UNE]);
+    const file = screen.getByRole("region", { name: "File" });
+    expect(within(file).getAllByRole("listitem").map((li) => li.textContent)).toEqual(["2 Bêtes14 octobre à 19:10", "1 Bête15 octobre à 03:04"]);
+    cleanup();
+    ouvrir([POULES]);
+    expect(screen.queryByRole("region", { name: "File" })).toBeNull();
+  });
+
+  it("grise « Ajouter à la file » quand la file est pleine, et le dit au bouton ; l'éleveur libre ne compte pas", () => {
+    ouvrir([POULES, DEUX, UNE], "Brune");
+    expect(bouton().disabled).toBe(true);
+    const raison = document.getElementById(bouton().getAttribute("aria-describedby")!.split(" ")[0])!;
+    expect(raison.textContent).toBe("File pleine : 3 Élevages au plus.");
+    expect(bloc().textContent).not.toContain("Éleveur : Brune");
+    cleanup();
+    // Deux dans la file : on peut encore ajouter, même sans éleveur libre.
+    ouvrir([POULES, DEUX], null);
+    expect(bouton().disabled).toBe(false);
+    expect(bloc().textContent).not.toContain("Aucun éleveur libre.");
+  });
+
+  it("garde la main sur le formulaire après un ajout : le suivi, déjà là, ne la prend pas", async () => {
+    const u = userEvent.setup();
+    actions.elever.mockResolvedValue({ refus: null, lance: { quantite: 1, eleveur: "Hael", enFile: true } });
+    const { rerender } = ouvrir([POULES]);
+    await u.click(bouton());
+    rerender(<BlocElever especeId="poule" places={PLACES} nourriture={NOURRITURE} eleveur={null} elevage={POULE_ELEVEE} elevages={[POULES, { ...POULES, quantite: 1, lanceLe: DEUX.lanceLe }]} maintenant={MAINTENANT} />);
+    expect(document.activeElement).not.toBe(screen.getByRole("region", { name: "Élevage en cours" }));
+    expect(screen.getByRole("region", { name: "File" })).toBeTruthy();
   });
 });

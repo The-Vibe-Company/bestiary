@@ -261,7 +261,10 @@ describe("ouvrir la fiche d'une Espèce (US-0803)", () => {
     const html = await ouvrir("poule");
     expect(enCours.elevagesEnCours).toHaveBeenLastCalledWith(expect.anything(), 12, MAINTENANT);
     const bloc = html.slice(html.indexOf("<section", html.indexOf('id="elever"'))).replace(/<[^>]+>/g, "|").split("|").filter(Boolean);
-    expect(bloc).toEqual(["Élever", "Places : ", "21 / 500", "Élevage en cours", "Éleveur", "Hael", "Bêtes nées", "1 / 3", "Prochaine Bête", "dans 1 h 30", "Dernière Bête", "9 octobre à 14:12"]);
+    expect(bloc.slice(0, 12)).toEqual(["Élever", "Places : ", "21 / 500", "Élevage en cours", "Éleveur", "Hael", "Bêtes nées", "1 / 3", "Prochaine Bête", "dans 1 h 30", "Dernière Bête", "9 octobre à 14:12"]);
+    // US-0819 : puis un Élevage à ajouter à la file, sans éleveur libre à dire.
+    expect(bloc).toContain("Ajouter à la file");
+    expect(bloc).not.toContain("Élever");
     // L'Élevage en cours d'une autre Espèce ne change rien au bloc.
     elevage.elevageAcquis.mockResolvedValueOnce(true);
     enCours.elevagesEnCours.mockResolvedValueOnce([elevageDe("souris")]);

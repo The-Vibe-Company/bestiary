@@ -127,6 +127,42 @@ describe.skipIf(!URL_TEST)("recevoir les Bêtes une à une (US-0817, sur base)",
     expect(await lancerUnElevage(pool, t.territoireId, "souris", 1, apres(t, 10 * souris))).toMatchObject({ lance: { quantite: 1 } });
   });
 
+  it("enchaîne les Élevages de la file sans temps mort (US-0819) : l'éleveur reste à l'Élevage jusqu'à la fin du dernier, chaque Élevage son Récit", async () => {
+    const t = await elever(2);
+    // Une souris ajoutée à la file pendant l'Élevage : elle part à la fin des deux premières.
+    expect(await lancerUnElevage(pool, t.territoireId, "souris", 1, apres(t, 1), true)).toMatchObject({ lance: { quantite: 1, enFile: true } });
+    // À la fin du premier Élevage : son Récit, mais l'éleveur reste à sa file.
+    await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, 2 * souris) });
+    expect(await effectif(t.territoireId)).toEqual({ femelle: 1, male: 1 });
+    expect((await recits(t.territoireId)).map((r) => r.texte)).toEqual(["2 Bêtes de Souris grise ont rejoint votre effectif."]);
+    expect(await eleve(t.territoireId)).toBe("souris");
+    // Juste avant la naissance de la souris de la file : rien de plus ; pile à sa naissance, la file est finie.
+    await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, 3 * souris - 1) });
+    expect(await effectif(t.territoireId)).toEqual({ femelle: 1, male: 1 });
+    await rattraper("territoire", t.territoireId, { pool, jusqua: apres(t, 3 * souris) });
+    expect(await effectif(t.territoireId)).toEqual({ femelle: 2, male: 1 });
+    expect((await recits(t.territoireId)).map((r) => [r.texte, r.survenuLe])).toEqual([
+      ["2 Bêtes de Souris grise ont rejoint votre effectif.", apres(t, 2 * souris)],
+      ["1 Bête de Souris grise a rejoint votre effectif.", apres(t, 3 * souris)],
+    ]);
+    expect(await eleve(t.territoireId)).toBeNull();
+  });
+
+  it("donne la même chose à la file, par tranches ou d'un bloc (US-0819)", async () => {
+    const [parTranches, dUnBloc] = [await elever(1), await elever(1)];
+    for (const t of [parTranches, dUnBloc]) expect(await lancerUnElevage(pool, t.territoireId, "souris", 2, apres(t, 1), true)).toMatchObject({ lance: { enFile: true } });
+    for (let minutes = 5; minutes <= 4 * souris; minutes += 5) await rattraper("territoire", parTranches.territoireId, { pool, jusqua: apres(parTranches, minutes) });
+    await rattraper("territoire", dUnBloc.territoireId, { pool, jusqua: apres(dUnBloc, 4 * souris) });
+    for (const t of [parTranches, dUnBloc]) {
+      expect(await effectif(t.territoireId)).toEqual({ femelle: 2, male: 1 });
+      expect((await recits(t.territoireId)).map((r) => [r.texte, r.survenuLe.getTime() - t.debut.getTime()])).toEqual([
+        ["1 Bête de Souris grise a rejoint votre effectif.", souris * MINUTE],
+        ["2 Bêtes de Souris grise ont rejoint votre effectif.", 3 * souris * MINUTE],
+      ]);
+      expect(await eleve(t.territoireId)).toBeNull();
+    }
+  });
+
   it("donne la même chose par tranches ou d'un bloc : chaque naissance une seule fois, le Récit une seule fois", async () => {
     const [parTranches, dUnBloc] = [await elever(5), await elever(5)];
     // Des tranches de 5 minutes : leurs fins tombent pile sur les naissances (une souris toutes les 15 minutes).

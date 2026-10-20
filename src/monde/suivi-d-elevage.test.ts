@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ouEnEstLElevage, prochaineNaissance, tempsAvant } from "./suivi-d-elevage";
+import { ELEVAGES_PAR_FILE_AU_PLUS } from "@/reglages";
+import { FILE_PLEINE, finDeLElevage, laFile, ouEnEstLElevage, prochaineNaissance, tempsAvant } from "./suivi-d-elevage";
 
 const MINUTE = 60_000;
 /** Un Élevage de trois souris de 15 minutes chacune, lancé à midi pile (heure de Paris), à la milliseconde. */
@@ -42,5 +43,28 @@ describe("le temps avant une naissance (US-0818)", () => {
     expect(tempsAvant(apres(15 * MINUTE), apres(1))).toBe("15 min");
     expect(tempsAvant(apres(15 * MINUTE), apres(15 * MINUTE - 1))).toBe("1 min");
     expect(tempsAvant(apres(500 * MINUTE), LANCE)).toBe("8 h 20");
+  });
+});
+
+describe("la file d'un éleveur (US-0819)", () => {
+  /** Deux souris qui suivront les trois, lancées à leur fin, puis une derrière. */
+  const DEUX = { quantite: 2, lanceLe: apres(45 * MINUTE), dureeMinutes: 15 };
+  const UNE = { quantite: 1, lanceLe: apres(75 * MINUTE), dureeMinutes: 15 };
+
+  it("finit un Élevage à la naissance de sa dernière Bête", () => {
+    expect(finDeLElevage(TROIS)).toEqual(apres(45 * MINUTE));
+    expect(finDeLElevage(DEUX)).toEqual(apres(75 * MINUTE));
+  });
+
+  it("donne l'Élevage en cours, ceux qui suivent, et l'instant où la file finit, d'où partira le prochain", () => {
+    expect(laFile([TROIS, DEUX])).toEqual({ enCours: TROIS, suite: [DEUX], fin: apres(75 * MINUTE), pleine: false });
+    expect(laFile([TROIS])).toEqual({ enCours: TROIS, suite: [], fin: apres(45 * MINUTE), pleine: false });
+    expect(laFile([])).toEqual({ enCours: null, suite: [], fin: null, pleine: false });
+  });
+
+  it(`est pleine à ${ELEVAGES_PAR_FILE_AU_PLUS} Élevages, celui en cours compris, et le dit`, () => {
+    expect(ELEVAGES_PAR_FILE_AU_PLUS).toBe(3);
+    expect(laFile([TROIS, DEUX, UNE])).toMatchObject({ suite: [DEUX, UNE], fin: apres(90 * MINUTE), pleine: true });
+    expect(FILE_PLEINE).toBe("File pleine : 3 Élevages au plus.");
   });
 });

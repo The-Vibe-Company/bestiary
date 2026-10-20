@@ -9,7 +9,7 @@ import { reunirLesCouples } from "./couple";
 import { dureeDUneBeteEleveeMinutes } from "./cout-d-elevage";
 import { elevagesEnCours } from "./elevages-en-cours";
 import { lancerUnElevage } from "./lancer-un-elevage";
-import { ouEnEstLElevage } from "./suivi-d-elevage";
+import { laFile, ouEnEstLElevage } from "./suivi-d-elevage";
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
 const MONDE_D_ESSAI = "Essai du suivi des Élevages (US-0818)";
@@ -140,6 +140,25 @@ describe.skipIf(!URL_TEST)("suivre les Élevages en cours (US-0818, sur base)", 
     await rattraper("territoire", t.territoireId, { pool, jusqua: fin });
     expect(await elevagesEnCours(pool, t.territoireId, fin)).toEqual([]);
     expect(await elevagesEnCours(pool, t.territoireId, debut)).toHaveLength(1);
+  });
+
+  it("donne la file d'un éleveur dans l'ordre (US-0819) : l'Élevage en cours, puis ceux qui le suivront, chacun lancé à la fin du précédent", async () => {
+    const t = await naitre();
+    const debut = apres(t.ne, 1);
+    await lancer(t.territoireId, "souris", 3, debut);
+    expect(await lancerUnElevage(pool, t.territoireId, "souris", 2, apres(debut, 1), true)).toMatchObject({ lance: { enFile: true } });
+    expect(await lancerUnElevage(pool, t.territoireId, "souris", 1, apres(debut, 2), true)).toMatchObject({ lance: { enFile: true } });
+    const fins = [3, 5, 6].map((n) => apres(debut, n * especes.souris.duree));
+    const file = await elevagesEnCours(pool, t.territoireId, apres(debut, 3));
+    expect(file.map((e) => [e.eleveur, e.quantite, e.lanceLe])).toEqual([
+      ["Brune", 3, debut],
+      ["Brune", 2, fins[0]],
+      ["Brune", 1, fins[1]],
+    ]);
+    expect(laFile(file)).toMatchObject({ enCours: file[0], suite: [file[1], file[2]], fin: fins[2], pleine: true });
+    // À la fin du premier, la file se raccourcit ; à la fin du dernier, plus rien.
+    expect((await elevagesEnCours(pool, t.territoireId, fins[0])).map((e) => e.quantite)).toEqual([2, 1]);
+    expect(await elevagesEnCours(pool, t.territoireId, fins[2])).toEqual([]);
   });
 
   it("ne donne que les Élevages du Territoire, et le garde sans éleveur quand celui-ci n'est plus là", async () => {

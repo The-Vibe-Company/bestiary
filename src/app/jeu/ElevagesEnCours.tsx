@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Bloc } from "@/components/Bloc";
 import { Medaillon } from "@/components/Medaillon";
-import { type ElevageEnCours, ouEnEstLElevage, prochaineNaissance, tempsAvant } from "@/monde/suivi-d-elevage";
+import { type ElevageEnCours, laFile, ouEnEstLElevage, prochaineNaissance, tempsAvant } from "@/monde/suivi-d-elevage";
 import { useHeureDuJeu, useRelireLaPageA } from "@/temps/heure-du-jeu";
 import styles from "./page.module.css";
 
@@ -16,25 +16,34 @@ const entier = (n: number) => new Intl.NumberFormat("fr-FR").format(n).replace(/
  * prochaine Bête, puis les Bêtes nées sur la quantité demandée ; la ligne mène au bloc « Élever » de la fiche de l'Espèce.
  * Sans Élevage en cours : « Aucun Élevage en cours ». Tout se lit de l'heure du jeu, partie de `maintenant` et qui avance
  * au rythme du jeu (`vitesse`, useHeureDuJeu) : le décompte avance sans recharger, un Élevage fini quitte le bloc, et la
- * page se relit une seconde réelle après chaque naissance (le total des Bêtes).
+ * page se relit une seconde réelle après chaque naissance (le total des Bêtes). US-0819 : les Élevages d'une Espèce sont
+ * sa file (laFile) : la ligne suit celui en cours, et dit combien le suivront (« 2 en file »).
  */
 export function ElevagesEnCours({ elevages, maintenant, vitesse = 1 }: { elevages: ElevageEnCours[]; maintenant: Date; vitesse?: number }) {
   const instant = useHeureDuJeu(maintenant, vitesse);
   useRelireLaPageA(prochaineNaissance(elevages, maintenant), maintenant, vitesse);
-  const enCours = elevages.map((elevage) => ({ elevage, ...ouEnEstLElevage(elevage, instant) })).filter(({ prochaine }) => prochaine !== null);
+  // US-0819 : la file de chaque Espèce, dans l'ordre d'elevagesEnCours ; celui en cours est le premier non fini.
+  const files = new Map<string, ElevageEnCours[]>();
+  for (const elevage of elevages) files.set(elevage.especeId, [...(files.get(elevage.especeId) ?? []), elevage]);
+  const enCours = [...files.values()].flatMap((file) => {
+    const { enCours: elevage, suite } = laFile(file.filter((e) => ouEnEstLElevage(e, instant).prochaine !== null));
+    return elevage ? [{ elevage, suite: suite.length, ...ouEnEstLElevage(elevage, instant) }] : [];
+  });
   return (
     <Bloc titre="Élevages" verre className={styles.elevages}>
       {enCours.length === 0 ? (
         <p className={styles.aucunElevage}>Aucun Élevage en cours</p>
       ) : (
         <ul className={styles.listeElevages}>
-          {enCours.map(({ elevage, nees, prochaine }) => (
+          {enCours.map(({ elevage, suite, nees, prochaine }) => (
             <li key={elevage.especeId}>
               <Link href={`/jeu/reserve/${elevage.especeId}#elever`} className={styles.ligneElevage}>
                 <Medaillon src={elevage.illustration ? `/illustrations/${elevage.illustration}` : undefined} taille="md" plein />
                 <span className={styles.especeElevee}>
                   <span className={styles.nomElevage}>{elevage.espece}</span>
-                  <span className={styles.detailElevage}>{`${elevage.eleveur ?? "Aucun éleveur"} · prochaine dans ${tempsAvant(prochaine!, instant)}`}</span>
+                  <span className={styles.detailElevage}>
+                    {`${elevage.eleveur ?? "Aucun éleveur"} · prochaine dans ${tempsAvant(prochaine!, instant)}${suite > 0 ? ` · ${suite} en file` : ""}`}
+                  </span>
                 </span>
                 <span className={styles.neesElevage}>{`${entier(nees)} / ${entier(elevage.quantite)}`}</span>
               </Link>

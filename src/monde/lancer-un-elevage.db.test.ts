@@ -11,6 +11,7 @@ import { ELEVAGE_SANS_COUPLE, ELEVAGE_SANS_ELEVEUR } from "./elevage";
 import { faireRepartirUnHabitant } from "./famine";
 import { ELEVAGE_DEJA_EN_COURS, lancerUnElevage } from "./lancer-un-elevage";
 import { ilManque } from "./payer-un-elevage";
+import { FILE_PLEINE } from "./suivi-d-elevage";
 
 /** Le Monde d'essai de ce fichier, où naissent ses chefs : la Couronne d'Aube est partagée par toute la suite (src/test/base.ts). */
 const MONDE_D_ESSAI = "Essai du lancement d'un Élevage (US-0815)";
@@ -147,6 +148,54 @@ describe.skipIf(!URL_TEST)("lancer un Élevage (US-0815, sur base)", () => {
     expect(await lancerUnElevage(pool, t.territoireId, "souris", 1, t.ne)).toMatchObject({ lance: { quantite: 1 } });
     expect(await lancerUnElevage(pool, t.territoireId, "souris", 1, t.ne)).toEqual({ refus: ELEVAGE_DEJA_EN_COURS });
     expect(await elevages(t.territoireId)).toHaveLength(1);
+  });
+
+  it("ajoute un Élevage à la file de l'éleveur de l'Espèce pendant son Élevage (US-0819) : payé aussitôt, confié au même éleveur, lancé à la fin du dernier de la file", async () => {
+    const t = await naitre();
+    await reunir(t, "souris");
+    await eleveurs([t.habitants[0], t.habitants[1]]);
+    await nourriture(t.territoireId, "1000", "1000");
+    const [unite, duree] = [await cout("souris"), dureeDUneBeteEleveeMinutes(await taille("souris"))];
+    expect(await lancerUnElevage(pool, t.territoireId, "souris", 2, t.ne)).toMatchObject({ lance: { quantite: 2, enFile: false } });
+    const [premier] = await elevages(t.territoireId);
+    // Pendant l'Élevage, un ajout à la file : payé, le même éleveur, qui part à la fin des deux premières souris.
+    const plusTard = new Date(t.ne.getTime() + 5 * 60_000);
+    expect(await lancerUnElevage(pool, t.territoireId, "souris", 3, plusTard, true)).toEqual({ lance: { quantite: 3, eleveur: expect.any(String), enFile: true } });
+    const apres = await stocks(t.territoireId);
+    expect(apres.viande + apres.vegetaux).toBe(2000 - 5 * unite);
+    expect(await elevages(t.territoireId)).toMatchObject([
+      { quantite: 2, eleveurId: premier.eleveurId, lanceLe: t.ne },
+      { quantite: 3, eleveurId: premier.eleveurId, lanceLe: new Date(t.ne.getTime() + 2 * duree * 60_000) },
+    ]);
+    // L'autre éleveur reste libre : la file est celle de l'éleveur de l'Espèce.
+    expect((await eleve(t.habitants)).filter((e) => e === "souris")).toHaveLength(1);
+    // Un troisième derrière le deuxième ; la file est pleine : le quatrième est refusé, sans rien payer.
+    expect(await lancerUnElevage(pool, t.territoireId, "souris", 1, plusTard, true)).toMatchObject({ lance: { quantite: 1, enFile: true } });
+    expect((await elevages(t.territoireId)).at(-1)?.lanceLe).toEqual(new Date(t.ne.getTime() + 5 * duree * 60_000));
+    expect(await lancerUnElevage(pool, t.territoireId, "souris", 1, plusTard, true)).toEqual({ refus: FILE_PLEINE });
+    expect(await elevages(t.territoireId)).toHaveLength(3);
+    const pleine = await stocks(t.territoireId);
+    expect(pleine.viande + pleine.vegetaux).toBe(2000 - 6 * unite);
+    // Sans le dire, pendant l'Élevage, la demande reste refusée (US-0815) ; sans Élevage en cours, une demande qui le dit lance comme une autre.
+    expect(await lancerUnElevage(pool, t.territoireId, "souris", 1, plusTard)).toEqual({ refus: ELEVAGE_DEJA_EN_COURS });
+    await reunir(t, "poule");
+    expect(await lancerUnElevage(pool, t.territoireId, "poule", 1, plusTard, true)).toMatchObject({ lance: { quantite: 1, enFile: false } });
+  });
+
+  it("range l'un derrière l'autre deux ajouts à la file envoyés au même instant (US-0819)", async () => {
+    const t = await naitre();
+    await reunir(t, "souris");
+    await eleveurs([t.habitants[0]]);
+    await nourriture(t.territoireId, "1000", "1000");
+    const duree = dureeDUneBeteEleveeMinutes(await taille("souris"));
+    expect(await lancerUnElevage(pool, t.territoireId, "souris", 1, t.ne)).toMatchObject({ lance: { quantite: 1 } });
+    const plusTard = new Date(t.ne.getTime() + 60_000);
+    const resultats = await Promise.all([lancerUnElevage(pool, t.territoireId, "souris", 2, plusTard, true), lancerUnElevage(pool, t.territoireId, "souris", 3, plusTard, true)]);
+    expect(resultats.every((r) => "lance" in r && r.lance.enFile)).toBe(true);
+    const file = (await elevages(t.territoireId)).map((e) => ({ quantite: e.quantite, lance: e.lanceLe.getTime() - t.ne.getTime() })).sort((x, y) => x.lance - y.lance);
+    // Le premier à la fin de la souris en cours, le second à la fin du premier, quel que soit celui qui est passé d'abord.
+    expect(file.map((e) => e.lance)).toEqual([0, duree * 60_000, (1 + file[1].quantite) * duree * 60_000]);
+    expect(file.map((e) => e.quantite).slice(1).sort()).toEqual([2, 3]);
   });
 
   it("sous un double clic, ne lance qu'un Élevage et ne fait payer qu'une fois, même avec deux éleveurs libres", async () => {

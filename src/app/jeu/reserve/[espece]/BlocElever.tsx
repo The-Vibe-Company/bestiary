@@ -8,7 +8,7 @@ import kit from "@/components/kit.module.css";
 import { PlacesDeLHabitat } from "@/components/PlacesDeLHabitat";
 import { quantiteMontee } from "@/components/Ressources";
 import { betesPayables, estUnManque, ilManque, type StockQuiPaie } from "@/monde/payer-un-elevage";
-import { type ElevageEnCours, ouEnEstLElevage, tempsAvant } from "@/monde/suivi-d-elevage";
+import { type ElevageEnCours, FILE_PLEINE, finDeLElevage, laFile, ouEnEstLElevage, tempsAvant } from "@/monde/suivi-d-elevage";
 import { formaterJourEtHeure, formaterMinutes } from "@/temps/affichage";
 import { useHeureDuJeu, useRelireLaPageA } from "@/temps/heure-du-jeu";
 import { type EtatDeLElevage, elever } from "./actions";
@@ -79,6 +79,11 @@ export type ElevageDUneBete = { cout: number; nourriture: string; dureeMinutes: 
  * le décompte avance sans recharger, et la page relue (ou ouverte ailleurs) repart du même point. Une seconde réelle après
  * chaque naissance, la page se relit (l'effectif, les Places ; l'éleveur libre et la quantité, à la fin). Lancé, l'Élevage
  * se dit aux lecteurs d'écran (la région du lancement, invisible : le suivi le montre), et la main va à son suivi.
+ * US-0819 : les Élevages de l'Espèce (`elevages`, sa file : celui en cours d'abord, laFile) ; sous le suivi, la file de
+ * ceux qui le suivront, chacun sa quantité et l'heure de sa dernière Bête ; puis la quantité, le coût et la durée d'un
+ * Élevage à ajouter, qui partira à la fin de la file (sa dernière Bête s'en compte), et « Ajouter à la file » à la place
+ * d'« Élever », qui le dit à la demande (« file ») ; grisé, file pleine (FILE_PLEINE, dit au-dessus). L'éleveur libre ne
+ * compte pas : la file est celle de l'éleveur de l'Espèce. Ajouté, l'Élevage se dit comme un lancement.
  */
 export function BlocElever({
   especeId,
@@ -86,7 +91,7 @@ export function BlocElever({
   nourriture,
   eleveur,
   elevage,
-  elevageEnCours = null,
+  elevages = [],
   maintenant,
   vitesse = 1,
 }: {
@@ -95,12 +100,15 @@ export function BlocElever({
   nourriture: StockQuiPaie[];
   eleveur: string | null;
   elevage: ElevageDUneBete;
-  elevageEnCours?: ElevageEnCours | null;
+  elevages?: ElevageEnCours[];
   maintenant: Date;
   vitesse?: number;
 }) {
   const [{ refus, lance }, envoyer, enCours] = useActionState(elever, SANS_REFUS);
   const suivi = useRef<HTMLElement>(null);
+  // US-0819 : la file de l'Espèce : l'Élevage en cours, ceux qui suivent, et l'instant où elle finit.
+  const file = laFile(elevages);
+  const elevageEnCours = file.enCours;
   const suiviAffiche = elevageEnCours !== null;
   const idRefus = useId();
   const idSansEleveur = useId();
@@ -127,6 +135,8 @@ export function BlocElever({
     if (vue.suivi && vue.prendLaMain) suivi.current?.focus();
   }, [vue.suivi, vue.prendLaMain]);
   const idSuivi = useId();
+  const idFile = useId();
+  const idFilePleine = useId();
   const [quitte, setQuitte] = useState(false);
   // Ce que « − », « + » et « Max » font du champ, dit aux lecteurs d'écran : la main reste sur le bouton.
   const [annonce, setAnnonce] = useState("");
@@ -150,7 +160,10 @@ export function BlocElever({
   // US-0816 : la Nourriture qui manque pour payer la quantité choisie, au millionième près ; rien, quand elle suffit.
   const manque = quantite === null ? 0 : Math.round((elevage.cout * quantite - disponible) * 1e6) / 1e6;
   const ceQuiManque = manque > 0 ? ilManque(manque, elevage.nourriture) : null;
-  const derniere = quantite === null ? null : new Date(lancement.getTime() + quantite * elevage.dureeMinutes * MINUTE_MS);
+  // US-0819 : un Élevage ajouté part à la fin de la file ; sans file, à l'instant.
+  const debutDuProchain = file.fin !== null && file.fin.getTime() > lancement.getTime() ? file.fin : lancement;
+  const derniere = quantite === null ? null : new Date(debutDuProchain.getTime() + quantite * elevage.dureeMinutes * MINUTE_MS);
+  const peutPartir = suiviAffiche ? !file.pleine : eleveur !== null;
   const choisir = (n: number) => {
     setTexte(String(n));
     setQuitte(false);
@@ -181,116 +194,146 @@ export function BlocElever({
               <dd>{Number.isNaN(enCeMoment.derniere.getTime()) ? AUCUNE : quand(enCeMoment.derniere, lancement)}</dd>
             </dl>
           </section>
+        ) : null}
+        {/* US-0819 : les Élevages qui suivront celui en cours, chacun sa quantité et l'heure de sa dernière Bête. */}
+        {file.suite.length > 0 ? (
+          <section aria-labelledby={idFile} className={styles.file}>
+            <h3 id={idFile} className={kit.etiquette}>
+              File
+            </h3>
+            <ol className={styles.listeFile}>
+              {file.suite.map((e, i) => (
+                <li key={i}>
+                  <span className={styles.quantiteEnFile}>{`${enEntier(e.quantite)} ${e.quantite > 1 ? "Bêtes" : "Bête"}`}</span>
+                  <span className={styles.finEnFile}>{quand(finDeLElevage(e), lancement)}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ) : null}
+        {suiviAffiche ? null : eleveur !== null ? (
+          <p className={styles.eleveur}>
+            Éleveur : <strong className={styles.prenom}>{eleveur}</strong>
+          </p>
         ) : (
-          <>
-            {eleveur !== null ? (
-              <p className={styles.eleveur}>
-                Éleveur : <strong className={styles.prenom}>{eleveur}</strong>
-              </p>
-            ) : (
-              <p id={idSansEleveur} className={styles.eleveur}>
-                Aucun éleveur libre.{" "}
-                <Link href="/jeu/habitants" className={kit.lien}>
-                  Habitants
-                </Link>
-              </p>
-            )}
-            <form
-              action={envoyer}
-              onSubmit={() => setDemandee(texte)}
-              onFocus={() => setFormulaireALaMain(true)}
-              onBlur={() => setFormulaireALaMain(false)}
-              className={styles.formulaire}
-            >
-              <input type="hidden" name="espece" value={especeId} />
-              <div className={styles.quantite}>
-                <label htmlFor={idQuantite} className={kit.etiquette}>
-                  Quantité
-                </label>
-                <div className={styles.reglage}>
-                  <span className={`${kit.pas} ${kit.pasGrand} ${styles.pas}`}>
-                    <button
-                      type="button"
-                      className={`${kit.pasBouton} ${styles.pasBouton}`}
-                      aria-label="Une Bête de moins"
-                      disabled={quantite === null || quantite <= 1}
-                      onClick={() => choisir(quantite! - 1)}
-                    >
-                      −
-                    </button>
-                    <input
-                      id={idQuantite}
-                      name="quantite"
-                      className={`${kit.pasValeur} ${styles.champ}`}
-                      inputMode="numeric"
-                      maxLength={String(QUANTITE_LA_PLUS_GRANDE).length}
-                      autoComplete="off"
-                      enterKeyHint="done"
-                      value={texte}
-                      onChange={(e) => {
-                        setTexte(e.target.value);
-                        setQuitte(false);
-                        setAnnonce("");
-                        setDemandee(null);
-                      }}
-                      onBlur={() => setQuitte(true)}
-                      aria-invalid={refusee ? true : undefined}
-                      aria-describedby={refusee ? idQuantiteRefusee : undefined}
-                    />
-                    <button
-                      type="button"
-                      className={`${kit.pasBouton} ${styles.pasBouton}`}
-                      aria-label="Une Bête de plus"
-                      disabled={quantite !== null && quantite >= QUANTITE_LA_PLUS_GRANDE}
-                      onClick={() => choisir((quantite ?? 0) + 1)}
-                    >
-                      +
-                    </button>
-                  </span>
-                  <button type="button" className={`${kit.bouton} ${kit.secondaire} ${styles.max}`} disabled={plafond < 1} onClick={() => choisir(plafond)}>
-                    Max
-                  </button>
-                </div>
-                <output className={styles.annonce}>{annonceDuBloc}</output>
-                {refusee ? (
-                  <p id={idQuantiteRefusee} className={styles.refus} role="alert">
-                    {QUANTITE_REFUSEE}
-                  </p>
-                ) : null}
-              </div>
-              <dl className={`${kit.cles} ${styles.cout}`}>
-                <dt>Coût</dt>
-                <dd>{quantite === null ? AUCUNE : `${enEntier(elevage.cout * quantite)} ${elevage.nourriture}`}</dd>
-                <dt>Durée par Bête</dt>
-                <dd>{formaterMinutes(elevage.dureeMinutes)}</dd>
-                <dt>Durée totale</dt>
-                <dd>{quantite === null ? AUCUNE : formaterMinutes(quantite * elevage.dureeMinutes)}</dd>
-                <dt>Dernière Bête</dt>
-                <dd>{derniere === null || Number.isNaN(derniere.getTime()) ? AUCUNE : quand(derniere, lancement)}</dd>
-              </dl>
-              {ceQuiManque ? (
-                <p id={idManque} className={styles.manque}>
-                  {ceQuiManque}
-                </p>
-              ) : null}
-              <button
-                type="submit"
-                className={`${kit.bouton} ${kit.principal} ${kit.grand} ${styles.bouton}`}
-                disabled={eleveur === null || quantite === null || manque > 0 || enCours}
-                aria-describedby={[eleveur === null ? idSansEleveur : null, ceQuiManque ? idManque : null, refusEnCours ? idRefus : null].filter(Boolean).join(" ") || undefined}
-              >
-                Élever
-              </button>
-              {refusEnCours ? (
-                <p id={idRefus} className={styles.refus} role="alert">
-                  {refusEnCours}
-                </p>
-              ) : null}
-            </form>
-          </>
+          <p id={idSansEleveur} className={styles.eleveur}>
+            Aucun éleveur libre.{" "}
+            <Link href="/jeu/habitants" className={kit.lien}>
+              Habitants
+            </Link>
+          </p>
         )}
+        <form
+          action={envoyer}
+          onSubmit={() => setDemandee(texte)}
+          onFocus={() => setFormulaireALaMain(true)}
+          onBlur={() => setFormulaireALaMain(false)}
+          className={styles.formulaire}
+        >
+          <input type="hidden" name="espece" value={especeId} />
+          {suiviAffiche ? <input type="hidden" name="file" value="1" /> : null}
+          <div className={styles.quantite}>
+            <label htmlFor={idQuantite} className={kit.etiquette}>
+              Quantité
+            </label>
+            <div className={styles.reglage}>
+              <span className={`${kit.pas} ${kit.pasGrand} ${styles.pas}`}>
+                <button
+                  type="button"
+                  className={`${kit.pasBouton} ${styles.pasBouton}`}
+                  aria-label="Une Bête de moins"
+                  disabled={quantite === null || quantite <= 1}
+                  onClick={() => choisir(quantite! - 1)}
+                >
+                  −
+                </button>
+                <input
+                  id={idQuantite}
+                  name="quantite"
+                  className={`${kit.pasValeur} ${styles.champ}`}
+                  inputMode="numeric"
+                  maxLength={String(QUANTITE_LA_PLUS_GRANDE).length}
+                  autoComplete="off"
+                  enterKeyHint="done"
+                  value={texte}
+                  onChange={(e) => {
+                    setTexte(e.target.value);
+                    setQuitte(false);
+                    setAnnonce("");
+                    setDemandee(null);
+                  }}
+                  onBlur={() => setQuitte(true)}
+                  aria-invalid={refusee ? true : undefined}
+                  aria-describedby={refusee ? idQuantiteRefusee : undefined}
+                />
+                <button
+                  type="button"
+                  className={`${kit.pasBouton} ${styles.pasBouton}`}
+                  aria-label="Une Bête de plus"
+                  disabled={quantite !== null && quantite >= QUANTITE_LA_PLUS_GRANDE}
+                  onClick={() => choisir((quantite ?? 0) + 1)}
+                >
+                  +
+                </button>
+              </span>
+              <button type="button" className={`${kit.bouton} ${kit.secondaire} ${styles.max}`} disabled={plafond < 1} onClick={() => choisir(plafond)}>
+                Max
+              </button>
+            </div>
+            <output className={styles.annonce}>{annonceDuBloc}</output>
+            {refusee ? (
+              <p id={idQuantiteRefusee} className={styles.refus} role="alert">
+                {QUANTITE_REFUSEE}
+              </p>
+            ) : null}
+          </div>
+          <dl className={`${kit.cles} ${styles.cout}`}>
+            <dt>Coût</dt>
+            <dd>{quantite === null ? AUCUNE : `${enEntier(elevage.cout * quantite)} ${elevage.nourriture}`}</dd>
+            <dt>Durée par Bête</dt>
+            <dd>{formaterMinutes(elevage.dureeMinutes)}</dd>
+            <dt>Durée totale</dt>
+            <dd>{quantite === null ? AUCUNE : formaterMinutes(quantite * elevage.dureeMinutes)}</dd>
+            <dt>Dernière Bête</dt>
+            <dd>{derniere === null || Number.isNaN(derniere.getTime()) ? AUCUNE : quand(derniere, lancement)}</dd>
+          </dl>
+          {ceQuiManque ? (
+            <p id={idManque} className={styles.manque}>
+              {ceQuiManque}
+            </p>
+          ) : null}
+          {suiviAffiche && file.pleine ? (
+            <p id={idFilePleine} className={styles.manque}>
+              {FILE_PLEINE}
+            </p>
+          ) : null}
+          <button
+            type="submit"
+            className={`${kit.bouton} ${kit.principal} ${kit.grand} ${styles.bouton}`}
+            disabled={!peutPartir || quantite === null || manque > 0 || enCours}
+            aria-describedby={
+              [
+                !suiviAffiche && eleveur === null ? idSansEleveur : null,
+                suiviAffiche && file.pleine ? idFilePleine : null,
+                ceQuiManque ? idManque : null,
+                refusEnCours ? idRefus : null,
+              ]
+                .filter(Boolean)
+                .join(" ") || undefined
+            }
+          >
+            {suiviAffiche ? "Ajouter à la file" : "Élever"}
+          </button>
+          {refusEnCours ? (
+            <p id={idRefus} className={styles.refus} role="alert">
+              {refusEnCours}
+            </p>
+          ) : null}
+        </form>
         <p className={styles.lance} role="status">
-          {lance && lanceNouveau ? `Élevage lancé : ${lance.quantite} ${lance.quantite > 1 ? "Bêtes" : "Bête"}, confié à ${lance.eleveur}.` : ""}
+          {lance && lanceNouveau
+            ? `${lance.enFile ? "Élevage ajouté à la file" : "Élevage lancé"} : ${lance.quantite} ${lance.quantite > 1 ? "Bêtes" : "Bête"}, confié à ${lance.eleveur}.`
+            : ""}
         </p>
       </Bloc>
     </div>

@@ -12,16 +12,25 @@ const chefs = vi.hoisted(() => ({
 vi.mock("@/chefs/chef", () => chefs);
 // L'Élevage acquis, lu sur base (actions.db.test.ts) ; le message du refus reste le vrai.
 // US-0843 : l'éleveur libre aussi, lu sur base (src/monde/eleveur.db.test.ts) ; Brune d'abord.
+// US-0819 : l'éleveur de l'Espèce aussi, celui dont la file reçoit l'Élevage ajouté ; aucun d'abord.
 const elevage = vi.hoisted(() => ({
   elevageAcquis: vi.fn(async () => false),
   eleveurLibre: vi.fn(async (): Promise<{ id: number; prenom: string } | null> => ({ id: 5, prenom: "Brune" })),
+  eleveurDeLEspece: vi.fn(async (): Promise<{ id: number; prenom: string } | null> => null),
 }));
-vi.mock("@/monde/elevage", async (original) => ({ ...(await original<object>()), elevageAcquis: elevage.elevageAcquis, eleveurLibre: elevage.eleveurLibre }));
+vi.mock("@/monde/elevage", async (original) => ({
+  ...(await original<object>()),
+  elevageAcquis: elevage.elevageAcquis,
+  eleveurLibre: elevage.eleveurLibre,
+  eleveurDeLEspece: elevage.eleveurDeLEspece,
+}));
 // US-0815 : le lancement, sur base (src/monde/lancer-un-elevage.db.test.ts) : ici, ce que l'action lui passe et ce qu'elle en dit.
 const lancement = vi.hoisted(() => ({
-  lancerUnElevage: vi.fn(async (_pool: unknown, _territoireId: number, _especeId: string, quantite: number): Promise<{ lance: { quantite: number; eleveur: string } } | { refus: string }> => ({
-    lance: { quantite, eleveur: "Brune" },
-  })),
+  lancerUnElevage: vi.fn(
+    async (_pool: unknown, _territoireId: number, _especeId: string, quantite: number, _instant: Date, enFile = false): Promise<{ lance: { quantite: number; eleveur: string; enFile: boolean } } | { refus: string }> => ({
+      lance: { quantite, eleveur: "Brune", enFile },
+    }),
+  ),
 }));
 vi.mock("@/monde/lancer-un-elevage", async (original) => ({ ...(await original<object>()), lancerUnElevage: lancement.lancerUnElevage }));
 const cache = vi.hoisted(() => ({ refresh: vi.fn() }));
@@ -36,7 +45,7 @@ import { elever } from "./actions";
 import { QUANTITE_REFUSEE } from "./quantite";
 
 /** US-0815 : ce que dit l'action d'un Élevage de `quantite` Bêtes lancé, confié à Brune. */
-const LANCE = (quantite: number) => ({ refus: null, lance: { quantite, eleveur: "Brune" } });
+const LANCE = (quantite: number, enFile = false) => ({ refus: null, lance: { quantite, eleveur: "Brune", enFile } });
 
 /** Un Élevage demandé pour l'Espèce `espece`, comme le bloc « Élever » l'envoie (une Bête d'abord), ou par tout autre chemin. */
 const demander = (espece: string | null, quantite: string | null = "1") => {
@@ -206,7 +215,7 @@ describe("lancer l'Élevage (US-0815)", () => {
     formulaire.set("quantite", "4");
     formulaire.set("territoire", "99");
     expect(await elever({ refus: null }, formulaire)).toEqual(LANCE(4));
-    expect(lancement.lancerUnElevage).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, "poule", 4, CLIC);
+    expect(lancement.lancerUnElevage).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, "poule", 4, CLIC, false);
     expect(cache.refresh).toHaveBeenCalledOnce();
   });
 
@@ -232,3 +241,49 @@ describe("lancer l'Élevage (US-0815)", () => {
   });
 });
 
+describe("ajouter un Élevage à la file (US-0819)", () => {
+  afterEach(() => {
+    elevage.elevageAcquis.mockReset();
+    elevage.eleveurLibre.mockReset();
+    elevage.eleveurLibre.mockResolvedValue({ id: 5, prenom: "Brune" });
+    elevage.eleveurDeLEspece.mockReset();
+    elevage.eleveurDeLEspece.mockResolvedValue(null);
+    lancement.lancerUnElevage.mockClear();
+    cache.refresh.mockReset();
+    cookie.jetonDeSession.mockReset();
+  });
+
+  const connecte = () => {
+    cookie.jetonDeSession.mockResolvedValue("jeton-de-session");
+    session.compteDeLaSession.mockResolvedValue({ id: 7, email: "nom@exemple.fr" });
+  };
+  /** Une demande d'ajout à la file de l'Espèce `espece`, comme « Ajouter à la file » l'envoie. */
+  const ajouter = (espece: string, quantite = "2") => {
+    const formulaire = new FormData();
+    formulaire.set("espece", espece);
+    formulaire.set("quantite", quantite);
+    formulaire.set("file", "1");
+    return elever({ refus: null }, formulaire);
+  };
+
+  it("passe la demande au lancement, qui l'ajoute à la file, même sans éleveur libre quand un éleveur s'occupe de l'Espèce", async () => {
+    connecte();
+    elevage.elevageAcquis.mockResolvedValue(true);
+    elevage.eleveurLibre.mockResolvedValue(null);
+    elevage.eleveurDeLEspece.mockResolvedValue({ id: 5, prenom: "Brune" });
+    expect(await ajouter("poule")).toEqual(LANCE(2, true));
+    expect(lancement.lancerUnElevage).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, "poule", 2, CLIC, true);
+    expect(elevage.eleveurDeLEspece).toHaveBeenCalledExactlyOnceWith(expect.anything(), 12, "poule");
+    expect(cache.refresh).toHaveBeenCalledOnce();
+  });
+
+  it("refuse d'avance, sans éleveur libre, quand personne n'élève l'Espèce ; et une demande sans « file » n'en cherche pas", async () => {
+    connecte();
+    elevage.elevageAcquis.mockResolvedValue(true);
+    elevage.eleveurLibre.mockResolvedValue(null);
+    expect(await ajouter("poule")).toEqual({ refus: ELEVAGE_SANS_ELEVEUR });
+    elevage.eleveurDeLEspece.mockResolvedValue({ id: 5, prenom: "Brune" });
+    expect(await demander("poule")).toEqual({ refus: ELEVAGE_SANS_ELEVEUR });
+    expect(lancement.lancerUnElevage).not.toHaveBeenCalled();
+  });
+});

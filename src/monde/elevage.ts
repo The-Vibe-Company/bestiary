@@ -50,3 +50,16 @@ export async function eleveurLibre(base: Pool | PoolClient, territoireId: number
   );
   return rows[0] ?? null;
 }
+
+/**
+ * US-0819 : l'éleveur du Territoire qui s'occupe de l'Espèce `especeId` (habitant.espece_elevee, posée au lancement), à qui
+ * un Élevage ajouté à la file sera confié ; null quand aucun ne l'élève. Une simple lecture, pour le refus d'avance : le
+ * lancement le relit et le tient (lancer-un-elevage.ts).
+ */
+export async function eleveurDeLEspece(base: Pool | PoolClient, territoireId: number, especeId: string): Promise<{ id: number; prenom: string } | null> {
+  const { rows } = await base.query<{ id: number; prenom: string }>("select id, prenom from habitant where territoire_id = $1 and espece_elevee = $2 order by id limit 1", [
+    territoireId,
+    especeId,
+  ]);
+  return rows[0] ?? null;
+}

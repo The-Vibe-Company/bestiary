@@ -6,9 +6,10 @@ import type { ElevageEnCours } from "./suivi-d-elevage";
 
 /**
  * US-0818 : les Élevages du Territoire en cours à l'heure du jeu `instant`, ceux dont la dernière Bête n'est pas née
- * (un Élevage fini reste en base, src/monde/naissances.ts) : un par éleveur, rangés par prénom de l'éleveur comme la
- * liste des Habitants, ceux dont l'éleveur n'est plus là en dernier. Une simple lecture : l'heure du jeu suffit à dire où
- * chacun en est, que le temps ait été rattrapé ou non.
+ * (un Élevage fini reste en base, src/monde/naissances.ts), rangés par prénom de l'éleveur comme la liste des Habitants,
+ * ceux dont l'éleveur n'est plus là en dernier. US-0819 : un éleveur peut en avoir plusieurs, sa file : celui en cours,
+ * puis ceux qui le suivront, dans l'ordre de leur lancement (laFile, src/monde/suivi-d-elevage.ts). Une simple lecture :
+ * l'heure du jeu suffit à dire où chacun en est, que le temps ait été rattrapé ou non.
  */
 export async function elevagesEnCours(base: Pool | PoolClient, territoireId: number, instant: Date): Promise<ElevageEnCours[]> {
   const { rows } = await base.query<ElevageEnCours>(

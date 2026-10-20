@@ -1,17 +1,26 @@
-// Le lancement d'un Élevage (US-0815) : ce que fait le bouton « Élever ». Côté serveur uniquement.
+// Le lancement d'un Élevage (US-0815) : ce que fait le bouton « Élever ». US-0819 : et l'ajout d'un Élevage à la file de
+// l'éleveur de l'Espèce, « Ajouter à la file ». Côté serveur uniquement.
 import "server-only";
 import type { Pool, PoolClient } from "pg";
+import { ELEVAGES_PAR_FILE_AU_PLUS } from "@/reglages";
 import { coutDUneBeteElevee, dureeDUneBeteEleveeMinutes, nourritureQuiPaie } from "./cout-d-elevage";
 import type { Regime } from "./effectif";
 import { ELEVAGE_SANS_COUPLE, ELEVAGE_SANS_ELEVEUR, elevageAcquis } from "./elevage";
 import { ELEVEUR_LIBRE_EN_SQL } from "./etat-habitant";
 import { ilManque } from "./payer-un-elevage";
+import { FILE_PLEINE } from "./suivi-d-elevage";
 
-/** US-0815 : le refus d'un Élevage d'une Espèce qui a déjà le sien en cours : une Espèce n'a qu'un éleveur à la fois (US-0844). */
+/**
+ * US-0815 : le refus d'un Élevage d'une Espèce qui a déjà le sien en cours : une Espèce n'a qu'un éleveur à la fois
+ * (US-0844). US-0819 : sauf à l'ajouter à la file, ce que la demande dit (`enFile`).
+ */
 export const ELEVAGE_DEJA_EN_COURS = "Un Élevage de cette Espèce est déjà en cours.";
 
-/** US-0815 : un Élevage lancé, ce que le joueur en lit (combien de Bêtes, et l'éleveur qui s'en occupe), ou son refus. */
-export type Lancement = { lance: { quantite: number; eleveur: string } } | { refus: string };
+/**
+ * US-0815 : un Élevage lancé, ce que le joueur en lit (combien de Bêtes, et l'éleveur qui s'en occupe), ou son refus.
+ * US-0819 : `enFile`, quand il a pris place dans la file de l'éleveur, derrière l'Élevage en cours.
+ */
+export type Lancement = { lance: { quantite: number; eleveur: string; enFile: boolean } } | { refus: string };
 
 /** Un lancement refusé : rien n'est retenu, rien n'est payé, et le joueur lit pourquoi. */
 class Refus extends Error {}
@@ -29,8 +38,15 @@ class Refus extends Error {}
  * Tout tient dans une transaction : un lancement refusé ne retient rien et ne fait rien payer. Le Territoire y est tenu
  * d'abord, comme pour le départ d'une Expédition (US-0911) : deux lancements envoyés au même instant (un double clic)
  * passent l'un après l'autre, et le second relit ce que le premier a pris : un seul Élevage, payé une fois.
+ *
+ * US-0819 : pendant l'Élevage de l'Espèce, une demande qui le dit (`enFile`, le bouton « Ajouter à la file ») ajoute
+ * l'Élevage à la file de son éleveur : payé aussitôt, confié au même éleveur, il part à la fin du dernier de la file,
+ * sans temps mort (son `lance_le`, fixé ici : rien d'autre ne se retient). ELEVAGES_PAR_FILE_AU_PLUS par file, celui en
+ * cours compris : au-delà, refus (FILE_PLEINE). Sans Élevage en cours, la même demande lance l'Élevage comme une autre.
+ * Une demande qui ne le dit pas est refusée pendant l'Élevage, comme avant (ELEVAGE_DEJA_EN_COURS) : un double clic sur
+ * « Élever » ne fait pas une file.
  */
-export async function lancerUnElevage(pool: Pool, territoireId: number, especeId: string, quantite: number, instant: Date): Promise<Lancement> {
+export async function lancerUnElevage(pool: Pool, territoireId: number, especeId: string, quantite: number, instant: Date, enFile = false): Promise<Lancement> {
   const client = await pool.connect();
   try {
     await client.query("begin");
@@ -43,7 +59,7 @@ export async function lancerUnElevage(pool: Pool, territoireId: number, especeId
       [territoireId],
     );
     const depart = rows[0] && rows[0].calcule.getTime() > instant.getTime() ? rows[0].calcule : instant;
-    const lance = await lancer(client, territoireId, especeId, quantite, depart);
+    const lance = await lancer(client, territoireId, especeId, quantite, depart, enFile);
     await client.query("commit");
     return { lance };
   } catch (erreur) {
@@ -56,20 +72,47 @@ export async function lancerUnElevage(pool: Pool, territoireId: number, especeId
 }
 
 /** US-0815 : le lancement, dans la transaction de lancerUnElevage ; un Refus l'annule. */
-async function lancer(client: PoolClient, territoireId: number, especeId: string, quantite: number, instant: Date): Promise<{ quantite: number; eleveur: string }> {
+async function lancer(
+  client: PoolClient,
+  territoireId: number,
+  especeId: string,
+  quantite: number,
+  instant: Date,
+  enFile: boolean,
+): Promise<{ quantite: number; eleveur: string; enFile: boolean }> {
   if (!Number.isInteger(quantite) || quantite < 1) throw new Error(`Quantité d'Élevage impossible : ${quantite}.`);
   if (!(await elevageAcquis(client, territoireId, especeId))) throw new Refus(ELEVAGE_SANS_COUPLE);
-  const { rowCount: enCours } = await client.query("select 1 from habitant where territoire_id = $1 and espece_elevee = $2", [territoireId, especeId]);
-  if (enCours) throw new Refus(ELEVAGE_DEJA_EN_COURS);
-
-  // L'éleveur libre, pris et tenu d'une seule requête : un changement de Métier envoyé au même instant attend, puis relit.
-  const { rows: pris } = await client.query<{ id: number; prenom: string }>(
-    `update habitant set espece_elevee = $2
-     where id = (select id from habitant where territoire_id = $1 and ${ELEVEUR_LIBRE_EN_SQL} order by prenom, id limit 1 for update)
-       and ${ELEVEUR_LIBRE_EN_SQL}
-     returning id, prenom`,
+  // US-0819 : l'éleveur qui s'occupe déjà de l'Espèce, tenu : la file est la sienne, et deux ajouts au même instant s'y
+  // rangent l'un derrière l'autre.
+  const { rows: occupes } = await client.query<{ id: number; prenom: string }>(
+    "select id, prenom from habitant where territoire_id = $1 and espece_elevee = $2 order by id limit 1 for no key update",
     [territoireId, especeId],
   );
+  const occupe = occupes[0];
+  if (occupe && !enFile) throw new Refus(ELEVAGE_DEJA_EN_COURS);
+  let debut = instant;
+  if (occupe) {
+    // Sa file : ses Élevages de l'Espèce qui ne sont pas finis à l'instant ; le nouveau partira à la fin du dernier.
+    const { rows: file } = await client.query<{ combien: number; fin: Date | null }>(
+      `select count(*)::int as combien, max(lance_le + (quantite::float8 * duree_minutes) * interval '1 minute') as fin
+       from elevage where eleveur_id = $1 and espece_id = $2
+         and lance_le + (quantite::float8 * duree_minutes) * interval '1 minute' > $3`,
+      [occupe.id, especeId, instant],
+    );
+    if (file[0].combien >= ELEVAGES_PAR_FILE_AU_PLUS) throw new Refus(FILE_PLEINE);
+    if (file[0].fin !== null && file[0].fin.getTime() > debut.getTime()) debut = file[0].fin;
+  }
+
+  // L'éleveur libre, pris et tenu d'une seule requête : un changement de Métier envoyé au même instant attend, puis relit.
+  const { rows: pris } = occupe
+    ? { rows: [occupe] }
+    : await client.query<{ id: number; prenom: string }>(
+        `update habitant set espece_elevee = $2
+         where id = (select id from habitant where territoire_id = $1 and ${ELEVEUR_LIBRE_EN_SQL} order by prenom, id limit 1 for update)
+           and ${ELEVEUR_LIBRE_EN_SQL}
+         returning id, prenom`,
+        [territoireId, especeId],
+      );
   if (!pris[0]) throw new Refus(ELEVAGE_SANS_ELEVEUR);
 
   const { rows: especes } = await client.query<{ regime: Regime; entretienParHeure: number; taille: number }>(
@@ -82,9 +125,9 @@ async function lancer(client: PoolClient, territoireId: number, especeId: string
 
   await client.query(
     `insert into elevage (territoire_id, espece_id, eleveur_id, quantite, duree_minutes, cout, lance_le) values ($1, $2, $3, $4, $5, $6, $7)`,
-    [territoireId, especeId, pris[0].id, quantite, dureeDUneBeteEleveeMinutes(taille), cout, instant],
+    [territoireId, especeId, pris[0].id, quantite, dureeDUneBeteEleveeMinutes(taille), cout, debut],
   );
-  return { quantite, eleveur: pris[0].prenom };
+  return { quantite, eleveur: pris[0].prenom, enFile: occupe !== undefined };
 }
 
 /**

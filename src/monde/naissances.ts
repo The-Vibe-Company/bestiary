@@ -20,10 +20,13 @@ const impairs = (n: number) => Math.floor((n + 1) / 2);
  * Quand la dernière naît, l'Élevage est fini : un Récit le dit, à l'instant de cette naissance (recitDElevage), et
  * l'éleveur redevient libre (habitant.espece_elevee) ; le temps qui avance s'arrête à cet instant (prochaineFinDElevage). Aucune limite de Places : les Bêtes nées s'ajoutent, même au-delà
  * de ce que l'Habitat offre (US-0825 bloquera l'Élevage, au lancement). Dans la transaction du temps qui avance.
+ * US-0819 : l'éleveur dont la file continue (un autre de ses Élevages finit plus tard) reste à l'Élevage : le suivant
+ * part à cet instant même.
  */
 export async function faireNaitreLesBetes(client: PoolClient, territoireId: number, depuis: Date, jusqua: Date): Promise<void> {
   // Les naissances déjà faites en `depuis`, et celles faites en `jusqua`, comptées en secondes exactes (numeric).
   const { rows } = await client.query<{
+    id: number;
     especeId: string;
     nom: string;
     eleveurId: number | null;
@@ -32,7 +35,7 @@ export async function faireNaitreLesBetes(client: PoolClient, territoireId: numb
     apres: string;
     fin: Date;
   }>(
-    `select e.espece_id as "especeId", es.nom, e.eleveur_id as "eleveurId", e.quantite,
+    `select e.id, e.espece_id as "especeId", es.nom, e.eleveur_id as "eleveurId", e.quantite,
        greatest(0, floor(extract(epoch from ($2::timestamptz - e.lance_le)) / (e.duree_minutes * 60)))::text as avant,
        least(e.quantite, floor(extract(epoch from ($3::timestamptz - e.lance_le)) / (e.duree_minutes * 60)))::text as apres,
        e.lance_le + (e.quantite::float8 * e.duree_minutes) * interval '1 minute' as fin
@@ -43,7 +46,7 @@ export async function faireNaitreLesBetes(client: PoolClient, territoireId: numb
      order by e.lance_le, e.id`,
     [territoireId, depuis, jusqua],
   );
-  for (const { especeId, nom, eleveurId, quantite, avant, apres, fin } of rows) {
+  for (const { id, especeId, nom, eleveurId, quantite, avant, apres, fin } of rows) {
     const [deja, faites] = [Number(avant), Number(apres)];
     if (faites <= deja) continue;
     const femelles = impairs(faites) - impairs(deja);
@@ -53,7 +56,13 @@ export async function faireNaitreLesBetes(client: PoolClient, territoireId: numb
     ]);
     if (faites < quantite) continue;
     await ecrireUnRecit(client, territoireId, recitDElevage(quantite, nom, fin));
-    if (eleveurId !== null) await client.query("update habitant set espece_elevee = null where id = $1 and espece_elevee = $2", [eleveurId, especeId]);
+    if (eleveurId !== null) {
+      await client.query(
+        `update habitant set espece_elevee = null where id = $1 and espece_elevee = $2
+           and not exists (select 1 from elevage x where x.eleveur_id = $1 and x.id <> $3 and x.lance_le + (x.quantite::float8 * x.duree_minutes) * interval '1 minute' > $4)`,
+        [eleveurId, especeId, id, fin],
+      );
+    }
   }
 }
 

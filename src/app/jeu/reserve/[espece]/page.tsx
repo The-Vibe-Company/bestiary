@@ -129,7 +129,7 @@ export default async function FicheDeLEspece({
           Fermer
         </Link>
       </article>
-      {territoireId !== null && (await elevageAcquis(getPool(), territoireId, espece)) ? <BlocElever especeId={espece} places={await placesDeLHabitat(getPool(), territoireId)} nourriture={await nourritureDuRegime(getPool(), territoireId, fiche.regime)} eleveur={(await eleveurLibre(getPool(), territoireId))?.prenom ?? null} elevage={{ cout: coutDUneBeteElevee(fiche.entretienParHeure), nourriture: REGIMES[fiche.regime].nourriture, dureeMinutes: dureeDUneBeteEleveeMinutes(fiche.taille) }} elevageEnCours={(await elevagesEnCours(getPool(), territoireId, instant)).find((e) => e.especeId === espece) ?? null} maintenant={instant} vitesse={vitesse()} /> : null}
+      {territoireId !== null && (await elevageAcquis(getPool(), territoireId, espece)) ? <BlocElever especeId={espece} places={await placesDeLHabitat(getPool(), territoireId)} nourriture={await nourritureDuRegime(getPool(), territoireId, fiche.regime)} eleveur={(await eleveurLibre(getPool(), territoireId))?.prenom ?? null} elevage={{ cout: coutDUneBeteElevee(fiche.entretienParHeure), nourriture: REGIMES[fiche.regime].nourriture, dureeMinutes: dureeDUneBeteEleveeMinutes(fiche.taille) }} elevages={(await elevagesEnCours(getPool(), territoireId, instant)).filter((e) => e.especeId === espece)} maintenant={instant} vitesse={vitesse()} /> : null}
     </main>
   );
 }

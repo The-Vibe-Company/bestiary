@@ -90,3 +90,34 @@ describe("les Élevages en cours, sur l'accueil (US-0818)", () => {
     expect(lignes()).toEqual([["Souris", "Aucun éleveur · prochaine dans 10 min", "0 / 2"]]);
   });
 });
+
+describe("la file d'un éleveur, sur l'accueil (US-0819)", () => {
+  afterEach(cleanup);
+
+  const bloc = () => screen.getByRole("heading", { name: "Élevages" }).closest("section")!;
+  const lignes = () =>
+    within(bloc())
+      .queryAllByRole("listitem")
+      .map((li) => [...li.querySelectorAll("span")].filter((s) => s.children.length === 0 && s.textContent).map((s) => s.textContent));
+  /** Deux Élevages de poules qui suivront celui de Brune, lancés l'un à la fin de l'autre. */
+  const SUITE = [
+    { ...POULES, quantite: 2, lanceLe: new Date(POULES.lanceLe.getTime() + 3 * 474 * MINUTE) },
+    { ...POULES, quantite: 1, lanceLe: new Date(POULES.lanceLe.getTime() + 5 * 474 * MINUTE) },
+  ];
+
+  it("ne montre qu'une ligne par Espèce, celle de l'Élevage en cours, et dit combien le suivront", () => {
+    render(<ElevagesEnCours elevages={[POULES, ...SUITE, SOURIS]} maintenant={MAINTENANT} />);
+    expect(lignes()).toEqual([
+      ["Poule", "Brune · prochaine dans 7 h 28 · 2 en file", "1 / 3"],
+      ["Souris", "Hael · prochaine dans 10 min", "0 / 2"],
+    ]);
+  });
+
+  it("passe au suivant de la file quand l'Élevage en cours finit, sans recharger", async () => {
+    vi.useFakeTimers();
+    render(<ElevagesEnCours elevages={[POULES, ...SUITE]} maintenant={MAINTENANT} vitesse={60} />);
+    // La dernière des trois poules naît 922 minutes de jeu après l'affichage : le suivant, deux poules, est en cours.
+    await act(async () => vi.advanceTimersByTime(922_000));
+    expect(lignes()).toEqual([["Poule", "Brune · prochaine dans 7 h 54 · 1 en file", "0 / 2"]]);
+  });
+});

@@ -47,6 +47,49 @@
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * US-0819 : la file des Élevages qui suivront celui en cours, sous son suivi : son étiquette, puis chaque Élevage sur sa
+ * ligne, sa quantité en crème à gauche, l'heure de sa dernière Bête en mousse à droite, séparées d'un filet.
+ */
+.file {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.listeFile {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.listeFile li {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-top: 1px solid var(--filet-cuivre-doux);
+}
+
+.listeFile li:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.quantiteEnFile {
+  color: var(--creme);
+  font: var(--graisse-titre) 14px / 1.3 var(--police);
+  font-variant-numeric: tabular-nums;
+}
+
+.finEnFile {
+  color: var(--mousse);
+  font: var(--graisse-moyenne) 13px / 1.3 var(--police);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
 /* Le bouton sous le compteur. */
 .formulaire {
   margin-top: 14px;
