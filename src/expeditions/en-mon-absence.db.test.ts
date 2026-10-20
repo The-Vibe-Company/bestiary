@@ -227,6 +227,10 @@ describe.skipIf(!URL_TEST)("une Expédition vécue en mon absence (US-0922, sur 
         [id, ["Joran", "Ilda", "Mael", "Nora", "Tibo"]],
       );
       await pool.query("insert into effectif (territoire_id, espece_id, sexe, nombre) values ($1, $2, 'male', 2)", [id, forte.id]);
+      // US-0826 : les deux Bêtes mangent, et l'Espèce la plus forte du jeu mange des milliers de Végétaux par heure : ils
+      // sont à elle, et la Viande seule nourrit les explorateurs. De quoi tenir toute l'absence sans Famine, qui ferait
+      // partir un explorateur : l'essai ne parle pas de Nourriture.
+      await pool.query("update stock set quantite = 1000000, limite = 10000000 where territoire_id = $1 and ressource_id = 'viande'", [id]);
       const { rows } = await pool.query<{ foyer: Coordonnees; naissance: (Coordonnees & { id: number })[] }>(
         `select json_build_object('q', f.q, 'r', f.r) as foyer,
            coalesce((select json_agg(json_build_object('id', c.id, 'q', c.q, 'r', c.r) order by n.id)
