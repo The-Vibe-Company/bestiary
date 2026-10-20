@@ -936,15 +936,38 @@ describe("choisir la destination d'une Expédition sur la carte (US-0907)", () =
     expect(routeur.push).toHaveBeenCalledExactlyOnceWith(`/jeu/expeditions/nouvelle?q=${AUTOUR[2].q}&r=${AUTOUR[2].r}&sejour=60`);
   });
 
-  it("partie vers l'écran, n'écoute plus les touchers, ni fiche ni second départ, même quand la fiche se redessine (retour d'Antoine, 2026-10-15)", async () => {
-    render(<CarteDuJeu carte={CARTE} fonds={FONDS} destination="choix=destination" />);
+  it("partie vers l'écran, n'écoute plus les touchers, ni fiche ni second départ, même quand la carte se redessine (retour d'Antoine, 2026-10-15)", async () => {
+    const { rerender } = render(<CarteDuJeu carte={CARTE} fonds={FONDS} destination="choix=destination" />);
     cliquer(AUTOUR[1]);
     await act(async () => fiches[0].repondre(FORET));
     expect(routeur.push).toHaveBeenCalledOnce();
     cliquer(AUTOUR[2]);
     expect(fiches).toHaveLength(1);
+    rerender(<CarteDuJeu carte={CARTE} fonds={FONDS} destination="choix=destination" />);
     act(() => suivi!.annoncer());
     expect(routeur.push).toHaveBeenCalledOnce();
+  });
+
+  it("restée montée quand le choix s'arrête ou recommence, oublie son départ et ferme la fiche : elle écoute de nouveau, sans repartir d'elle-même", async () => {
+    const { rerender } = render(<CarteDuJeu carte={CARTE} fonds={FONDS} destination="choix=destination" />);
+    cliquer(AUTOUR[1]);
+    await act(async () => fiches[0].repondre(FORET));
+    expect(routeur.push).toHaveBeenCalledOnce();
+    // Le joueur ouvre la carte depuis la navigation avant que l'écran d'Expédition n'arrive : la même carte, sans choix.
+    rerender(<CarteDuJeu carte={CARTE} fonds={FONDS} destination={null} />);
+    expect(fiche()).toBeNull();
+    cliquer(AUTOUR[2]);
+    expect(fiches).toHaveLength(2);
+    await act(async () => fiches[1].repondre({ ...FORET, ...AUTOUR[2] }));
+    expect(lien("Envoyer une Expédition")).not.toBeNull();
+    expect(routeur.push).toHaveBeenCalledOnce();
+    // Puis revient en arrière, sur la carte ouverte pour choisir : rien ne part sans nouveau toucher.
+    rerender(<CarteDuJeu carte={CARTE} fonds={FONDS} destination="choix=destination" />);
+    expect(fiche()).toBeNull();
+    expect(routeur.push).toHaveBeenCalledOnce();
+    cliquer(AUTOUR[2]);
+    await act(async () => fiches[2].repondre({ ...FORET, ...AUTOUR[2] }));
+    expect(routeur.push).toHaveBeenCalledTimes(2);
   });
 
   it("ne part qu'une fois, même quand React rejoue ses effets en développement (StrictMode)", async () => {
